@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\Agent\AgentBookingController;
+use App\Http\Controllers\Api\Agent\AgentListingController;
+use App\Http\Controllers\Api\Agent\AgentSearchController;
+use App\Http\Controllers\Api\FeedController;
+use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\BookingController;
@@ -21,14 +26,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Health check endpoint (no auth required)
-Route::get('/health', function () {
-    return response()->json([
-        'status' => 'healthy',
-        'timestamp' => now()->toIso8601String(),
-        'version' => config('app.version', '0.1.0'),
-    ]);
-});
+// Health check endpoints (no auth required)
+Route::get('/health', [HealthController::class, 'index']);
+Route::get('/health/detailed', [HealthController::class, 'detailed'])->middleware('auth:sanctum');
 
 // Version prefix for API
 Route::prefix('v1')->group(function () {
@@ -80,4 +80,27 @@ Route::prefix('v1')->group(function () {
         // - Vendor listing management
         // - etc.
     });
+});
+
+// Agent API routes (authenticated via X-Agent-Key and X-Agent-Secret headers)
+Route::prefix('agent')->middleware(['agent.auth', 'agent.audit'])->group(function () {
+    // Listing endpoints
+    Route::get('listings', [AgentListingController::class, 'index']);
+    Route::get('listings/{listing}', [AgentListingController::class, 'show']);
+    Route::get('listings/{listing}/availability', [AgentListingController::class, 'availability']);
+
+    // Booking endpoints
+    Route::post('bookings', [AgentBookingController::class, 'store']);
+    Route::get('bookings/{booking}', [AgentBookingController::class, 'show']);
+    Route::post('bookings/{booking}/cancel', [AgentBookingController::class, 'cancel']);
+
+    // Search endpoint
+    Route::post('search', [AgentSearchController::class, 'search']);
+});
+
+// Public product feeds (no auth required)
+Route::prefix('feeds')->group(function () {
+    Route::get('listings.json', [FeedController::class, 'listingsJson']);
+    Route::get('listings.csv', [FeedController::class, 'listingsCsv']);
+    Route::get('availability.json', [FeedController::class, 'availabilityJson']);
 });
