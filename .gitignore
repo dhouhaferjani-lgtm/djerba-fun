@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+vendor/
+.pnpm-store/
+
+# Build outputs
+dist/
+.next/
+.turbo/
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.frontend.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+
+# Laravel
+storage/*.key
+storage/logs/*
+bootstrap/cache/*
+!storage/logs/.gitkeep
+!bootstrap/cache/.gitkeep
+
+# Docker
+docker/volumes/

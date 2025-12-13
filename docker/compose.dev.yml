@@ -1,0 +1,210 @@
+name: go-adventure
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: ga-postgres
+    environment:
+      POSTGRES_DB: go_adventure
+      POSTGRES_USER: go_adventure
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - '15432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U go_adventure']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for cache/queues/sessions
+  redis:
+    image: redis:7.2-alpine
+    container_name: ga-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - '16379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO (S3-compatible object storage)
+  minio:
+    image: minio/minio:latest
+    container_name: ga-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    volumes:
+      - minio_data:/data
+    ports:
+      - '9002:9000'
+      - '9003:9001'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # MeiliSearch (search engine)
+  meilisearch:
+    image: getmeili/meilisearch:v1.11
+    container_name: ga-meilisearch
+    environment:
+      MEILI_MASTER_KEY: masterkey123
+      MEILI_NO_ANALYTICS: 'true'
+    volumes:
+      - meilisearch_data:/meili_data
+    ports:
+      - '7701:7700'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:7700/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Mailpit (email testing)
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: ga-mailpit
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:8025']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Laravel API (Octane with FrankenPHP)
+  api:
+    build:
+      context: ../apps/laravel-api
+      dockerfile: ../../docker/services/octane/Dockerfile
+      target: development
+    container_name: ga-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      APP_DEBUG: 'true'
+      APP_URL: http://localhost:8000
+      APP_KEY: ${APP_KEY:-}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: go_adventure
+      DB_USERNAME: go_adventure
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      QUEUE_CONNECTION: redis
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      FILESYSTEM_DISK: minio
+      AWS_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: minio
+      AWS_SECRET_ACCESS_KEY: minio123
+      AWS_BUCKET: go-adventure
+      AWS_USE_PATH_STYLE_ENDPOINT: 'true'
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MEILISEARCH_HOST: http://meilisearch:7700
+      MEILISEARCH_KEY: masterkey123
+    volumes:
+      - ../apps/laravel-api:/var/www/html
+      - /var/www/html/vendor
+    ports:
+      - '8000:8000'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Laravel Queue Worker
+  queue:
+    build:
+      context: ../apps/laravel-api
+      dockerfile: ../../docker/services/queue/Dockerfile
+    container_name: ga-queue
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: go_adventure
+      DB_USERNAME: go_adventure
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      QUEUE_CONNECTION: redis
+    volumes:
+      - ../apps/laravel-api:/var/www/html
+      - /var/www/html/vendor
+    command: php artisan queue:work --sleep=3 --tries=3
+
+  # Horizon (Queue Dashboard)
+  horizon:
+    build:
+      context: ../apps/laravel-api
+      dockerfile: ../../docker/services/queue/Dockerfile
+    container_name: ga-horizon
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: go_adventure
+      DB_USERNAME: go_adventure
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      QUEUE_CONNECTION: redis
+    volumes:
+      - ../apps/laravel-api:/var/www/html
+      - /var/www/html/vendor
+    command: php artisan horizon
+
+  # Next.js Frontend
+  web:
+    build:
+      context: ../apps/web
+      dockerfile: ../../docker/services/web/Dockerfile
+      target: development
+    container_name: ga-web
+    depends_on:
+      - api
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+      NEXT_PUBLIC_DEFAULT_LOCALE: en
+    volumes:
+      - ../apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - '3000:3000'
+    command: pnpm dev
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  meilisearch_data:

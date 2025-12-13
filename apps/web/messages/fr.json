@@ -1,0 +1,65 @@
+{
+  "common": {
+    "search": "Rechercher",
+    "book_now": "Réserver",
+    "from": "À partir de",
+    "per_person": "par personne",
+    "reviews": "{count, plural, =0 {Aucun avis} =1 {1 avis} other {# avis}}",
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "retry": "Réessayer"
+  },
+  "home": {
+    "hero_title": "Découvrez Votre Prochaine Aventure",
+    "hero_subtitle": "Explorez des tours, événements et expériences inoubliables",
+    "search_placeholder": "Où voulez-vous aller ?",
+    "featured_tours": "Tours en Vedette",
+    "upcoming_events": "Événements à Venir",
+    "popular_destinations": "Destinations Populaires"
+  },
+  "listing": {
+    "highlights": "Points Forts",
+    "itinerary": "Itinéraire",
+    "included": "Inclus",
+    "not_included": "Non Inclus",
+    "meeting_point": "Point de Rencontre",
+    "duration": "Durée",
+    "difficulty": "Difficulté",
+    "group_size": "Taille du Groupe",
+    "check_availability": "Vérifier la Disponibilité"
+  },
+  "booking": {
+    "select_date": "Sélectionnez une Date",
+    "travelers": "Voyageurs",
+    "traveler_info": "Informations Voyageur",
+    "payment": "Paiement",
+    "confirm": "Confirmer la Réservation",
+    "total": "Total",
+    "first_name": "Prénom",
+    "last_name": "Nom",
+    "email": "Email",
+    "phone": "Téléphone",
+    "special_requests": "Demandes Spéciales"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "logout": "Déconnexion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "forgot_password": "Mot de passe oublié ?",
+    "create_account": "Créer un Compte"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "tours": "Tours",
+    "events": "Événements",
+    "about": "À Propos",
+    "contact": "Contact"
+  },
+  "footer": {
+    "copyright": "Go Adventure. Tous droits réservés.",
+    "terms": "Conditions d'Utilisation",
+    "privacy": "Politique de Confidentialité"
+  }
+}
