@@ -61,5 +61,39 @@
     "copyright": "Go Adventure. All rights reserved.",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy"
+  },
+  "availability": {
+    "select_date": "Select a Date",
+    "select_time": "Select a Time",
+    "available": "available",
+    "remaining_spots": "{count, plural, =1 {Only 1 spot left} other {Only # spots left}}",
+    "no_slots_available": "No time slots available for this date",
+    "hold_expires_in": "Time remaining to complete booking",
+    "hold_expired": "Hold Expired",
+    "hold_expired_message": "Your reservation hold has expired. Please select a new time slot.",
+    "hurry_last_minute": "Hurry! Less than 1 minute remaining",
+    "complete_booking_soon": "Please complete your booking soon",
+    "status": {
+      "available": "Available",
+      "limited": "Limited availability",
+      "sold_out": "Sold out",
+      "blocked": "Not available"
+    }
+  },
+  "map": {
+    "loading": "Loading map..."
+  },
+  "itinerary": {
+    "title": "Itinerary",
+    "stops": "Stops",
+    "duration": "Duration",
+    "distance": "Distance",
+    "from_previous": "from previous stop",
+    "elevation": "Elevation",
+    "elevation_profile": "Elevation Profile",
+    "max_elevation": "Max Elevation",
+    "min_elevation": "Min Elevation",
+    "total_ascent": "Total Ascent",
+    "total_descent": "Total Descent"
   }
 }
