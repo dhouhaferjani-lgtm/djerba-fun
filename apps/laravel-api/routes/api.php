@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\AvailabilityController;
+use App\Http\Controllers\Api\V1\HoldController;
 use App\Http\Controllers\Api\V1\ListingController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,11 +36,20 @@ Route::prefix('v1')->group(function () {
     Route::get('/listings', [ListingController::class, 'index']);
     Route::get('/listings/{listing:slug}', [ListingController::class, 'show']);
 
+    // Availability routes (public - anyone can view availability)
+    Route::get('/listings/{listing:slug}/availability', [AvailabilityController::class, 'index']);
+    Route::post('/listings/{listing:slug}/availability/refresh', [AvailabilityController::class, 'refresh']);
+
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
         // Auth routes (authenticated)
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
+
+        // Booking holds (require authentication)
+        Route::post('/listings/{listing:slug}/holds', [HoldController::class, 'store']);
+        Route::get('/listings/{listing:slug}/holds/{hold}', [HoldController::class, 'show']);
+        Route::delete('/listings/{listing:slug}/holds/{hold}', [HoldController::class, 'destroy']);
 
         // Additional protected routes will be added in later phases
         // - Booking management

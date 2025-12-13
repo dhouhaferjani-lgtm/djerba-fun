@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Translatable\HasTranslations;
@@ -130,6 +131,30 @@ class Listing extends Model
     public function media(): MorphMany
     {
         return $this->morphMany(Media::class, 'mediable')->orderBy('order');
+    }
+
+    /**
+     * Get the availability rules for the listing.
+     */
+    public function availabilityRules(): HasMany
+    {
+        return $this->hasMany(AvailabilityRule::class);
+    }
+
+    /**
+     * Get the availability slots for the listing.
+     */
+    public function availabilitySlots(): HasMany
+    {
+        return $this->hasMany(AvailabilitySlot::class);
+    }
+
+    /**
+     * Get the booking holds for the listing.
+     */
+    public function bookingHolds(): HasMany
+    {
+        return $this->hasMany(BookingHold::class);
     }
 
     /**
