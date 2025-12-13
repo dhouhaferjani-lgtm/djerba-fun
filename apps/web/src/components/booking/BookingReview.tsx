@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import type { TravelerInfo, ListingSummary, AvailabilitySlot } from '@go-adventure/schemas';
+import CouponInput from './CouponInput';
 
 interface Extra {
   id: string;
@@ -16,6 +17,10 @@ interface BookingReviewProps {
   travelerInfo: TravelerInfo;
   extras: Extra[];
   currency: string;
+  couponCode?: string;
+  couponDiscount?: number;
+  onCouponApply?: (code: string, discountAmount: number) => void;
+  onCouponRemove?: () => void;
   onEditTraveler?: () => void;
   onEditExtras?: () => void;
   onConfirm: () => void;
@@ -29,6 +34,10 @@ export function BookingReview({
   travelerInfo,
   extras,
   currency,
+  couponCode,
+  couponDiscount,
+  onCouponApply,
+  onCouponRemove,
   onEditTraveler,
   onEditExtras,
   onConfirm,
@@ -36,6 +45,7 @@ export function BookingReview({
   isProcessing = false,
 }: BookingReviewProps) {
   const t = useTranslations('booking');
+  const tDashboard = useTranslations('dashboard');
 
   const formatPrice = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -61,7 +71,9 @@ export function BookingReview({
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + calculateExtrasTotal();
+    const subtotal = calculateSubtotal() + calculateExtrasTotal();
+    const discount = couponDiscount || 0;
+    return Math.max(0, subtotal - discount);
   };
 
   return (
@@ -154,6 +166,20 @@ export function BookingReview({
         </div>
       )}
 
+      {/* Coupon Input */}
+      {onCouponApply && onCouponRemove && (
+        <div>
+          <CouponInput
+            listingId={listing.id}
+            amount={calculateSubtotal() + calculateExtrasTotal()}
+            onApply={onCouponApply}
+            onRemove={onCouponRemove}
+            appliedCode={couponCode}
+            appliedDiscount={couponDiscount}
+          />
+        </div>
+      )}
+
       {/* Price Breakdown */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
         <h3 className="font-semibold text-lg text-gray-900 mb-4">{t('price_breakdown')}</h3>
@@ -168,6 +194,12 @@ export function BookingReview({
               <span className="font-medium text-gray-900">
                 {formatPrice(calculateExtrasTotal())}
               </span>
+            </div>
+          )}
+          {couponDiscount && couponDiscount > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-green-600">{tDashboard('discount')}</span>
+              <span className="font-medium text-green-600">-{formatPrice(couponDiscount)}</span>
             </div>
           )}
           <div className="border-t pt-3">

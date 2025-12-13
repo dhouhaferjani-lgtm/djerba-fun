@@ -199,5 +199,46 @@
     "min_elevation": "Min Elevation",
     "total_ascent": "Total Ascent",
     "total_descent": "Total Descent"
+  },
+  "reviews": {
+    "title": "Reviews",
+    "write_review": "Write a Review",
+    "rating": "Rating",
+    "select_rating": "Select a rating",
+    "review_title": "Review Title",
+    "review_content": "Your Review",
+    "pros": "Pros",
+    "cons": "Cons",
+    "add_pro": "Add a pro",
+    "add_con": "Add a con",
+    "submit": "Submit Review",
+    "verified_booking": "Verified Booking",
+    "helpful": "Helpful",
+    "reply_from_vendor": "Reply from vendor",
+    "no_reviews": "No reviews yet",
+    "be_first": "Be the first to leave a review!",
+    "sort_newest": "Newest",
+    "sort_highest": "Highest Rated",
+    "sort_helpful": "Most Helpful",
+    "rating_breakdown": "Rating Breakdown",
+    "based_on": "Based on {count} reviews"
+  },
+  "vendor": {
+    "profile": "Vendor Profile",
+    "about": "About",
+    "listings": "Listings",
+    "member_since": "Member since",
+    "verified": "Verified Vendor",
+    "contact": "Contact Vendor"
+  },
+  "coupon": {
+    "enter_code": "Enter coupon code",
+    "apply": "Apply",
+    "applied": "Coupon applied!",
+    "discount": "Discount",
+    "remove": "Remove",
+    "invalid": "Invalid coupon code",
+    "expired": "This coupon has expired",
+    "minimum_order": "Minimum order of {amount} required"
   }
 }

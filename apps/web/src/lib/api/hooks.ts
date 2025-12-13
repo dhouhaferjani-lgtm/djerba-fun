@@ -1,6 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { authApi, listingsApi, bookingsApi, type ProcessPaymentRequest } from './client';
-import type { ListingSearchParams, CreateHoldRequest } from '@go-adventure/schemas';
+import {
+  authApi,
+  listingsApi,
+  bookingsApi,
+  reviewsApi,
+  couponsApi,
+  vendorsApi,
+  type ProcessPaymentRequest,
+} from './client';
+import type {
+  ListingSearchParams,
+  CreateHoldRequest,
+  CreateReviewRequest,
+} from '@go-adventure/schemas';
 
 // ============================================================================
 // AUTH HOOKS
@@ -157,5 +169,77 @@ export function useProcessPayment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
     },
+  });
+}
+
+// ============================================================================
+// REVIEWS HOOKS
+// ============================================================================
+
+export function useListingReviews(listingId: string, params?: { page?: number; sort?: string }) {
+  return useQuery({
+    queryKey: ['reviews', 'listing', listingId, params],
+    queryFn: () => reviewsApi.getForListing(listingId, params),
+    enabled: !!listingId,
+  });
+}
+
+export function useCreateReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ bookingId, request }: { bookingId: string; request: CreateReviewRequest }) =>
+      reviewsApi.create(bookingId, request),
+    onSuccess: (_, { bookingId }) => {
+      queryClient.invalidateQueries({ queryKey: ['bookings', bookingId] });
+      queryClient.invalidateQueries({ queryKey: ['reviews'] });
+    },
+  });
+}
+
+export function useMarkReviewHelpful() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: reviewsApi.markHelpful,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reviews'] });
+    },
+  });
+}
+
+// ============================================================================
+// COUPONS HOOKS
+// ============================================================================
+
+export function useValidateCoupon() {
+  return useMutation({
+    mutationFn: ({
+      code,
+      listingId,
+      amount,
+    }: {
+      code: string;
+      listingId: string;
+      amount: number;
+    }) => couponsApi.validate(code, listingId, amount),
+  });
+}
+
+// ============================================================================
+// VENDORS HOOKS
+// ============================================================================
+
+export function useVendorProfile(vendorId: string) {
+  return useQuery({
+    queryKey: ['vendors', vendorId],
+    queryFn: () => vendorsApi.getProfile(vendorId),
+    enabled: !!vendorId,
+  });
+}
+
+export function useVendorListings(vendorId: string, params?: { page?: number }) {
+  return useQuery({
+    queryKey: ['vendors', vendorId, 'listings', params],
+    queryFn: () => vendorsApi.getListings(vendorId, params),
+    enabled: !!vendorId,
   });
 }

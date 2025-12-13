@@ -609,14 +609,41 @@ export const reviewSchema = z.object({
     .default([]),
   isVerified: z.boolean().default(true),
   isPublished: z.boolean().default(true),
+  helpfulCount: z.number().int().nonnegative().default(0),
   vendorReply: z
     .object({
       content: z.string().max(1000),
       repliedAt: z.string().datetime(),
     })
     .nullable(),
+  user: z
+    .object({
+      displayName: z.string(),
+      avatarUrl: z.string().url().nullable(),
+    })
+    .nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+});
+
+export const createReviewRequestSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  title: z.string().min(5).max(100),
+  content: z.string().min(20).max(2000),
+  pros: z.array(z.string()).optional(),
+  cons: z.array(z.string()).optional(),
+});
+
+export const reviewSummarySchema = z.object({
+  averageRating: z.number().min(0).max(5),
+  totalCount: z.number().int().nonnegative(),
+  ratingBreakdown: z.object({
+    5: z.number().int().nonnegative(),
+    4: z.number().int().nonnegative(),
+    3: z.number().int().nonnegative(),
+    2: z.number().int().nonnegative(),
+    1: z.number().int().nonnegative(),
+  }),
 });
 
 // ============================================================================
@@ -636,6 +663,36 @@ export const couponSchema = z.object({
   validUntil: z.string().datetime().nullable(),
   applicableListings: z.array(z.string().uuid()).nullable(), // null = all
   isActive: z.boolean().default(true),
+});
+
+export const couponValidationSchema = z.object({
+  valid: z.boolean(),
+  discountAmount: z.number().int().nonnegative().optional(),
+  message: z.string().optional(),
+  coupon: z
+    .object({
+      code: z.string(),
+      discountType: z.enum(['percentage', 'fixed']),
+      discountValue: z.number(),
+    })
+    .optional(),
+});
+
+// ============================================================================
+// VENDOR PROFILE
+// ============================================================================
+
+export const vendorPublicProfileSchema = z.object({
+  id: z.string().uuid(),
+  companyName: z.string(),
+  description: z.string().nullable(),
+  logoUrl: z.string().url().nullable(),
+  coverImageUrl: z.string().url().nullable(),
+  rating: z.number().min(0).max(5).nullable(),
+  reviewsCount: z.number().int().nonnegative(),
+  listingsCount: z.number().int().nonnegative(),
+  memberSince: z.string().datetime(),
+  verificationBadges: z.array(z.string()).optional(),
 });
 
 // ============================================================================
@@ -744,7 +801,11 @@ export type Booking = z.infer<typeof bookingSchema>;
 export type BookingSummary = z.infer<typeof bookingSummarySchema>;
 
 export type Review = z.infer<typeof reviewSchema>;
+export type CreateReviewRequest = z.infer<typeof createReviewRequestSchema>;
+export type ReviewSummary = z.infer<typeof reviewSummarySchema>;
 export type Coupon = z.infer<typeof couponSchema>;
+export type CouponValidation = z.infer<typeof couponValidationSchema>;
+export type VendorPublicProfile = z.infer<typeof vendorPublicProfileSchema>;
 
 export type ListingSearchParams = z.infer<typeof listingSearchParamsSchema>;
 export type ListingSearchResponse = z.infer<typeof listingSearchResponseSchema>;

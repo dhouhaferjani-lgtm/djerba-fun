@@ -8,6 +8,11 @@ import type {
   CreateHoldRequest,
   CreateHoldResponse,
   CreateBookingRequest,
+  Review,
+  CreateReviewRequest,
+  CouponValidation,
+  VendorPublicProfile,
+  ListingSummary,
 } from '@go-adventure/schemas';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
@@ -191,6 +196,66 @@ export const bookingsApi = {
       method: 'POST',
       body: JSON.stringify(request),
     });
+  },
+};
+
+// ============================================================================
+// REVIEWS API
+// ============================================================================
+
+export const reviewsApi = {
+  getForListing: async (listingId: string, params?: { page?: number; sort?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', String(params.page));
+    if (params?.sort) queryParams.append('sort', params.sort);
+    return fetchApi<{ data: Review[]; meta: { total: number; page: number; limit: number } }>(
+      `/listings/${listingId}/reviews?${queryParams}`
+    );
+  },
+
+  create: async (bookingId: string, request: CreateReviewRequest) => {
+    return fetchApi<{ data: Review }>(`/bookings/${bookingId}/review`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  markHelpful: async (reviewId: string) => {
+    return fetchApi<{ success: boolean }>(`/reviews/${reviewId}/helpful`, {
+      method: 'POST',
+    });
+  },
+};
+
+// ============================================================================
+// COUPONS API
+// ============================================================================
+
+export const couponsApi = {
+  validate: async (code: string, listingId: string, amount: number) => {
+    return fetchApi<{ data: CouponValidation }>('/coupons/validate', {
+      method: 'POST',
+      body: JSON.stringify({ code, listing_id: listingId, amount }),
+    });
+  },
+};
+
+// ============================================================================
+// VENDORS API
+// ============================================================================
+
+export const vendorsApi = {
+  getProfile: async (vendorId: string) => {
+    return fetchApi<{ data: VendorPublicProfile }>(`/vendors/${vendorId}`);
+  },
+
+  getListings: async (vendorId: string, params?: { page?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', String(params.page));
+    return fetchApi<{
+      data: ListingSummary[];
+      meta: { total: number; page: number; limit: number };
+    }>(`/vendors/${vendorId}/listings?${queryParams}`);
   },
 };
 

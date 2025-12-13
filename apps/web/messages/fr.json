@@ -199,5 +199,46 @@
     "min_elevation": "Altitude Min",
     "total_ascent": "Dénivelé Positif",
     "total_descent": "Dénivelé Négatif"
+  },
+  "reviews": {
+    "title": "Avis",
+    "write_review": "Écrire un Avis",
+    "rating": "Note",
+    "select_rating": "Sélectionnez une note",
+    "review_title": "Titre de l'Avis",
+    "review_content": "Votre Avis",
+    "pros": "Points Positifs",
+    "cons": "Points Négatifs",
+    "add_pro": "Ajouter un point positif",
+    "add_con": "Ajouter un point négatif",
+    "submit": "Soumettre l'Avis",
+    "verified_booking": "Réservation Vérifiée",
+    "helpful": "Utile",
+    "reply_from_vendor": "Réponse du prestataire",
+    "no_reviews": "Aucun avis pour le moment",
+    "be_first": "Soyez le premier à laisser un avis !",
+    "sort_newest": "Plus Récents",
+    "sort_highest": "Mieux Notés",
+    "sort_helpful": "Plus Utiles",
+    "rating_breakdown": "Répartition des Notes",
+    "based_on": "Basé sur {count} avis"
+  },
+  "vendor": {
+    "profile": "Profil du Prestataire",
+    "about": "À Propos",
+    "listings": "Activités",
+    "member_since": "Membre depuis",
+    "verified": "Prestataire Vérifié",
+    "contact": "Contacter le Prestataire"
+  },
+  "coupon": {
+    "enter_code": "Entrez le code promo",
+    "apply": "Appliquer",
+    "applied": "Code promo appliqué !",
+    "discount": "Réduction",
+    "remove": "Supprimer",
+    "invalid": "Code promo invalide",
+    "expired": "Ce code promo a expiré",
+    "minimum_order": "Commande minimum de {amount} requise"
   }
 }
