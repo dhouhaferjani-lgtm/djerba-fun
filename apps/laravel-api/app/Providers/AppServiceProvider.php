@@ -2,10 +2,15 @@
 
 namespace App\Providers;
 
+use App\Models\Booking;
 use App\Models\Listing;
 use App\Models\User;
+use App\Policies\BookingPolicy;
 use App\Policies\ListingPolicy;
 use App\Policies\UserPolicy;
+use App\Services\Payment\MockPaymentGateway;
+use App\Services\Payment\OfflinePaymentGateway;
+use App\Services\Payment\PaymentGatewayManager;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -19,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
     protected $policies = [
         User::class => UserPolicy::class,
         Listing::class => ListingPolicy::class,
+        Booking::class => BookingPolicy::class,
     ];
 
     /**
@@ -26,7 +32,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register PaymentGatewayManager as singleton
+        $this->app->singleton(PaymentGatewayManager::class, function ($app) {
+            $manager = new PaymentGatewayManager();
+
+            // Register payment gateways
+            $manager->register('mock', new MockPaymentGateway());
+            $manager->register('offline', new OfflinePaymentGateway());
+
+            return $manager;
+        });
     }
 
     /**

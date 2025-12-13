@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
+use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\HoldController;
 use App\Http\Controllers\Api\V1\ListingController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -51,8 +53,17 @@ Route::prefix('v1')->group(function () {
         Route::get('/listings/{listing:slug}/holds/{hold}', [HoldController::class, 'show']);
         Route::delete('/listings/{listing:slug}/holds/{hold}', [HoldController::class, 'destroy']);
 
+        // Booking management
+        Route::get('/bookings', [BookingController::class, 'index']);
+        Route::post('/bookings', [BookingController::class, 'store']);
+        Route::get('/bookings/{booking}', [BookingController::class, 'show']);
+        Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
+
+        // Payment management
+        Route::post('/bookings/{booking}/pay', [PaymentController::class, 'processPayment']);
+        Route::get('/bookings/{booking}/payment-status', [PaymentController::class, 'paymentStatus']);
+
         // Additional protected routes will be added in later phases
-        // - Booking management
         // - User profile updates
         // - Vendor listing management
         // - Reviews
