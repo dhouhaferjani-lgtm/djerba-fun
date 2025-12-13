@@ -1,10 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { authApi, listingsApi, bookingsApi } from './client';
-import type {
-  ListingSearchParams,
-  CreateHoldRequest,
-  CreateBookingRequest,
-} from '@go-adventure/schemas';
+import { authApi, listingsApi, bookingsApi, type ProcessPaymentRequest } from './client';
+import type { ListingSearchParams, CreateHoldRequest } from '@go-adventure/schemas';
 
 // ============================================================================
 // AUTH HOOKS
@@ -115,14 +111,10 @@ export function useCreateHold(listingId: string) {
 // BOOKINGS HOOKS
 // ============================================================================
 
-export function useCreateBooking() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (request: CreateBookingRequest) => bookingsApi.create(request),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-    },
+export function useMyBookings(params?: { status?: string; page?: number }) {
+  return useQuery({
+    queryKey: ['bookings', 'mine', params],
+    queryFn: () => bookingsApi.list(params),
   });
 }
 
@@ -137,12 +129,33 @@ export function useBooking(id: string) {
   });
 }
 
-export function useMyBookings() {
-  return useQuery({
-    queryKey: ['bookings', 'me'],
-    queryFn: async () => {
-      const response = await bookingsApi.getMyBookings();
-      return response.data;
+export function useCreateBooking() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: bookingsApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    },
+  });
+}
+
+export function useCancelBooking() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) => bookingsApi.cancel(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    },
+  });
+}
+
+export function useProcessPayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ bookingId, request }: { bookingId: string; request: ProcessPaymentRequest }) =>
+      bookingsApi.processPayment(bookingId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
     },
   });
 }

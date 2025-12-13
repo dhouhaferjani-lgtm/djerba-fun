@@ -149,6 +149,11 @@ export const listingsApi = {
 // BOOKINGS API
 // ============================================================================
 
+export interface ProcessPaymentRequest {
+  paymentMethod: 'mock' | 'offline' | 'click_to_pay' | 'stripe' | 'paypal';
+  paymentData?: Record<string, unknown>;
+}
+
 export const bookingsApi = {
   create: async (request: CreateBookingRequest) => {
     return fetchApi<{ data: Booking }>('/bookings', {
@@ -157,12 +162,35 @@ export const bookingsApi = {
     });
   },
 
+  list: async (params?: { status?: string; page?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.page) queryParams.append('page', String(params.page));
+    return fetchApi<{ data: Booking[]; meta: { total: number; page: number; limit: number } }>(
+      `/bookings?${queryParams.toString()}`
+    );
+  },
+
   getById: async (id: string) => {
     return fetchApi<{ data: Booking }>(`/bookings/${id}`);
   },
 
   getMyBookings: async () => {
     return fetchApi<{ data: Booking[] }>('/bookings/me');
+  },
+
+  cancel: async (id: string, reason?: string) => {
+    return fetchApi<{ data: Booking }>(`/bookings/${id}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  processPayment: async (bookingId: string, request: ProcessPaymentRequest) => {
+    return fetchApi<{ data: Booking }>(`/bookings/${bookingId}/pay`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
   },
 };
 
