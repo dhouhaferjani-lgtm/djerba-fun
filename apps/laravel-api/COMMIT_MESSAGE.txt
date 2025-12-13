@@ -1,0 +1,65 @@
+feat(api): implement Phase 4 - Vendor & Admin Features
+
+This commit implements comprehensive vendor and admin features for the Go Adventure marketplace:
+
+## Review System
+- Review and ReviewReply models with migrations
+- Star rating (1-5), title, content, pros/cons, photos
+- One review per booking (verified bookings only)
+- Vendor reply functionality
+- Helpful vote system
+- Admin moderation workflow
+- API endpoints: list reviews, create review, mark helpful
+- Automatic listing rating calculation
+
+## Payout System
+- Payout model with encrypted bank details
+- Status workflow: pending → processing → completed/failed
+- PayoutStatus and PayoutMethod enums
+- Vendor payout requests
+- Admin approval and processing actions
+- Transaction reference tracking
+- Minimum payout enforcement
+
+## Coupon System
+- Coupon model with flexible discount types (percentage, fixed amount)
+- DiscountType enum with built-in calculation
+- CouponService for validation and application
+- Restrictions: minimum order, maximum discount, usage limit
+- Listing and user targeting (UUIDs)
+- Date range validity
+- Booking integration (coupon_id, discount_amount)
+- API endpoint: validate coupon code
+
+## Filament Admin Panel
+- CouponResource: full CRUD with usage tracking
+- PayoutResource: workflow actions (approve, complete, fail)
+- PlatformStatsWidget: users, listings, bookings, revenue
+- FraudAlertWidget: recent cancellations and suspicious activity
+
+## Filament Vendor Panel
+- ReviewResource: view reviews, reply to customers, filter by rating
+- PayoutResource: request payouts, view status
+- BookingStatsWidget: bookings overview and revenue
+- RevenueChartWidget: 12-month revenue line chart
+
+## Authorization & Validation
+- ReviewPolicy, PayoutPolicy, CouponPolicy
+- CreateReviewRequest, ValidateCouponRequest
+- Scoped queries for vendor resources
+- One review per booking enforcement
+
+## Model Updates
+- Listing: reviews relationship, averageRating method
+- User: reviews and vendorPayouts relationships
+- Booking: coupon and review relationships, hasReview helper
+
+## API Resources
+- ReviewResource: includes user, listing, reply
+- CouponResource: discount details, usage stats
+- PayoutResource: conditional admin-only fields
+
+Total files created: 45+
+Total files updated: 4
+
+Phase 4 Status: Complete ✓

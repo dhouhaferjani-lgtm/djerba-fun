@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Booking extends Model
 {
@@ -20,8 +21,10 @@ class Booking extends Model
         'user_id',
         'listing_id',
         'availability_slot_id',
+        'coupon_id',
         'quantity',
         'total_amount',
+        'discount_amount',
         'currency',
         'status',
         'traveler_info',
@@ -38,6 +41,7 @@ class Booking extends Model
             'traveler_info' => 'array',
             'extras' => 'array',
             'total_amount' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'confirmed_at' => 'datetime',
             'cancelled_at' => 'datetime',
         ];
@@ -73,6 +77,30 @@ class Booking extends Model
     public function paymentIntents(): HasMany
     {
         return $this->hasMany(PaymentIntent::class);
+    }
+
+    /**
+     * Get the coupon applied to this booking.
+     */
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
+    }
+
+    /**
+     * Get the review for this booking.
+     */
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class);
+    }
+
+    /**
+     * Check if booking has a review.
+     */
+    public function hasReview(): bool
+    {
+        return $this->review()->exists();
     }
 
     /**

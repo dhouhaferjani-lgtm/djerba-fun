@@ -3,9 +3,11 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\BookingController;
+use App\Http\Controllers\Api\V1\CouponController;
 use App\Http\Controllers\Api\V1\HoldController;
 use App\Http\Controllers\Api\V1\ListingController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -38,6 +40,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/listings', [ListingController::class, 'index']);
     Route::get('/listings/{listing:slug}', [ListingController::class, 'show']);
 
+    // Public review routes
+    Route::get('/listings/{listing:slug}/reviews', [ReviewController::class, 'index']);
+
     // Availability routes (public - anyone can view availability)
     Route::get('/listings/{listing:slug}/availability', [AvailabilityController::class, 'index']);
     Route::post('/listings/{listing:slug}/availability/refresh', [AvailabilityController::class, 'refresh']);
@@ -63,10 +68,16 @@ Route::prefix('v1')->group(function () {
         Route::post('/bookings/{booking}/pay', [PaymentController::class, 'processPayment']);
         Route::get('/bookings/{booking}/payment-status', [PaymentController::class, 'paymentStatus']);
 
+        // Review management
+        Route::post('/bookings/{booking}/review', [ReviewController::class, 'store']);
+        Route::post('/reviews/{review}/helpful', [ReviewController::class, 'markHelpful']);
+
+        // Coupon validation
+        Route::post('/coupons/validate', [CouponController::class, 'validate']);
+
         // Additional protected routes will be added in later phases
         // - User profile updates
         // - Vendor listing management
-        // - Reviews
         // - etc.
     });
 });

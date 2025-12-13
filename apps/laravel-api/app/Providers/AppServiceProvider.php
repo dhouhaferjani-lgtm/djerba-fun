@@ -3,10 +3,16 @@
 namespace App\Providers;
 
 use App\Models\Booking;
+use App\Models\Coupon;
 use App\Models\Listing;
+use App\Models\Payout;
+use App\Models\Review;
 use App\Models\User;
 use App\Policies\BookingPolicy;
+use App\Policies\CouponPolicy;
 use App\Policies\ListingPolicy;
+use App\Policies\PayoutPolicy;
+use App\Policies\ReviewPolicy;
 use App\Policies\UserPolicy;
 use App\Services\Payment\MockPaymentGateway;
 use App\Services\Payment\OfflinePaymentGateway;
@@ -25,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
         User::class => UserPolicy::class,
         Listing::class => ListingPolicy::class,
         Booking::class => BookingPolicy::class,
+        Review::class => ReviewPolicy::class,
+        Payout::class => PayoutPolicy::class,
+        Coupon::class => CouponPolicy::class,
     ];
 
     /**

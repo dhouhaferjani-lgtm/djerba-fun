@@ -158,6 +158,22 @@ class Listing extends Model
     }
 
     /**
+     * Get the reviews for the listing.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get the average rating for the listing.
+     */
+    public function averageRating(): ?float
+    {
+        return $this->rating;
+    }
+
+    /**
      * Check if listing is a tour
      */
     public function isTour(): bool
