@@ -71,7 +71,7 @@ export default function ListingDetailPage() {
                 <div className="flex items-center gap-2">
                   <RatingStars rating={listing.rating} showNumber />
                   <span className="text-sm text-neutral-500">
-                    ({listing.reviewsCount} {tCommon('reviews')})
+                    ({tCommon('reviews', { count: listing.reviewsCount || 0 })})
                   </span>
                 </div>
               )}
@@ -89,9 +89,7 @@ export default function ListingDetailPage() {
               )}
               <div className="flex items-center gap-2 text-neutral-600">
                 <Users className="h-5 w-5" />
-                <span>
-                  Max {listing.maxGroupSize} {tCommon('reviews')}
-                </span>
+                <span>Max {listing.maxGroupSize} guests</span>
               </div>
               <div className="flex items-center gap-2 text-neutral-600">
                 <MapPin className="h-5 w-5" />
