@@ -1,7 +1,7 @@
 import { Star } from 'lucide-react';
 
 interface RatingStarsProps {
-  rating: number;
+  rating: number | string;
   maxRating?: number;
   size?: 'sm' | 'md' | 'lg';
   showNumber?: boolean;
@@ -21,9 +21,10 @@ export function RatingStars({
   showNumber = false,
   className = '',
 }: RatingStarsProps) {
+  const numericRating = typeof rating === 'string' ? parseFloat(rating) : rating;
   const stars = Array.from({ length: maxRating }, (_, i) => {
-    const filled = i < Math.floor(rating);
-    const partial = i === Math.floor(rating) && rating % 1 !== 0;
+    const filled = i < Math.floor(numericRating);
+    const partial = i === Math.floor(numericRating) && numericRating % 1 !== 0;
     return { filled, partial, key: i };
   });
 
@@ -44,7 +45,7 @@ export function RatingStars({
         ))}
       </div>
       {showNumber && (
-        <span className="text-sm font-medium text-neutral-700">{rating.toFixed(1)}</span>
+        <span className="text-sm font-medium text-neutral-700">{numericRating.toFixed(1)}</span>
       )}
     </div>
   );
