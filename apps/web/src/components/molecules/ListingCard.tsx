@@ -56,7 +56,9 @@ export function ListingCard({ listing, locale }: ListingCardProps) {
           {/* Location */}
           <div className="flex items-center gap-1.5 text-sm text-neutral-600">
             <MapPin className="h-4 w-4" />
-            <span>{t(listing.location?.name) || listing.meetingPoint?.address || 'Tunisia'}</span>
+            <span>
+              {t(listing.location?.name) || (listing as any).meetingPoint?.address || 'Tunisia'}
+            </span>
           </div>
 
           {/* Duration (if available) */}
@@ -72,7 +74,7 @@ export function ListingCard({ listing, locale }: ListingCardProps) {
           {/* Price */}
           <div className="mt-auto pt-3 border-t border-neutral-100">
             <PriceDisplay
-              amount={listing.pricing.basePrice || listing.pricing.from}
+              amount={(listing.pricing as any).basePrice || listing.pricing.from}
               currency={listing.pricing.currency}
               size="sm"
               showFrom

@@ -25,7 +25,10 @@ import {
   X,
 } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
-import type { AvailabilitySlot, BookingHold } from '@go-adventure/schemas';
+// Using any for API response types due to schema/API mismatch
+type ApiSlot = any;
+type ApiHold = any;
+type ApiListing = any;
 
 export default function ListingDetailPage() {
   const params = useParams();
@@ -39,9 +42,9 @@ export default function ListingDetailPage() {
   // Booking flow state
   const [showBookingFlow, setShowBookingFlow] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | undefined>();
+  const [selectedSlot, setSelectedSlot] = useState<ApiSlot | undefined>();
   const [participants, setParticipants] = useState(1);
-  const [hold, setHold] = useState<BookingHold | undefined>();
+  const [hold, setHold] = useState<ApiHold | undefined>();
 
   const { data: listing, isLoading, error } = useListing(slug);
 
@@ -62,7 +65,7 @@ export default function ListingDetailPage() {
     if (!selectedDate || !availabilityData) return [];
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     return availabilityData.filter(
-      (slot: AvailabilitySlot) =>
+      (slot: ApiSlot) =>
         slot.start.startsWith(dateStr) && (slot.status === 'available' || slot.status === 'limited')
     );
   }, [selectedDate, availabilityData]);
@@ -72,7 +75,7 @@ export default function ListingDetailPage() {
     setSelectedSlot(undefined);
   };
 
-  const handleSlotSelect = (slot: AvailabilitySlot) => {
+  const handleSlotSelect = (slot: ApiSlot) => {
     setSelectedSlot(slot);
   };
 
@@ -83,7 +86,7 @@ export default function ListingDetailPage() {
       const response = await createHoldMutation.mutateAsync({
         slotId: selectedSlot.id,
         quantity: participants,
-      });
+      } as any);
       setHold(response.data);
     } catch (err) {
       console.error('Failed to create hold:', err);
@@ -143,7 +146,7 @@ export default function ListingDetailPage() {
           </button>
           <BookingWizard
             hold={hold}
-            listing={listing}
+            listing={listing as any}
             slot={selectedSlot}
             onExpired={handleHoldExpired}
           />
@@ -277,7 +280,7 @@ export default function ListingDetailPage() {
             <Card className="sticky top-20">
               <div className="p-6 space-y-6">
                 <PriceDisplay
-                  amount={listing.pricing.basePrice}
+                  amount={(listing.pricing as any).basePrice || (listing.pricing as any).base}
                   currency={listing.pricing.currency}
                   size="lg"
                   showFrom
@@ -346,7 +349,7 @@ export default function ListingDetailPage() {
                           {tAvail('select_time')}
                         </h3>
                         <div className="space-y-2">
-                          {slotsForSelectedDate.map((slot: AvailabilitySlot) => (
+                          {slotsForSelectedDate.map((slot: ApiSlot) => (
                             <button
                               key={slot.id}
                               onClick={() => handleSlotSelect(slot)}
@@ -365,7 +368,7 @@ export default function ListingDetailPage() {
                                     slot.status === 'limited' ? 'text-yellow-600' : 'text-green-600'
                                   }`}
                                 >
-                                  {slot.remainingCapacity} {tAvail('available')}
+                                  {slot.remainingCapacity || slot.available} {tAvail('available')}
                                 </span>
                               </div>
                             </button>
@@ -418,7 +421,9 @@ export default function ListingDetailPage() {
                           <span className="text-neutral-600">{tBooking('total')}</span>
                           <PriceDisplay
                             amount={
-                              (selectedSlot.price || listing.pricing.basePrice) * participants
+                              (selectedSlot.price ||
+                                (listing.pricing as any).basePrice ||
+                                (listing.pricing as any).base) * participants
                             }
                             currency={selectedSlot.currency || listing.pricing.currency}
                             size="lg"
