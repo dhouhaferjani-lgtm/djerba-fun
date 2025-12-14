@@ -97,25 +97,25 @@ export function useListing(slug: string) {
 }
 
 export function useAvailability(
-  listingId: string,
+  listingSlug: string,
   startDate: string,
   endDate: string,
   enabled = true
 ) {
   return useQuery({
-    queryKey: ['listings', listingId, 'availability', startDate, endDate],
+    queryKey: ['listings', listingSlug, 'availability', startDate, endDate],
     queryFn: async () => {
-      const response = await listingsApi.getAvailability(listingId, startDate, endDate);
+      const response = await listingsApi.getAvailability(listingSlug, startDate, endDate);
       return response.data;
     },
-    enabled: enabled && !!listingId && !!startDate && !!endDate,
+    enabled: enabled && !!listingSlug && !!startDate && !!endDate,
     staleTime: 30 * 1000, // 30 seconds
   });
 }
 
-export function useCreateHold(listingId: string) {
+export function useCreateHold(listingSlug: string) {
   return useMutation({
-    mutationFn: (request: CreateHoldRequest) => listingsApi.createHold(listingId, request),
+    mutationFn: (request: CreateHoldRequest) => listingsApi.createHold(listingSlug, request),
   });
 }
 

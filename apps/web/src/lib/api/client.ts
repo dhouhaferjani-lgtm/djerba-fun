@@ -135,15 +135,15 @@ export const listingsApi = {
     return fetchApi<{ data: Listing }>(`/listings/${slug}`);
   },
 
-  getAvailability: async (listingId: string, startDate: string, endDate: string) => {
+  getAvailability: async (listingSlug: string, startDate: string, endDate: string) => {
     const params = new URLSearchParams({ start_date: startDate, end_date: endDate });
     return fetchApi<{ data: AvailabilitySlot[] }>(
-      `/listings/${listingId}/availability?${params.toString()}`
+      `/listings/${listingSlug}/availability?${params.toString()}`
     );
   },
 
-  createHold: async (listingId: string, request: CreateHoldRequest) => {
-    return fetchApi<{ data: CreateHoldResponse }>(`/listings/${listingId}/holds`, {
+  createHold: async (listingSlug: string, request: CreateHoldRequest) => {
+    return fetchApi<{ data: CreateHoldResponse }>(`/listings/${listingSlug}/holds`, {
       method: 'POST',
       body: JSON.stringify(request),
     });
