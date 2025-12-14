@@ -42,19 +42,21 @@ export function useLogin() {
   });
 }
 
+interface RegisterData {
+  email: string;
+  password: string;
+  passwordConfirmation: string;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  role: string;
+}
+
 export function useRegister() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      email,
-      password,
-      displayName,
-    }: {
-      email: string;
-      password: string;
-      displayName: string;
-    }) => authApi.register(email, password, displayName),
+    mutationFn: (data: RegisterData) => authApi.register(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user', 'me'] });
     },

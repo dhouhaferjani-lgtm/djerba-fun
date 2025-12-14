@@ -4,12 +4,22 @@ import { createContext, useContext, type ReactNode } from 'react';
 import { useCurrentUser, useLogin, useLogout, useRegister } from '../api/hooks';
 import type { User } from '@go-adventure/schemas';
 
+interface RegisterData {
+  email: string;
+  password: string;
+  passwordConfirmation: string;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  role: string;
+}
+
 interface AuthContextValue {
   user: User | null | undefined;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, displayName: string) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -25,8 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loginMutation.mutateAsync({ email, password });
   };
 
-  const register = async (email: string, password: string, displayName: string) => {
-    await registerMutation.mutateAsync({ email, password, displayName });
+  const register = async (data: RegisterData) => {
+    await registerMutation.mutateAsync(data);
   };
 
   const logout = async () => {

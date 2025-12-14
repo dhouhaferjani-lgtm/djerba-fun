@@ -87,17 +87,33 @@ export const authApi = {
     return data;
   },
 
-  register: async (email: string, password: string, displayName: string) => {
-    const data = await fetchApi<{ user: User; token: string }>('/auth/register', {
+  register: async (data: {
+    email: string;
+    password: string;
+    passwordConfirmation: string;
+    firstName: string;
+    lastName: string;
+    displayName: string;
+    role: string;
+  }) => {
+    const response = await fetchApi<{ user: User; token: string }>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password, display_name: displayName }),
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password,
+        password_confirmation: data.passwordConfirmation,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        display_name: data.displayName,
+        role: data.role,
+      }),
     });
 
     if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('auth_token', response.token);
     }
 
-    return data;
+    return response;
   },
 
   logout: async () => {

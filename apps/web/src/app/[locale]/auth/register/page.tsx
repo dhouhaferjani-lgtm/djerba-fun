@@ -16,7 +16,8 @@ export default function RegisterPage() {
   const router = useRouter();
   const { register } = useAuth();
 
-  const [displayName, setDisplayName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -40,7 +41,15 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      await register(email, password, displayName);
+      await register({
+        email,
+        password,
+        passwordConfirmation: confirmPassword,
+        firstName,
+        lastName,
+        displayName: `${firstName} ${lastName}`.trim(),
+        role: 'traveler',
+      });
       router.push(`/${locale}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
@@ -66,14 +75,25 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                <Input
-                  label="Display Name"
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  required
-                  autoComplete="name"
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    label="First Name"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                    autoComplete="given-name"
+                  />
+
+                  <Input
+                    label="Last Name"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                    autoComplete="family-name"
+                  />
+                </div>
 
                 <Input
                   label={t('email')}
