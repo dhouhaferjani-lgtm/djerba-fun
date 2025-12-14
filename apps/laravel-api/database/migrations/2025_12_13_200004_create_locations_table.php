@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique();
+            $table->uuid('uuid')->unique();
             $table->json('name'); // Translatable: {en: "", fr: ""}
             $table->string('slug')->unique();
             $table->json('description')->nullable(); // Translatable
-            $table->point('coordinates')->spatialIndex();
+            $table->decimal('latitude', 10, 8)->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
             $table->string('address')->nullable();
             $table->string('city');
             $table->string('region')->nullable();

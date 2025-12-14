@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('availability_slots', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('listing_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('listing_id')->constrained()->cascadeOnDelete();
             $table->foreignId('availability_rule_id')->nullable()->constrained()->nullOnDelete();
             $table->date('date');
             $table->time('start_time');

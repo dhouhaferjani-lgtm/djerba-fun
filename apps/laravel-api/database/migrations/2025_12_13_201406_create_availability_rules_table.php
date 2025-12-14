@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('availability_rules', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('listing_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('listing_id')->constrained()->cascadeOnDelete();
             $table->string('rule_type'); // weekly, daily, specific_dates, blocked_dates
             $table->json('days_of_week')->nullable(); // [0-6] for weekly rules
             $table->time('start_time')->nullable();

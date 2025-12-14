@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('payouts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('vendor_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('vendor_id')->constrained('users')->cascadeOnDelete();
             $table->decimal('amount', 10, 2);
             $table->string('currency', 3)->default('CAD');
             $table->string('status')->default('pending');

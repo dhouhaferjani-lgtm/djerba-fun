@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('booking_holds', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('listing_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('listing_id')->constrained()->cascadeOnDelete();
             $table->foreignId('slot_id')->constrained('availability_slots')->cascadeOnDelete();
-            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->unsignedInteger('quantity');
             $table->timestamp('expires_at');
             $table->string('status'); // active, converted, expired

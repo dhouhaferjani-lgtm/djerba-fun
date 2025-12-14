@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('media', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique();
+            $table->uuid('uuid')->unique();
             $table->morphs('mediable'); // mediable_type, mediable_id
             $table->string('url');
             $table->string('thumbnail_url')->nullable();
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->integer('order')->default(0);
             $table->timestamps();
 
-            $table->index(['mediable_type', 'mediable_id']);
+            // morphs() already creates index on mediable_type, mediable_id
             $table->index('order');
         });
     }

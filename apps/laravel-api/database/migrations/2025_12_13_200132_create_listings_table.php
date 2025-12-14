@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('listings', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique();
+            $table->uuid('uuid')->unique();
             $table->foreignId('vendor_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('location_id')->constrained()->cascadeOnDelete();
             $table->string('service_type'); // tour, event
@@ -65,11 +65,8 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            // Indexes
-            $table->index('vendor_id');
-            $table->index('location_id');
+            // Indexes (foreign keys auto-create indexes, status has inline index)
             $table->index('service_type');
-            $table->index('status');
             $table->index('published_at');
             $table->index(['start_date', 'end_date']); // For events
         });

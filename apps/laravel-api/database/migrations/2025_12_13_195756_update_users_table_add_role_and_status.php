@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('status')->default('active')->index();
             $table->string('display_name');
             $table->string('avatar_url')->nullable();
-            $table->uuid()->after('id')->unique();
+            $table->uuid('uuid')->after('id')->unique();
 
             // Add indexes
             $table->index('email_verified_at');

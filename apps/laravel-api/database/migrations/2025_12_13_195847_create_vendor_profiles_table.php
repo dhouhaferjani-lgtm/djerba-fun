@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('vendor_profiles', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique();
+            $table->uuid('uuid')->unique();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('company_name', 200);
             $table->string('company_type'); // individual, company, agency
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('user_id');
-            $table->index('kyc_status');
+            // kyc_status index already created via ->index() on line 21
         });
     }
 
