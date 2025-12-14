@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useSearchParams, useParams } from 'next/navigation';
+import { useSearchParams, useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { ListingGrid } from '@/components/organisms/ListingGrid';
@@ -12,16 +12,28 @@ import { Filter } from 'lucide-react';
 
 function ListingsContent({ locale }: { locale: string }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const t = useTranslations('common');
 
   const queryParams = {
     serviceType: searchParams.get('type') as 'tour' | 'event' | undefined,
     location: searchParams.get('location') || undefined,
+    search: searchParams.get('q') || undefined,
     sort: 'popularity' as const,
     limit: 20,
   };
 
   const { data, isLoading, error } = useListings(queryParams);
+
+  const handleSearch = (query: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (query) {
+      params.set('q', query);
+    } else {
+      params.delete('q');
+    }
+    router.push(`/${locale}/listings?${params.toString()}`);
+  };
 
   return (
     <MainLayout locale={locale}>
@@ -36,7 +48,11 @@ function ListingsContent({ locale }: { locale: string }) {
           </h1>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <SearchBar placeholder="Search destinations..." />
+              <SearchBar
+                placeholder="Search destinations..."
+                onSearch={handleSearch}
+                defaultValue={searchParams.get('q') || ''}
+              />
             </div>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
