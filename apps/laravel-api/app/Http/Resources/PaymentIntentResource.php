@@ -18,20 +18,20 @@ class PaymentIntentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'booking_id' => $this->booking_id,
+            'bookingId' => $this->booking_id,
             'amount' => (float) $this->amount,
             'currency' => $this->currency,
-            'payment_method' => $this->payment_method->value,
-            'payment_method_label' => $this->payment_method->label(),
+            'paymentMethod' => $this->payment_method->value,
+            'paymentMethodLabel' => $this->payment_method->label(),
             'status' => $this->status->value,
-            'status_label' => $this->status->label(),
+            'statusLabel' => $this->status->label(),
             'gateway' => $this->gateway,
-            'gateway_id' => $this->gateway_id,
+            'gatewayId' => $this->gateway_id,
             'metadata' => $this->metadata,
-            'paid_at' => $this->paid_at?->toIso8601String(),
-            'failed_at' => $this->failed_at?->toIso8601String(),
-            'created_at' => $this->created_at->toIso8601String(),
-            'updated_at' => $this->updated_at->toIso8601String(),
+            'paidAt' => $this->paid_at?->toIso8601String(),
+            'failedAt' => $this->failed_at?->toIso8601String(),
+            'createdAt' => $this->created_at->toIso8601String(),
+            'updatedAt' => $this->updated_at->toIso8601String(),
         ];
     }
 }

@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Enums\PaymentMethod;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class ProcessPaymentRequest extends FormRequest
+class ProcessPaymentRequest extends BaseFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

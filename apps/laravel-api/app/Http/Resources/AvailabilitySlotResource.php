@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
@@ -16,18 +18,18 @@ class AvailabilitySlotResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'listing_id' => $this->listing_id,
+            'listingId' => $this->listing_id,
             'date' => $this->date->toDateString(),
-            'start_time' => $this->start_time->format('H:i:s'),
-            'end_time' => $this->end_time->format('H:i:s'),
+            'startTime' => $this->start_time->format('H:i:s'),
+            'endTime' => $this->end_time->format('H:i:s'),
             'capacity' => $this->capacity,
-            'remaining_capacity' => $this->remaining_capacity,
-            'base_price' => (float) $this->base_price,
+            'remainingCapacity' => $this->remaining_capacity,
+            'basePrice' => (float) $this->base_price,
             'status' => $this->status->value,
-            'status_label' => $this->status->label(),
-            'is_bookable' => $this->isBookable(),
-            'created_at' => $this->created_at->toIso8601String(),
-            'updated_at' => $this->updated_at->toIso8601String(),
+            'statusLabel' => $this->status->label(),
+            'isBookable' => $this->isBookable(),
+            'createdAt' => $this->created_at->toIso8601String(),
+            'updatedAt' => $this->updated_at->toIso8601String(),
         ];
     }
 }
