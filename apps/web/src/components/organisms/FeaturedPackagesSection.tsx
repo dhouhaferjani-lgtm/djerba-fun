@@ -16,21 +16,21 @@ export function FeaturedPackagesSection() {
       icon: <Award className="w-12 h-12" />,
       title: t('featured_package_1_title'),
       description: t('featured_package_1_description'),
-      image: '/images/package-1.jpg', // Placeholder image
+      image: 'https://images.unsplash.com/photo-1590059390047-f5e617690a0b?w=800',
       link: '/en/listings?type=tour&destination=djerba',
     },
     {
       icon: <Leaf className="w-12 h-12" />,
       title: t('featured_package_2_title'),
       description: t('featured_package_2_description'),
-      image: '/images/package-2.jpg', // Placeholder image
+      image: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=800',
       link: '/en/listings?type=event&category=eco-tourism',
     },
     {
       icon: <Globe className="w-12 h-12" />,
       title: t('featured_package_3_title'),
       description: t('featured_package_3_description'),
-      image: '/images/package-3.jpg', // Placeholder image
+      image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800',
       link: '/en/listings?type=tour&category=adventure',
     },
   ];
