@@ -32,8 +32,8 @@ type ApiListing = any;
 
 export default function ListingDetailPage() {
   const params = useParams();
-  const locale = params.locale as string;
-  const slug = params.slug as string;
+  const locale = params?.locale as string;
+  const slug = params?.slug as string;
   const t = useTranslations('listing');
   const tCommon = useTranslations('common');
   const tAvail = useTranslations('availability');

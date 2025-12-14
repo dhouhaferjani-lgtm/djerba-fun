@@ -7,13 +7,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-[#0D642E] text-white hover:bg-[#0a5025] focus-visible:ring-[#0D642E]',
-        secondary: 'bg-[#8BC34A] text-white hover:bg-[#7cb342] focus-visible:ring-[#8BC34A]',
+        primary: 'bg-primary text-white hover:bg-primary-dark focus-visible:ring-primary',
+        secondary: 'bg-secondary text-white hover:bg-secondary-dark focus-visible:ring-secondary',
+        accent: 'bg-accent text-primary hover:bg-accent-dark focus-visible:ring-accent',
         outline:
-          'border-2 border-[#0D642E] text-[#0D642E] bg-transparent hover:bg-[#e8f5e9] focus-visible:ring-[#0D642E]',
-        ghost: 'text-[#0D642E] bg-transparent hover:bg-[#e8f5e9] focus-visible:ring-[#0D642E]',
-        cream: 'bg-[#f5f0d1] text-[#0D642E] hover:bg-[#e8e2bc] focus-visible:ring-[#f5f0d1]',
-        destructive: 'bg-red-500 text-white hover:bg-red-600 focus-visible:ring-red-500',
+          'border-2 border-primary text-primary bg-transparent hover:bg-primary/10 focus-visible:ring-primary',
+        ghost: 'text-primary bg-transparent hover:bg-primary/10 focus-visible:ring-primary',
+        destructive: 'bg-error text-white hover:bg-error/90 focus-visible:ring-error',
       },
       size: {
         sm: 'h-9 px-3 text-sm',

@@ -6,11 +6,9 @@ namespace App\Filament\Admin\Widgets;
 
 use App\Enums\BookingStatus;
 use App\Models\Booking;
-use App\Models\User;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
-use Illuminate\Database\Eloquent\Builder;
 
 class FraudAlertWidget extends BaseWidget
 {
@@ -41,7 +39,7 @@ class FraudAlertWidget extends BaseWidget
 
                 Tables\Columns\TextColumn::make('listing.title')
                     ->label('Listing')
-                    ->searchable()
+                    ->formatStateUsing(fn ($record) => $record->listing?->getTranslation('title', app()->getLocale()))
                     ->limit(30),
 
                 Tables\Columns\TextColumn::make('total_amount')

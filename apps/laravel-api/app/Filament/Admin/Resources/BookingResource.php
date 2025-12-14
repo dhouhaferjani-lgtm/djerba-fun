@@ -42,15 +42,19 @@ class BookingResource extends Resource
                             ->columnSpan(1),
 
                         Forms\Components\Select::make('user_id')
-                            ->relationship('user', 'name')
+                            ->relationship('user', 'display_name')
                             ->required()
                             ->searchable()
                             ->preload(),
 
                         Forms\Components\Select::make('listing_id')
-                            ->relationship('listing', 'title')
+                            ->relationship(
+                                name: 'listing',
+                                modifyQueryUsing: fn (Builder $query) => $query->orderBy('slug'),
+                            )
+                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->getTranslation('title', app()->getLocale()))
                             ->required()
-                            ->searchable()
+                            ->searchable(['slug'])
                             ->preload(),
 
                         Forms\Components\Select::make('availability_slot_id')
@@ -112,7 +116,7 @@ class BookingResource extends Resource
                             ->disabled(),
                     ])
                     ->columns(2)
-                    ->visible(fn($record) => $record?->isCancelled() || $record?->isConfirmed()),
+                    ->visible(fn ($record) => $record?->isCancelled() || $record?->isConfirmed()),
             ]);
     }
 
@@ -129,18 +133,17 @@ class BookingResource extends Resource
 
                 Tables\Columns\TextColumn::make('listing.title')
                     ->label('Listing')
-                    ->searchable()
-                    ->sortable()
+                    ->formatStateUsing(fn ($record) => $record->listing?->getTranslation('title', app()->getLocale()))
                     ->limit(30),
 
-                Tables\Columns\TextColumn::make('user.name')
+                Tables\Columns\TextColumn::make('user.display_name')
                     ->label('Traveler')
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('total_amount')
                     ->label('Amount')
-                    ->money(fn($record) => $record->currency)
+                    ->money(fn ($record) => $record->currency)
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('quantity')
@@ -180,18 +183,23 @@ class BookingResource extends Resource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
 
-                Tables\Filters\SelectFilter::make('listing')
-                    ->relationship('listing', 'title')
-                    ->searchable()
-                    ->preload(),
+                Tables\Filters\SelectFilter::make('listing_id')
+                    ->label('Listing')
+                    ->options(
+                        fn () => \App\Models\Listing::query()
+                            ->orderBy('slug')
+                            ->get()
+                            ->mapWithKeys(fn ($listing) => [$listing->id => $listing->getTranslation('title', app()->getLocale())])
+                    )
+                    ->searchable(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -212,7 +220,7 @@ class BookingResource extends Resource
                         $service = app(BookingService::class);
                         $service->cancel($record, $data['reason']);
                     })
-                    ->visible(fn(Booking $record) => $record->canBeCancelled()),
+                    ->visible(fn (Booking $record) => $record->canBeCancelled()),
 
                 Tables\Actions\Action::make('mark_no_show')
                     ->label('Mark No-Show')
@@ -223,7 +231,7 @@ class BookingResource extends Resource
                         $service = app(BookingService::class);
                         $service->markAsNoShow($record);
                     })
-                    ->visible(fn(Booking $record) => $record->isConfirmed()),
+                    ->visible(fn (Booking $record) => $record->isConfirmed()),
 
                 Tables\Actions\Action::make('mark_completed')
                     ->label('Mark Completed')
@@ -234,7 +242,7 @@ class BookingResource extends Resource
                         $service = app(BookingService::class);
                         $service->complete($record);
                     })
-                    ->visible(fn(Booking $record) => $record->isConfirmed()),
+                    ->visible(fn (Booking $record) => $record->isConfirmed()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -263,7 +271,9 @@ class BookingResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::where('status', BookingStatus::PENDING_PAYMENT)->count();
+        $count = static::getModel()::where('status', BookingStatus::PENDING_PAYMENT)->count();
+
+        return $count > 0 ? (string) $count : null;
     }
 
     public static function getNavigationBadgeColor(): ?string

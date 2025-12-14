@@ -5,7 +5,6 @@ namespace App\Filament\Admin\Resources;
 use App\Enums\AvailabilityRuleType;
 use App\Filament\Admin\Resources\AvailabilityRuleResource\Pages;
 use App\Models\AvailabilityRule;
-use App\Models\Listing;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -31,8 +30,12 @@ class AvailabilityRuleResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('listing_id')
                             ->label('Listing')
-                            ->relationship('listing', 'title')
-                            ->searchable()
+                            ->relationship(
+                                name: 'listing',
+                                modifyQueryUsing: fn (Builder $query) => $query->orderBy('slug'),
+                            )
+                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->getTranslation('title', app()->getLocale()))
+                            ->searchable(['slug'])
                             ->required()
                             ->preload(),
 
@@ -116,8 +119,7 @@ class AvailabilityRuleResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('listing.title')
                     ->label('Listing')
-                    ->searchable()
-                    ->sortable()
+                    ->formatStateUsing(fn ($record) => $record->listing?->getTranslation('title', app()->getLocale()))
                     ->limit(30),
 
                 Tables\Columns\TextColumn::make('rule_type')
@@ -133,16 +135,16 @@ class AvailabilityRuleResource extends Resource
 
                 Tables\Columns\TextColumn::make('start_time')
                     ->label('Time')
-                    ->formatStateUsing(fn ($record) =>
-                        $record->start_time && $record->end_time
+                    ->formatStateUsing(
+                        fn ($record) => $record->start_time && $record->end_time
                             ? $record->start_time->format('H:i') . ' - ' . $record->end_time->format('H:i')
                             : '-'
                     ),
 
                 Tables\Columns\TextColumn::make('start_date')
                     ->label('Date Range')
-                    ->formatStateUsing(fn ($record) =>
-                        $record->start_date && $record->end_date
+                    ->formatStateUsing(
+                        fn ($record) => $record->start_date && $record->end_date
                             ? $record->start_date->format('M d, Y') . ' - ' . $record->end_date->format('M d, Y')
                             : ($record->start_date ? 'From ' . $record->start_date->format('M d, Y') : 'Ongoing')
                     )
@@ -166,9 +168,13 @@ class AvailabilityRuleResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('listing_id')
                     ->label('Listing')
-                    ->relationship('listing', 'title')
-                    ->searchable()
-                    ->preload(),
+                    ->options(
+                        fn () => \App\Models\Listing::query()
+                            ->orderBy('slug')
+                            ->get()
+                            ->mapWithKeys(fn ($listing) => [$listing->id => $listing->getTranslation('title', app()->getLocale())])
+                    )
+                    ->searchable(),
 
                 Tables\Filters\SelectFilter::make('rule_type')
                     ->label('Rule Type')

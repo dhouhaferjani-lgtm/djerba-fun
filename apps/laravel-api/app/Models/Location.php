@@ -2,16 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use MatanYadaev\EloquentSpatial\Objects\Point;
+use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 
 class Location extends Model
 {
-    use HasFactory, HasTranslations, HasUuids;
+    use HasFactory;
+    use HasTranslations;
+
+    protected static function booted(): void
+    {
+        static::creating(function (Location $location) {
+            if (empty($location->uuid)) {
+                $location->uuid = (string) Str::uuid();
+            }
+        });
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -22,7 +31,8 @@ class Location extends Model
         'name',
         'slug',
         'description',
-        'coordinates',
+        'latitude',
+        'longitude',
         'address',
         'city',
         'region',
@@ -47,7 +57,8 @@ class Location extends Model
     protected function casts(): array
     {
         return [
-            'coordinates' => Point::class,
+            'latitude' => 'decimal:8',
+            'longitude' => 'decimal:8',
         ];
     }
 

@@ -103,10 +103,11 @@ class AgentResource extends Resource
                     ->suffix(' req/min')
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('permissions')
+                Tables\Columns\TextColumn::make('permissions')
                     ->label('Permissions')
+                    ->badge()
                     ->separator(',')
-                    ->limit(3)
+                    ->limitList(3)
                     ->formatStateUsing(fn ($state) => $state === '*' ? 'All' : $state),
 
                 Tables\Columns\TextColumn::make('last_used_at')
@@ -163,6 +164,8 @@ class AgentResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::active()->count();
+        $count = static::getModel()::active()->count();
+
+        return $count > 0 ? (string) $count : null;
     }
 }

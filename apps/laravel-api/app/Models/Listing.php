@@ -5,18 +5,29 @@ namespace App\Models;
 use App\Enums\DifficultyLevel;
 use App\Enums\ListingStatus;
 use App\Enums\ServiceType;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 
 class Listing extends Model
 {
-    use HasFactory, HasTranslations, HasUuids, SoftDeletes;
+    use HasFactory;
+    use HasTranslations;
+    use SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::creating(function (Listing $listing) {
+            if (empty($listing->uuid)) {
+                $listing->uuid = (string) Str::uuid();
+            }
+        });
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -98,6 +109,9 @@ class Listing extends Model
             'start_date' => 'datetime',
             'end_date' => 'datetime',
             'published_at' => 'datetime',
+            'rating' => 'float',
+            'reviews_count' => 'integer',
+            'bookings_count' => 'integer',
         ];
     }
 

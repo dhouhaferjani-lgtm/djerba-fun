@@ -36,7 +36,7 @@ class ViewBooking extends ViewRecord
                         Infolists\Components\TextEntry::make('status')
                             ->badge(),
 
-                        Infolists\Components\TextEntry::make('user.name')
+                        Infolists\Components\TextEntry::make('user.display_name')
                             ->label('Traveler'),
 
                         Infolists\Components\TextEntry::make('user.email')
@@ -44,7 +44,8 @@ class ViewBooking extends ViewRecord
                             ->copyable(),
 
                         Infolists\Components\TextEntry::make('listing.title')
-                            ->label('Listing'),
+                            ->label('Listing')
+                            ->formatStateUsing(fn ($record) => $record->listing?->getTranslation('title', app()->getLocale())),
 
                         Infolists\Components\TextEntry::make('availabilitySlot.start_time')
                             ->label('Date & Time')
@@ -59,7 +60,7 @@ class ViewBooking extends ViewRecord
 
                         Infolists\Components\TextEntry::make('total_amount')
                             ->label('Total Amount')
-                            ->money(fn($record) => $record->currency),
+                            ->money(fn ($record) => $record->currency),
 
                         Infolists\Components\TextEntry::make('currency')
                             ->label('Currency'),
@@ -79,7 +80,7 @@ class ViewBooking extends ViewRecord
                             ->label('Items')
                             ->columnSpanFull(),
                     ])
-                    ->visible(fn($record) => !empty($record->extras)),
+                    ->visible(fn ($record) => ! empty($record->extras)),
 
                 Infolists\Components\Section::make('Payment History')
                     ->schema([
@@ -93,7 +94,7 @@ class ViewBooking extends ViewRecord
                                     ->badge(),
 
                                 Infolists\Components\TextEntry::make('amount')
-                                    ->money(fn($record) => $record?->currency ?? 'USD'),
+                                    ->money(fn ($record) => $record?->currency ?? 'USD'),
 
                                 Infolists\Components\TextEntry::make('gateway')
                                     ->label('Gateway'),
@@ -116,12 +117,12 @@ class ViewBooking extends ViewRecord
                         Infolists\Components\TextEntry::make('cancelled_at')
                             ->dateTime()
                             ->placeholder('Not cancelled')
-                            ->visible(fn($record) => $record->cancelled_at !== null),
+                            ->visible(fn ($record) => $record->cancelled_at !== null),
 
                         Infolists\Components\TextEntry::make('cancellation_reason')
                             ->label('Cancellation Reason')
                             ->columnSpanFull()
-                            ->visible(fn($record) => $record->cancellation_reason !== null),
+                            ->visible(fn ($record) => $record->cancellation_reason !== null),
                     ])
                     ->columns(3),
             ]);

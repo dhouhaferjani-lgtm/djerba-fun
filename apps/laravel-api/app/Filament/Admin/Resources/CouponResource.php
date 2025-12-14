@@ -138,7 +138,7 @@ class CouponResource extends Resource
                     ->formatStateUsing(function ($state, $record) {
                         return $record->discount_type === DiscountType::PERCENTAGE
                             ? $state . '%'
-                            : '$' . number_format($state, 2);
+                            : '$' . number_format((float) $state, 2);
                     }),
 
                 Tables\Columns\IconColumn::make('is_active')

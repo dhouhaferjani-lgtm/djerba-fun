@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Admin\Resources\ListingResource\Pages;
+
+use App\Filament\Admin\Resources\ListingResource;
+use Filament\Resources\Pages\CreateRecord;
+
+class CreateListing extends CreateRecord
+{
+    protected static string $resource = ListingResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+}

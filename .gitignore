@@ -37,9 +37,13 @@ playwright-report/
 # Laravel
 storage/*.key
 storage/logs/*
+storage/phpstan/
 bootstrap/cache/*
 !storage/logs/.gitkeep
 !bootstrap/cache/.gitkeep
+public/css/
+public/js/
+public/hot
 
 # Docker
 docker/volumes/

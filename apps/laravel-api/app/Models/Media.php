@@ -2,14 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Str;
 
 class Media extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::creating(function (Media $media) {
+            if (empty($media->uuid)) {
+                $media->uuid = (string) Str::uuid();
+            }
+        });
+    }
 
     /**
      * The attributes that are mass assignable.
