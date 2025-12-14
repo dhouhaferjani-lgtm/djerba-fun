@@ -9,6 +9,7 @@ import { Button, Card } from '@go-adventure/ui';
 import { RatingStars } from '@/components/molecules/RatingStars';
 import { PriceDisplay } from '@/components/molecules/PriceDisplay';
 import { MapPin, Clock, Users, Calendar, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { resolveTranslation } from '@/lib/utils/translate';
 
 export default function ListingDetailPage() {
   const params = useParams();
@@ -40,22 +41,22 @@ export default function ListingDetailPage() {
   }
 
   const mainImage = listing.media[0];
-  const title =
-    typeof listing.title === 'string'
-      ? listing.title
-      : listing.title[locale as 'en' | 'fr'] || listing.title.en;
-
-  const description =
-    typeof listing.description === 'string'
-      ? listing.description
-      : listing.description[locale as 'en' | 'fr'] || listing.description.en;
+  const tr = (field: any) => resolveTranslation(field, locale);
+  const title = tr(listing.title);
+  const description = tr(listing.description);
 
   return (
     <MainLayout locale={locale}>
       {/* Hero Image */}
       <div className="relative h-96 w-full bg-neutral-100">
         {mainImage && (
-          <Image src={mainImage.url} alt={mainImage.alt} fill className="object-cover" priority />
+          <Image
+            src={mainImage.url}
+            alt={tr(mainImage.alt) || title}
+            fill
+            className="object-cover"
+            priority
+          />
         )}
       </div>
 
@@ -109,18 +110,12 @@ export default function ListingDetailPage() {
               <div>
                 <h2 className="text-2xl font-semibold text-neutral-900 mb-4">{t('highlights')}</h2>
                 <ul className="space-y-2">
-                  {listing.highlights.map((highlight, index) => {
-                    const text =
-                      typeof highlight === 'string'
-                        ? highlight
-                        : highlight[locale as 'en' | 'fr'] || highlight.en;
-                    return (
-                      <li key={index} className="flex items-start gap-2">
-                        <CheckCircle className="h-5 w-5 text-[#8BC34A] flex-shrink-0 mt-0.5" />
-                        <span className="text-neutral-700">{text}</span>
-                      </li>
-                    );
-                  })}
+                  {listing.highlights.map((highlight, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <CheckCircle className="h-5 w-5 text-[#8BC34A] flex-shrink-0 mt-0.5" />
+                      <span className="text-neutral-700">{tr(highlight)}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
@@ -131,16 +126,12 @@ export default function ListingDetailPage() {
                 <div>
                   <h3 className="font-semibold text-neutral-900 mb-3">{t('included')}</h3>
                   <ul className="space-y-2">
-                    {listing.included.map((item, index) => {
-                      const text =
-                        typeof item === 'string' ? item : item[locale as 'en' | 'fr'] || item.en;
-                      return (
-                        <li key={index} className="flex items-start gap-2 text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                          <span className="text-neutral-600">{text}</span>
-                        </li>
-                      );
-                    })}
+                    {listing.included.map((item, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-neutral-600">{tr(item)}</span>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               )}
@@ -149,16 +140,12 @@ export default function ListingDetailPage() {
                 <div>
                   <h3 className="font-semibold text-neutral-900 mb-3">{t('not_included')}</h3>
                   <ul className="space-y-2">
-                    {listing.notIncluded.map((item, index) => {
-                      const text =
-                        typeof item === 'string' ? item : item[locale as 'en' | 'fr'] || item.en;
-                      return (
-                        <li key={index} className="flex items-start gap-2 text-sm">
-                          <XCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
-                          <span className="text-neutral-600">{text}</span>
-                        </li>
-                      );
-                    })}
+                    {listing.notIncluded.map((item, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm">
+                        <XCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-neutral-600">{tr(item)}</span>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               )}
@@ -169,16 +156,12 @@ export default function ListingDetailPage() {
               <div>
                 <h3 className="font-semibold text-neutral-900 mb-3">Requirements</h3>
                 <ul className="space-y-2">
-                  {listing.requirements.map((req, index) => {
-                    const text =
-                      typeof req === 'string' ? req : req[locale as 'en' | 'fr'] || req.en;
-                    return (
-                      <li key={index} className="flex items-start gap-2 text-sm">
-                        <AlertCircle className="h-4 w-4 text-[#f59e0b] flex-shrink-0 mt-0.5" />
-                        <span className="text-neutral-600">{text}</span>
-                      </li>
-                    );
-                  })}
+                  {listing.requirements.map((req, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm">
+                      <AlertCircle className="h-4 w-4 text-[#f59e0b] flex-shrink-0 mt-0.5" />
+                      <span className="text-neutral-600">{tr(req)}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
@@ -189,7 +172,7 @@ export default function ListingDetailPage() {
             <Card className="sticky top-20">
               <div className="p-6 space-y-6">
                 <PriceDisplay
-                  amount={listing.pricing.base}
+                  amount={listing.pricing.basePrice}
                   currency={listing.pricing.currency}
                   size="lg"
                   showFrom

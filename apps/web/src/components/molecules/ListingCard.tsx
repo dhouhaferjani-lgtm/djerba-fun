@@ -6,6 +6,7 @@ import { RatingStars } from './RatingStars';
 import { PriceDisplay } from './PriceDisplay';
 import { Clock, MapPin } from 'lucide-react';
 import type { ListingSummary } from '@go-adventure/schemas';
+import { resolveTranslation } from '@/lib/utils/translate';
 
 interface ListingCardProps {
   listing: ListingSummary;
@@ -15,6 +16,7 @@ interface ListingCardProps {
 export function ListingCard({ listing, locale }: ListingCardProps) {
   const mainImage = listing.media[0];
   const href = `/${locale}/listings/${listing.slug}` as any;
+  const t = (field: any) => resolveTranslation(field, locale);
 
   return (
     <Link href={href}>
@@ -24,7 +26,7 @@ export function ListingCard({ listing, locale }: ListingCardProps) {
           {mainImage ? (
             <Image
               src={mainImage.url}
-              alt={mainImage.alt}
+              alt={t(mainImage.alt) || t(listing.title)}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -41,7 +43,7 @@ export function ListingCard({ listing, locale }: ListingCardProps) {
           {/* Title and Rating */}
           <div>
             <h3 className="font-semibold text-lg text-neutral-900 line-clamp-2 mb-1">
-              {listing.title}
+              {t(listing.title)}
             </h3>
             {listing.rating && (
               <div className="flex items-center gap-1">
@@ -54,7 +56,7 @@ export function ListingCard({ listing, locale }: ListingCardProps) {
           {/* Location */}
           <div className="flex items-center gap-1.5 text-sm text-neutral-600">
             <MapPin className="h-4 w-4" />
-            <span>{listing.location?.name || listing.meetingPoint?.address || 'Tunisia'}</span>
+            <span>{t(listing.location?.name) || listing.meetingPoint?.address || 'Tunisia'}</span>
           </div>
 
           {/* Duration (if available) */}
