@@ -118,6 +118,14 @@ class BookingHold extends Model
     }
 
     /**
+     * Alias for isExpired() for backward compatibility.
+     */
+    public function hasExpired(): bool
+    {
+        return $this->isExpired();
+    }
+
+    /**
      * Check if the hold is active.
      */
     public function isActive(): bool
