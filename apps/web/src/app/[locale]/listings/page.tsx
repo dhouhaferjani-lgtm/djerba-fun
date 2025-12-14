@@ -1,7 +1,7 @@
 'use client';
 
-import { Suspense, use } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useSearchParams, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { ListingGrid } from '@/components/organisms/ListingGrid';
@@ -79,8 +79,9 @@ function ListingsContent({ locale }: { locale: string }) {
   );
 }
 
-export default function ListingsPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = use(params);
+export default function ListingsPage() {
+  const params = useParams();
+  const locale = params.locale as string;
 
   return (
     <Suspense

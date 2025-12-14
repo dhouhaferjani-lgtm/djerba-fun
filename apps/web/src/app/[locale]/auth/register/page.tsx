@@ -1,16 +1,17 @@
 'use client';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- next-intl Link requires typed routes, using any for dynamic hrefs */
-import { useState, use } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { Input, Button, Card } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
-export default function RegisterPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = use(params);
+export default function RegisterPage() {
+  const params = useParams();
+  const locale = params.locale as string;
   const t = useTranslations('auth');
   const router = useRouter();
   const { register } = useAuth();

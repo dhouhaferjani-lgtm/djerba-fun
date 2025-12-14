@@ -1,13 +1,16 @@
 'use client';
 
-/* eslint-disable @typescript-eslint/no-explicit-any -- next-intl Link requires typed routes, using any for dynamic hrefs */
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Button } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Menu, User, LogOut } from 'lucide-react';
 import { LocaleSwitcher } from './LocaleSwitcher';
 import { useState } from 'react';
+import { Logo } from '../atoms/Logo';
+import { NavLink } from '../atoms/NavLink';
+import { useScroll } from '@/lib/hooks/useScroll';
+import { cn } from '@/lib/utils/cn';
+import { MobileMenu } from './MobileMenu';
 
 interface HeaderProps {
   locale: string;
@@ -18,6 +21,7 @@ export function Header({ locale }: HeaderProps) {
   const tAuth = useTranslations('auth');
   const { isAuthenticated, user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const scrolled = useScroll(50);
 
   const navLinks = [
     { href: `/${locale}`, label: t('home') },
@@ -26,24 +30,22 @@ export function Header({ locale }: HeaderProps) {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white">
+    <header
+      className={cn(
+        'sticky top-0 z-50 w-full transition-all duration-300',
+        scrolled ? 'bg-primary shadow-lg' : 'bg-primary/90'
+      )}
+    >
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href={`/${locale}` as any} className="flex items-center">
-            <span className="text-2xl font-bold text-[#0D642E]">Go Adventure</span>
-          </Link>
+          <Logo />
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href as any}
-                className="text-sm font-medium text-neutral-700 hover:text-[#0D642E] transition-colors"
-              >
+              <NavLink key={link.href} href={link.href}>
                 {link.label}
-              </Link>
+              </NavLink>
             ))}
           </nav>
 
@@ -53,94 +55,54 @@ export function Header({ locale }: HeaderProps) {
 
             {isAuthenticated && user ? (
               <div className="hidden md:flex items-center gap-3">
-                <Link href={`/${locale}/dashboard` as any}>
-                  <Button variant="ghost" size="sm">
+                <NavLink href={`/${locale}/dashboard`}>
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-primary-light">
                     <User className="h-4 w-4 mr-2" />
                     {user.displayName}
                   </Button>
-                </Link>
-                <Button variant="ghost" size="sm" onClick={() => logout()}>
+                </NavLink>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => logout()}
+                  className="text-white hover:bg-primary-light"
+                >
                   <LogOut className="h-4 w-4 mr-2" />
                   {tAuth('logout')}
                 </Button>
               </div>
             ) : (
               <div className="hidden md:flex items-center gap-2">
-                <Link href={`/${locale}/auth/login` as any}>
-                  <Button variant="ghost" size="sm">
+                <NavLink href={`/${locale}/auth/login`}>
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-primary-light">
                     {tAuth('login')}
                   </Button>
-                </Link>
-                <Link href={`/${locale}/auth/register` as any}>
-                  <Button variant="primary" size="sm">
+                </NavLink>
+                <NavLink href={`/${locale}/auth/register`}>
+                  <Button variant="secondary" size="sm">
                     {tAuth('register')}
                   </Button>
-                </Link>
+                </NavLink>
               </div>
             )}
 
             {/* Mobile Menu Button */}
-            <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              <Menu className="h-6 w-6 text-neutral-700" />
+            <button
+              className="md:hidden p-2 text-white"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Open mobile menu"
+            >
+              <Menu className="h-6 w-6" />
             </button>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-neutral-200 py-4">
-            <nav className="flex flex-col gap-3">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href as any}
-                  className="text-sm font-medium text-neutral-700 hover:text-[#0D642E] py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <div className="border-t border-neutral-200 pt-3 mt-2">
-                {isAuthenticated && user ? (
-                  <>
-                    <Link href={`/${locale}/dashboard` as any}>
-                      <Button variant="ghost" size="sm" className="w-full mb-2">
-                        <User className="h-4 w-4 mr-2" />
-                        {user.displayName}
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        logout();
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      {tAuth('logout')}
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Link href={`/${locale}/auth/login` as any}>
-                      <Button variant="ghost" size="sm" className="w-full mb-2">
-                        {tAuth('login')}
-                      </Button>
-                    </Link>
-                    <Link href={`/${locale}/auth/register` as any}>
-                      <Button variant="primary" size="sm" className="w-full">
-                        {tAuth('register')}
-                      </Button>
-                    </Link>
-                  </>
-                )}
-              </div>
-            </nav>
-          </div>
-        )}
       </div>
+      <MobileMenu
+        isOpen={mobileMenuOpen}
+        setIsOpen={setMobileMenuOpen}
+        navLinks={navLinks}
+        locale={locale}
+      />
     </header>
   );
 }

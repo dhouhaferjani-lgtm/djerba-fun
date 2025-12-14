@@ -1,7 +1,7 @@
 'use client';
 
-import { use } from 'react';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { useListing } from '@/lib/api/hooks';
@@ -10,12 +10,10 @@ import { RatingStars } from '@/components/molecules/RatingStars';
 import { PriceDisplay } from '@/components/molecules/PriceDisplay';
 import { MapPin, Clock, Users, Calendar, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
-export default function ListingDetailPage({
-  params,
-}: {
-  params: Promise<{ locale: string; slug: string }>;
-}) {
-  const { locale, slug } = use(params);
+export default function ListingDetailPage() {
+  const params = useParams();
+  const locale = params.locale as string;
+  const slug = params.slug as string;
   const t = useTranslations('listing');
   const tCommon = useTranslations('common');
 
