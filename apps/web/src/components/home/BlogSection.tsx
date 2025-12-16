@@ -91,48 +91,40 @@ export function BlogSection() {
           {blogPosts.map((post) => (
             <article
               key={post.id}
-              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group"
+              className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow group"
             >
               <Link href={`/${locale}/blog/${post.slug}` as any}>
-                <div className="relative aspect-[16/10] overflow-hidden">
+                {/* Image Top - h-48 */}
+                <div className="relative h-48 overflow-hidden">
                   <Image
                     src={post.image}
                     alt={post.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-primary">
-                      {post.category}
-                    </span>
-                  </div>
                 </div>
               </Link>
+
+              {/* Content */}
               <div className="p-6">
-                <div className="flex items-center gap-4 text-sm text-neutral-darker mb-3">
-                  <span>{post.date}</span>
-                  <span className="w-1 h-1 bg-neutral-dark rounded-full" />
-                  <span>{post.readTime}</span>
+                {/* Category Kicker */}
+                <div className="text-xs font-bold text-secondary uppercase tracking-wide mb-2">
+                  {post.category}
                 </div>
+
+                {/* Title */}
                 <Link href={`/${locale}/blog/${post.slug}` as any}>
-                  <h3 className="font-bold text-lg text-neutral-darker mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                  <h3 className="font-bold text-xl text-neutral-900 mb-3 group-hover:text-primary transition-colors line-clamp-2">
                     {post.title}
                   </h3>
                 </Link>
-                <p className="text-neutral-dark text-sm line-clamp-2 mb-4">{post.excerpt}</p>
+
+                {/* Link */}
                 <Link
                   href={`/${locale}/blog/${post.slug}` as any}
-                  className="inline-flex items-center gap-2 text-primary font-semibold text-sm hover:gap-3 transition-all"
+                  className="inline-flex items-center gap-2 text-primary font-semibold text-sm hover:underline"
                 >
-                  {t('blog_read_more')}
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                  </svg>
+                  {t('blog_read_more')} →
                 </Link>
               </div>
             </article>

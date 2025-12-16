@@ -150,13 +150,13 @@ export default function ElevationProfile({ profile, className = '' }: ElevationP
               stroke="none"
               className="elevation-area"
             />
-            <path d={pathData} fill="none" stroke="#0D642E" strokeWidth="2" />
+            <path d={pathData} fill="none" className="stroke-primary" strokeWidth="2" />
 
             {/* Gradient definition */}
             <defs>
               <linearGradient id="elevationGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#0D642E" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#0D642E" stopOpacity="0.05" />
+                <stop offset="0%" className="[stop-color:rgb(13,100,46)]" stopOpacity="0.3" />
+                <stop offset="100%" className="[stop-color:rgb(13,100,46)]" stopOpacity="0.05" />
               </linearGradient>
             </defs>
 
@@ -172,13 +172,18 @@ export default function ElevationProfile({ profile, className = '' }: ElevationP
 
                 return (
                   <g key={`marker-${index}`}>
-                    <circle cx={x} cy={y} r="4" fill={isMax ? '#22c55e' : '#ef4444'} />
+                    <circle
+                      cx={x}
+                      cy={y}
+                      r="4"
+                      className={isMax ? 'fill-green-500' : 'fill-red-500'}
+                    />
                     <text
                       x={x}
                       y={y - 10}
                       textAnchor="middle"
                       fontSize="10"
-                      fill={isMax ? '#22c55e' : '#ef4444'}
+                      className={isMax ? 'fill-green-500' : 'fill-red-500'}
                       fontWeight="600"
                     >
                       {point.elevation.toFixed(0)}m

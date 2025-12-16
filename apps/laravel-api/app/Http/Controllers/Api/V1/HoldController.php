@@ -14,6 +14,7 @@ class HoldController extends Controller
 {
     /**
      * Create a new booking hold.
+     * Supports both authenticated users and guest checkout via session_id.
      *
      * @param  CreateHoldRequest  $request
      * @param  Listing  $listing
@@ -43,8 +44,12 @@ class HoldController extends Controller
             ], 422);
         }
 
+        // Get user (if authenticated) and session_id (for guest checkout)
+        $user = $request->user();
+        $sessionId = $validated['session_id'] ?? null;
+
         // Create the hold
-        $hold = BookingHold::createForSlot($slot, $request->user(), $validated['quantity']);
+        $hold = BookingHold::createForSlot($slot, $user, $validated['quantity'], $sessionId);
 
         if (! $hold) {
             return response()->json([
@@ -86,6 +91,7 @@ class HoldController extends Controller
 
     /**
      * Cancel a hold.
+     * Supports both authenticated users and guest checkout via session_id.
      *
      * @param  Listing  $listing
      * @param  BookingHold  $hold
@@ -93,14 +99,21 @@ class HoldController extends Controller
      */
     public function destroy(Listing $listing, BookingHold $hold): JsonResponse
     {
-        // Ensure hold belongs to the listing and user
+        // Ensure hold belongs to the listing
         if ($hold->listing_id !== $listing->id) {
             return response()->json([
                 'message' => 'Hold not found for this listing',
             ], 404);
         }
 
-        if ($hold->user_id !== auth()->id()) {
+        // Check authorization: either authenticated user owns the hold, or guest has matching session_id
+        $userId = auth()->id();
+        $sessionId = request()->query('session_id') ?? request()->input('session_id');
+
+        $isOwner = ($userId && $hold->user_id === $userId) ||
+                   ($sessionId && $hold->session_id === $sessionId);
+
+        if (! $isOwner) {
             return response()->json([
                 'message' => 'Unauthorized',
             ], 403);

@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { TravelerInfoForm } from './TravelerInfoForm';
 import { ExtrasSelection } from './ExtrasSelection';
 import { BookingReview } from './BookingReview';
 import { PaymentMethodSelector, type PaymentMethod } from './PaymentMethodSelector';
 import { BookingConfirmation } from './BookingConfirmation';
+import { CheckoutAuth } from './CheckoutAuth';
 import HoldTimer from '@/components/availability/HoldTimer';
 import { useCreateBooking, useProcessPayment } from '@/lib/api/hooks';
+import { getGuestSessionId } from '@/lib/utils/session';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import type {
   TravelerInfo,
   BookingHold,
@@ -38,7 +41,7 @@ interface BookingWizardProps {
   onExpired?: () => void;
 }
 
-type Step = 'traveler' | 'extras' | 'review' | 'payment' | 'confirmation';
+type Step = 'auth' | 'traveler' | 'extras' | 'review' | 'payment' | 'confirmation';
 
 export function BookingWizard({
   hold,
@@ -48,7 +51,10 @@ export function BookingWizard({
   onExpired,
 }: BookingWizardProps) {
   const t = useTranslations('booking');
-  const [currentStep, setCurrentStep] = useState<Step>('traveler');
+  const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+
+  // Start at auth step if not authenticated, otherwise skip to traveler
+  const [currentStep, setCurrentStep] = useState<Step>('auth');
   const [travelerInfo, setTravelerInfo] = useState<TravelerInfo | null>(null);
   const [selectedExtras, setSelectedExtras] = useState<SelectedExtra[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>();
@@ -57,6 +63,27 @@ export function BookingWizard({
   const createBookingMutation = useCreateBooking();
   const processPaymentMutation = useProcessPayment();
 
+  // Skip auth step if already authenticated
+  useEffect(() => {
+    if (!isAuthLoading && isAuthenticated && currentStep === 'auth') {
+      setCurrentStep('traveler');
+    }
+  }, [isAuthenticated, isAuthLoading, currentStep]);
+
+  // Pre-fill traveler info from authenticated user
+  useEffect(() => {
+    if (isAuthenticated && user && !travelerInfo) {
+      const userProfile = user as any;
+      setTravelerInfo({
+        firstName: userProfile.firstName || userProfile.first_name || '',
+        lastName: userProfile.lastName || userProfile.last_name || '',
+        email: userProfile.email || '',
+        phone: userProfile.phone || '',
+      });
+    }
+  }, [isAuthenticated, user, travelerInfo]);
+
+  // Only show these steps in progress indicator (auth is a pre-step)
   const steps: { key: Step; label: string }[] = [
     { key: 'traveler', label: t('step_traveler') },
     { key: 'extras', label: t('step_extras') },
@@ -64,6 +91,10 @@ export function BookingWizard({
   ];
 
   const currentStepIndex = steps.findIndex((s) => s.key === currentStep);
+
+  const handleAuthComplete = () => {
+    setCurrentStep('traveler');
+  };
 
   const handleTravelerSubmit = (data: TravelerInfo) => {
     setTravelerInfo(data);
@@ -79,12 +110,16 @@ export function BookingWizard({
     if (!travelerInfo) return;
 
     try {
-      // Create booking
+      // Get session ID for guest checkout (from hold or local storage)
+      const sessionId = (hold as any).sessionId || getGuestSessionId();
+
+      // Create booking with session_id for guest checkout
       const bookingResponse = await createBookingMutation.mutateAsync({
         holdId: hold.id,
         travelers: [travelerInfo],
         specialRequests: travelerInfo.specialRequests || undefined,
-      });
+        sessionId,
+      } as any);
 
       const booking = bookingResponse.data;
 
@@ -95,6 +130,7 @@ export function BookingWizard({
           request: {
             paymentMethod,
             paymentData: {},
+            sessionId,
           },
         });
         setCompletedBooking(paymentResponse.data);
@@ -126,6 +162,14 @@ export function BookingWizard({
 
   const renderStepContent = () => {
     switch (currentStep) {
+      case 'auth':
+        return (
+          <CheckoutAuth
+            onContinueAsGuest={handleAuthComplete}
+            onLoginSuccess={handleAuthComplete}
+          />
+        );
+
       case 'traveler':
         return (
           <TravelerInfoForm
@@ -184,6 +228,21 @@ export function BookingWizard({
 
   if (currentStep === 'confirmation') {
     return <div className="py-8">{renderStepContent()}</div>;
+  }
+
+  // Auth step has simpler layout (no progress indicator)
+  if (currentStep === 'auth') {
+    return (
+      <div className="max-w-md mx-auto">
+        {/* Hold Timer */}
+        <div className="mb-6">
+          <HoldTimer expiresAt={hold.expiresAt} onExpire={onExpired} />
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          {renderStepContent()}
+        </div>
+      </div>
+    );
   }
 
   return (

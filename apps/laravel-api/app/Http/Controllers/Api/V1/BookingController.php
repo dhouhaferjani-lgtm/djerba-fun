@@ -46,13 +46,20 @@ class BookingController extends Controller
 
     /**
      * Create a booking from a hold.
+     * Supports both authenticated users and guest checkout via session_id.
      */
     public function store(CreateBookingRequest $request): JsonResponse
     {
         $hold = BookingHold::findOrFail($request->input('hold_id'));
 
-        // Ensure the hold belongs to the authenticated user
-        if ($hold->user_id !== $request->user()->id) {
+        // Verify hold ownership: either authenticated user owns it, or guest has matching session_id
+        $userId = $request->user()?->id;
+        $sessionId = $request->input('session_id');
+
+        $isOwner = ($userId && $hold->user_id === $userId) ||
+                   ($sessionId && $hold->session_id === $sessionId);
+
+        if (! $isOwner) {
             return response()->json([
                 'message' => 'Unauthorized to use this booking hold.',
             ], 403);
@@ -65,10 +72,12 @@ class BookingController extends Controller
             ], 422);
         }
 
+        // Pass authenticated user's ID if available (user may have logged in during checkout)
         $booking = $this->bookingService->createFromHold(
             hold: $hold,
             travelerInfo: $request->input('traveler_info'),
-            extras: $request->input('extras', [])
+            extras: $request->input('extras', []),
+            authenticatedUserId: $request->user()?->id
         );
 
         // Load relationships

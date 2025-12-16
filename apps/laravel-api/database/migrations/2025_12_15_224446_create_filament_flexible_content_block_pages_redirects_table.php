@@ -1,0 +1,20 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Statikbe\FilamentFlexibleContentBlockPages\Facades\FilamentFlexibleContentBlockPages;
+
+return new class extends Migration {
+    public function up()
+    {
+        Schema::create(FilamentFlexibleContentBlockPages::config()->getRedirectsTable(), function (Blueprint $table) {
+            $table->id();
+            $table->string('old_url');
+            $table->string('new_url');
+            $table->integer('status_code')
+                ->nullable();
+            $table->timestamps();
+        });
+    }
+};

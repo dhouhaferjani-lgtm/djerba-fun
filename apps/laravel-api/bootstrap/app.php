@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'agent.auth' => \App\Http\Middleware\AgentAuthMiddleware::class,
             'agent.audit' => \App\Http\Middleware\AgentAuditMiddleware::class,
         ]);
+
+        // Apply SetLocaleFromHeader middleware to API routes
+        $middleware->api(append: [
+            \App\Http\Middleware\SetLocaleFromHeader::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

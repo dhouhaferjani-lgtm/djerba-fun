@@ -27,6 +27,7 @@ class BookingHold extends Model
         'listing_id',
         'slot_id',
         'user_id',
+        'session_id',
         'quantity',
         'expires_at',
         'status',
@@ -156,6 +157,7 @@ class BookingHold extends Model
 
     /**
      * Cache the hold in Redis with TTL.
+     * Fails gracefully if Redis is unavailable.
      */
     protected function cacheInRedis(): void
     {
@@ -163,25 +165,41 @@ class BookingHold extends Model
             return;
         }
 
-        $key = $this->getRedisKey();
-        $ttl = max(1, $this->expires_at->diffInSeconds(now()));
+        try {
+            $key = $this->getRedisKey();
+            $ttl = max(1, $this->expires_at->diffInSeconds(now()));
 
-        Redis::setex($key, $ttl, json_encode([
-            'id' => $this->id,
-            'listing_id' => $this->listing_id,
-            'slot_id' => $this->slot_id,
-            'user_id' => $this->user_id,
-            'quantity' => $this->quantity,
-            'expires_at' => $this->expires_at->toIso8601String(),
-        ]));
+            Redis::setex($key, $ttl, json_encode([
+                'id' => $this->id,
+                'listing_id' => $this->listing_id,
+                'slot_id' => $this->slot_id,
+                'user_id' => $this->user_id,
+                'session_id' => $this->session_id,
+                'quantity' => $this->quantity,
+                'expires_at' => $this->expires_at->toIso8601String(),
+            ]));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to cache booking hold in Redis', [
+                'hold_id' => $this->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
      * Remove the hold from Redis.
+     * Fails gracefully if Redis is unavailable.
      */
     protected function removeFromRedis(): void
     {
-        Redis::del($this->getRedisKey());
+        try {
+            Redis::del($this->getRedisKey());
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to remove booking hold from Redis', [
+                'hold_id' => $this->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -205,8 +223,9 @@ class BookingHold extends Model
 
     /**
      * Create a new hold for a slot.
+     * Supports both authenticated users and guest checkout via session_id.
      */
-    public static function createForSlot(AvailabilitySlot $slot, User $user, int $quantity): ?self
+    public static function createForSlot(AvailabilitySlot $slot, ?User $user, int $quantity, ?string $sessionId = null): ?self
     {
         // Check if slot has enough capacity
         if (! $slot->reserveCapacity($quantity)) {
@@ -217,7 +236,8 @@ class BookingHold extends Model
         $hold = static::create([
             'listing_id' => $slot->listing_id,
             'slot_id' => $slot->id,
-            'user_id' => $user->id,
+            'user_id' => $user?->id,
+            'session_id' => $sessionId,
             'quantity' => $quantity,
             'expires_at' => now()->addMinutes(self::HOLD_DURATION_MINUTES),
             'status' => HoldStatus::ACTIVE,

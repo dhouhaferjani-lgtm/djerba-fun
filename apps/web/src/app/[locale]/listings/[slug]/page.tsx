@@ -25,6 +25,7 @@ import {
   X,
 } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
+import { getGuestSessionId } from '@/lib/utils/session';
 // Using any for API response types due to schema/API mismatch
 type ApiSlot = any;
 type ApiHold = any;
@@ -83,9 +84,11 @@ export default function ListingDetailPage() {
     if (!selectedSlot) return;
 
     try {
+      const sessionId = getGuestSessionId();
       const response = await createHoldMutation.mutateAsync({
         slotId: selectedSlot.id,
         quantity: participants,
+        session_id: sessionId,
       } as any);
       setHold(response.data);
     } catch (err) {
@@ -157,8 +160,8 @@ export default function ListingDetailPage() {
 
   return (
     <MainLayout locale={locale}>
-      {/* Hero Image */}
-      <div className="relative h-96 w-full bg-neutral-100">
+      {/* Hero Header - 60vh */}
+      <div className="relative h-[60vh] w-full bg-neutral-100">
         {mainImage && (
           <Image
             src={mainImage.url}
@@ -168,45 +171,51 @@ export default function ListingDetailPage() {
             priority
           />
         )}
-      </div>
+        {/* Bottom Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Title and Rating */}
-            <div>
-              <h1 className="text-4xl font-bold text-neutral-900 mb-4">{title}</h1>
-              {listing.rating && (
-                <div className="flex items-center gap-2">
-                  <RatingStars rating={listing.rating} showNumber />
-                  <span className="text-sm text-neutral-500">
-                    ({tCommon('reviews', { count: listing.reviewsCount || 0 })})
-                  </span>
-                </div>
-              )}
+        {/* Content - Bottom Left Container */}
+        <div className="absolute bottom-0 left-0 w-full">
+          <div className="container mx-auto px-4 pb-8">
+            {/* Badge - Type */}
+            <div className="mb-4">
+              <span className="inline-block bg-primary text-white px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wide">
+                {listing.serviceType === 'tour' ? 'Tour' : 'Event'}
+              </span>
             </div>
 
-            {/* Quick Info */}
-            <div className="flex flex-wrap gap-6 text-sm">
+            {/* Title */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white mb-4 max-w-4xl">
+              {title}
+            </h1>
+
+            {/* Meta Row */}
+            <div className="flex flex-wrap gap-6 text-white/90">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                <span>{listing.meetingPoint?.address || 'Tunisia'}</span>
+              </div>
               {listing.serviceType === 'tour' && listing.duration && (
-                <div className="flex items-center gap-2 text-neutral-600">
+                <div className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
                   <span>
                     {listing.duration.value} {listing.duration.unit}
                   </span>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-neutral-600">
+              <div className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
                 <span>Max {listing.maxGroupSize} guests</span>
               </div>
-              <div className="flex items-center gap-2 text-neutral-600">
-                <MapPin className="h-5 w-5" />
-                <span>{listing.meetingPoint?.address || 'Tunisia'}</span>
-              </div>
             </div>
+          </div>
+        </div>
+      </div>
 
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
             {/* Description */}
             <div>
               <h2 className="text-2xl font-semibold text-neutral-900 mb-4">About</h2>
@@ -440,7 +449,7 @@ export default function ListingDetailPage() {
                         </Button>
                         {createHoldMutation.isError && (
                           <p className="text-sm text-red-600 mt-2 text-center">
-                            {tCommon('error')}
+                            {(createHoldMutation.error as any)?.message || tCommon('error')}
                           </p>
                         )}
                       </div>

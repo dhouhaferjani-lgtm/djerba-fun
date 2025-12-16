@@ -32,13 +32,14 @@ export function PriceDisplay({
 }: PriceDisplayProps) {
   const t = useTranslations('common');
   const symbol = currencySymbols[currency] || currency;
-  const formattedAmount = (amount / 100).toFixed(2);
+  // Prices are stored as whole amounts (e.g., 85 = €85), not cents
+  const formattedAmount = Number(amount).toFixed(2);
 
   return (
     <div className={`flex flex-col ${className}`}>
       <div className="flex items-baseline gap-1">
         {showFrom && <span className="text-sm font-normal text-neutral-600">{t('from')}</span>}
-        <span className={`font-bold text-[#0D642E] ${sizeClasses[size]}`}>
+        <span className={`font-bold text-primary ${sizeClasses[size]}`}>
           {symbol}
           {formattedAmount}
         </span>

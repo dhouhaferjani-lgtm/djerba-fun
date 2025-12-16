@@ -25,6 +25,7 @@ class ProcessPaymentRequest extends BaseFormRequest
     public function rules(): array
     {
         return [
+            'session_id' => ['nullable', 'string', 'max:255'],
             'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'payment_data' => ['nullable', 'array'],
             'payment_data.card_number' => ['required_if:payment_method,card', 'string'],

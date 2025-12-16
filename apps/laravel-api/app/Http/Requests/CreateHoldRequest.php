@@ -8,10 +8,11 @@ class CreateHoldRequest extends BaseFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * Allows both authenticated users and guests (with session_id).
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return true;
     }
 
     /**
@@ -29,6 +30,7 @@ class CreateHoldRequest extends BaseFormRequest
                     ->where('listing_id', $this->route('listing')->id),
             ],
             'quantity' => ['required', 'integer', 'min:1'],
+            'session_id' => ['nullable', 'string', 'max:255'],
         ];
     }
 

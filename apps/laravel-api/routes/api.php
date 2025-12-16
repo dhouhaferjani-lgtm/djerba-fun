@@ -7,10 +7,12 @@ use App\Http\Controllers\Api\FeedController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
+use App\Http\Controllers\Api\V1\BlogPostController;
 use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\CouponController;
 use App\Http\Controllers\Api\V1\HoldController;
 use App\Http\Controllers\Api\V1\ListingController;
+use App\Http\Controllers\Api\V1\PageController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use Illuminate\Support\Facades\Route;
@@ -43,9 +45,31 @@ Route::prefix('v1')->group(function () {
     // Public review routes
     Route::get('/listings/{listing:slug}/reviews', [ReviewController::class, 'index']);
 
+    // Public CMS page routes
+    Route::get('/pages', [PageController::class, 'index']);
+    Route::get('/pages/{slug}', [PageController::class, 'show']);
+    Route::get('/pages/code/{code}', [PageController::class, 'showByCode']);
+
+    // Public blog routes
+    Route::get('/blog/posts', [BlogPostController::class, 'index']);
+    Route::get('/blog/posts/featured', [BlogPostController::class, 'featured']);
+    Route::get('/blog/posts/{slug}', [BlogPostController::class, 'show']);
+    Route::get('/blog/posts/{slug}/related', [BlogPostController::class, 'related']);
+    Route::get('/menus/{menuCode}', [PageController::class, 'getMenu']);
+
     // Availability routes (public - anyone can view availability)
     Route::get('/listings/{listing:slug}/availability', [AvailabilityController::class, 'index']);
     Route::post('/listings/{listing:slug}/availability/refresh', [AvailabilityController::class, 'refresh']);
+
+    // Booking holds (public - allows guest checkout with session_id)
+    Route::post('/listings/{listing:slug}/holds', [HoldController::class, 'store']);
+    Route::get('/listings/{listing:slug}/holds/{hold}', [HoldController::class, 'show']);
+    Route::delete('/listings/{listing:slug}/holds/{hold}', [HoldController::class, 'destroy']);
+
+    // Guest booking flow (public - allows guest checkout with session_id)
+    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::post('/bookings/{booking}/pay', [PaymentController::class, 'processPayment']);
+    Route::get('/bookings/{booking}/payment-status', [PaymentController::class, 'paymentStatus']);
 
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
@@ -53,20 +77,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
 
-        // Booking holds (require authentication)
-        Route::post('/listings/{listing:slug}/holds', [HoldController::class, 'store']);
-        Route::get('/listings/{listing:slug}/holds/{hold}', [HoldController::class, 'show']);
-        Route::delete('/listings/{listing:slug}/holds/{hold}', [HoldController::class, 'destroy']);
-
-        // Booking management
+        // Booking management (authenticated users only)
         Route::get('/bookings', [BookingController::class, 'index']);
-        Route::post('/bookings', [BookingController::class, 'store']);
         Route::get('/bookings/{booking}', [BookingController::class, 'show']);
         Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
-
-        // Payment management
-        Route::post('/bookings/{booking}/pay', [PaymentController::class, 'processPayment']);
-        Route::get('/bookings/{booking}/payment-status', [PaymentController::class, 'paymentStatus']);
 
         // Review management
         Route::post('/bookings/{booking}/review', [ReviewController::class, 'store']);

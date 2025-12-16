@@ -19,29 +19,40 @@ class BookingService
 {
     /**
      * Create a booking from a hold.
+     * Supports both authenticated users and guest checkout via session_id.
+     *
+     * @param  BookingHold  $hold  The hold to convert to a booking
+     * @param  array  $travelerInfo  Traveler information
+     * @param  array  $extras  Selected extras
+     * @param  int|null  $authenticatedUserId  The authenticated user's ID (if logged in during checkout)
      */
     public function createFromHold(
         BookingHold $hold,
         array $travelerInfo,
-        array $extras = []
+        array $extras = [],
+        ?int $authenticatedUserId = null
     ): Booking {
-        return DB::transaction(function () use ($hold, $travelerInfo, $extras) {
-            // Create the booking
+        return DB::transaction(function () use ($hold, $travelerInfo, $extras, $authenticatedUserId) {
+            // Use authenticated user's ID if available, otherwise use hold's user_id
+            $userId = $authenticatedUserId ?? $hold->user_id;
+
+            // Create the booking (copy session_id from hold for guest checkout)
             $booking = Booking::create([
                 'booking_number' => $this->generateBookingNumber(),
-                'user_id' => $hold->user_id,
+                'user_id' => $userId,
+                'session_id' => $hold->session_id,
                 'listing_id' => $hold->listing_id,
-                'availability_slot_id' => $hold->availability_slot_id,
+                'availability_slot_id' => $hold->slot_id,
                 'quantity' => $hold->quantity,
                 'total_amount' => $this->calculateTotalAmount($hold, $extras),
-                'currency' => $hold->currency ?? 'USD',
+                'currency' => $hold->slot?->currency ?? 'EUR',
                 'status' => BookingStatus::PENDING_PAYMENT,
                 'traveler_info' => $travelerInfo,
                 'extras' => $extras,
             ]);
 
-            // Release the hold (it's now converted to a booking)
-            $hold->delete();
+            // Convert the hold (mark as converted, don't delete for audit trail)
+            $hold->convert();
 
             return $booking;
         });

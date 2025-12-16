@@ -52,18 +52,16 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({
-      error: {
-        message: response.statusText,
-        code: 'UNKNOWN_ERROR',
-      },
+      message: response.statusText,
     }));
 
-    throw new ApiError(
-      error.error?.message || 'An error occurred',
-      response.status,
-      error.error?.code,
-      error.error?.details
-    );
+    // Laravel returns validation errors in format: { message: "...", errors: { field: ["..."] } }
+    // Custom API errors may use: { error: { message: "...", code: "...", details: {...} } }
+    const message = error.message || error.error?.message || 'An error occurred';
+    const code = error.error?.code || (error.errors ? 'VALIDATION_ERROR' : 'UNKNOWN_ERROR');
+    const details = error.errors || error.error?.details;
+
+    throw new ApiError(message, response.status, code, details);
   }
 
   return response.json();
@@ -158,10 +156,17 @@ export const listingsApi = {
     );
   },
 
-  createHold: async (listingSlug: string, request: CreateHoldRequest) => {
+  createHold: async (
+    listingSlug: string,
+    request: CreateHoldRequest & { session_id?: string; quantity?: number }
+  ) => {
     return fetchApi<{ data: CreateHoldResponse }>(`/listings/${listingSlug}/holds`, {
       method: 'POST',
-      body: JSON.stringify(request),
+      body: JSON.stringify({
+        slot_id: request.slotId,
+        quantity: request.quantity ?? request.guests,
+        session_id: request.session_id,
+      }),
     });
   },
 };
@@ -173,13 +178,19 @@ export const listingsApi = {
 export interface ProcessPaymentRequest {
   paymentMethod: 'mock' | 'offline' | 'click_to_pay' | 'stripe' | 'paypal';
   paymentData?: Record<string, unknown>;
+  sessionId?: string;
 }
 
 export const bookingsApi = {
-  create: async (request: CreateBookingRequest) => {
+  create: async (request: CreateBookingRequest & { sessionId?: string }) => {
     return fetchApi<{ data: Booking }>('/bookings', {
       method: 'POST',
-      body: JSON.stringify(request),
+      body: JSON.stringify({
+        hold_id: request.holdId,
+        session_id: request.sessionId,
+        traveler_info: request.travelers?.[0],
+        extras: [],
+      }),
     });
   },
 
@@ -210,7 +221,11 @@ export const bookingsApi = {
   processPayment: async (bookingId: string, request: ProcessPaymentRequest) => {
     return fetchApi<{ data: Booking }>(`/bookings/${bookingId}/pay`, {
       method: 'POST',
-      body: JSON.stringify(request),
+      body: JSON.stringify({
+        payment_method: request.paymentMethod,
+        payment_data: request.paymentData,
+        session_id: request.sessionId,
+      }),
     });
   },
 };

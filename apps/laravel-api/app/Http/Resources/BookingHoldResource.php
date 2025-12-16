@@ -20,6 +20,7 @@ class BookingHoldResource extends JsonResource
             'id' => $this->id,
             'listingId' => $this->listing_id,
             'slotId' => $this->slot_id,
+            'sessionId' => $this->session_id,
             'quantity' => $this->quantity,
             'expiresAt' => $this->expires_at->toIso8601String(),
             'expiresInSeconds' => max(0, $this->expires_at->diffInSeconds(now())),

@@ -36,31 +36,49 @@ export function FeaturedPackagesSection() {
   ];
 
   return (
-    <section className="py-16 bg-accent-light">
-      <div className="container mx-auto px-4 text-center">
-        <h2 className="text-4xl font-bold text-primary mb-12">{t('featured_packages_title')}</h2>
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-4">
+        {/* Header with View All Link */}
+        <div className="flex justify-between items-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral-900">
+            Upcoming Adventures
+          </h2>
+          <Button variant="outline" onClick={() => router.push('/en/listings' as any)}>
+            View All
+          </Button>
+        </div>
+
         <div className="grid md:grid-cols-3 gap-8">
           {featuredPackages.map((pkg, index) => (
             <div
               key={index}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col"
+              className="bg-white rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer"
+              onClick={() => router.push(pkg.link as any)}
             >
-              <div className="relative h-48 w-full">
+              {/* Image with Badge */}
+              <div className="relative h-64 w-full">
                 <Image src={pkg.image} alt={pkg.title} fill className="object-cover" />
+                {/* Badge (Category) on Top-Left */}
+                <div className="absolute top-4 left-4">
+                  <div className="bg-primary text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+                    {index === 0 ? 'Tour' : index === 1 ? 'Event' : 'Adventure'}
+                  </div>
+                </div>
               </div>
-              <div className="p-8 flex flex-col flex-grow">
-                <div className="text-primary mb-4 flex justify-center">{pkg.icon}</div>
-                <h3 className="text-xl font-bold text-neutral-darker mb-4">{pkg.title}</h3>
-                <p className="text-neutral-dark leading-relaxed mb-6 flex-grow">
+
+              {/* Card Body */}
+              <div className="p-6 flex flex-col flex-grow">
+                <h3 className="text-xl font-bold text-neutral-900 mb-3 line-clamp-2">
+                  {pkg.title}
+                </h3>
+                <p className="text-neutral-600 text-sm leading-relaxed mb-4 flex-grow line-clamp-2">
                   {pkg.description}
                 </p>
-                <Button
-                  variant="primary"
-                  className="mt-auto w-full"
-                  onClick={() => router.push(pkg.link as any)}
-                >
-                  {t('learn_more')}
-                </Button>
+
+                {/* View Details Link */}
+                <div className="text-primary font-semibold text-sm group-hover:underline">
+                  View Details →
+                </div>
               </div>
             </div>
           ))}

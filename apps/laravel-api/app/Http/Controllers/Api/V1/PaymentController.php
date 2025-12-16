@@ -25,11 +25,22 @@ class PaymentController extends Controller
 
     /**
      * Process payment for a booking.
+     * Supports both authenticated users and guest checkout via session_id.
      */
     public function processPayment(ProcessPaymentRequest $request, Booking $booking): JsonResponse
     {
-        // Ensure the booking belongs to the authenticated user
-        Gate::authorize('pay', $booking);
+        // Verify booking ownership: either authenticated user owns it, or guest has matching session_id
+        $userId = $request->user()?->id;
+        $sessionId = $request->input('session_id');
+
+        $isOwner = ($userId && $booking->user_id === $userId) ||
+                   ($sessionId && $booking->session_id === $sessionId);
+
+        if (! $isOwner) {
+            return response()->json([
+                'message' => 'Unauthorized to pay for this booking.',
+            ], 403);
+        }
 
         // Check if booking can be paid
         if ($booking->isConfirmed() || $booking->isCancelled()) {
@@ -42,10 +53,13 @@ class PaymentController extends Controller
 
         // Determine which gateway to use
         $gateway = match ($paymentMethod) {
-            PaymentMethod::CARD => $this->gatewayManager->gateway('mock'),
+            PaymentMethod::CARD,
+            PaymentMethod::CLICK_TO_PAY => $this->gatewayManager->gateway('mock'),
             PaymentMethod::BANK_TRANSFER,
-            PaymentMethod::CASH_ON_ARRIVAL => $this->gatewayManager->gateway('offline'),
-            PaymentMethod::FREE => $this->gatewayManager->gateway('mock'),
+            PaymentMethod::CASH_ON_ARRIVAL,
+            PaymentMethod::OFFLINE => $this->gatewayManager->gateway('offline'),
+            PaymentMethod::FREE,
+            PaymentMethod::MOCK => $this->gatewayManager->gateway('mock'),
         };
 
         // Create payment intent

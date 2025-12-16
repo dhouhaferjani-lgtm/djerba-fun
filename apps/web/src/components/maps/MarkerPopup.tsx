@@ -37,12 +37,13 @@ export default function MarkerPopup({
 
       // Custom marker icon with brand color
       const getMarkerIcon = (type: string) => {
+        // Use RGB values from Tailwind theme colors
         const colors: Record<string, string> = {
-          listing: '#0D642E',
-          poi: '#8BC34A',
-          start: '#22c55e',
-          end: '#ef4444',
-          waypoint: '#f59e0b',
+          listing: 'rgb(13, 100, 46)', // primary
+          poi: 'rgb(139, 195, 74)', // secondary
+          start: 'rgb(34, 197, 94)', // green-500
+          end: 'rgb(239, 68, 68)', // red-500
+          waypoint: 'rgb(245, 158, 11)', // yellow-500
         };
 
         const color = colors[type] || colors.listing;

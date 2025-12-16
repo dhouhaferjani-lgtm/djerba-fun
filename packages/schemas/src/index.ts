@@ -505,10 +505,10 @@ export const travelerInfoSchema = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
   email: z.string().email(),
-  phone: z.string().nullable(),
-  dateOfBirth: z.string().date().nullable(),
-  nationality: z.string().length(2).nullable(),
-  specialRequests: z.string().max(1000).nullable(),
+  phone: z.string().nullish(),
+  dateOfBirth: z.string().date().nullish(),
+  nationality: z.string().length(2).nullish(),
+  specialRequests: z.string().max(1000).nullish(),
 });
 
 export const bookingExtraSchema = z.object({

@@ -106,6 +106,14 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Get the listings owned by the vendor.
+     */
+    public function listings(): HasMany
+    {
+        return $this->hasMany(Listing::class, 'vendor_id');
+    }
+
+    /**
      * Get the payouts for the vendor.
      */
     public function vendorPayouts(): HasMany

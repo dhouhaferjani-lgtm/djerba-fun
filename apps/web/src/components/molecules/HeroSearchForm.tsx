@@ -46,7 +46,10 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
   ];
 
   return (
-    <form onSubmit={handleSearch} className="bg-white rounded-2xl p-6 shadow-2xl">
+    <form
+      onSubmit={handleSearch}
+      className="bg-white/95 backdrop-blur-md rounded-lg p-6 shadow-2xl"
+    >
       <div className="grid md:grid-cols-4 gap-4">
         {/* Destination */}
         <div>

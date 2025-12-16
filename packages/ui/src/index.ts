@@ -8,6 +8,10 @@ export * from './tokens';
 export { Button, buttonVariants, type ButtonProps } from './components/Button';
 export { Badge, badgeVariants, type BadgeProps } from './components/Badge';
 export { Input, inputVariants, type InputProps } from './components/Input';
+export { Select, selectVariants, type SelectProps } from './components/Select';
+export { Heading, headingVariants, type HeadingProps } from './components/Heading';
+export { Text, textVariants, type TextProps } from './components/Text';
+export { Spinner, spinnerVariants, type SpinnerProps } from './components/Spinner';
 export {
   Card,
   CardHeader,

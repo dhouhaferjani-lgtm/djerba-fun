@@ -43,7 +43,7 @@
   --color-primary: var(--primary);
   --color-primary-light: var(--primary-light);
   --color-primary-dark: var(--primary-dark);
-  
+
   --color-secondary: var(--secondary);
   --color-secondary-light: var(--secondary-light);
   --color-secondary-dark: var(--secondary-dark);
@@ -67,6 +67,15 @@
   --color-info: var(--info);
 }
 
+/* Ensure text utilities take precedence over default colors */
+.text-white {
+  color: #ffffff !important;
+}
+
+.text-neutral-200 {
+  color: rgb(229, 229, 229) !important;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: var(--neutral-black);
@@ -76,6 +85,10 @@
 
 body {
   background: var(--background);
-  color: var(--foreground);
   font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+}
+
+/* Apply default text color only to main content areas, not globally */
+main {
+  color: var(--foreground);
 }
