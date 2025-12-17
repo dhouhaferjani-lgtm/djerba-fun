@@ -11,11 +11,15 @@
     "learn_more": "Learn More",
     "explore": "Explore",
     "view_all": "View All",
-    "get_started": "Get Started"
+    "get_started": "Get Started",
+    "register_now": "Register Now",
+    "package": "Package",
+    "packages": "Packages"
   },
   "home": {
     "hero_title": "Live More Than Just a Simple Travel",
     "hero_subtitle": "Discover authentic Tunisian adventures, eco-friendly experiences, and journeys off the beaten path",
+    "hero_travel_tip": "Travel Tip: Best time to visit the Sahara is October to April",
     "search_placeholder": "Where do you want to go?",
     "search_destination": "Destination",
     "search_destination_placeholder": "Where to?",
@@ -37,8 +41,10 @@
     "explore_djerba_subtitle": "The Island of Dreams",
     "explore_djerba_description": "Discover the magic of Djerba, where ancient history meets pristine Mediterranean beaches. Explore historic synagogues, colorful souks, and experience the unique blend of cultures that makes this island a true gem of Tunisia.",
     "explore_djerba_cta": "Discover Djerba",
-    "destinations_title": "Explore Our Destinations",
-    "destinations_subtitle": "From the Mediterranean coast to the golden dunes of the Sahara",
+    "destinations_title": "Discover Tunisia",
+    "destinations_subtitle": "From ancient oases to stunning coastlines, explore the diversity of our destinations",
+    "categories_title": "Explore by Activity",
+    "categories_subtitle": "From desert marathons to cultural immersions, find your perfect adventure",
     "featured_activities_title": "Featured Activities & Events",
     "featured_activities_subtitle": "Hand-picked experiences for unforgettable memories",
     "custom_experience_title": "Create Your Own Custom Experience",
@@ -70,6 +76,12 @@
     "workshops_desc": "Learn traditional crafts",
     "wellness": "Wellness & Retreats",
     "wellness_desc": "Rejuvenate mind and body"
+  },
+  "categories": {
+    "trail-running": "Trail Running",
+    "hiking": "Hiking & Trekking",
+    "cycling": "Cycling Tours",
+    "cultural": "Cultural Tours"
   },
   "listing": {
     "highlights": "Highlights",
@@ -115,6 +127,7 @@
     "extras": "Extras",
     "price_breakdown": "Price Breakdown",
     "base_price": "Base Price",
+    "free": "Free",
     "confirm_and_pay": "Confirm & Pay",
     "email_placeholder": "your@email.com",
     "phone_placeholder": "+1 234 567 8900",
@@ -321,5 +334,14 @@
     "invalid": "Invalid coupon code",
     "expired": "This coupon has expired",
     "minimum_order": "Minimum order of {amount} required"
+  },
+  "checkout": {
+    "hold_expired_title": "Reservation Expired",
+    "hold_expired_message": "Your reservation has expired. Please select a new date and time to continue booking.",
+    "hold_not_found_title": "Reservation Not Found",
+    "hold_not_found_message": "We could not find your reservation. It may have expired or been cancelled.",
+    "back_to_listing": "Back to Listing",
+    "browse_listings": "Browse Listings",
+    "missing_data_message": "Some booking information is missing. Please try again."
   }
 }

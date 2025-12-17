@@ -11,11 +11,15 @@
     "learn_more": "En savoir plus",
     "explore": "Explorer",
     "view_all": "Voir Tout",
-    "get_started": "Commencer"
+    "get_started": "Commencer",
+    "register_now": "S'inscrire Maintenant",
+    "package": "Forfait",
+    "packages": "Forfaits"
   },
   "home": {
     "hero_title": "Découvrez la Tunisie Authentique",
     "hero_subtitle": "Des expériences inoubliables vous attendent dans les plus beaux coins de Tunisie",
+    "hero_travel_tip": "Astuce Voyage : Le meilleur moment pour visiter le Sahara est d'octobre à avril",
     "search_placeholder": "Où voulez-vous aller ?",
     "search_destination": "Destination",
     "search_destination_placeholder": "Où allez-vous ?",
@@ -37,8 +41,10 @@
     "explore_djerba_subtitle": "L'Île des Rêves",
     "explore_djerba_description": "Découvrez l'île des rêves - des plages immaculées, une culture ancienne et une hospitalité chaleureuse vous attendent sur cette île méditerranéenne enchanteresse.",
     "explore_djerba_cta": "Découvrir Djerba",
-    "destinations_title": "Destinations Populaires",
-    "destinations_subtitle": "Explorez les destinations les plus captivantes de Tunisie",
+    "destinations_title": "Découvrez la Tunisie",
+    "destinations_subtitle": "Des oasis anciennes aux côtes magnifiques, explorez la diversité de nos destinations",
+    "categories_title": "Explorer par Activité",
+    "categories_subtitle": "Des marathons du désert aux immersions culturelles, trouvez votre aventure parfaite",
     "destinations_explore": "Explorer",
     "featured_activities_title": "Activités en Vedette",
     "featured_activities_subtitle": "Des expériences sélectionnées par nos experts locaux",
@@ -71,6 +77,12 @@
     "workshops_desc": "Apprenez l'artisanat traditionnel",
     "wellness": "Bien-être & Retraites",
     "wellness_desc": "Revitalisez corps et esprit"
+  },
+  "categories": {
+    "trail-running": "Trail Running",
+    "hiking": "Randonnée & Trekking",
+    "cycling": "Circuits Cyclistes",
+    "cultural": "Tours Culturels"
   },
   "listing": {
     "highlights": "Points Forts",
@@ -116,6 +128,7 @@
     "extras": "Extras",
     "price_breakdown": "Détail des Prix",
     "base_price": "Prix de Base",
+    "free": "Gratuit",
     "confirm_and_pay": "Confirmer et Payer",
     "email_placeholder": "votre@email.com",
     "phone_placeholder": "+33 1 23 45 67 89",
@@ -322,5 +335,14 @@
     "invalid": "Code promo invalide",
     "expired": "Ce code promo a expiré",
     "minimum_order": "Commande minimum de {amount} requise"
+  },
+  "checkout": {
+    "hold_expired_title": "Réservation Expirée",
+    "hold_expired_message": "Votre réservation a expiré. Veuillez sélectionner une nouvelle date et heure pour continuer.",
+    "hold_not_found_title": "Réservation Non Trouvée",
+    "hold_not_found_message": "Nous n'avons pas pu trouver votre réservation. Elle a peut-être expiré ou été annulée.",
+    "back_to_listing": "Retour à l'Activité",
+    "browse_listings": "Parcourir les Activités",
+    "missing_data_message": "Certaines informations de réservation sont manquantes. Veuillez réessayer."
   }
 }
