@@ -324,11 +324,51 @@ test('homepage has no console errors', async ({ page }) => {
 
 ### ⚠️ Known Warnings (Non-Blocking)
 
-None currently documented.
+1. **Middleware Deprecation Warning** (1 instance)
+
+   ```
+   ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+   ```
+
+   - **Severity**: Low (deprecation warning, not breaking)
+   - **Impact**: None currently
+   - **Action**: Can be addressed in future Next.js upgrade
+
+2. **CMS Page Not Found** (2 instances)
+   ```
+   Page with code HOME not found
+   ```
+
+   - **Location**: `src/lib/api/cms.ts:85`
+   - **Severity**: Low (expected behavior when CMS page doesn't exist)
+   - **Impact**: None (graceful fallback)
+   - **Action**: Create CMS page with code "HOME" or suppress warning
 
 ### ❌ Open Errors
 
-None currently documented.
+1. **Unsplash Image 404 Errors** (5 unique images)
+
+   ```
+   ⨯ upstream image response failed for https://images.unsplash.com/... 404
+   ```
+
+   **Failed Images**:
+   - `photo-1484199316225-b0f50e1b1e6e?w=800` (Cultural Tours)
+   - `photo-1548020920-3e8e6d2b7d0e?w=800` (Destinations)
+   - `photo-1590059390047-f5e617690a0b?w=800` (Blog/Destinations)
+   - `photo-1590059390047-f5e617690a0b?w=600` (Same, different size)
+   - `photo-1563308780-5fa633445448?w=1200` (Featured Packages/Blog)
+
+   **Locations**:
+   - `src/components/home/CategoriesGridSection.tsx`
+   - `src/components/home/DestinationsSection.tsx`
+   - `src/components/organisms/FeaturedPackagesSection.tsx`
+   - `src/components/home/BlogSection.tsx`
+   - `src/data/blog-posts.ts`
+
+   **Severity**: Medium (affects visual presentation)
+   **Impact**: Broken images on homepage and blog
+   **Action Required**: Replace with valid Unsplash URLs or local images
 
 ---
 
@@ -446,34 +486,57 @@ Before marking "Zero Errors":
 
 ## Summary
 
-### Current Status: ✅ Clean
+### Current Status: ⚠️ Minor Issues
 
-**Last Checked**: 2025-12-17
+**Last Checked**: 2025-12-17 11:10 AM
 **Build Status**: ✅ Passing
 **TypeScript**: ✅ 0 errors
-**Runtime Errors**: ✅ 0 known errors
+**Runtime Errors**: ❌ 5 image loading errors
 **Missing Translations**: ✅ 0 missing keys
+**Warnings**: ⚠️ 2 non-blocking warnings
+
+### Breakdown
+
+**✅ Resolved (Build Time)**:
+
+- All TypeScript build errors fixed (20+ errors)
+- All translation keys present (6 keys added)
+
+**⚠️ Warnings (Non-Breaking)**:
+
+- Middleware deprecation warning (can defer)
+- CMS page not found (expected behavior)
+
+**❌ Open Errors (Requires Fix)**:
+
+- 5 Unsplash image 404 errors (broken images visible on site)
 
 ### Next Steps
 
-1. ✅ **DONE**: Fix missing featured package translations
-2. **TODO**: Set up automated error monitoring (Sentry)
-3. **TODO**: Add E2E tests for critical paths
-4. **TODO**: Create error report dashboard
+1. ✅ **DONE**: Fix TypeScript build errors
+2. ✅ **DONE**: Fix missing featured package translations
+3. ✅ **DONE**: Document all runtime errors
+4. ❌ **TODO**: Replace 5 broken Unsplash image URLs
+5. **TODO**: Set up automated error monitoring (Sentry)
+6. **TODO**: Add E2E tests for critical paths
+7. **TODO**: Create error report dashboard
 
 ### Recommendation
 
-The application is currently in a **clean state** with:
+The application build is **passing**, but has **5 runtime image loading errors** that need to be fixed:
 
-- ✅ All TypeScript errors fixed
-- ✅ All known runtime errors resolved
-- ✅ All translation keys present
+**Critical Path to Zero Errors**:
+
+1. ❌ **Fix broken Unsplash images** (affects user experience)
+2. ⚠️ **Optional**: Suppress CMS page warning or create HOME page
+3. ⚠️ **Optional**: Update to Next.js proxy convention
 
 **For true "zero errors" confidence**, recommend:
 
-1. Manual testing of all pages (checklist above)
-2. Automated E2E test suite
-3. Production error monitoring setup
+1. Fix the 5 image URLs (highest priority)
+2. Manual testing of all pages (checklist above)
+3. Automated E2E test suite
+4. Production error monitoring setup
 
 ---
 
