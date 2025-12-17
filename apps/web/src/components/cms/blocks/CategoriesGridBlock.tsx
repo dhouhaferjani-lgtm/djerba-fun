@@ -24,7 +24,7 @@ export function CategoriesGridBlock({ categories }: CategoriesGridBlockData) {
           {categories.map((category, index) => (
             <Link
               key={index}
-              href={category.url || '#'}
+              href={(category.url || '#') as any}
               className="category-card group relative overflow-hidden rounded-lg"
             >
               {/* Category Image */}

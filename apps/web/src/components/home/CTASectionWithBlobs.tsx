@@ -35,7 +35,7 @@ export function CTASectionWithBlobs({ locale }: CTASectionWithBlobsProps) {
             variant="secondary"
             className="bg-secondary text-primary hover:bg-secondary/90 shadow-lg"
           >
-            <Link href={`/${locale}/contact`}>
+            <Link href={`/${locale}/contact` as any}>
               <MessageCircle className="mr-2 h-5 w-5" />
               Request Custom Trip
             </Link>

@@ -20,7 +20,7 @@ export function TextImageBlock({
         {hasImage && imageOnLeft && (
           <div className="relative w-full h-[400px]">
             <Image
-              src={image}
+              src={image!}
               alt={title || 'Content image'}
               fill
               className="object-cover rounded-lg"
@@ -33,7 +33,7 @@ export function TextImageBlock({
         {hasImage && !imageOnLeft && (
           <div className="relative w-full h-[400px]">
             <Image
-              src={image}
+              src={image!}
               alt={title || 'Content image'}
               fill
               className="object-cover rounded-lg"

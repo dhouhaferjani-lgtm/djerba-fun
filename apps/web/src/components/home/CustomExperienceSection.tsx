@@ -50,7 +50,7 @@ export function CustomExperienceSection() {
           </p>
 
           <Link href={`/${locale}/contact` as any} passHref>
-            <Button variant="cream" size="lg" className="inline-flex items-center gap-3 shadow-lg">
+            <Button variant="accent" size="lg" className="inline-flex items-center gap-3 shadow-lg">
               {t('custom_experience_cta')}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path

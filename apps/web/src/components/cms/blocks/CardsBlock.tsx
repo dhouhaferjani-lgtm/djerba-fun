@@ -34,7 +34,7 @@ export function CardsBlock({ cards, columns = 3 }: CardsBlockData) {
             {card.description && <p className="text-gray-600 mb-4">{card.description}</p>}
 
             {card.link && (
-              <Link href={card.link} className="text-primary font-semibold hover:underline">
+              <Link href={card.link as any} className="text-primary font-semibold hover:underline">
                 Learn more →
               </Link>
             )}

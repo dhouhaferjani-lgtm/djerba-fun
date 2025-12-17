@@ -64,7 +64,7 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      'Accept-Language': options.headers?.['Accept-Language'] || 'en',
+      'Accept-Language': (options.headers as Record<string, string>)?.['Accept-Language'] || 'en',
       ...options.headers,
     },
   });

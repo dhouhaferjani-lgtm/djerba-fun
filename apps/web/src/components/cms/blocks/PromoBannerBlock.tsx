@@ -63,7 +63,7 @@ export function PromoBannerBlock({
 
           <div className="flex flex-wrap gap-4">
             {primary_button_label && primary_button_url && (
-              <Link href={primary_button_url}>
+              <Link href={primary_button_url as any}>
                 <Button size="lg" variant="secondary" className="gap-2">
                   {primary_button_label}
                   <ArrowRight className="w-5 h-5" />
@@ -72,7 +72,7 @@ export function PromoBannerBlock({
             )}
 
             {secondary_button_label && secondary_button_url && (
-              <Link href={secondary_button_url}>
+              <Link href={secondary_button_url as any}>
                 <Button size="lg" variant="outline" className={textColor}>
                   {secondary_button_label}
                 </Button>

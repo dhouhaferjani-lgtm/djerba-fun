@@ -9,7 +9,7 @@ export interface CTAWithBlobsBlockData {
   text?: string;
   button_label: string;
   button_url: string;
-  button_variant?: 'primary' | 'secondary' | 'white';
+  button_variant?: 'primary' | 'secondary' | 'outline';
 }
 
 export function CTAWithBlobsBlock({
@@ -32,7 +32,7 @@ export function CTAWithBlobsBlock({
 
           {text && <p className="text-xl text-white/90 mb-8">{text}</p>}
 
-          <Link href={button_url}>
+          <Link href={button_url as any}>
             <Button size="lg" variant={button_variant} className="gap-2">
               {button_label}
               <ArrowRight className="w-5 h-5" />

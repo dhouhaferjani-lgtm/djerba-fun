@@ -35,7 +35,7 @@ export function CallToActionBlock({
       {text && <p className="text-xl mb-6 max-w-2xl mx-auto">{text}</p>}
 
       {button_label && button_url && (
-        <Link href={button_url}>
+        <Link href={button_url as any}>
           <Button size="lg" variant={background_colour === 'white' ? 'primary' : 'secondary'}>
             {button_label}
           </Button>

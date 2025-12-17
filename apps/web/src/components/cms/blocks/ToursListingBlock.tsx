@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLocale } from 'next-intl';
 import { ToursListingBlockData } from '@/types/cms';
 import { listingsApi } from '@/lib/api/client';
-import type { Listing } from '@repo/schemas';
+import type { ListingSummary } from '@go-adventure/schemas';
 import { ListingCard } from '@/components/molecules/ListingCard';
 
 export function ToursListingBlock({
@@ -12,7 +13,8 @@ export function ToursListingBlock({
   sort_by,
   style = 'grid',
 }: ToursListingBlockData) {
-  const [listings, setListings] = useState<Listing[]>([]);
+  const locale = useLocale();
+  const [listings, setListings] = useState<ListingSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -82,7 +84,7 @@ export function ToursListingBlock({
       <div className="tours-listing-block space-y-4">
         {listings.map((listing) => (
           <div key={listing.id} className="flex gap-4 border-b pb-4">
-            <ListingCard listing={listing} variant="compact" />
+            <ListingCard listing={listing} locale={locale} />
           </div>
         ))}
       </div>
@@ -101,7 +103,7 @@ export function ToursListingBlock({
       >
         {listings.map((listing) => (
           <div key={listing.id} className={style === 'carousel' ? 'flex-shrink-0 w-80' : ''}>
-            <ListingCard listing={listing} />
+            <ListingCard listing={listing} locale={locale} />
           </div>
         ))}
       </div>
