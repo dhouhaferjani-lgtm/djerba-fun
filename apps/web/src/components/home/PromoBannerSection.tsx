@@ -14,7 +14,7 @@ export function PromoBannerSection({ locale }: PromoBannerSectionProps) {
   const t = useTranslations('home');
 
   return (
-    <section className="py-16 bg-[#f5f0d1]">
+    <section className="py-16 bg-accent">
       <div className="container mx-auto px-4">
         <div className="relative h-[500px] rounded-lg overflow-hidden">
           {/* Background Image */}

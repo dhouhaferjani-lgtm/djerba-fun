@@ -124,7 +124,7 @@ export default function ElevationProfile({ profile, className = '' }: ElevationP
                     y1={y}
                     x2={padding.left + chartWidth}
                     y2={y}
-                    stroke="#e5e7eb"
+                    className="stroke-gray-200"
                     strokeWidth="1"
                   />
                   <text
@@ -133,7 +133,7 @@ export default function ElevationProfile({ profile, className = '' }: ElevationP
                     textAnchor="end"
                     alignmentBaseline="middle"
                     fontSize="12"
-                    fill="#6b7280"
+                    className="fill-gray-500"
                   >
                     {elevation.toFixed(0)}m
                   </text>
@@ -155,8 +155,8 @@ export default function ElevationProfile({ profile, className = '' }: ElevationP
             {/* Gradient definition */}
             <defs>
               <linearGradient id="elevationGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" className="[stop-color:rgb(13,100,46)]" stopOpacity="0.3" />
-                <stop offset="100%" className="[stop-color:rgb(13,100,46)]" stopOpacity="0.05" />
+                <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.05" />
               </linearGradient>
             </defs>
 
@@ -197,14 +197,21 @@ export default function ElevationProfile({ profile, className = '' }: ElevationP
 
           {/* X-axis */}
           <g transform={`translate(${padding.left}, ${height - padding.bottom})`}>
-            <line x1="0" y1="0" x2={chartWidth} y2="0" stroke="#d1d5db" strokeWidth="1" />
+            <line
+              x1="0"
+              y1="0"
+              x2={chartWidth}
+              y2="0"
+              className="stroke-gray-300"
+              strokeWidth="1"
+            />
             {[0, 0.25, 0.5, 0.75, 1].map((percent) => {
               const x = chartWidth * percent;
               const distance = maxDistance * percent;
               return (
                 <g key={percent}>
-                  <line x1={x} y1="0" x2={x} y2="6" stroke="#9ca3af" strokeWidth="1" />
-                  <text x={x} y="20" textAnchor="middle" fontSize="12" fill="#6b7280">
+                  <line x1={x} y1="0" x2={x} y2="6" className="stroke-gray-400" strokeWidth="1" />
+                  <text x={x} y="20" textAnchor="middle" fontSize="12" className="fill-gray-500">
                     {formatDistance(distance)}
                   </text>
                 </g>
@@ -215,7 +222,7 @@ export default function ElevationProfile({ profile, className = '' }: ElevationP
               y="38"
               textAnchor="middle"
               fontSize="12"
-              fill="#374151"
+              className="fill-gray-700"
               fontWeight="500"
             >
               {t('distance')}
