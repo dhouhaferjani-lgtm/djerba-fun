@@ -3,8 +3,6 @@
 **Status:** 🟡 In Progress (Updated: 2025-12-16)
 **Overall Completion:** ~45% (Phases 1-3 partially complete, 4-5 not started)
 
-⚠️ **IMPORTANT:** A separate Claude Code instance is actively working on the checkout/booking flow. See **Exclusion Zone** section below to avoid conflicts.
-
 This document outlines the steps to clean up the Next.js frontend so we can safely customize colors, typography, and branding for new customers. Each phase is intentionally small, ends with a validation milestone, and should be merged independently to avoid destabilizing the site (last time a large "all‑in‑one" pass broke the app).
 
 ## Goals
@@ -174,12 +172,11 @@ All components consume tokens from Phase 1.
    - [ ] Update `InputWithIcon.tsx` to **compose** from `@go-adventure/ui` Input (don't duplicate)
    - [ ] Update `SelectWithIcon.tsx` to **compose** from `@go-adventure/ui` Select
    - [ ] Replace ad-hoc newsletter inputs with UI components
-   - [ ] ~~Replace ad-hoc booking form inputs with UI components~~ ← **EXCLUDED - See Exclusion Zone**
+   - [ ] Replace ad-hoc booking form inputs with UI components
    - [ ] Keep `Logo` and `NavLink` in atoms (domain-specific)
-   - [ ] **IMPORTANT:** Coordinate with checkout team before modifying Button/Input/Select in UI package
 4. **Regression checks:** [ ] Screenshots of all forms + `pnpm --filter web lint`
 
-- **Milestone:** `apps/web/src/components/atoms/` contains only `Logo.tsx` and `NavLink.tsx` (domain-specific); all non-checkout forms use UI components. Booking/checkout forms excluded from this phase.
+- **Milestone:** `apps/web/src/components/atoms/` contains only `Logo.tsx` and `NavLink.tsx` (domain-specific); all forms use UI components.
 
 ## Phase 3 – Content & CMS Wiring
 
