@@ -1,57 +1,46 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
+import { Select, type SelectProps } from '@go-adventure/ui';
 import { cn } from '@/lib/utils/cn';
+import { ChevronDown } from 'lucide-react';
 
-interface SelectWithIconProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectWithIconProps extends Omit<SelectProps, 'className'> {
   icon: React.ReactNode;
   wrapperClassName?: string;
   selectClassName?: string;
-  options: { value: string; label: string }[];
   placeholder?: string;
 }
 
-export function SelectWithIcon({
-  icon,
-  wrapperClassName,
-  selectClassName,
-  options,
-  placeholder,
-  ...props
-}: SelectWithIconProps) {
-  return (
-    <div className={cn('relative', wrapperClassName)}>
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        {icon}
-      </div>
-      <select
-        className={cn(
-          'block w-full rounded-lg border-neutral-light bg-neutral-white py-3 pl-10 pr-4 text-sm text-neutral-darker focus:border-primary focus:ring-primary appearance-none',
-          selectClassName
-        )}
-        {...props}
-      >
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-neutral-darker">
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
+/**
+ * Select component with left icon and chevron support.
+ * Composes the UI package Select component with icon positioning.
+ * Inherits all UI Select features: variants, sizes, error handling.
+ */
+export const SelectWithIcon = forwardRef<HTMLSelectElement, SelectWithIconProps>(
+  ({ icon, wrapperClassName, selectClassName, options, placeholder, children, ...props }, ref) => {
+    // Prepend placeholder option if provided
+    const optionsWithPlaceholder = placeholder
+      ? [{ value: '', label: placeholder }, ...(options || [])]
+      : options;
+
+    return (
+      <div className={cn('relative', wrapperClassName)}>
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500 z-10">
+          {icon}
+        </div>
+        <Select
+          ref={ref}
+          className={cn('appearance-none pl-10 pr-10', selectClassName)}
+          options={optionsWithPlaceholder}
+          {...props}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          ></path>
-        </svg>
+          {children}
+        </Select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-500 z-10">
+          <ChevronDown className="h-4 w-4" />
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+);
+
+SelectWithIcon.displayName = 'SelectWithIcon';
