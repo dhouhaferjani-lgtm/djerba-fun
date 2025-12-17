@@ -1,9 +1,11 @@
 import type { MetadataRoute } from 'next';
+import { colors } from '@go-adventure/ui/tokens/colors';
 
 /**
  * PWA Manifest
  *
  * Defines how the application should behave when installed as a PWA.
+ * Colors are imported from the design system for consistency.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -13,8 +15,8 @@ export default function manifest(): MetadataRoute.Manifest {
       'Discover and book unique tours, activities, and events. Your trusted marketplace for unforgettable travel experiences.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#0D642E',
+    background_color: colors.neutral.white,
+    theme_color: colors.primary.DEFAULT,
     orientation: 'portrait-primary',
     scope: '/',
     lang: 'en',
