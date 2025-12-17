@@ -66,7 +66,7 @@ export default function Error({
                 If this problem persists, please{' '}
                 <a
                   href="mailto:support@goadventure.com"
-                  className="text-[#0D642E] hover:underline font-medium"
+                  className="text-primary hover:underline font-medium"
                 >
                   contact our support team
                 </a>
