@@ -22,3 +22,5 @@ export {
   cardVariants,
   type CardProps,
 } from './components/Card';
+export { Dialog, type DialogProps } from './components/Dialog';
+export { ThemeProvider, type ThemeProviderProps } from './components/ThemeProvider';
