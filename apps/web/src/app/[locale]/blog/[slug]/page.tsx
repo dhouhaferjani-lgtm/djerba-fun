@@ -112,9 +112,9 @@ export default async function BlogPostPage({ params }: PageProps) {
   const { locale, slug } = await params;
 
   return (
-    <MainLayout>
+    <MainLayout locale={locale}>
       {/* Back to Blog */}
-      <div className="bg-[#f5f0d1]">
+      <div className="bg-accent">
         <div className="container mx-auto px-4 py-4">
           <Link
             href={`/${locale}/blog`}

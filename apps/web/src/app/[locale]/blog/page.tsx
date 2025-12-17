@@ -73,7 +73,7 @@ export default async function BlogPage({ params }: PageProps) {
   const { locale } = await params;
 
   return (
-    <MainLayout>
+    <MainLayout locale={locale}>
       <section className="bg-primary py-16">
         <div className="container mx-auto px-4 text-center">
           <p className="text-secondary text-sm font-semibold uppercase tracking-wide mb-2">
