@@ -41,7 +41,7 @@ export function CategoriesGridBlock({ categories }: CategoriesGridBlockData) {
               </div>
 
               {/* Category Footer */}
-              <div className="bg-[#fcfaf2] p-4">
+              <div className="bg-cream p-4">
                 <h3 className="font-display font-semibold text-lg text-primary">{category.name}</h3>
 
                 {category.count !== undefined && category.count > 0 && (

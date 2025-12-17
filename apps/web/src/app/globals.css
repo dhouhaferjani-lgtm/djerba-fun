@@ -14,6 +14,8 @@
   --accent-light: #faf8e8;
   --accent-dark: #e8e2bc;
 
+  --cream: #fcfaf2;
+
   /* Neutral Colors */
   --neutral-white: #ffffff;
   --neutral-light: #f5f5f5;
@@ -51,6 +53,8 @@
   --color-accent: var(--accent);
   --color-accent-light: var(--accent-light);
   --color-accent-dark: var(--accent-dark);
+
+  --color-cream: var(--cream);
 
   /* Neutral colors in Tailwind */
   --color-white: var(--neutral-white);

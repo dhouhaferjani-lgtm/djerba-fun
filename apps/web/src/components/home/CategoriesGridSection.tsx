@@ -70,7 +70,7 @@ export function CategoriesGridSection({ locale }: CategoriesGridSectionProps) {
               </div>
 
               {/* Footer */}
-              <div className="bg-[#fcfaf2] p-4 text-center">
+              <div className="bg-cream p-4 text-center">
                 <h3 className="font-display font-bold text-lg text-neutral-900 mb-1">
                   {category.name}
                 </h3>
