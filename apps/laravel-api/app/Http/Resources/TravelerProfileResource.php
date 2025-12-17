@@ -3,9 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-
-class TravelerProfileResource extends JsonResource
+class TravelerProfileResource extends BaseResource
 {
     /**
      * Transform the resource into an array.
@@ -22,7 +20,7 @@ class TravelerProfileResource extends JsonResource
             'phone' => $this->phone,
             'defaultCurrency' => $this->default_currency,
             'preferredLocale' => $this->preferred_locale,
-            'documents' => $this->documents ?? [],
+            'documents' => is_array($this->documents) ? $this->toCamelCase($this->documents) : ($this->documents ?? []),
         ];
     }
 }

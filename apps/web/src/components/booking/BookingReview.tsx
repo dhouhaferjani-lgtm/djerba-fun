@@ -11,12 +11,27 @@ interface Extra {
   price: number;
 }
 
+interface PersonType {
+  key: string;
+  label: { en: string; fr: string } | string;
+  price: number;
+  minAge: number | null;
+  maxAge: number | null;
+}
+
+interface ExtendedTraveler extends TravelerInfo {
+  personType?: string;
+}
+
 interface BookingReviewProps {
   listing: ListingSummary;
   slot: AvailabilitySlot;
   travelerInfo: TravelerInfo;
+  allTravelers?: ExtendedTraveler[];
   extras: Extra[];
   currency: string;
+  quantity: number;
+  personTypeBreakdown?: Record<string, number>;
   couponCode?: string;
   couponDiscount?: number;
   onCouponApply?: (code: string, discountAmount: number) => void;
@@ -26,14 +41,18 @@ interface BookingReviewProps {
   onConfirm: () => void;
   onBack?: () => void;
   isProcessing?: boolean;
+  locale?: string;
 }
 
 export function BookingReview({
   listing,
   slot,
   travelerInfo,
+  allTravelers,
   extras,
   currency,
+  quantity,
+  personTypeBreakdown,
   couponCode,
   couponDiscount,
   onCouponApply,
@@ -43,15 +62,54 @@ export function BookingReview({
   onConfirm,
   onBack,
   isProcessing = false,
+  locale = 'en',
 }: BookingReviewProps) {
   const t = useTranslations('booking');
   const tDashboard = useTranslations('dashboard');
 
+  // Get person types from listing pricing
+  const getPersonTypes = (): PersonType[] => {
+    const pricing = listing.pricing || {};
+    const personTypes = pricing.personTypes;
+
+    if (personTypes && Array.isArray(personTypes) && personTypes.length > 0) {
+      return personTypes;
+    }
+
+    // Return defaults based on base price
+    const basePrice = pricing.basePrice || 0;
+    const numericPrice = typeof basePrice === 'string' ? parseFloat(basePrice) : basePrice;
+
+    return [
+      {
+        key: 'adult',
+        label: { en: 'Adult', fr: 'Adulte' },
+        price: numericPrice,
+        minAge: 18,
+        maxAge: null,
+      },
+      {
+        key: 'child',
+        label: { en: 'Child', fr: 'Enfant' },
+        price: Math.round(numericPrice * 0.5),
+        minAge: 4,
+        maxAge: 17,
+      },
+      { key: 'infant', label: { en: 'Infant', fr: 'Bébé' }, price: 0, minAge: 0, maxAge: 3 },
+    ];
+  };
+
+  const getPersonTypeLabel = (type: PersonType): string => {
+    if (typeof type.label === 'string') return type.label;
+    return type.label[locale as keyof typeof type.label] || type.label.en || type.key;
+  };
+
   const formatPrice = (amount: number) => {
+    // Prices are stored as whole amounts (e.g., 65 = €65), not cents
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
-    }).format(amount / 100);
+    }).format(amount);
   };
 
   const formatDateTime = (datetime: string) => {
@@ -62,8 +120,37 @@ export function BookingReview({
     }).format(date);
   };
 
+  // Calculate subtotal from breakdown if available, otherwise use simple quantity * price
   const calculateSubtotal = () => {
-    return slot.price;
+    if (personTypeBreakdown && Object.keys(personTypeBreakdown).length > 0) {
+      const personTypes = getPersonTypes();
+      let total = 0;
+      for (const type of personTypes) {
+        const qty = personTypeBreakdown[type.key] || 0;
+        total += type.price * qty;
+      }
+      return total;
+    }
+
+    // Fallback: simple quantity * base price
+    const unitPrice = slot.basePrice || listing.pricing?.basePrice || 0;
+    return unitPrice * quantity;
+  };
+
+  // Get breakdown details for display
+  const getBreakdownDetails = () => {
+    if (!personTypeBreakdown || Object.keys(personTypeBreakdown).length === 0) {
+      return null;
+    }
+    const personTypes = getPersonTypes();
+    return personTypes
+      .filter((type) => (personTypeBreakdown[type.key] || 0) > 0)
+      .map((type) => ({
+        label: getPersonTypeLabel(type),
+        quantity: personTypeBreakdown[type.key] || 0,
+        price: type.price,
+        total: type.price * (personTypeBreakdown[type.key] || 0),
+      }));
   };
 
   const calculateExtrasTotal = () => {
@@ -88,21 +175,32 @@ export function BookingReview({
         <h3 className="font-semibold text-lg text-gray-900 mb-4">{t('activity_details')}</h3>
         <div className="space-y-3">
           <div>
-            <span className="font-medium text-gray-700">{listing.title}</span>
+            <span className="font-medium text-gray-700">
+              {typeof listing.title === 'string'
+                ? listing.title
+                : (listing.title as { en?: string; fr?: string })?.en ||
+                  (listing.title as { en?: string; fr?: string })?.fr ||
+                  'Activity'}
+            </span>
           </div>
           <div className="text-sm text-gray-600">
             <p>
               <span className="font-medium">{t('date_time')}:</span> {formatDateTime(slot.start)}
             </p>
-            <p className="mt-1">
-              <span className="font-medium">{t('duration')}:</span>{' '}
-              {listing.duration
-                ? `${listing.duration.value} ${listing.duration.unit}`
-                : t('not_specified')}
-            </p>
-            <p className="mt-1">
-              <span className="font-medium">{t('location')}:</span> {listing.location.name}
-            </p>
+            {listing.duration && (
+              <p className="mt-1">
+                <span className="font-medium">{t('duration')}:</span>{' '}
+                {`${listing.duration.value} ${listing.duration.unit}`}
+              </p>
+            )}
+            {listing.location && (
+              <p className="mt-1">
+                <span className="font-medium">{t('location')}:</span>{' '}
+                {(listing.location as { name?: string; address?: string }).name ||
+                  (listing.location as { name?: string; address?: string }).address ||
+                  t('not_specified')}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -121,19 +219,64 @@ export function BookingReview({
             </button>
           )}
         </div>
-        <div className="space-y-2 text-sm text-gray-600">
-          <p>
-            {travelerInfo.firstName} {travelerInfo.lastName}
-          </p>
-          <p>{travelerInfo.email}</p>
-          {travelerInfo.phone && <p>{travelerInfo.phone}</p>}
-          {travelerInfo.specialRequests && (
-            <div className="mt-3 pt-3 border-t">
-              <p className="font-medium text-gray-700">{t('special_requests')}:</p>
-              <p className="mt-1">{travelerInfo.specialRequests}</p>
-            </div>
-          )}
-        </div>
+
+        {/* Show all travelers if available, otherwise just primary */}
+        {allTravelers && allTravelers.length > 1 ? (
+          <div className="space-y-4">
+            {allTravelers.map((traveler, index) => {
+              const personType = traveler.personType
+                ? getPersonTypes().find((pt) => pt.key === traveler.personType)
+                : null;
+              const typeLabel = personType ? getPersonTypeLabel(personType) : null;
+
+              return (
+                <div key={index} className={index > 0 ? 'pt-3 border-t border-gray-100' : ''}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-medium text-gray-900">
+                      {traveler.firstName} {traveler.lastName}
+                    </span>
+                    {index === 0 && (
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                        Primary Contact
+                      </span>
+                    )}
+                    {typeLabel && (
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                        {typeLabel}
+                      </span>
+                    )}
+                  </div>
+                  {index === 0 && (
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <p>{traveler.email}</p>
+                      {traveler.phone && <p>{traveler.phone}</p>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {travelerInfo.specialRequests && (
+              <div className="pt-3 border-t border-gray-100">
+                <p className="text-sm font-medium text-gray-700">{t('special_requests')}:</p>
+                <p className="text-sm text-gray-600 mt-1">{travelerInfo.specialRequests}</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-2 text-sm text-gray-600">
+            <p>
+              {travelerInfo.firstName} {travelerInfo.lastName}
+            </p>
+            <p>{travelerInfo.email}</p>
+            {travelerInfo.phone && <p>{travelerInfo.phone}</p>}
+            {travelerInfo.specialRequests && (
+              <div className="mt-3 pt-3 border-t">
+                <p className="font-medium text-gray-700">{t('special_requests')}:</p>
+                <p className="mt-1">{travelerInfo.specialRequests}</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Extras */}
@@ -184,10 +327,29 @@ export function BookingReview({
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
         <h3 className="font-semibold text-lg text-gray-900 mb-4">{t('price_breakdown')}</h3>
         <div className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">{t('base_price')}</span>
-            <span className="font-medium text-gray-900">{formatPrice(calculateSubtotal())}</span>
-          </div>
+          {/* Show breakdown by person type if available */}
+          {getBreakdownDetails() ? (
+            getBreakdownDetails()!.map((item, index) => (
+              <div key={index} className="flex justify-between text-sm">
+                <span className="text-gray-600">
+                  {item.label} × {item.quantity}
+                  {item.price > 0 && (
+                    <span className="text-gray-400 ml-1">@ {formatPrice(item.price)}</span>
+                  )}
+                </span>
+                <span className="font-medium text-gray-900">
+                  {item.price > 0 ? formatPrice(item.total) : t('free') || 'Free'}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">
+                {t('base_price')} × {quantity} {quantity === 1 ? 'guest' : 'guests'}
+              </span>
+              <span className="font-medium text-gray-900">{formatPrice(calculateSubtotal())}</span>
+            </div>
+          )}
           {extras.length > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">{t('extras_total')}</span>

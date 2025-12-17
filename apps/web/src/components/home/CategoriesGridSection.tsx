@@ -9,25 +9,25 @@ const categories = [
     id: 'trail-running',
     name: 'Trail Running',
     count: 12,
-    image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=800',
+    image: 'http://localhost:9002/go-adventure/categories/trail-running.jpg',
   },
   {
     id: 'hiking',
     name: 'Hiking & Trekking',
     count: 24,
-    image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800',
+    image: 'http://localhost:9002/go-adventure/categories/hiking.jpg',
   },
   {
     id: 'cycling',
     name: 'Cycling Tours',
     count: 18,
-    image: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800',
+    image: 'http://localhost:9002/go-adventure/categories/cycling.jpg',
   },
   {
     id: 'cultural',
     name: 'Cultural Tours',
     count: 32,
-    image: 'https://images.unsplash.com/photo-1484199316225-b0f50e1b1e6e?w=800',
+    image: 'http://localhost:9002/go-adventure/categories/cultural.jpg',
   },
 ];
 

@@ -30,7 +30,6 @@ class AvailabilitySlotResource extends JsonResource
             'endTime' => $this->end_time->format('H:i:s'),
             'capacity' => $this->capacity,
             'remainingCapacity' => $this->remaining_capacity,
-            'price' => (float) $this->base_price,
             'basePrice' => (float) $this->base_price,
             'currency' => $listing?->pricing['currency'] ?? 'EUR',
             'status' => $this->status->value,

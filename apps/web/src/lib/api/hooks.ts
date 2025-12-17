@@ -121,6 +121,26 @@ export function useCreateHold(listingSlug: string) {
   });
 }
 
+export function useHold(holdId: string | null) {
+  return useQuery({
+    queryKey: ['holds', holdId],
+    queryFn: async () => {
+      if (!holdId) return null;
+      const response = await listingsApi.getHold(holdId);
+      return response.data;
+    },
+    enabled: !!holdId,
+    refetchInterval: 30000, // Refresh every 30s to check expiry
+    retry: (failureCount, error) => {
+      // Don't retry on 410 (expired) or 404 (not found)
+      if (error && 'status' in error && (error.status === 410 || error.status === 404)) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
+}
+
 // ============================================================================
 // BOOKINGS HOOKS
 // ============================================================================

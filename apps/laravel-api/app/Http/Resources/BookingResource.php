@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-
-class BookingResource extends JsonResource
+class BookingResource extends BaseResource
 {
     /**
      * Transform the resource into an array.
@@ -28,8 +26,8 @@ class BookingResource extends JsonResource
             'currency' => $this->currency,
             'status' => $this->status->value,
             'statusLabel' => $this->status->label(),
-            'travelerInfo' => $this->traveler_info,
-            'extras' => $this->extras,
+            'travelerInfo' => is_array($this->traveler_info) ? $this->toCamelCase($this->traveler_info) : $this->traveler_info,
+            'extras' => is_array($this->extras) ? $this->toCamelCase($this->extras) : $this->extras,
             'confirmedAt' => $this->confirmed_at?->toIso8601String(),
             'cancelledAt' => $this->cancelled_at?->toIso8601String(),
             'cancellationReason' => $this->cancellation_reason,
@@ -47,6 +45,11 @@ class BookingResource extends JsonResource
             'canBeCancelled' => $this->canBeCancelled(),
             'isConfirmed' => $this->isConfirmed(),
             'isCancelled' => $this->isCancelled(),
+
+            // Convenience aliases for frontend compatibility
+            'code' => $this->booking_number,
+            'guests' => $this->quantity,
+            'startsAt' => $this->whenLoaded('availabilitySlot', fn () => $this->availabilitySlot?->date?->copy()->setTimeFrom($this->availabilitySlot->start_time)->toIso8601String()),
         ];
     }
 }

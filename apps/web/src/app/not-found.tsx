@@ -11,11 +11,11 @@ export default function NotFound() {
   return (
     <html lang="en">
       <body>
-        <div className="min-h-screen bg-gradient-to-b from-[#f5f0d1] to-white flex items-center justify-center px-4">
+        <div className="min-h-screen bg-gradient-to-b from-accent to-white flex items-center justify-center px-4">
           <div className="max-w-2xl w-full text-center space-y-8">
             {/* 404 Illustration */}
             <div className="space-y-4">
-              <h1 className="text-9xl font-bold text-[#0D642E]">404</h1>
+              <h1 className="text-9xl font-bold text-primary">404</h1>
               <h2 className="text-3xl font-semibold text-neutral-900">Page Not Found</h2>
               <p className="text-lg text-neutral-600">
                 Oops! The adventure you&apos;re looking for doesn&apos;t exist. Perhaps it&apos;s
@@ -45,19 +45,19 @@ export default function NotFound() {
               <div className="flex flex-wrap gap-3 justify-center">
                 <Link
                   href="/en/listings?type=tour"
-                  className="px-4 py-2 bg-white rounded-full text-sm text-neutral-700 hover:bg-[#8BC34A] hover:text-white transition-colors"
+                  className="px-4 py-2 bg-white rounded-full text-sm text-neutral-700 hover:bg-secondary hover:text-white transition-colors"
                 >
                   Tours
                 </Link>
                 <Link
                   href="/en/listings?type=event"
-                  className="px-4 py-2 bg-white rounded-full text-sm text-neutral-700 hover:bg-[#8BC34A] hover:text-white transition-colors"
+                  className="px-4 py-2 bg-white rounded-full text-sm text-neutral-700 hover:bg-secondary hover:text-white transition-colors"
                 >
                   Events
                 </Link>
                 <Link
                   href="/en/listings?category=outdoor"
-                  className="px-4 py-2 bg-white rounded-full text-sm text-neutral-700 hover:bg-[#8BC34A] hover:text-white transition-colors"
+                  className="px-4 py-2 bg-white rounded-full text-sm text-neutral-700 hover:bg-secondary hover:text-white transition-colors"
                 >
                   Outdoor Activities
                 </Link>

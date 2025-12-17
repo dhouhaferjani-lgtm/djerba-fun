@@ -35,11 +35,15 @@ class HoldController extends Controller
             ], 422);
         }
 
+        // Get total quantity from either quantity field or person_types breakdown
+        $quantity = $request->getTotalQuantity();
+        $personTypeBreakdown = $request->getPersonTypeBreakdown();
+
         // Check if quantity is available
-        if ($slot->remaining_capacity < $validated['quantity']) {
+        if ($slot->remaining_capacity < $quantity) {
             return response()->json([
                 'message' => 'Insufficient capacity',
-                'requested' => $validated['quantity'],
+                'requested' => $quantity,
                 'available' => $slot->remaining_capacity,
             ], 422);
         }
@@ -48,8 +52,8 @@ class HoldController extends Controller
         $user = $request->user();
         $sessionId = $validated['session_id'] ?? null;
 
-        // Create the hold
-        $hold = BookingHold::createForSlot($slot, $user, $validated['quantity'], $sessionId);
+        // Create the hold with person type breakdown
+        $hold = BookingHold::createForSlot($slot, $user, $quantity, $sessionId, $personTypeBreakdown);
 
         if (! $hold) {
             return response()->json([
@@ -87,6 +91,32 @@ class HoldController extends Controller
         }
 
         return new BookingHoldResource($hold->load('slot'));
+    }
+
+    /**
+     * Get a hold by ID directly (for checkout page persistence).
+     * Includes full listing and slot data.
+     *
+     * @param  BookingHold  $hold
+     * @return BookingHoldResource|JsonResponse
+     */
+    public function showById(BookingHold $hold): BookingHoldResource|JsonResponse
+    {
+        // Load related data for checkout page
+        $hold->load(['slot', 'listing']);
+
+        // Check if hold is expired
+        if ($hold->isExpired()) {
+            $hold->expire();
+
+            return response()->json([
+                'message' => 'This hold has expired',
+                'hold' => new BookingHoldResource($hold),
+                'listingSlug' => $hold->listing?->slug,
+            ], 410);
+        }
+
+        return new BookingHoldResource($hold);
     }
 
     /**

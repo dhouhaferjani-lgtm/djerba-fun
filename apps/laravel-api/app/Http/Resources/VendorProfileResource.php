@@ -3,9 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-
-class VendorProfileResource extends JsonResource
+class VendorProfileResource extends BaseResource
 {
     /**
      * Transform the resource into an array.
@@ -26,7 +24,7 @@ class VendorProfileResource extends JsonResource
             'description' => $this->description,
             'websiteUrl' => $this->website_url,
             'phone' => $this->phone,
-            'address' => $this->address,
+            'address' => is_array($this->address) ? $this->toCamelCase($this->address) : $this->address,
             'verifiedAt' => $this->verified_at?->toIso8601String(),
             'createdAt' => $this->created_at->toIso8601String(),
         ];

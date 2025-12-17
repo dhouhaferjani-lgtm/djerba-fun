@@ -46,19 +46,19 @@ const textVariants = cva('font-body', {
 });
 
 export interface TextProps
-  extends
-    Omit<React.HTMLAttributes<HTMLParagraphElement>, 'color'>,
-    VariantProps<typeof textVariants> {
+  extends Omit<React.HTMLAttributes<HTMLElement>, 'color'>, VariantProps<typeof textVariants> {
   as?: 'p' | 'span' | 'div' | 'label';
 }
 
-export const Text = forwardRef<HTMLParagraphElement, TextProps>(
+export const Text = forwardRef<HTMLElement, TextProps>(
   ({ className, size, weight, color, align, as: Component = 'p', children, ...props }, ref) => {
     return (
       <Component
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ref={ref as any}
         className={cn(textVariants({ size, weight, color, align }), className)}
-        {...props}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        {...(props as any)}
       >
         {children}
       </Component>

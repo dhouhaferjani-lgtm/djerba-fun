@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-
-class PaymentIntentResource extends JsonResource
+class PaymentIntentResource extends BaseResource
 {
     /**
      * Transform the resource into an array.
@@ -27,7 +25,7 @@ class PaymentIntentResource extends JsonResource
             'statusLabel' => $this->status->label(),
             'gateway' => $this->gateway,
             'gatewayId' => $this->gateway_id,
-            'metadata' => $this->metadata,
+            'metadata' => is_array($this->metadata) ? $this->toCamelCase($this->metadata) : $this->metadata,
             'paidAt' => $this->paid_at?->toIso8601String(),
             'failedAt' => $this->failed_at?->toIso8601String(),
             'createdAt' => $this->created_at->toIso8601String(),

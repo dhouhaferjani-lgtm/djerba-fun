@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
         pathname: '/go-adventure/**',
       },
       {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9002',
+        pathname: '/go-adventure/**',
+      },
+      {
         protocol: 'https',
         hostname: '*.goadventure.com',
       },

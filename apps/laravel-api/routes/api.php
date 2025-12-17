@@ -66,6 +66,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/listings/{listing:slug}/holds/{hold}', [HoldController::class, 'show']);
     Route::delete('/listings/{listing:slug}/holds/{hold}', [HoldController::class, 'destroy']);
 
+    // Direct hold access by ID (for checkout page persistence)
+    Route::get('/holds/{hold}', [HoldController::class, 'showById']);
+
     // Guest booking flow (public - allows guest checkout with session_id)
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::post('/bookings/{booking}/pay', [PaymentController::class, 'processPayment']);

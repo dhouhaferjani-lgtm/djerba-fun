@@ -20,13 +20,13 @@ const defaultDestinations: Destination[] = [
   {
     slug: 'djerba',
     name: 'Djerba',
-    image: 'https://images.unsplash.com/photo-1590059390047-f5e617690a0b?w=600',
+    image: 'http://localhost:9002/go-adventure/featured/djerba-island.jpg',
     count: 12,
   },
   {
     slug: 'sahara-desert',
     name: 'Sahara Desert',
-    image: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=600',
+    image: 'http://localhost:9002/go-adventure/featured/sahara-desert.jpg',
     count: 8,
   },
   {
@@ -44,7 +44,7 @@ const defaultDestinations: Destination[] = [
   {
     slug: 'tozeur',
     name: 'Tozeur',
-    image: 'https://images.unsplash.com/photo-1548020920-3e8e6d2b7d0e?w=600',
+    image: 'http://localhost:9002/go-adventure/featured/mountain-trek.jpg',
     count: 5,
   },
   {

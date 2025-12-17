@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-
-class ReviewResource extends JsonResource
+class ReviewResource extends BaseResource
 {
     /**
      * Transform the resource into an array.
@@ -28,9 +26,9 @@ class ReviewResource extends JsonResource
             'rating' => $this->rating,
             'title' => $this->title,
             'content' => $this->content,
-            'pros' => $this->pros,
-            'cons' => $this->cons,
-            'photos' => $this->photos,
+            'pros' => is_array($this->pros) ? $this->toCamelCase($this->pros) : $this->pros,
+            'cons' => is_array($this->cons) ? $this->toCamelCase($this->cons) : $this->cons,
+            'photos' => is_array($this->photos) ? $this->toCamelCase($this->photos) : $this->photos,
             'isVerifiedBooking' => $this->is_verified_booking,
             'helpfulCount' => $this->helpful_count,
             'reply' => $this->when($this->reply, function () {

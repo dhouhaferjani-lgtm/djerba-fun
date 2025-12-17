@@ -3,9 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-
-class PageResource extends JsonResource
+class PageResource extends BaseResource
 {
     /**
      * Transform the resource into an array.
@@ -24,28 +22,28 @@ class PageResource extends JsonResource
             'intro' => $this->getTranslation('intro', $locale),
 
             // Hero image
-            'hero_image' => $this->getFirstMediaUrl('hero_image'),
-            'hero_image_copyright' => $this->getTranslation('hero_image_copyright', $locale),
-            'hero_image_title' => $this->getTranslation('hero_image_title', $locale),
-            'hero_call_to_actions' => $this->hero_call_to_actions,
+            'heroImage' => $this->getFirstMediaUrl('hero_image'),
+            'heroImageCopyright' => $this->getTranslation('hero_image_copyright', $locale),
+            'heroImageTitle' => $this->getTranslation('hero_image_title', $locale),
+            'heroCallToActions' => is_array($this->hero_call_to_actions) ? $this->toCamelCase($this->hero_call_to_actions) : $this->hero_call_to_actions,
 
             // SEO
-            'seo_title' => $this->getTranslation('seo_title', $locale),
-            'seo_description' => $this->getTranslation('seo_description', $locale),
-            'seo_keywords' => $this->getTranslation('seo_keywords', $locale),
-            'seo_image' => $this->getFirstMediaUrl('seo_image'),
+            'seoTitle' => $this->getTranslation('seo_title', $locale),
+            'seoDescription' => $this->getTranslation('seo_description', $locale),
+            'seoKeywords' => $this->getTranslation('seo_keywords', $locale),
+            'seoImage' => $this->getFirstMediaUrl('seo_image'),
 
             // Overview
-            'overview_title' => $this->getTranslation('overview_title', $locale),
-            'overview_description' => $this->getTranslation('overview_description', $locale),
-            'overview_image' => $this->getFirstMediaUrl('overview_image'),
+            'overviewTitle' => $this->getTranslation('overview_title', $locale),
+            'overviewDescription' => $this->getTranslation('overview_description', $locale),
+            'overviewImage' => $this->getFirstMediaUrl('overview_image'),
 
             // Content blocks
-            'content_blocks' => $this->transformContentBlocks($locale),
+            'contentBlocks' => $this->transformContentBlocks($locale),
 
             // Publishing
-            'publishing_begins_at' => $this->publishing_begins_at?->toISOString(),
-            'publishing_ends_at' => $this->publishing_ends_at?->toISOString(),
+            'publishingBeginsAt' => $this->publishing_begins_at?->toISOString(),
+            'publishingEndsAt' => $this->publishing_ends_at?->toISOString(),
 
             // Metadata
             'author' => $this->whenLoaded('author', function () {
@@ -54,8 +52,8 @@ class PageResource extends JsonResource
                     'name' => $this->author->name,
                 ];
             }),
-            'created_at' => $this->created_at->toISOString(),
-            'updated_at' => $this->updated_at->toISOString(),
+            'createdAt' => $this->created_at->toISOString(),
+            'updatedAt' => $this->updated_at->toISOString(),
         ];
     }
 

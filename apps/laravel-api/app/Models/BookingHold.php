@@ -29,6 +29,7 @@ class BookingHold extends Model
         'user_id',
         'session_id',
         'quantity',
+        'person_type_breakdown',
         'expires_at',
         'status',
     ];
@@ -43,6 +44,7 @@ class BookingHold extends Model
         return [
             'expires_at' => 'datetime',
             'status' => HoldStatus::class,
+            'person_type_breakdown' => 'array',
         ];
     }
 
@@ -176,6 +178,7 @@ class BookingHold extends Model
                 'user_id' => $this->user_id,
                 'session_id' => $this->session_id,
                 'quantity' => $this->quantity,
+                'person_type_breakdown' => $this->person_type_breakdown,
                 'expires_at' => $this->expires_at->toIso8601String(),
             ]));
         } catch (\Throwable $e) {
@@ -224,9 +227,20 @@ class BookingHold extends Model
     /**
      * Create a new hold for a slot.
      * Supports both authenticated users and guest checkout via session_id.
+     *
+     * @param AvailabilitySlot $slot The availability slot
+     * @param User|null $user The authenticated user, if any
+     * @param int $quantity The total number of guests
+     * @param string|null $sessionId The guest session ID
+     * @param array|null $personTypeBreakdown Optional breakdown by person type: ["adult" => 2, "child" => 1]
      */
-    public static function createForSlot(AvailabilitySlot $slot, ?User $user, int $quantity, ?string $sessionId = null): ?self
-    {
+    public static function createForSlot(
+        AvailabilitySlot $slot,
+        ?User $user,
+        int $quantity,
+        ?string $sessionId = null,
+        ?array $personTypeBreakdown = null
+    ): ?self {
         // Check if slot has enough capacity
         if (! $slot->reserveCapacity($quantity)) {
             return null;
@@ -239,6 +253,7 @@ class BookingHold extends Model
             'user_id' => $user?->id,
             'session_id' => $sessionId,
             'quantity' => $quantity,
+            'person_type_breakdown' => $personTypeBreakdown,
             'expires_at' => now()->addMinutes(self::HOLD_DURATION_MINUTES),
             'status' => HoldStatus::ACTIVE,
         ]);

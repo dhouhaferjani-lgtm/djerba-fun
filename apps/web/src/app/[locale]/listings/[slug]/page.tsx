@@ -3,36 +3,235 @@
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { format, addMonths } from 'date-fns';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { useListing, useAvailability, useCreateHold } from '@/lib/api/hooks';
-import { Button, Card } from '@go-adventure/ui';
-import { RatingStars } from '@/components/molecules/RatingStars';
+import { Button } from '@go-adventure/ui';
+import { BookingPanel } from '@/components/booking/BookingPanel';
 import { PriceDisplay } from '@/components/molecules/PriceDisplay';
+import { PersonTypeSelector } from '@/components/booking/PersonTypeSelector';
 import AvailabilityCalendar from '@/components/availability/AvailabilityCalendar';
-import { BookingWizard } from '@/components/booking/BookingWizard';
-import {
-  MapPin,
-  Clock,
-  Users,
-  Calendar,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Minus,
-  Plus,
-  X,
-} from 'lucide-react';
+import { MapPin, Clock, Users, Calendar, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
 import { getGuestSessionId } from '@/lib/utils/session';
-// Using any for API response types due to schema/API mismatch
-type ApiSlot = any;
-type ApiHold = any;
-type ApiListing = any;
+import type { AvailabilitySlot, Listing } from '@go-adventure/schemas';
+
+// Person type configuration
+interface PersonType {
+  key: string;
+  label: { en: string; fr: string } | string;
+  price: number;
+  minAge: number | null;
+  maxAge: number | null;
+  minQuantity: number;
+  maxQuantity: number | null;
+}
+
+// Get person types from listing pricing or return defaults
+function getPersonTypesFromListing(listing: Listing): PersonType[] {
+  const pricing = listing.pricing || {};
+  const personTypes = pricing.personTypes;
+
+  if (personTypes && Array.isArray(personTypes) && personTypes.length > 0) {
+    return personTypes;
+  }
+
+  // Return defaults based on base price
+  const basePrice = pricing.basePrice || 0;
+  const numericPrice = typeof basePrice === 'string' ? parseFloat(basePrice) : basePrice;
+
+  return [
+    {
+      key: 'adult',
+      label: { en: 'Adult', fr: 'Adulte' },
+      price: numericPrice,
+      minAge: 18,
+      maxAge: null,
+      minQuantity: 1,
+      maxQuantity: null,
+    },
+    {
+      key: 'child',
+      label: { en: 'Child (4-17)', fr: 'Enfant (4-17)' },
+      price: Math.round(numericPrice * 0.5),
+      minAge: 4,
+      maxAge: 17,
+      minQuantity: 0,
+      maxQuantity: null,
+    },
+    {
+      key: 'infant',
+      label: { en: 'Infant (0-3)', fr: 'Bébé (0-3)' },
+      price: 0,
+      minAge: 0,
+      maxAge: 3,
+      minQuantity: 0,
+      maxQuantity: null,
+    },
+  ];
+}
+
+// Calculate total from person type breakdown
+function calculateTotalFromBreakdown(
+  personTypes: PersonType[],
+  breakdown: Record<string, number>
+): { totalGuests: number; totalPrice: number } {
+  let totalGuests = 0;
+  let totalPrice = 0;
+
+  for (const type of personTypes) {
+    const quantity = breakdown[type.key] || 0;
+    totalGuests += quantity;
+    totalPrice += type.price * quantity;
+  }
+
+  return { totalGuests, totalPrice };
+}
+
+// Booking flow content component - extracted for reuse in both desktop and mobile
+interface BookingFlowContentProps {
+  isLoadingAvailability: boolean;
+  availabilityData: AvailabilitySlot[] | undefined;
+  selectedDate: Date | undefined;
+  selectedSlot: AvailabilitySlot | undefined;
+  slotsForSelectedDate: AvailabilitySlot[];
+  personTypes: PersonType[];
+  personTypeBreakdown: Record<string, number>;
+  maxCapacity: number;
+  listing: Listing;
+  createHoldMutation: ReturnType<typeof useCreateHold>;
+  onDateSelect: (date: Date) => void;
+  onSlotSelect: (slot: AvailabilitySlot) => void;
+  onPersonTypeChange: (breakdown: Record<string, number>) => void;
+  onCreateHold: () => void;
+  onClose: () => void;
+  locale: string;
+  t: ReturnType<typeof useTranslations>;
+  tAvail: ReturnType<typeof useTranslations>;
+  tBooking: ReturnType<typeof useTranslations>;
+  tCommon: ReturnType<typeof useTranslations>;
+}
+
+function BookingFlowContent({
+  isLoadingAvailability,
+  availabilityData,
+  selectedDate,
+  selectedSlot,
+  slotsForSelectedDate,
+  personTypes,
+  personTypeBreakdown,
+  maxCapacity,
+  listing,
+  createHoldMutation,
+  onDateSelect,
+  onSlotSelect,
+  onPersonTypeChange,
+  onCreateHold,
+  onClose,
+  locale,
+  t,
+  tAvail,
+  tBooking,
+  tCommon,
+}: BookingFlowContentProps) {
+  // Calculate totals from breakdown
+  const { totalGuests, totalPrice } = calculateTotalFromBreakdown(personTypes, personTypeBreakdown);
+  const canProceed = totalGuests > 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Calendar */}
+      <div>
+        <h3 className="font-semibold text-neutral-900 mb-4">{tAvail('select_date')}</h3>
+        {isLoadingAvailability ? (
+          <p className="text-center text-neutral-500 py-8">{tCommon('loading')}</p>
+        ) : (
+          <AvailabilityCalendar
+            slots={availabilityData || []}
+            onDateSelect={onDateSelect}
+            selectedDate={selectedDate}
+          />
+        )}
+      </div>
+
+      {/* Time Slots */}
+      {selectedDate && slotsForSelectedDate.length > 0 && (
+        <div>
+          <h3 className="font-semibold text-neutral-900 mb-4">{tAvail('select_time')}</h3>
+          <div className="space-y-2">
+            {slotsForSelectedDate.map((slot) => (
+              <button
+                key={slot.id}
+                onClick={() => onSlotSelect(slot)}
+                className={`w-full p-3 rounded-lg border text-left transition-colors ${
+                  selectedSlot?.id === slot.id
+                    ? 'border-primary bg-primary/5'
+                    : 'border-neutral-200 hover:border-neutral-300'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{format(new Date(slot.start), 'HH:mm')}</span>
+                  <span
+                    className={`text-sm ${
+                      slot.status === 'limited' ? 'text-yellow-600' : 'text-green-600'
+                    }`}
+                  >
+                    {slot.remainingCapacity || slot.available} {tAvail('available')}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {selectedDate && slotsForSelectedDate.length === 0 && (
+        <p className="text-center text-neutral-500 py-4">{tAvail('no_slots_available')}</p>
+      )}
+
+      {/* Person Type Selection (replaces simple participant counter) */}
+      {selectedSlot && (
+        <div>
+          <h3 className="font-semibold text-neutral-900 mb-4">{tBooking('travelers')}</h3>
+          <PersonTypeSelector
+            personTypes={personTypes}
+            value={personTypeBreakdown}
+            onChange={onPersonTypeChange}
+            currency={selectedSlot.currency || listing.pricing?.currency || 'EUR'}
+            maxCapacity={maxCapacity}
+            locale={locale}
+          />
+        </div>
+      )}
+
+      {/* Book Button */}
+      {selectedSlot && (
+        <div className="pt-4 border-t border-neutral-200">
+          <Button
+            variant="primary"
+            size="lg"
+            className="w-full"
+            onClick={onCreateHold}
+            disabled={createHoldMutation.isPending || !canProceed}
+          >
+            {createHoldMutation.isPending ? tCommon('loading') : tCommon('book_now')}
+          </Button>
+          {createHoldMutation.isError && (
+            <p className="text-sm text-red-600 mt-2 text-center">
+              {createHoldMutation.error?.message || tCommon('error')}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ListingDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const locale = params?.locale as string;
   const slug = params?.slug as string;
   const t = useTranslations('listing');
@@ -43,11 +242,18 @@ export default function ListingDetailPage() {
   // Booking flow state
   const [showBookingFlow, setShowBookingFlow] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [selectedSlot, setSelectedSlot] = useState<ApiSlot | undefined>();
-  const [participants, setParticipants] = useState(1);
-  const [hold, setHold] = useState<ApiHold | undefined>();
+  const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | undefined>();
+  const [personTypeBreakdown, setPersonTypeBreakdown] = useState<Record<string, number>>({
+    adult: 1,
+  });
 
   const { data: listing, isLoading, error } = useListing(slug);
+
+  // Get person types from listing (memoized)
+  const personTypes = useMemo(() => {
+    if (!listing) return [];
+    return getPersonTypesFromListing(listing);
+  }, [listing]);
 
   // Get availability for the next 3 months
   const startDate = format(new Date(), 'yyyy-MM-dd');
@@ -66,7 +272,7 @@ export default function ListingDetailPage() {
     if (!selectedDate || !availabilityData) return [];
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     return availabilityData.filter(
-      (slot: ApiSlot) =>
+      (slot) =>
         slot.start.startsWith(dateStr) && (slot.status === 'available' || slot.status === 'limited')
     );
   }, [selectedDate, availabilityData]);
@@ -76,37 +282,31 @@ export default function ListingDetailPage() {
     setSelectedSlot(undefined);
   };
 
-  const handleSlotSelect = (slot: ApiSlot) => {
+  const handleSlotSelect = (slot: AvailabilitySlot) => {
     setSelectedSlot(slot);
   };
 
   const handleCreateHold = async () => {
     if (!selectedSlot) return;
 
+    // Filter out zero values from breakdown
+    const filteredBreakdown = Object.fromEntries(
+      Object.entries(personTypeBreakdown).filter(([, qty]) => qty > 0)
+    );
+
     try {
       const sessionId = getGuestSessionId();
       const response = await createHoldMutation.mutateAsync({
-        slotId: selectedSlot.id,
-        quantity: participants,
+        slotId: String(selectedSlot.id),
+        person_types: filteredBreakdown,
         session_id: sessionId,
-      } as any);
-      setHold(response.data);
+      });
+      // Redirect to dedicated checkout page with hold ID
+      const holdId = response.data.id;
+      router.push(`/checkout/${holdId}`);
     } catch (err) {
       console.error('Failed to create hold:', err);
     }
-  };
-
-  const handleHoldExpired = () => {
-    setHold(undefined);
-    setSelectedSlot(undefined);
-  };
-
-  const resetBookingFlow = () => {
-    setShowBookingFlow(false);
-    setSelectedDate(undefined);
-    setSelectedSlot(undefined);
-    setHold(undefined);
-    setParticipants(1);
   };
 
   if (isLoading) {
@@ -133,30 +333,7 @@ export default function ListingDetailPage() {
   const tr = (field: any) => resolveTranslation(field, locale);
   const title = tr(listing.title);
   const description = tr(listing.description);
-  const maxParticipants = selectedSlot?.remainingCapacity || listing.maxGroupSize || 10;
-
-  // If we have a hold, show the booking wizard
-  if (hold && selectedSlot) {
-    return (
-      <MainLayout locale={locale}>
-        <div className="container mx-auto px-4 py-8">
-          <button
-            onClick={resetBookingFlow}
-            className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 mb-6"
-          >
-            <X className="h-5 w-5" />
-            <span>Cancel booking</span>
-          </button>
-          <BookingWizard
-            hold={hold}
-            listing={listing as any}
-            slot={selectedSlot}
-            onExpired={handleHoldExpired}
-          />
-        </div>
-      </MainLayout>
-    );
-  }
+  const maxCapacity = selectedSlot?.remainingCapacity || listing.maxGroupSize || 10;
 
   return (
     <MainLayout locale={locale}>
@@ -284,13 +461,17 @@ export default function ListingDetailPage() {
             )}
           </div>
 
-          {/* Sidebar - Booking Card */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-20">
-              <div className="p-6 space-y-6">
+          {/* Sidebar - Booking Panel (responsive: sticky on desktop, modal on mobile) */}
+          <div className="lg:col-span-1 hidden lg:block">
+            <BookingPanel
+              pricing={listing.pricing}
+              isOpen={showBookingFlow}
+              onOpenChange={setShowBookingFlow}
+            >
+              <div className="space-y-6">
                 <PriceDisplay
-                  amount={(listing.pricing as any).basePrice || (listing.pricing as any).base}
-                  currency={listing.pricing.currency}
+                  amount={listing.pricing?.basePrice || 0}
+                  currency={listing.pricing?.currency || 'EUR'}
                   size="lg"
                   showFrom
                 />
@@ -326,138 +507,63 @@ export default function ListingDetailPage() {
                     </div>
                   </>
                 ) : (
-                  <div className="space-y-6">
-                    {/* Close button */}
-                    <button
-                      onClick={() => setShowBookingFlow(false)}
-                      className="absolute top-4 right-4 p-1 text-neutral-400 hover:text-neutral-600"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-
-                    {/* Calendar */}
-                    <div>
-                      <h3 className="font-semibold text-neutral-900 mb-4">
-                        {tAvail('select_date')}
-                      </h3>
-                      {isLoadingAvailability ? (
-                        <p className="text-center text-neutral-500 py-8">{tCommon('loading')}</p>
-                      ) : (
-                        <AvailabilityCalendar
-                          slots={availabilityData || []}
-                          onDateSelect={handleDateSelect}
-                          selectedDate={selectedDate}
-                        />
-                      )}
-                    </div>
-
-                    {/* Time Slots */}
-                    {selectedDate && slotsForSelectedDate.length > 0 && (
-                      <div>
-                        <h3 className="font-semibold text-neutral-900 mb-4">
-                          {tAvail('select_time')}
-                        </h3>
-                        <div className="space-y-2">
-                          {slotsForSelectedDate.map((slot: ApiSlot) => (
-                            <button
-                              key={slot.id}
-                              onClick={() => handleSlotSelect(slot)}
-                              className={`w-full p-3 rounded-lg border text-left transition-colors ${
-                                selectedSlot?.id === slot.id
-                                  ? 'border-primary bg-primary/5'
-                                  : 'border-neutral-200 hover:border-neutral-300'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="font-medium">
-                                  {format(new Date(slot.start), 'HH:mm')}
-                                </span>
-                                <span
-                                  className={`text-sm ${
-                                    slot.status === 'limited' ? 'text-yellow-600' : 'text-green-600'
-                                  }`}
-                                >
-                                  {slot.remainingCapacity || slot.available} {tAvail('available')}
-                                </span>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedDate && slotsForSelectedDate.length === 0 && (
-                      <p className="text-center text-neutral-500 py-4">
-                        {tAvail('no_slots_available')}
-                      </p>
-                    )}
-
-                    {/* Participants */}
-                    {selectedSlot && (
-                      <div>
-                        <h3 className="font-semibold text-neutral-900 mb-4">
-                          {tBooking('travelers')}
-                        </h3>
-                        <div className="flex items-center justify-between border rounded-lg p-3">
-                          <span className="text-neutral-700">Guests</span>
-                          <div className="flex items-center gap-3">
-                            <button
-                              onClick={() => setParticipants((p) => Math.max(1, p - 1))}
-                              disabled={participants <= 1}
-                              className="p-1 rounded-full border border-neutral-300 disabled:opacity-50"
-                            >
-                              <Minus className="h-4 w-4" />
-                            </button>
-                            <span className="w-8 text-center font-medium">{participants}</span>
-                            <button
-                              onClick={() =>
-                                setParticipants((p) => Math.min(maxParticipants, p + 1))
-                              }
-                              disabled={participants >= maxParticipants}
-                              className="p-1 rounded-full border border-neutral-300 disabled:opacity-50"
-                            >
-                              <Plus className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Total and Book Button */}
-                    {selectedSlot && (
-                      <div className="pt-4 border-t border-neutral-200">
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="text-neutral-600">{tBooking('total')}</span>
-                          <PriceDisplay
-                            amount={
-                              (selectedSlot.price ||
-                                (listing.pricing as any).basePrice ||
-                                (listing.pricing as any).base) * participants
-                            }
-                            currency={selectedSlot.currency || listing.pricing.currency}
-                            size="lg"
-                          />
-                        </div>
-                        <Button
-                          variant="primary"
-                          size="lg"
-                          className="w-full"
-                          onClick={handleCreateHold}
-                          disabled={createHoldMutation.isPending}
-                        >
-                          {createHoldMutation.isPending ? tCommon('loading') : tCommon('book_now')}
-                        </Button>
-                        {createHoldMutation.isError && (
-                          <p className="text-sm text-red-600 mt-2 text-center">
-                            {(createHoldMutation.error as any)?.message || tCommon('error')}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  <BookingFlowContent
+                    isLoadingAvailability={isLoadingAvailability}
+                    availabilityData={availabilityData}
+                    selectedDate={selectedDate}
+                    selectedSlot={selectedSlot}
+                    slotsForSelectedDate={slotsForSelectedDate}
+                    personTypes={personTypes}
+                    personTypeBreakdown={personTypeBreakdown}
+                    maxCapacity={maxCapacity}
+                    listing={listing}
+                    createHoldMutation={createHoldMutation}
+                    onDateSelect={handleDateSelect}
+                    onSlotSelect={handleSlotSelect}
+                    onPersonTypeChange={setPersonTypeBreakdown}
+                    onCreateHold={handleCreateHold}
+                    onClose={() => setShowBookingFlow(false)}
+                    locale={locale}
+                    t={t}
+                    tAvail={tAvail}
+                    tBooking={tBooking}
+                    tCommon={tCommon}
+                  />
                 )}
               </div>
-            </Card>
+            </BookingPanel>
+          </div>
+
+          {/* Mobile: Floating button + Modal - only shown on mobile */}
+          <div className="lg:hidden">
+            <BookingPanel
+              pricing={listing.pricing}
+              isOpen={showBookingFlow}
+              onOpenChange={setShowBookingFlow}
+            >
+              <BookingFlowContent
+                isLoadingAvailability={isLoadingAvailability}
+                availabilityData={availabilityData}
+                selectedDate={selectedDate}
+                selectedSlot={selectedSlot}
+                slotsForSelectedDate={slotsForSelectedDate}
+                personTypes={personTypes}
+                personTypeBreakdown={personTypeBreakdown}
+                maxCapacity={maxCapacity}
+                listing={listing}
+                createHoldMutation={createHoldMutation}
+                onDateSelect={handleDateSelect}
+                onSlotSelect={handleSlotSelect}
+                onPersonTypeChange={setPersonTypeBreakdown}
+                onCreateHold={handleCreateHold}
+                onClose={() => setShowBookingFlow(false)}
+                locale={locale}
+                t={t}
+                tAvail={tAvail}
+                tBooking={tBooking}
+                tCommon={tCommon}
+              />
+            </BookingPanel>
           </div>
         </div>
       </div>

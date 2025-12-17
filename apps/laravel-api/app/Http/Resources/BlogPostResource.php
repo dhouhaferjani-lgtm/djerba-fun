@@ -3,9 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-
-class BlogPostResource extends JsonResource
+class BlogPostResource extends BaseResource
 {
     /**
      * Transform the resource into an array.
@@ -20,21 +18,21 @@ class BlogPostResource extends JsonResource
             'slug' => $this->slug,
             'excerpt' => $this->excerpt,
             'content' => $this->content,
-            'featured_image' => $this->featured_image,
+            'featuredImage' => $this->featured_image,
             'tags' => $this->tags ?? [],
-            'read_time_minutes' => $this->read_time_minutes,
-            'views_count' => $this->views_count,
-            'is_featured' => $this->is_featured,
+            'readTimeMinutes' => $this->read_time_minutes,
+            'viewsCount' => $this->views_count,
+            'isFeatured' => $this->is_featured,
             'status' => $this->status,
-            'published_at' => $this->published_at?->toISOString(),
-            'created_at' => $this->created_at->toISOString(),
-            'updated_at' => $this->updated_at->toISOString(),
+            'publishedAt' => $this->published_at?->toISOString(),
+            'createdAt' => $this->created_at->toISOString(),
+            'updatedAt' => $this->updated_at->toISOString(),
 
             // Relationships
             'author' => [
                 'id' => $this->author->id,
                 'name' => $this->author->display_name,
-                'avatar_url' => $this->author->avatar_url,
+                'avatarUrl' => $this->author->avatar_url,
             ],
             'category' => $this->when($this->category, function () {
                 return [

@@ -158,16 +158,38 @@ export const listingsApi = {
 
   createHold: async (
     listingSlug: string,
-    request: CreateHoldRequest & { session_id?: string; quantity?: number }
+    request: CreateHoldRequest & {
+      session_id?: string;
+      quantity?: number;
+      person_types?: Record<string, number>;
+    }
   ) => {
+    // Build request body - either use person_types or quantity
+    const body: Record<string, unknown> = {
+      slot_id: request.slotId,
+      session_id: request.session_id,
+    };
+
+    // If person_types is provided and has values, use it; otherwise use quantity
+    if (request.person_types && Object.keys(request.person_types).length > 0) {
+      body.person_types = request.person_types;
+    } else {
+      body.quantity = request.quantity ?? request.guests;
+    }
+
     return fetchApi<{ data: CreateHoldResponse }>(`/listings/${listingSlug}/holds`, {
       method: 'POST',
-      body: JSON.stringify({
-        slot_id: request.slotId,
-        quantity: request.quantity ?? request.guests,
-        session_id: request.session_id,
-      }),
+      body: JSON.stringify(body),
     });
+  },
+
+  getHold: async (holdId: string) => {
+    return fetchApi<{
+      data: CreateHoldResponse & {
+        listing: Listing;
+        slot: AvailabilitySlot;
+      };
+    }>(`/holds/${holdId}`);
   },
 };
 
@@ -183,12 +205,24 @@ export interface ProcessPaymentRequest {
 
 export const bookingsApi = {
   create: async (request: CreateBookingRequest & { sessionId?: string }) => {
+    // Convert primary traveler to snake_case for Laravel backend
+    const primaryTraveler = request.travelers?.[0];
+    const travelerInfo = primaryTraveler
+      ? {
+          first_name: primaryTraveler.firstName,
+          last_name: primaryTraveler.lastName,
+          email: primaryTraveler.email,
+          phone: primaryTraveler.phone || '',
+          special_requests: primaryTraveler.specialRequests || undefined,
+        }
+      : undefined;
+
     return fetchApi<{ data: Booking }>('/bookings', {
       method: 'POST',
       body: JSON.stringify({
         hold_id: request.holdId,
         session_id: request.sessionId,
-        traveler_info: request.travelers?.[0],
+        traveler_info: travelerInfo,
         extras: [],
       }),
     });

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { TravelerInfoForm } from './TravelerInfoForm';
+import { MultiTravelerForm } from './MultiTravelerForm';
 import { ExtrasSelection } from './ExtrasSelection';
 import { BookingReview } from './BookingReview';
 import { PaymentMethodSelector, type PaymentMethod } from './PaymentMethodSelector';
@@ -19,6 +20,20 @@ import type {
   ListingSummary,
   AvailabilitySlot,
 } from '@go-adventure/schemas';
+
+// Person type interface for multi-traveler form
+interface PersonType {
+  key: string;
+  label: { en: string; fr: string } | string;
+  price: number;
+  minAge: number | null;
+  maxAge: number | null;
+}
+
+// Extended traveler info with person type
+interface ExtendedTraveler extends TravelerInfo {
+  personType?: string;
+}
 
 interface Extra {
   id: string;
@@ -56,12 +71,49 @@ export function BookingWizard({
   // Start at auth step if not authenticated, otherwise skip to traveler
   const [currentStep, setCurrentStep] = useState<Step>('auth');
   const [travelerInfo, setTravelerInfo] = useState<TravelerInfo | null>(null);
+  const [allTravelers, setAllTravelers] = useState<ExtendedTraveler[]>([]);
   const [selectedExtras, setSelectedExtras] = useState<SelectedExtra[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>();
   const [completedBooking, setCompletedBooking] = useState<Booking | null>(null);
 
   const createBookingMutation = useCreateBooking();
   const processPaymentMutation = useProcessPayment();
+
+  // Get total number of guests from hold
+  const totalGuests = hold.quantity || 1;
+  const personTypeBreakdown = hold.personTypeBreakdown;
+
+  // Get person types from listing pricing
+  const personTypes = useMemo((): PersonType[] => {
+    const pricing = listing.pricing || {};
+    const types = pricing.personTypes;
+
+    if (types && Array.isArray(types) && types.length > 0) {
+      return types;
+    }
+
+    // Return defaults based on base price
+    const basePrice = pricing.basePrice || 0;
+    const numericPrice = typeof basePrice === 'string' ? parseFloat(basePrice) : basePrice;
+
+    return [
+      {
+        key: 'adult',
+        label: { en: 'Adult', fr: 'Adulte' },
+        price: numericPrice,
+        minAge: 18,
+        maxAge: null,
+      },
+      {
+        key: 'child',
+        label: { en: 'Child', fr: 'Enfant' },
+        price: Math.round(numericPrice * 0.5),
+        minAge: 4,
+        maxAge: 17,
+      },
+      { key: 'infant', label: { en: 'Infant', fr: 'Bébé' }, price: 0, minAge: 0, maxAge: 3 },
+    ];
+  }, [listing]);
 
   // Skip auth step if already authenticated
   useEffect(() => {
@@ -73,12 +125,15 @@ export function BookingWizard({
   // Pre-fill traveler info from authenticated user
   useEffect(() => {
     if (isAuthenticated && user && !travelerInfo) {
-      const userProfile = user as any;
+      // User may have travelerProfile nested with firstName/lastName
+      const profile = (
+        user as { travelerProfile?: { firstName?: string; lastName?: string; phone?: string } }
+      ).travelerProfile;
       setTravelerInfo({
-        firstName: userProfile.firstName || userProfile.first_name || '',
-        lastName: userProfile.lastName || userProfile.last_name || '',
-        email: userProfile.email || '',
-        phone: userProfile.phone || '',
+        firstName: profile?.firstName || '',
+        lastName: profile?.lastName || '',
+        email: user.email || '',
+        phone: profile?.phone || '',
       });
     }
   }, [isAuthenticated, user, travelerInfo]);
@@ -96,8 +151,53 @@ export function BookingWizard({
     setCurrentStep('traveler');
   };
 
+  // Handle single traveler form submission
   const handleTravelerSubmit = (data: TravelerInfo) => {
     setTravelerInfo(data);
+    setAllTravelers([data]);
+    setCurrentStep('extras');
+  };
+
+  // Handle multi-traveler form submission
+  const handleMultiTravelerSubmit = (data: {
+    primaryTraveler: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone?: string;
+      specialRequests?: string;
+    };
+    additionalTravelers?: Array<{
+      firstName: string;
+      lastName: string;
+      personType?: string;
+    }>;
+  }) => {
+    // Convert primary traveler to TravelerInfo
+    const primary: ExtendedTraveler = {
+      firstName: data.primaryTraveler.firstName,
+      lastName: data.primaryTraveler.lastName,
+      email: data.primaryTraveler.email,
+      phone: data.primaryTraveler.phone,
+      specialRequests: data.primaryTraveler.specialRequests,
+    };
+
+    // Build all travelers list
+    const travelers: ExtendedTraveler[] = [primary];
+
+    if (data.additionalTravelers) {
+      for (const additional of data.additionalTravelers) {
+        travelers.push({
+          firstName: additional.firstName,
+          lastName: additional.lastName,
+          email: '', // Additional travelers don't need email
+          personType: additional.personType,
+        });
+      }
+    }
+
+    setTravelerInfo(primary);
+    setAllTravelers(travelers);
     setCurrentStep('extras');
   };
 
@@ -111,15 +211,18 @@ export function BookingWizard({
 
     try {
       // Get session ID for guest checkout (from hold or local storage)
-      const sessionId = (hold as any).sessionId || getGuestSessionId();
+      const sessionId = hold.sessionId || getGuestSessionId();
+
+      // Prepare travelers list (use allTravelers if available, otherwise just primary)
+      const travelersToSend = allTravelers.length > 0 ? allTravelers : [travelerInfo];
 
       // Create booking with session_id for guest checkout
       const bookingResponse = await createBookingMutation.mutateAsync({
         holdId: hold.id,
-        travelers: [travelerInfo],
+        travelers: travelersToSend,
         specialRequests: travelerInfo.specialRequests || undefined,
         sessionId,
-      } as any);
+      });
 
       const booking = bookingResponse.data;
 
@@ -171,10 +274,51 @@ export function BookingWizard({
         );
 
       case 'traveler':
+        // Use MultiTravelerForm when there are multiple guests
+        if (totalGuests > 1) {
+          return (
+            <MultiTravelerForm
+              totalGuests={totalGuests}
+              personTypeBreakdown={personTypeBreakdown}
+              personTypes={personTypes}
+              onSubmit={handleMultiTravelerSubmit}
+              defaultValues={
+                travelerInfo
+                  ? {
+                      primaryTraveler: {
+                        firstName: travelerInfo.firstName,
+                        lastName: travelerInfo.lastName,
+                        email: travelerInfo.email,
+                        phone: travelerInfo.phone || undefined,
+                        specialRequests: travelerInfo.specialRequests || undefined,
+                      },
+                      additionalTravelers: allTravelers.slice(1).map((t) => ({
+                        firstName: t.firstName,
+                        lastName: t.lastName,
+                        personType: t.personType,
+                      })),
+                    }
+                  : undefined
+              }
+            />
+          );
+        }
+
+        // Use simple TravelerInfoForm for single guest
         return (
           <TravelerInfoForm
             onSubmit={handleTravelerSubmit}
-            defaultValues={travelerInfo || undefined}
+            defaultValues={
+              travelerInfo
+                ? {
+                    firstName: travelerInfo.firstName,
+                    lastName: travelerInfo.lastName,
+                    email: travelerInfo.email,
+                    phone: travelerInfo.phone || '',
+                    specialRequests: travelerInfo.specialRequests || undefined,
+                  }
+                : undefined
+            }
           />
         );
 
@@ -200,8 +344,11 @@ export function BookingWizard({
               listing={listing}
               slot={slot}
               travelerInfo={travelerInfo}
+              allTravelers={allTravelers.length > 0 ? allTravelers : undefined}
               extras={getExtrasWithDetails()}
               currency={slot.currency}
+              quantity={hold.quantity || 1}
+              personTypeBreakdown={hold.personTypeBreakdown}
               onEditTraveler={() => setCurrentStep('traveler')}
               onEditExtras={() => setCurrentStep('extras')}
               onConfirm={handleConfirmBooking}

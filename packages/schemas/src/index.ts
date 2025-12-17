@@ -271,15 +271,16 @@ export const personTypeSchema = z.object({
 });
 
 export const pricingSchema = z.object({
-  base: z.number().int().nonnegative(),
+  basePrice: z.number().int().nonnegative(),
   currency: z.string().length(3),
-  personTypes: z.array(personTypeSchema),
+  personTypes: z.array(personTypeSchema).optional(),
   groupDiscount: z
     .object({
       minSize: z.number().int().positive(),
       discountPercent: z.number().min(0).max(100),
     })
-    .nullable(),
+    .nullable()
+    .optional(),
 });
 
 export const cancellationPolicySchema = z.object({
@@ -440,39 +441,37 @@ export const availabilityRuleSchema = z.object({
 });
 
 export const availabilitySlotSchema = z.object({
-  id: z.string().uuid(),
-  listingId: z.string().uuid(),
-  ruleId: z.string().uuid().nullable(),
+  id: z.string().uuid().or(z.number()),
+  listingId: z.string().uuid().or(z.number()),
+  date: z.string().optional(),
   start: z.string().datetime(),
   end: z.string().datetime(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
   capacity: z.number().int().positive(),
-  booked: z.number().int().nonnegative(),
-  held: z.number().int().nonnegative(),
-  available: z.number().int().nonnegative(),
-  price: z.number().int().nonnegative(),
+  remainingCapacity: z.number().int().nonnegative().optional(),
+  basePrice: z.number().nonnegative(),
   currency: z.string().length(3),
-  status: z.enum(['available', 'limited', 'sold_out', 'blocked']),
-  notes: z.string().nullable(),
+  status: z.enum(['available', 'limited', 'sold_out', 'blocked']).or(z.string()),
+  statusLabel: z.string().optional(),
+  isBookable: z.boolean().optional(),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
 });
 
 export const bookingHoldSchema = z.object({
   id: z.string().uuid(),
   listingId: z.string().uuid(),
   slotId: z.string().uuid(),
-  userId: z.string().uuid(),
-  guests: z.number().int().positive(),
-  extras: z
-    .array(
-      z.object({
-        id: z.string(),
-        quantity: z.number().int().positive(),
-      })
-    )
-    .default([]),
-  calculatedTotal: z.number().int().nonnegative(),
-  currency: z.string().length(3),
+  sessionId: z.string().uuid().optional(),
+  quantity: z.number().int().positive(),
+  personTypeBreakdown: z.record(z.string(), z.number().int().nonnegative()).optional(),
   expiresAt: z.string().datetime(),
-  createdAt: z.string().datetime(),
+  expiresInSeconds: z.number().int().nonnegative().optional(),
+  status: z.string(),
+  statusLabel: z.string().optional(),
+  isActive: z.boolean().optional(),
+  createdAt: z.string().datetime().optional(),
 });
 
 // ============================================================================
@@ -537,32 +536,38 @@ export const paymentIntentSchema = z.object({
 
 export const bookingSchema = z.object({
   id: z.string().uuid(),
-  code: z.string().regex(/^GA-\d{2}-\d{4,}$/),
+  bookingNumber: z.string(),
+  code: z.string().optional(), // Alias for bookingNumber
+  userId: z.string().uuid().optional(),
   listingId: z.string().uuid(),
-  travelerId: z.string().uuid(),
-  vendorId: z.string().uuid(),
-  status: bookingStatusSchema,
-  holdId: z.string().uuid().nullable(),
-  startsAt: z.string().datetime(),
-  endsAt: z.string().datetime(),
-  guests: z.number().int().positive(),
-  travelers: z.array(travelerInfoSchema),
-  extras: z.array(bookingExtraSchema),
-  subtotal: z.number().int().nonnegative(),
-  discountAmount: z.number().int().nonnegative().default(0),
-  couponCode: z.string().nullable(),
-  taxAmount: z.number().int().nonnegative().default(0),
-  totalAmount: z.number().int().nonnegative(),
-  depositAmount: z.number().int().nonnegative().nullable(),
+  availabilitySlotId: z.string().uuid().or(z.number()).optional(),
+  quantity: z.number().int().positive(),
+  guests: z.number().int().positive().optional(), // Alias for quantity
+  totalAmount: z.number().nonnegative(),
+  discountAmount: z.number().nonnegative().default(0),
   currency: z.string().length(3),
-  paymentIntent: paymentIntentSchema.nullable(),
-  specialRequests: z.string().max(2000).nullable(),
-  internalNotes: z.string().max(2000).nullable(),
-  cancelledAt: z.string().datetime().nullable(),
-  cancellationReason: z.string().nullable(),
-  completedAt: z.string().datetime().nullable(),
+  status: z.string(),
+  statusLabel: z.string().optional(),
+  travelerInfo: travelerInfoSchema.optional(),
+  travelers: z.array(travelerInfoSchema).optional(),
+  extras: z.array(bookingExtraSchema).optional(),
+  confirmedAt: z.string().datetime().nullable().optional(),
+  cancelledAt: z.string().datetime().nullable().optional(),
+  cancellationReason: z.string().nullable().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+  // Computed properties
+  canBeCancelled: z.boolean().optional(),
+  isConfirmed: z.boolean().optional(),
+  isCancelled: z.boolean().optional(),
+  // Convenience aliases
+  startsAt: z.string().datetime().nullable().optional(),
+  // Relationships (optional when not loaded)
+  user: z.unknown().optional(),
+  listing: z.unknown().optional(),
+  availabilitySlot: availabilitySlotSchema.optional(),
+  paymentIntents: z.array(paymentIntentSchema).optional(),
+  latestPaymentIntent: paymentIntentSchema.nullable().optional(),
 });
 
 export const bookingSummarySchema = bookingSchema
@@ -725,6 +730,7 @@ export const createBookingRequestSchema = z.object({
   travelers: z.array(travelerInfoSchema).min(1),
   couponCode: z.string().optional(),
   specialRequests: z.string().max(2000).optional(),
+  sessionId: z.string().uuid().optional(),
 });
 
 // Hold creation
@@ -741,11 +747,10 @@ export const createHoldRequestSchema = z.object({
     .default([]),
 });
 
-export const createHoldResponseSchema = z.object({
-  holdId: z.string().uuid(),
-  expiresAt: z.string().datetime(),
-  calculatedTotal: z.number().int().nonnegative(),
-  currency: z.string().length(3),
+// CreateHoldResponse extends BookingHold with nested listing and slot
+export const createHoldResponseSchema = bookingHoldSchema.extend({
+  slot: availabilitySlotSchema.optional(),
+  listing: z.lazy(() => listingSummarySchema).optional(),
 });
 
 // ============================================================================

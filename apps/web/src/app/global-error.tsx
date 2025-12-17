@@ -6,7 +6,8 @@ import { useEffect } from 'react';
  * Global Error Boundary
  *
  * Catches errors in the root layout. This is a last-resort error boundary.
- * Uses minimal inline styles in case CSS fails to load.
+ * Uses inline CSS variables to ensure colors are consistent with design tokens
+ * even if globals.css fails to load.
  */
 export default function GlobalError({
   error,
@@ -22,6 +23,23 @@ export default function GlobalError({
 
   return (
     <html lang="en">
+      <head>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              :root {
+                --primary: #0D642E;
+                --gray-50: #f9fafb;
+                --gray-100: #f3f4f6;
+                --gray-200: #e5e7eb;
+                --gray-400: #9ca3af;
+                --gray-500: #6b7280;
+                --gray-900: #111827;
+              }
+            `,
+          }}
+        />
+      </head>
       <body>
         <div
           style={{
@@ -30,7 +48,7 @@ export default function GlobalError({
             alignItems: 'center',
             justifyContent: 'center',
             padding: '1rem',
-            backgroundColor: '#f9fafb',
+            backgroundColor: 'var(--gray-50)',
           }}
         >
           <div
@@ -48,7 +66,7 @@ export default function GlobalError({
               style={{
                 fontSize: '2.25rem',
                 fontWeight: 'bold',
-                color: '#111827',
+                color: 'var(--gray-900)',
                 marginBottom: '1rem',
               }}
             >
@@ -57,7 +75,7 @@ export default function GlobalError({
             <p
               style={{
                 fontSize: '1.125rem',
-                color: '#6b7280',
+                color: 'var(--gray-500)',
                 marginBottom: '2rem',
               }}
             >
@@ -68,9 +86,9 @@ export default function GlobalError({
               <p
                 style={{
                   fontSize: '0.875rem',
-                  color: '#9ca3af',
+                  color: 'var(--gray-400)',
                   fontFamily: 'monospace',
-                  backgroundColor: '#f3f4f6',
+                  backgroundColor: 'var(--gray-100)',
                   padding: '0.5rem 1rem',
                   borderRadius: '0.25rem',
                   display: 'inline-block',
@@ -92,7 +110,7 @@ export default function GlobalError({
               <button
                 onClick={reset}
                 style={{
-                  backgroundColor: '#0D642E',
+                  backgroundColor: 'var(--primary)',
                   color: 'white',
                   padding: '0.75rem 1.5rem',
                   borderRadius: '0.375rem',
@@ -108,10 +126,10 @@ export default function GlobalError({
                 onClick={() => (window.location.href = '/')}
                 style={{
                   backgroundColor: 'white',
-                  color: '#0D642E',
+                  color: 'var(--primary)',
                   padding: '0.75rem 1.5rem',
                   borderRadius: '0.375rem',
-                  border: '1px solid #0D642E',
+                  border: '1px solid var(--primary)',
                   fontSize: '1rem',
                   fontWeight: '500',
                   cursor: 'pointer',
@@ -125,15 +143,15 @@ export default function GlobalError({
               style={{
                 marginTop: '2rem',
                 paddingTop: '2rem',
-                borderTop: '1px solid #e5e7eb',
+                borderTop: '1px solid var(--gray-200)',
               }}
             >
-              <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+              <p style={{ fontSize: '0.875rem', color: 'var(--gray-500)' }}>
                 If this problem persists, please contact{' '}
                 <a
                   href="mailto:support@goadventure.com"
                   style={{
-                    color: '#0D642E',
+                    color: 'var(--primary)',
                     textDecoration: 'underline',
                   }}
                 >

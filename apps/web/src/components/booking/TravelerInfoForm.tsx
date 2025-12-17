@@ -2,12 +2,24 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { travelerInfoSchema, type TravelerInfo } from '@go-adventure/schemas';
+import { z } from 'zod';
 import { useTranslations } from 'next-intl';
 
+// Local schema with phone required (backend validation requires it)
+const travelerInfoFormSchema = z.object({
+  firstName: z.string().min(1, 'First name is required').max(100),
+  lastName: z.string().min(1, 'Last name is required').max(100),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().min(1, 'Phone number is required').max(50),
+  specialRequests: z.string().max(2000).optional(),
+});
+
+// Local type that matches the form schema
+type TravelerInfoFormData = z.infer<typeof travelerInfoFormSchema>;
+
 interface TravelerInfoFormProps {
-  onSubmit: (data: TravelerInfo) => void;
-  defaultValues?: Partial<TravelerInfo>;
+  onSubmit: (data: TravelerInfoFormData) => void;
+  defaultValues?: Partial<TravelerInfoFormData>;
   onBack?: () => void;
 }
 
@@ -18,8 +30,8 @@ export function TravelerInfoForm({ onSubmit, defaultValues, onBack }: TravelerIn
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<TravelerInfo>({
-    resolver: zodResolver(travelerInfoSchema),
+  } = useForm<TravelerInfoFormData>({
+    resolver: zodResolver(travelerInfoFormSchema),
     defaultValues: defaultValues || {},
   });
 
@@ -83,7 +95,7 @@ export function TravelerInfoForm({ onSubmit, defaultValues, onBack }: TravelerIn
       {/* Phone */}
       <div>
         <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-          {t('phone')}
+          {t('phone')} <span className="text-red-500">*</span>
         </label>
         <input
           {...register('phone')}
