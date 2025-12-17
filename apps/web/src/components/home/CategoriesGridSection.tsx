@@ -43,11 +43,9 @@ export function CategoriesGridSection({ locale }: CategoriesGridSectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral-900 mb-4">
-            Explore by Activity
+            {t('categories_title')}
           </h2>
-          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-            From desert marathons to cultural immersions, find your perfect adventure
-          </p>
+          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">{t('categories_subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

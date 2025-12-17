@@ -43,11 +43,9 @@ export function DestinationsBentoGrid({ locale }: DestinationsBentoGridProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral-900 mb-4">
-            Discover Tunisia
+            {t('destinations_title')}
           </h2>
-          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-            From ancient oases to stunning coastlines, explore the diversity of our destinations
-          </p>
+          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">{t('destinations_subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 auto-rows-[200px] gap-4">
