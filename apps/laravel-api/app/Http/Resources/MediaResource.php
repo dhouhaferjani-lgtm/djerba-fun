@@ -20,6 +20,7 @@ class MediaResource extends JsonResource
             'thumbnailUrl' => $this->thumbnail_url,
             'alt' => $this->alt,
             'type' => $this->type,
+            'category' => $this->category?->value ?? 'gallery',
             'order' => $this->order,
         ];
     }

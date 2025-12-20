@@ -6,18 +6,29 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
+    // Allow localhost/private IPs for local development with MinIO
+    dangerouslyAllowSVG: true,
     remotePatterns: [
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '9000',
         pathname: '/go-adventure/**',
+        search: '',
       },
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '9002',
         pathname: '/go-adventure/**',
+        search: '',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '9002',
+        pathname: '/go-adventure/**',
+        search: '',
       },
       {
         protocol: 'https',

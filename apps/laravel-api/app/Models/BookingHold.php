@@ -28,6 +28,7 @@ class BookingHold extends Model
         'slot_id',
         'user_id',
         'session_id',
+        'cart_id',
         'quantity',
         'person_type_breakdown',
         'expires_at',
@@ -169,7 +170,7 @@ class BookingHold extends Model
 
         try {
             $key = $this->getRedisKey();
-            $ttl = max(1, $this->expires_at->diffInSeconds(now()));
+            $ttl = max(1, $this->expires_at->getTimestamp() - now()->getTimestamp());
 
             Redis::setex($key, $ttl, json_encode([
                 'id' => $this->id,

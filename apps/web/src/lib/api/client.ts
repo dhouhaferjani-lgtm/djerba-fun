@@ -13,6 +13,7 @@ import type {
   CouponValidation,
   VendorPublicProfile,
   ListingSummary,
+  ListingExtraForBooking,
 } from '@go-adventure/schemas';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
@@ -191,6 +192,57 @@ export const listingsApi = {
       };
     }>(`/holds/${holdId}`);
   },
+
+  getExtras: async (listingSlug: string, params?: { slotId?: string; personTypes?: string[] }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.slotId) {
+      queryParams.append('slot_id', params.slotId);
+    }
+    if (params?.personTypes?.length) {
+      queryParams.append('person_types', params.personTypes.join(','));
+    }
+    const queryString = queryParams.toString();
+    return fetchApi<{ data: ListingExtraForBooking[] }>(
+      `/listings/${listingSlug}/extras${queryString ? `?${queryString}` : ''}`
+    );
+  },
+
+  calculateExtras: async (
+    listingSlug: string,
+    request: {
+      extras: Array<{ id: string; quantity: number }>;
+      personTypes?: Record<string, number>;
+      currency?: 'TND' | 'EUR';
+    }
+  ) => {
+    return fetchApi<{
+      valid: boolean;
+      errors?: Array<{ field: string; message: string; extraId?: string }>;
+      calculation?: {
+        items: Array<{
+          listingExtraId: string;
+          extraId: string;
+          name: Record<string, string>;
+          quantity: number;
+          pricingType: string;
+          unitPrice: number | null;
+          subtotal: number;
+          breakdown?: Record<string, { count: number; unit_price: number; total: number }>;
+          calculation: string;
+        }>;
+        subtotal: number;
+        currency: string;
+        itemCount: number;
+      };
+    }>(`/listings/${listingSlug}/extras/calculate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        extras: request.extras,
+        person_types: request.personTypes,
+        currency: request.currency,
+      }),
+    });
+  },
 };
 
 // ============================================================================
@@ -205,24 +257,22 @@ export interface ProcessPaymentRequest {
 
 export const bookingsApi = {
   create: async (request: CreateBookingRequest & { sessionId?: string }) => {
-    // Convert primary traveler to snake_case for Laravel backend
-    const primaryTraveler = request.travelers?.[0];
-    const travelerInfo = primaryTraveler
-      ? {
-          first_name: primaryTraveler.firstName,
-          last_name: primaryTraveler.lastName,
-          email: primaryTraveler.email,
-          phone: primaryTraveler.phone || '',
-          special_requests: primaryTraveler.specialRequests || undefined,
-        }
-      : undefined;
+    // Convert all travelers to snake_case for Laravel backend
+    const travelers = request.travelers?.map((traveler) => ({
+      first_name: traveler.firstName,
+      last_name: traveler.lastName,
+      email: traveler.email || '',
+      phone: traveler.phone || '',
+      person_type: traveler.personType || undefined,
+      special_requests: traveler.specialRequests || undefined,
+    }));
 
     return fetchApi<{ data: Booking }>('/bookings', {
       method: 'POST',
       body: JSON.stringify({
         hold_id: request.holdId,
         session_id: request.sessionId,
-        traveler_info: travelerInfo,
+        travelers: travelers,
         extras: [],
       }),
     });
@@ -239,6 +289,12 @@ export const bookingsApi = {
 
   getById: async (id: string) => {
     return fetchApi<{ data: Booking }>(`/bookings/${id}`);
+  },
+
+  getByIdGuest: async (id: string, sessionId: string) => {
+    return fetchApi<{ data: Booking }>(`/bookings/${id}/guest`, {
+      headers: { 'X-Session-ID': sessionId },
+    });
   },
 
   getMyBookings: async () => {
@@ -261,6 +317,249 @@ export const bookingsApi = {
         session_id: request.sessionId,
       }),
     });
+  },
+};
+
+// ============================================================================
+// PARTICIPANTS API
+// ============================================================================
+
+export interface Participant {
+  id: string;
+  bookingId: string;
+  voucherCode: string;
+  firstName: string | null;
+  lastName: string | null;
+  fullName: string | null;
+  email: string | null;
+  phone: string | null;
+  personType: string | null;
+  specialRequests: string | null;
+  checkedIn: boolean;
+  checkedInAt: string | null;
+  isComplete: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateParticipantData {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  person_type?: string;
+  special_requests?: string;
+}
+
+export const participantsApi = {
+  list: async (bookingId: string) => {
+    return fetchApi<{
+      data: Participant[];
+      meta: { total: number; complete: number; requiresNames: boolean };
+    }>(`/bookings/${bookingId}/participants`);
+  },
+
+  listGuest: async (bookingId: string, sessionId: string) => {
+    return fetchApi<{
+      data: Participant[];
+      meta: { total: number; complete: number; requiresNames: boolean };
+    }>(`/bookings/${bookingId}/participants/guest`, {
+      headers: { 'X-Session-ID': sessionId },
+    });
+  },
+
+  update: async (bookingId: string, participants: UpdateParticipantData[]) => {
+    return fetchApi<{ data: Booking; message: string; updated: number }>(
+      `/bookings/${bookingId}/participants`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ participants }),
+      }
+    );
+  },
+
+  updateGuest: async (
+    bookingId: string,
+    participants: UpdateParticipantData[],
+    sessionId: string
+  ) => {
+    return fetchApi<{ data: Booking; message: string; updated: number }>(
+      `/bookings/${bookingId}/participants/guest`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ participants }),
+        headers: { 'X-Session-ID': sessionId },
+      }
+    );
+  },
+};
+
+// ============================================================================
+// VOUCHERS API
+// ============================================================================
+
+export interface Voucher {
+  voucherCode: string;
+  qrCodeData: string;
+  participant: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    fullName: string | null;
+    personType: string | null;
+    checkedIn: boolean;
+  };
+  booking: {
+    bookingNumber: string;
+  };
+  event: {
+    title: string;
+    date: string;
+    time: string;
+    location: string | null;
+  };
+  vendor: {
+    name: string;
+  };
+}
+
+export const vouchersApi = {
+  list: async (bookingId: string) => {
+    return fetchApi<{
+      data: Voucher[];
+      canGenerate: boolean;
+      booking: { bookingNumber: string; listingTitle: string; eventDate: string };
+    }>(`/bookings/${bookingId}/vouchers`);
+  },
+
+  listGuest: async (bookingId: string, sessionId: string) => {
+    return fetchApi<{
+      data: Voucher[];
+      canGenerate: boolean;
+      booking: { bookingNumber: string; listingTitle: string; eventDate: string };
+    }>(`/bookings/${bookingId}/vouchers/guest`, {
+      headers: { 'X-Session-ID': sessionId },
+    });
+  },
+
+  get: async (bookingId: string, voucherCode: string) => {
+    return fetchApi<{ data: Voucher }>(`/bookings/${bookingId}/vouchers/${voucherCode}`);
+  },
+};
+
+// ============================================================================
+// MAGIC LINKS API
+// ============================================================================
+
+export interface MagicLinkBookingResponse {
+  data: Booking;
+  magic_links: {
+    details: string;
+    participants: string;
+    vouchers: string;
+  };
+}
+
+export interface MagicLinkParticipant {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  phone: string | null;
+  personType: string | null;
+  voucherCode: string;
+  checkedIn: boolean;
+}
+
+export interface MagicLinkParticipantsResponse {
+  data: MagicLinkParticipant[];
+  meta: {
+    bookingNumber: string;
+    requiresNames: boolean;
+    totalParticipants: number;
+    completeParticipants: number;
+  };
+}
+
+export interface MagicLinkVoucher {
+  voucherCode: string;
+  qrCodeData: string;
+  participant: {
+    fullName: string | null;
+    personType: string | null;
+    checkedIn: boolean;
+  };
+  event: {
+    title: string;
+    date: string;
+    time: string;
+    location: string | null;
+  };
+}
+
+export interface MagicLinkVouchersResponse {
+  canGenerate: boolean;
+  data?: MagicLinkVoucher[];
+  booking?: {
+    bookingNumber: string;
+    listingTitle: string;
+  };
+  message?: string;
+}
+
+export const magicLinksApi = {
+  /**
+   * Validate a magic token and get booking data
+   */
+  getBooking: async (token: string) => {
+    return fetchApi<MagicLinkBookingResponse>(`/bookings/magic/${token}`);
+  },
+
+  /**
+   * Request a new magic link via email
+   */
+  resendMagicLink: async (email: string, bookingNumber: string) => {
+    return fetchApi<{ message: string }>('/bookings/resend-magic-link', {
+      method: 'POST',
+      body: JSON.stringify({ email, booking_number: bookingNumber }),
+    });
+  },
+
+  /**
+   * Get participants for a booking via magic token
+   */
+  getParticipants: async (token: string) => {
+    return fetchApi<MagicLinkParticipantsResponse>(`/bookings/magic/${token}/participants`);
+  },
+
+  /**
+   * Update participants for a booking via magic token
+   */
+  updateParticipants: async (
+    token: string,
+    participants: Array<{
+      id: string;
+      first_name: string;
+      last_name: string;
+      email?: string;
+      phone?: string;
+    }>
+  ) => {
+    return fetchApi<{ message: string; data: MagicLinkParticipant[] }>(
+      `/bookings/magic/${token}/participants`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ participants }),
+      }
+    );
+  },
+
+  /**
+   * Get vouchers for a booking via magic token
+   */
+  getVouchers: async (token: string) => {
+    return fetchApi<MagicLinkVouchersResponse>(`/bookings/magic/${token}/vouchers`);
   },
 };
 
@@ -321,6 +620,322 @@ export const vendorsApi = {
       data: ListingSummary[];
       meta: { total: number; page: number; limit: number };
     }>(`/vendors/${vendorId}/listings?${queryParams}`);
+  },
+};
+
+// ============================================================================
+// CART API
+// ============================================================================
+
+export interface CartItem {
+  id: string;
+  cartId: string;
+  holdId: string;
+  listingId: string;
+  listingTitle: Record<string, string>;
+  slotStart: string;
+  slotEnd: string;
+  quantity: number;
+  personTypeBreakdown: Record<string, number> | null;
+  unitPrice: number;
+  currency: string;
+  primaryContact: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone?: string;
+  } | null;
+  guestNames: Array<{
+    first_name: string;
+    last_name: string;
+    person_type?: string;
+  }> | null;
+  extras: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }> | null;
+  subtotal: number;
+  extrasTotal: number;
+  total: number;
+  holdValid: boolean;
+  requiresTravelerNames: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Cart {
+  id: string;
+  userId: string | null;
+  sessionId: string | null;
+  status: 'active' | 'checking_out' | 'completed' | 'abandoned';
+  expiresAt: string;
+  expiresInSeconds: number;
+  isExpired: boolean;
+  isActive: boolean;
+  isEmpty: boolean;
+  itemCount: number;
+  totalGuests: number;
+  subtotal: number;
+  currency: string;
+  items: CartItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CartSummary {
+  id: string;
+  status: string;
+  expires_at: string;
+  item_count: number;
+  items: Array<{
+    id: string;
+    listing_id: string;
+    title: string;
+    slot_start: string;
+    slot_end: string;
+    quantity: number;
+    person_type_breakdown: Record<string, number> | null;
+    subtotal: number;
+    extras_total: number;
+    total: number;
+  }>;
+  subtotal: number;
+  total: number;
+  currency: string;
+}
+
+// ============================================================================
+// CONSENT API
+// ============================================================================
+
+export interface ConsentStatus {
+  [type: string]: {
+    label: string;
+    granted: boolean;
+  };
+}
+
+export const consentApi = {
+  /**
+   * Record consent(s) - can be called without authentication
+   */
+  recordConsents: async (
+    consents: Record<string, boolean>,
+    options?: {
+      sessionId?: string;
+      email?: string;
+      context?: string;
+    }
+  ) => {
+    return fetchApi<{
+      message: string;
+      data: Array<{ type: string; granted: boolean; grantedAt: string | null }>;
+    }>('/consent', {
+      method: 'POST',
+      body: JSON.stringify({
+        consents,
+        session_id: options?.sessionId,
+        email: options?.email,
+        context: options?.context,
+      }),
+    });
+  },
+
+  /**
+   * Get current consent status
+   */
+  getStatus: async (options?: { sessionId?: string; email?: string }) => {
+    const params = new URLSearchParams();
+    if (options?.sessionId) params.append('session_id', options.sessionId);
+    if (options?.email) params.append('email', options.email);
+    const queryString = params.toString();
+    return fetchApi<{ data: ConsentStatus }>(
+      `/consent/status${queryString ? `?${queryString}` : ''}`
+    );
+  },
+
+  /**
+   * Revoke a specific consent
+   */
+  revokeConsent: async (type: string, options?: { sessionId?: string; email?: string }) => {
+    return fetchApi<{ message: string }>('/consent/revoke', {
+      method: 'POST',
+      body: JSON.stringify({
+        type,
+        session_id: options?.sessionId,
+        email: options?.email,
+      }),
+    });
+  },
+
+  /**
+   * Get consent history (requires authentication)
+   */
+  getHistory: async () => {
+    return fetchApi<{
+      data: Array<{
+        id: string;
+        type: string;
+        typeLabel: string;
+        granted: boolean;
+        context: string | null;
+        grantedAt: string | null;
+        revokedAt: string | null;
+        createdAt: string;
+      }>;
+    }>('/consent/history');
+  },
+};
+
+export const cartApi = {
+  getCart: async (sessionId?: string) => {
+    const params = sessionId ? `?session_id=${sessionId}` : '';
+    return fetchApi<{ data: Cart } | { message: string; cart: null }>(`/cart${params}`);
+  },
+
+  addItem: async (holdId: string, sessionId?: string) => {
+    return fetchApi<{ data: Cart }>('/cart/items', {
+      method: 'POST',
+      body: JSON.stringify({
+        hold_id: holdId,
+        session_id: sessionId,
+      }),
+    });
+  },
+
+  removeItem: async (itemId: string, sessionId?: string) => {
+    const params = sessionId ? `?session_id=${sessionId}` : '';
+    return fetchApi<{ message: string }>(`/cart/items/${itemId}${params}`, {
+      method: 'DELETE',
+    });
+  },
+
+  updateItem: async (
+    itemId: string,
+    data: {
+      primaryContact?: {
+        first_name: string;
+        last_name: string;
+        email: string;
+        phone?: string;
+      };
+      guestNames?: Array<{
+        first_name: string;
+        last_name: string;
+        person_type?: string;
+      }>;
+      extras?: Array<{
+        id: string;
+        name: string;
+        price: number;
+        quantity: number;
+      }>;
+      sessionId?: string;
+    }
+  ) => {
+    return fetchApi<{ data: CartItem }>(`/cart/items/${itemId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        primary_contact: data.primaryContact,
+        guest_names: data.guestNames,
+        extras: data.extras,
+        session_id: data.sessionId,
+      }),
+    });
+  },
+
+  clearCart: async (sessionId?: string) => {
+    const params = sessionId ? `?session_id=${sessionId}` : '';
+    return fetchApi<{ message: string }>(`/cart${params}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getSummary: async (sessionId?: string) => {
+    const params = sessionId ? `?session_id=${sessionId}` : '';
+    return fetchApi<{
+      cart: CartSummary | null;
+      validation: {
+        valid: boolean;
+        errors: Array<{ code: string; message: string; item_id?: string }>;
+      };
+    }>(`/cart/summary${params}`);
+  },
+
+  extendHolds: async (sessionId?: string) => {
+    return fetchApi<{
+      message: string;
+      expires_at: string;
+      expiresInSeconds: number;
+      extended: number;
+      failed: number;
+      unavailable?: Array<{ item_id: string; title: string; reason: string }>;
+    }>('/cart/extend-holds', {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId }),
+    });
+  },
+
+  mergeCart: async (sessionId: string) => {
+    return fetchApi<{ data: Cart } | { message: string; cart: null }>('/cart/merge', {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId }),
+    });
+  },
+
+  // Checkout endpoints
+  initiateCheckout: async (paymentMethod: string, sessionId?: string) => {
+    return fetchApi<{
+      message: string;
+      payment_id: string;
+      amount: number;
+      currency: string;
+    }>('/cart/checkout', {
+      method: 'POST',
+      body: JSON.stringify({
+        payment_method: paymentMethod,
+        session_id: sessionId,
+      }),
+    });
+  },
+
+  processPayment: async (
+    paymentId: string,
+    paymentData?: Record<string, unknown>,
+    sessionId?: string
+  ) => {
+    return fetchApi<{
+      message: string;
+      success: boolean;
+      bookings: Booking[];
+    }>(`/cart/checkout/${paymentId}/pay`, {
+      method: 'POST',
+      body: JSON.stringify({
+        payment_data: paymentData,
+        session_id: sessionId,
+      }),
+    });
+  },
+
+  getCheckoutStatus: async (paymentId: string, sessionId?: string) => {
+    const params = sessionId ? `?session_id=${sessionId}` : '';
+    return fetchApi<{
+      payment_id: string;
+      status: string;
+      amount: number;
+      currency: string;
+      paid_at: string | null;
+      bookings: Booking[];
+    }>(`/cart/checkout/${paymentId}/status${params}`);
+  },
+
+  cancelCheckout: async (sessionId?: string) => {
+    return fetchApi<{ message: string }>('/cart/checkout/cancel', {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId }),
+    });
   },
 };
 

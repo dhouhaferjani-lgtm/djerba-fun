@@ -108,21 +108,57 @@
         </div>
         @endif
 
+        @if($magicLink)
+        <div class="booking-details" style="background-color: #f5f0d1; border-left-color: #0D642E;">
+            <h3 style="margin-top: 0; color: #0D642E;">Manage Your Booking</h3>
+            <p>Use these secure links to access your booking anytime:</p>
+
+            <div style="margin: 15px 0;">
+                <a href="{{ $magicLink }}" class="button" style="display: block; text-align: center; margin-bottom: 10px;">
+                    View Booking Details
+                </a>
+            </div>
+
+            <div style="margin: 15px 0;">
+                <a href="{{ $participantsLink }}" style="display: block; padding: 12px 24px; background-color: #f5f5f5; color: #333; text-decoration: none; border-radius: 5px; text-align: center; border: 1px solid #ddd; margin-bottom: 10px;">
+                    Enter Participant Names
+                </a>
+            </div>
+
+            <div style="margin: 15px 0;">
+                <a href="{{ $vouchersLink }}" style="display: block; padding: 12px 24px; background-color: #f5f5f5; color: #333; text-decoration: none; border-radius: 5px; text-align: center; border: 1px solid #ddd;">
+                    Download Vouchers
+                </a>
+            </div>
+
+            <p style="font-size: 0.85em; color: #666; margin-top: 15px;">
+                <strong>Note:</strong> These links expire on {{ $magicLinkExpiresAt }}. If they expire, you can request new links at any time.
+            </p>
+        </div>
+        @endif
+
         <p><strong>What's next?</strong></p>
         <ul>
+            <li>Enter participant names to receive personalized vouchers</li>
+            <li>Download your vouchers before your activity date</li>
             <li>Save this confirmation email for your records</li>
-            <li>Check your email for any additional information from the vendor</li>
             <li>Contact us if you have any questions or need to make changes</li>
         </ul>
 
-        <p>If you need to cancel or modify your booking, please contact us as soon as possible.</p>
+        <p>If you need to cancel or modify your booking, use the links above or contact us as soon as possible.</p>
 
         <p>Thank you for choosing Go Adventure!</p>
     </div>
 
     <div class="footer">
         <p>&copy; {{ date('Y') }} Go Adventure. All rights reserved.</p>
-        <p>This is an automated message, please do not reply directly to this email.</p>
+        <p>
+            <a href="{{ config('app.frontend_url') }}/privacy" style="color: #0D642E;">Privacy Policy</a> |
+            <a href="{{ config('app.frontend_url') }}/terms" style="color: #0D642E;">Terms of Service</a>
+        </p>
+        <p style="font-size: 0.85em;">
+            You're receiving this email because you made a booking on Go Adventure.
+        </p>
     </div>
 </body>
 </html>

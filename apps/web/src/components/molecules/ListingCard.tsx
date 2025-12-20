@@ -72,8 +72,8 @@ export function ListingCard({ listing, locale }: ListingCardProps) {
           {/* Price */}
           <div className="mt-auto pt-3 border-t border-neutral-100">
             <PriceDisplay
-              amount={listing.pricing.from}
-              currency={listing.pricing.currency}
+              amount={listing.pricing.displayPrice || listing.pricing.tndPrice || 0}
+              currency={listing.pricing.displayCurrency || 'TND'}
               size="sm"
               showFrom
             />

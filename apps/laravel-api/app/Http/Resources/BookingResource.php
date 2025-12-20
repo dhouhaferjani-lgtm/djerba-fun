@@ -27,7 +27,11 @@ class BookingResource extends BaseResource
             'status' => $this->status->value,
             'statusLabel' => $this->status->label(),
             'travelerInfo' => is_array($this->traveler_info) ? $this->toCamelCase($this->traveler_info) : $this->traveler_info,
+            'travelers' => $this->travelers
+                ? array_map(fn ($t) => is_array($t) ? $this->toCamelCase($t) : $t, $this->travelers)
+                : null,
             'extras' => is_array($this->extras) ? $this->toCamelCase($this->extras) : $this->extras,
+            'billingContact' => is_array($this->billing_contact) ? $this->toCamelCase($this->billing_contact) : $this->billing_contact,
             'confirmedAt' => $this->confirmed_at?->toIso8601String(),
             'cancelledAt' => $this->cancelled_at?->toIso8601String(),
             'cancellationReason' => $this->cancellation_reason,
@@ -40,11 +44,15 @@ class BookingResource extends BaseResource
             'availabilitySlot' => new AvailabilitySlotResource($this->whenLoaded('availabilitySlot')),
             'paymentIntents' => PaymentIntentResource::collection($this->whenLoaded('paymentIntents')),
             'latestPaymentIntent' => new PaymentIntentResource($this->whenLoaded('latestPaymentIntent')),
+            'participants' => BookingParticipantResource::collection($this->whenLoaded('participants')),
 
             // Computed properties
             'canBeCancelled' => $this->canBeCancelled(),
             'isConfirmed' => $this->isConfirmed(),
             'isCancelled' => $this->isCancelled(),
+            'participantsComplete' => $this->participantsComplete(),
+            'canGenerateVouchers' => $this->canGenerateVouchers(),
+            'requiresParticipantNames' => $this->listing?->require_traveler_names ?? false,
 
             // Convenience aliases for frontend compatibility
             'code' => $this->booking_number,

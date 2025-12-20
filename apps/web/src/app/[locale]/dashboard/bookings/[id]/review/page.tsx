@@ -140,12 +140,16 @@ export default function ReviewSubmissionPage() {
               <div className="flex justify-between">
                 <span className="text-gray-600">Date</span>
                 <span className="font-medium text-gray-900">
-                  {format(new Date(booking.startsAt), 'PPP', { locale: dateLocale })}
+                  {booking.startsAt
+                    ? format(new Date(booking.startsAt), 'PPP', { locale: dateLocale })
+                    : '-'}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Guests</span>
-                <span className="font-medium text-gray-900">{booking.guests}</span>
+                <span className="font-medium text-gray-900">
+                  {booking.guests ?? booking.quantity}
+                </span>
               </div>
             </div>
           </div>

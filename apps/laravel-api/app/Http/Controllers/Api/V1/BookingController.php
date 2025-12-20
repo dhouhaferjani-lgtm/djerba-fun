@@ -73,9 +73,10 @@ class BookingController extends Controller
         }
 
         // Pass authenticated user's ID if available (user may have logged in during checkout)
+        // Use getTravelers() which handles both legacy traveler_info and new travelers array
         $booking = $this->bookingService->createFromHold(
             hold: $hold,
-            travelerInfo: $request->input('traveler_info'),
+            travelers: $request->getTravelers(),
             extras: $request->input('extras', []),
             authenticatedUserId: $request->user()?->id
         );
@@ -98,6 +99,26 @@ class BookingController extends Controller
         Gate::authorize('view', $booking);
 
         $booking->load(['listing', 'availabilitySlot', 'user', 'paymentIntents']);
+
+        return response()->json([
+            'data' => new BookingResource($booking),
+        ]);
+    }
+
+    /**
+     * Get booking details for guest users via session_id.
+     */
+    public function showGuest(Request $request, Booking $booking): JsonResponse
+    {
+        $sessionId = $request->header('X-Session-ID') ?? $request->query('session_id');
+
+        if (!$sessionId || $booking->session_id !== $sessionId) {
+            return response()->json([
+                'message' => 'Unauthorized. Invalid session.',
+            ], 403);
+        }
+
+        $booking->load(['listing', 'availabilitySlot', 'paymentIntents', 'participants', 'bookingExtras.extra']);
 
         return response()->json([
             'data' => new BookingResource($booking),

@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Menu, User, LogOut } from 'lucide-react';
+import { CartIcon } from '../cart/CartIcon';
 import { LocaleSwitcher } from './LocaleSwitcher';
 import { useState } from 'react';
 import { Logo } from '../atoms/Logo';
@@ -49,14 +50,15 @@ export function Header({ locale }: HeaderProps) {
             ))}
           </nav>
 
-          {/* Right Side: Locale + Auth */}
+          {/* Right Side: Cart + Locale + Auth */}
           <div className="flex items-center gap-4">
+            <CartIcon locale={locale} />
             <LocaleSwitcher locale={locale} />
 
             {isAuthenticated && user ? (
-              <div className="hidden md:flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-2">
                 <NavLink href={`/${locale}/dashboard`}>
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-primary-light">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
                     <User className="h-4 w-4 mr-2" />
                     {user.displayName}
                   </Button>
@@ -65,7 +67,7 @@ export function Header({ locale }: HeaderProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => logout()}
-                  className="text-white hover:bg-primary-light"
+                  className="text-white hover:bg-white/10"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   {tAuth('logout')}
@@ -74,12 +76,15 @@ export function Header({ locale }: HeaderProps) {
             ) : (
               <div className="hidden md:flex items-center gap-2">
                 <NavLink href={`/${locale}/auth/login`}>
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-primary-light">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
                     {tAuth('login')}
                   </Button>
                 </NavLink>
                 <NavLink href={`/${locale}/auth/register`}>
-                  <Button variant="secondary" size="sm">
+                  <Button
+                    size="sm"
+                    className="bg-white text-primary hover:bg-white/90 font-semibold"
+                  >
                     {tAuth('register')}
                   </Button>
                 </NavLink>

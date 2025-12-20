@@ -49,6 +49,11 @@ class BookingConfirmationMail extends Mailable implements ShouldQueue
                 'listing' => $this->booking->listing,
                 'slot' => $this->booking->availabilitySlot,
                 'travelerInfo' => $this->booking->traveler_info,
+                // Magic link URLs for guest access
+                'magicLink' => $this->booking->getMagicLinkUrl(),
+                'participantsLink' => $this->booking->getMagicLinkUrl() . '/participants',
+                'vouchersLink' => $this->booking->getMagicLinkUrl() . '/vouchers',
+                'magicLinkExpiresAt' => $this->booking->magic_token_expires_at?->format('F j, Y'),
             ],
         );
     }

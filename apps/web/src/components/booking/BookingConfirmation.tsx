@@ -107,20 +107,90 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
           </div>
         )}
 
+        {/* Participant Names Prompt - show if multiple guests */}
+        {guestCount > 1 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-left">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-amber-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-amber-900 mb-1">
+                  {t('complete_participant_names') || 'Complete Participant Names'}
+                </h3>
+                <p className="text-sm text-amber-800 mb-3">
+                  {t('participant_names_prompt') ||
+                    `You have ${guestCount} participants in this booking. Enter their names to receive individual vouchers with QR codes for check-in.`}
+                </p>
+                <Link
+                  href={`/dashboard/bookings/${booking.id}/participants`}
+                  className="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg font-medium text-sm hover:bg-amber-700 transition-colors"
+                >
+                  {t('enter_participant_names') || 'Enter Participant Names'}
+                  <svg
+                    className="w-4 h-4 ml-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 pt-4">
-          <Link
-            href={`/dashboard/bookings/${booking.id}`}
-            className="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-medium text-center hover:bg-primary/90 transition-colors"
-          >
-            {t('view_booking')}
-          </Link>
-          <Link
-            href="/"
-            className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-medium text-center text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            {t('back_home')}
-          </Link>
+          {guestCount > 1 ? (
+            <>
+              <Link
+                href={`/dashboard/bookings/${booking.id}/participants`}
+                className="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-medium text-center hover:bg-primary/90 transition-colors"
+              >
+                {t('enter_names') || 'Enter Participant Names'}
+              </Link>
+              <Link
+                href={`/dashboard/bookings/${booking.id}`}
+                className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-medium text-center text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                {t('do_later') || 'Do This Later'}
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href={`/dashboard/bookings/${booking.id}`}
+                className="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-medium text-center hover:bg-primary/90 transition-colors"
+              >
+                {t('view_booking')}
+              </Link>
+              <Link
+                href="/"
+                className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-medium text-center text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                {t('back_home')}
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Share Options */}

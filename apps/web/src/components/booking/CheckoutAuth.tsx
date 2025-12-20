@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Button } from '@go-adventure/ui';
@@ -21,9 +21,15 @@ export function CheckoutAuth({ onContinueAsGuest, onLoginSuccess }: CheckoutAuth
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // If already authenticated, skip to next step
+  // If already authenticated, skip to next step (use effect to avoid setState during render)
+  useEffect(() => {
+    if (isAuthenticated) {
+      onLoginSuccess();
+    }
+  }, [isAuthenticated, onLoginSuccess]);
+
+  // Show nothing while redirecting authenticated users
   if (isAuthenticated) {
-    onLoginSuccess();
     return null;
   }
 

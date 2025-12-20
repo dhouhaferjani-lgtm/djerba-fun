@@ -237,14 +237,19 @@ export const mapConfigSchema = z.object({
 // MEDIA
 // ============================================================================
 
+export const mediaCategorySchema = z.enum(['hero', 'gallery', 'featured', 'itinerary_stop']);
+
 export const mediaSchema = z.object({
   id: z.string().uuid(),
   url: z.string().url(),
   thumbnailUrl: z.string().url().nullable(),
   alt: z.string().max(200),
   type: z.enum(['image', 'video']),
+  category: mediaCategorySchema.default('gallery'),
   order: z.number().int().nonnegative(),
 });
+
+export type MediaCategory = z.infer<typeof mediaCategorySchema>;
 
 // ============================================================================
 // LISTINGS
@@ -263,7 +268,11 @@ export const difficultyLevelSchema = z.enum(['easy', 'moderate', 'challenging', 
 export const personTypeSchema = z.object({
   key: z.string(),
   label: translatableSchema,
-  price: z.number().int().nonnegative(),
+  tndPrice: z.number().nonnegative().optional(),
+  eurPrice: z.number().nonnegative().optional(),
+  displayPrice: z.number().nonnegative().optional(), // Price in user's detected currency
+  // Legacy field for backward compatibility
+  price: z.number().int().nonnegative().optional(),
   minAge: z.number().int().nonnegative().nullable(),
   maxAge: z.number().int().positive().nullable(),
   minQuantity: z.number().int().nonnegative().default(0),
@@ -271,8 +280,16 @@ export const personTypeSchema = z.object({
 });
 
 export const pricingSchema = z.object({
-  basePrice: z.number().int().nonnegative(),
-  currency: z.string().length(3),
+  // Dual pricing fields
+  tndPrice: z.number().nonnegative().optional(),
+  eurPrice: z.number().nonnegative().optional(),
+  displayCurrency: z.enum(['TND', 'EUR']).optional(),
+  displayPrice: z.number().nonnegative().optional(),
+
+  // Legacy fields for backward compatibility
+  basePrice: z.number().int().nonnegative().optional(),
+  currency: z.string().length(3).optional(),
+
   personTypes: z.array(personTypeSchema).optional(),
   groupDiscount: z
     .object({
@@ -293,6 +310,51 @@ export const cancellationPolicySchema = z.object({
   ),
   description: translatableSchema.nullable(),
 });
+
+export const listingFaqSchema = z.object({
+  id: z.string().uuid(),
+  listingId: z.string().uuid(),
+  question: translatableSchema,
+  answer: translatableSchema,
+  order: z.number().int().nonnegative(),
+  isActive: z.boolean().default(true),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
+});
+
+export const safetyInfoSchema = z.object({
+  requiredFitnessLevel: translatableSchema.nullable(),
+  minimumAge: z.number().int().nonnegative().nullable(),
+  maximumAge: z.number().int().positive().nullable(),
+  insuranceRequired: z.boolean().default(false),
+  notSuitableFor: z.array(translatableSchema).default([]),
+  safetyEquipmentProvided: z.array(translatableSchema).default([]),
+});
+
+export const accessibilityInfoSchema = z.object({
+  wheelchairAccessible: z.boolean().default(false),
+  mobilityAidAccessible: z.boolean().default(false),
+  accessibleParking: z.boolean().default(false),
+  accessibleRestrooms: z.boolean().default(false),
+  serviceAnimalsAllowed: z.boolean().default(true),
+  audioGuideAvailable: z.boolean().default(false),
+  signLanguageAvailable: z.boolean().default(false),
+  accessibilityNotes: translatableSchema.nullable(),
+});
+
+export const difficultyDetailsSchema = z.object({
+  description: translatableSchema.nullable(),
+  terrainType: translatableSchema.nullable(),
+  elevationGainMeters: z.number().int().nonnegative().nullable(),
+  technicalDifficulty: z.enum(['beginner', 'intermediate', 'advanced', 'expert']).nullable(),
+  physicalIntensity: z.enum(['low', 'moderate', 'high', 'very_high']).nullable(),
+  estimatedPace: translatableSchema.nullable(),
+});
+
+export type ListingFaq = z.infer<typeof listingFaqSchema>;
+export type SafetyInfo = z.infer<typeof safetyInfoSchema>;
+export type AccessibilityInfo = z.infer<typeof accessibilityInfoSchema>;
+export type DifficultyDetails = z.infer<typeof difficultyDetailsSchema>;
 
 // Base listing fields shared by all service types
 const listingBaseFields = {
@@ -316,8 +378,13 @@ const listingBaseFields = {
   media: z.array(mediaSchema),
   pricing: pricingSchema,
   cancellationPolicy: cancellationPolicySchema,
+  faqs: z.array(listingFaqSchema).default([]),
+  safetyInfo: safetyInfoSchema.nullable(),
+  accessibilityInfo: accessibilityInfoSchema.nullable(),
+  difficultyDetails: difficultyDetailsSchema.nullable(),
   minGroupSize: z.number().int().positive().default(1),
   maxGroupSize: z.number().int().positive(),
+  minAdvanceBookingHours: z.number().int().nonnegative().default(0),
   rating: z.number().min(0).max(5).nullable(),
   reviewsCount: z.number().int().nonnegative().default(0),
   bookingsCount: z.number().int().nonnegative().default(0),
@@ -398,10 +465,7 @@ export const listingSummarySchema = z.object({
     id: z.string().uuid(),
     name: z.string(),
   }),
-  pricing: z.object({
-    from: z.number().int().nonnegative(),
-    currency: z.string().length(3),
-  }),
+  pricing: pricingSchema,
   media: z.array(mediaSchema.pick({ url: true, alt: true })).max(5),
   duration: z
     .object({
@@ -450,6 +514,12 @@ export const availabilitySlotSchema = z.object({
   endTime: z.string().optional(),
   capacity: z.number().int().positive(),
   remainingCapacity: z.number().int().nonnegative().optional(),
+  // Dual pricing fields
+  tndPrice: z.number().nonnegative().optional(),
+  eurPrice: z.number().nonnegative().optional(),
+  displayPrice: z.number().nonnegative().optional(),
+  displayCurrency: z.enum(['TND', 'EUR']).optional(),
+  // Legacy pricing fields
   basePrice: z.number().nonnegative(),
   currency: z.string().length(3),
   status: z.enum(['available', 'limited', 'sold_out', 'blocked']).or(z.string()),
@@ -508,14 +578,193 @@ export const travelerInfoSchema = z.object({
   dateOfBirth: z.string().date().nullish(),
   nationality: z.string().length(2).nullish(),
   specialRequests: z.string().max(1000).nullish(),
+  personType: z.string().optional(), // Person type key (adult, child, infant, etc.)
 });
 
+// ============================================================================
+// EXTRAS (Add-ons)
+// ============================================================================
+
+export const extraPricingTypeSchema = z.enum([
+  'per_person', // Price × total guests
+  'per_booking', // Single flat price per booking
+  'per_unit', // Customer selects quantity
+  'per_person_type', // Different prices by age group (adult/child/infant)
+]);
+
+export const extraCategorySchema = z.enum([
+  'equipment', // Bikes, helmets, GoPros
+  'meal', // Lunch, breakfast, snacks
+  'insurance', // Travel insurance
+  'upgrade', // VIP, premium options
+  'merchandise', // Photos, souvenirs
+  'transport', // Pickup, transfers
+  'accessibility', // Wheelchair, special assistance
+  'other',
+]);
+
+export const bookingExtraStatusSchema = z.enum(['active', 'cancelled', 'refunded']);
+
+export const inventoryChangeTypeSchema = z.enum([
+  'reserved', // Reserved for a booking
+  'released', // Released from cancelled/refunded booking
+  'adjustment', // Manual inventory adjustment
+  'restock', // New stock added
+]);
+
+/** Person type pricing structure for extras */
+export const personTypePricesSchema = z.record(
+  z.string(), // Person type key (adult, child, infant)
+  z.object({
+    tnd: z.number().nonnegative(),
+    eur: z.number().nonnegative(),
+  })
+);
+
+/** Extra definition (vendor's add-on catalog) */
+export const extraSchema = z.object({
+  id: z.string().uuid(),
+  vendorId: z.number().or(z.string()),
+  name: translatableSchema,
+  description: translatableSchema.nullable(),
+  shortDescription: translatableSchema.nullable(),
+  imageUrl: z.string().url().nullable(),
+  thumbnailUrl: z.string().url().nullable(),
+  pricingType: extraPricingTypeSchema,
+  basePriceTnd: z.number().nonnegative(),
+  basePriceEur: z.number().nonnegative(),
+  personTypePrices: personTypePricesSchema.nullable(),
+  minQuantity: z.number().int().nonnegative().default(0),
+  maxQuantity: z.number().int().positive().nullable(),
+  defaultQuantity: z.number().int().positive().default(1),
+  trackInventory: z.boolean().default(false),
+  inventoryCount: z.number().int().nonnegative().nullable(),
+  isRequired: z.boolean().default(false),
+  autoAdd: z.boolean().default(false),
+  allowQuantityChange: z.boolean().default(true),
+  displayOrder: z.number().int().nonnegative().default(0),
+  category: extraCategorySchema.nullable(),
+  isActive: z.boolean().default(true),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
+});
+
+/** Listing-Extra pivot (configures extras for specific listings) */
+export const listingExtraSchema = z.object({
+  id: z.string().uuid(),
+  listingId: z.number().or(z.string()),
+  extraId: z.string().uuid(),
+  // Override pricing (null = use extra's defaults)
+  overridePriceTnd: z.number().nonnegative().nullable(),
+  overridePriceEur: z.number().nonnegative().nullable(),
+  overridePersonTypePrices: personTypePricesSchema.nullable(),
+  // Override quantity limits
+  overrideMinQuantity: z.number().int().nonnegative().nullable(),
+  overrideMaxQuantity: z.number().int().positive().nullable(),
+  // Override behavior
+  overrideIsRequired: z.boolean().nullable(),
+  // Availability constraints
+  availableForSlots: z.array(z.string().uuid()).nullable(), // null = all slots
+  availableForPersonTypes: z.array(z.string()).nullable(), // null = all person types
+  // Conditional display rules
+  displayConditions: z
+    .object({
+      conditions: z.array(
+        z.object({
+          field: z.string(),
+          operator: z.enum(['==', '!=', '>', '>=', '<', '<=', 'in']),
+          value: z.unknown(),
+        })
+      ),
+      action: z.enum(['show', 'hide']),
+    })
+    .nullable(),
+  displayOrder: z.number().int().nonnegative().default(0),
+  isFeatured: z.boolean().default(false),
+  isActive: z.boolean().default(true),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
+  // Include extra details when loaded
+  extra: extraSchema.optional(),
+});
+
+/** Booking extra (selected extra with price snapshot) */
 export const bookingExtraSchema = z.object({
   id: z.string().uuid(),
-  name: z.string(),
+  bookingId: z.string().uuid(),
+  extraId: z.string().uuid().nullable(),
+  listingExtraId: z.string().uuid().nullable(),
   quantity: z.number().int().positive(),
-  unitPrice: z.number().int().nonnegative(),
-  totalPrice: z.number().int().nonnegative(),
+  pricingType: extraPricingTypeSchema,
+  unitPriceTnd: z.number().nonnegative(),
+  unitPriceEur: z.number().nonnegative(),
+  // For per_person_type pricing
+  personTypeBreakdown: z
+    .record(
+      z.string(),
+      z.object({
+        count: z.number().int().nonnegative(),
+        priceTnd: z.number().nonnegative(),
+        priceEur: z.number().nonnegative(),
+      })
+    )
+    .nullable(),
+  subtotalTnd: z.number().nonnegative(),
+  subtotalEur: z.number().nonnegative(),
+  // Snapshot for history
+  extraName: translatableSchema,
+  extraCategory: extraCategorySchema.nullable(),
+  inventoryReserved: z.boolean().default(false),
+  status: bookingExtraStatusSchema.default('active'),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
+  // Convenience getters
+  name: z.string().optional(), // Localized name
+  unitPrice: z.number().nonnegative().optional(), // In display currency
+  totalPrice: z.number().nonnegative().optional(), // In display currency
+});
+
+/** Inventory change log entry */
+export const extraInventoryLogSchema = z.object({
+  id: z.string().uuid(),
+  extraId: z.string().uuid(),
+  bookingId: z.string().uuid().nullable(),
+  changeType: inventoryChangeTypeSchema,
+  quantityChange: z.number().int(), // Can be negative
+  previousCount: z.number().int().nonnegative(),
+  newCount: z.number().int().nonnegative(),
+  notes: z.string().nullable(),
+  createdBy: z.number().nullable(),
+  createdAt: z.string().datetime(),
+});
+
+/** Extra for display in booking flow (combines extra + listing overrides) */
+export const listingExtraForBookingSchema = z.object({
+  id: z.string().uuid(), // listing_extra id
+  extraId: z.string().uuid(),
+  name: z.string(), // Localized name
+  description: z.string().nullable(),
+  shortDescription: z.string().nullable(),
+  imageUrl: z.string().url().nullable(),
+  pricingType: extraPricingTypeSchema,
+  category: extraCategorySchema.nullable(),
+  // Effective values (with overrides applied)
+  priceTnd: z.number().nonnegative(),
+  priceEur: z.number().nonnegative(),
+  displayPrice: z.number().nonnegative().optional(),
+  displayCurrency: z.enum(['TND', 'EUR']).optional(),
+  personTypePrices: personTypePricesSchema.nullable(),
+  minQuantity: z.number().int().nonnegative(),
+  maxQuantity: z.number().int().positive().nullable(),
+  isRequired: z.boolean(),
+  autoAdd: z.boolean(), // Automatically added to booking
+  // Display flags
+  isFeatured: z.boolean(),
+  allowQuantityChange: z.boolean(),
+  // Inventory
+  trackInventory: z.boolean(),
+  inventoryCount: z.number().int().nonnegative().nullable(),
+  hasAvailableInventory: z.boolean(),
 });
 
 export const paymentIntentSchema = z.object({
@@ -735,8 +984,10 @@ export const createBookingRequestSchema = z.object({
 
 // Hold creation
 export const createHoldRequestSchema = z.object({
-  slotId: z.string().uuid(),
-  guests: z.number().int().positive(),
+  slotId: z.string().uuid().or(z.string()),
+  guests: z.number().int().positive().optional(),
+  person_types: z.record(z.string(), z.number()).optional(),
+  session_id: z.string().optional(),
   extras: z
     .array(
       z.object({
@@ -800,7 +1051,19 @@ export type BookingStatus = z.infer<typeof bookingStatusSchema>;
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
 export type PaymentGateway = z.infer<typeof paymentGatewaySchema>;
 export type TravelerInfo = z.infer<typeof travelerInfoSchema>;
+
+// Extras types
+export type ExtraPricingType = z.infer<typeof extraPricingTypeSchema>;
+export type ExtraCategory = z.infer<typeof extraCategorySchema>;
+export type BookingExtraStatus = z.infer<typeof bookingExtraStatusSchema>;
+export type InventoryChangeType = z.infer<typeof inventoryChangeTypeSchema>;
+export type PersonTypePrices = z.infer<typeof personTypePricesSchema>;
+export type Extra = z.infer<typeof extraSchema>;
+export type ListingExtra = z.infer<typeof listingExtraSchema>;
 export type BookingExtra = z.infer<typeof bookingExtraSchema>;
+export type ExtraInventoryLog = z.infer<typeof extraInventoryLogSchema>;
+export type ListingExtraForBooking = z.infer<typeof listingExtraForBookingSchema>;
+
 export type PaymentIntent = z.infer<typeof paymentIntentSchema>;
 export type Booking = z.infer<typeof bookingSchema>;
 export type BookingSummary = z.infer<typeof bookingSummarySchema>;

@@ -6,13 +6,11 @@ import { Card, Button, Dialog } from '@go-adventure/ui';
 import { Calendar } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { PriceDisplay } from '@/components/molecules/PriceDisplay';
+import type { Pricing } from '@go-adventure/schemas';
 
 interface BookingPanelProps {
   children: React.ReactNode;
-  pricing: {
-    basePrice: number;
-    currency: string;
-  };
+  pricing: Pricing;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -34,7 +32,8 @@ export function BookingPanel({
   // Check if we're on mobile (less than 1024px)
   const isMobile = useMediaQuery('(max-width: 1023px)');
 
-  const basePrice = pricing.basePrice;
+  const basePrice = pricing.displayPrice || pricing.tndPrice || 0;
+  const currency = pricing.displayCurrency || 'TND';
 
   // Desktop: Render as sticky sidebar card
   if (!isMobile) {
@@ -52,13 +51,7 @@ export function BookingPanel({
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-40 shadow-lg safe-area-bottom">
         <div className="flex items-center justify-between gap-4 max-w-lg mx-auto">
           <div className="flex-shrink-0">
-            <PriceDisplay
-              amount={basePrice}
-              currency={pricing.currency}
-              size="sm"
-              showFrom
-              perPerson
-            />
+            <PriceDisplay amount={basePrice} currency={currency} size="sm" showFrom perPerson />
           </div>
           <Button
             variant="primary"
@@ -72,12 +65,12 @@ export function BookingPanel({
         </div>
       </div>
 
-      {/* Dialog for availability selection */}
+      {/* Bottom sheet dialog for availability selection on mobile */}
       <Dialog
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title={t('check_availability')}
-        size="full"
+        variant="bottomSheet"
       >
         {children}
       </Dialog>

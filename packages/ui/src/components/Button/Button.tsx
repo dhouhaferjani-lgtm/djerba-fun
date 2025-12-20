@@ -4,22 +4,27 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../utils/cn';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        primary: 'bg-primary text-white hover:bg-primary-dark focus-visible:ring-primary',
-        secondary: 'bg-secondary text-white hover:bg-secondary-dark focus-visible:ring-secondary',
-        accent: 'bg-accent text-primary hover:bg-accent-dark focus-visible:ring-accent',
+        primary:
+          'bg-primary text-white hover:bg-primary-dark active:scale-[0.98] focus-visible:ring-primary',
+        secondary:
+          'bg-secondary text-white hover:bg-secondary-dark active:scale-[0.98] focus-visible:ring-secondary',
+        accent:
+          'bg-accent text-primary hover:bg-accent-dark active:scale-[0.98] focus-visible:ring-accent',
         outline:
-          'border-2 border-primary text-primary bg-transparent hover:bg-primary/10 focus-visible:ring-primary',
-        ghost: 'text-primary bg-transparent hover:bg-primary/10 focus-visible:ring-primary',
-        destructive: 'bg-error text-white hover:bg-error/90 focus-visible:ring-error',
+          'border-2 border-primary text-primary bg-transparent hover:bg-primary/10 active:bg-primary/20 focus-visible:ring-primary',
+        ghost:
+          'text-primary bg-transparent hover:bg-primary/10 active:bg-primary/20 focus-visible:ring-primary',
+        destructive:
+          'bg-error text-white hover:bg-error/90 active:scale-[0.98] focus-visible:ring-error',
       },
       size: {
-        sm: 'h-9 px-3 text-sm',
-        md: 'h-11 px-4 text-base',
-        lg: 'h-13 px-6 text-lg',
+        sm: 'h-10 px-4 text-sm',
+        md: 'h-12 px-6 text-base',
+        lg: 'h-14 px-8 text-base font-semibold',
         icon: 'h-10 w-10',
       },
     },

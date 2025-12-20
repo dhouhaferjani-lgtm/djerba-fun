@@ -1,7 +1,12 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { TravelerInfo, ListingSummary, AvailabilitySlot } from '@go-adventure/schemas';
+import type {
+  TravelerInfo,
+  ListingSummary,
+  AvailabilitySlot,
+  PersonType,
+} from '@go-adventure/schemas';
 import CouponInput from './CouponInput';
 
 interface Extra {
@@ -9,14 +14,6 @@ interface Extra {
   name: string;
   quantity: number;
   price: number;
-}
-
-interface PersonType {
-  key: string;
-  label: { en: string; fr: string } | string;
-  price: number;
-  minAge: number | null;
-  maxAge: number | null;
 }
 
 interface ExtendedTraveler extends TravelerInfo {
@@ -42,6 +39,7 @@ interface BookingReviewProps {
   onBack?: () => void;
   isProcessing?: boolean;
   locale?: string;
+  isBillingOnly?: boolean;
 }
 
 export function BookingReview({
@@ -63,6 +61,7 @@ export function BookingReview({
   onBack,
   isProcessing = false,
   locale = 'en',
+  isBillingOnly = false,
 }: BookingReviewProps) {
   const t = useTranslations('booking');
   const tDashboard = useTranslations('dashboard');
@@ -76,8 +75,8 @@ export function BookingReview({
       return personTypes;
     }
 
-    // Return defaults based on base price
-    const basePrice = pricing.basePrice || 0;
+    // Return defaults based on display price (dual pricing)
+    const basePrice = pricing.displayPrice || pricing.tndPrice || 0;
     const numericPrice = typeof basePrice === 'string' ? parseFloat(basePrice) : basePrice;
 
     return [
@@ -87,6 +86,8 @@ export function BookingReview({
         price: numericPrice,
         minAge: 18,
         maxAge: null,
+        minQuantity: 0,
+        maxQuantity: null,
       },
       {
         key: 'child',
@@ -94,21 +95,33 @@ export function BookingReview({
         price: Math.round(numericPrice * 0.5),
         minAge: 4,
         maxAge: 17,
+        minQuantity: 0,
+        maxQuantity: null,
       },
-      { key: 'infant', label: { en: 'Infant', fr: 'Bébé' }, price: 0, minAge: 0, maxAge: 3 },
+      {
+        key: 'infant',
+        label: { en: 'Infant', fr: 'Bébé' },
+        price: 0,
+        minAge: 0,
+        maxAge: 3,
+        minQuantity: 0,
+        maxQuantity: null,
+      },
     ];
   };
 
   const getPersonTypeLabel = (type: PersonType): string => {
     if (typeof type.label === 'string') return type.label;
-    return type.label[locale as keyof typeof type.label] || type.label.en || type.key;
+    const labelObj = type.label as { en?: string; fr?: string };
+    return labelObj[locale as 'en' | 'fr'] || labelObj.en || type.key;
   };
 
   const formatPrice = (amount: number) => {
     // Prices are stored as whole amounts (e.g., 65 = €65), not cents
+    const currencyCode = currency || 'EUR';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency,
+      currency: currencyCode,
     }).format(amount);
   };
 
@@ -127,13 +140,18 @@ export function BookingReview({
       let total = 0;
       for (const type of personTypes) {
         const qty = personTypeBreakdown[type.key] || 0;
-        total += type.price * qty;
+        total += (type.price ?? 0) * qty;
       }
       return total;
     }
 
-    // Fallback: simple quantity * base price
-    const unitPrice = slot.basePrice || listing.pricing?.basePrice || 0;
+    // Fallback: simple quantity * display price (dual pricing)
+    const unitPrice =
+      slot.displayPrice ||
+      slot.tndPrice ||
+      listing.pricing?.displayPrice ||
+      listing.pricing?.tndPrice ||
+      0;
     return unitPrice * quantity;
   };
 
@@ -148,8 +166,8 @@ export function BookingReview({
       .map((type) => ({
         label: getPersonTypeLabel(type),
         quantity: personTypeBreakdown[type.key] || 0,
-        price: type.price,
-        total: type.price * (personTypeBreakdown[type.key] || 0),
+        price: type.price ?? 0,
+        total: (type.price ?? 0) * (personTypeBreakdown[type.key] || 0),
       }));
   };
 
@@ -205,10 +223,12 @@ export function BookingReview({
         </div>
       </div>
 
-      {/* Traveler Information */}
+      {/* Billing Contact / Traveler Information */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-lg text-gray-900">{t('traveler_info')}</h3>
+          <h3 className="font-semibold text-lg text-gray-900">
+            {isBillingOnly ? t('billing_contact') || 'Billing Contact' : t('traveler_info')}
+          </h3>
           {onEditTraveler && (
             <button
               type="button"
@@ -220,8 +240,32 @@ export function BookingReview({
           )}
         </div>
 
-        {/* Show all travelers if available, otherwise just primary */}
-        {allTravelers && allTravelers.length > 1 ? (
+        {/* Billing-only mode: show single contact with note about participant entry */}
+        {isBillingOnly ? (
+          <div className="space-y-4">
+            <div className="space-y-2 text-sm text-gray-600">
+              <p className="font-medium text-gray-900">
+                {travelerInfo.firstName} {travelerInfo.lastName}
+              </p>
+              <p>{travelerInfo.email}</p>
+              {travelerInfo.phone && <p>{travelerInfo.phone}</p>}
+              {travelerInfo.specialRequests && (
+                <div className="mt-3 pt-3 border-t">
+                  <p className="font-medium text-gray-700">{t('special_requests')}:</p>
+                  <p className="mt-1">{travelerInfo.specialRequests}</p>
+                </div>
+              )}
+            </div>
+            {quantity > 1 && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  {t('participant_entry_note') ||
+                    `You'll be able to enter names for all ${quantity} participants after completing the booking.`}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : allTravelers && allTravelers.length > 1 ? (
           <div className="space-y-4">
             {allTravelers.map((traveler, index) => {
               const personType = traveler.personType

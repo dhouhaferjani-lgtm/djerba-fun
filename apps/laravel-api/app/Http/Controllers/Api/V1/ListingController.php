@@ -17,7 +17,7 @@ class ListingController extends Controller
     {
         $query = Listing::query()
             ->published()
-            ->with(['vendor', 'location', 'media']);
+            ->with(['vendor', 'location', 'media', 'faqs']);
 
         // Filter by service type
         if ($request->has('service_type')) {
@@ -66,7 +66,7 @@ class ListingController extends Controller
         }
 
         return new ListingResource(
-            $listing->load(['vendor', 'location', 'media'])
+            $listing->load(['vendor', 'location', 'media', 'faqs'])
         );
     }
 }

@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import { useCurrentUser, useBooking, useCancelBooking } from '@/lib/api/hooks';
+import { getGuestSessionId } from '@/lib/utils/session';
 import type { BookingStatus } from '@go-adventure/schemas';
 
 export default function BookingDetailPage() {
@@ -13,18 +14,30 @@ export default function BookingDetailPage() {
   const router = useRouter();
   const bookingId = params.id as string;
 
+  // Check if user is authenticated or has a guest session
+  const isGuest = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return !localStorage.getItem('auth_token');
+  }, []);
+
+  const hasGuestSession = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return !!getGuestSessionId();
+  }, []);
+
   const { data: user, isLoading: isLoadingUser } = useCurrentUser();
-  const { data: booking, isLoading: isLoadingBooking } = useBooking(bookingId);
+  const { data: booking, isLoading: isLoadingBooking } = useBooking(bookingId, isGuest);
   const cancelBookingMutation = useCancelBooking();
 
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
 
   useEffect(() => {
-    if (!isLoadingUser && !user) {
+    // Only redirect to login if not authenticated AND no guest session
+    if (!isLoadingUser && !user && !hasGuestSession) {
       router.push('/auth/login');
     }
-  }, [user, isLoadingUser, router]);
+  }, [user, isLoadingUser, hasGuestSession, router]);
 
   const handleCancelBooking = async () => {
     try {
@@ -40,13 +53,15 @@ export default function BookingDetailPage() {
   };
 
   const formatPrice = (amount: number, currency: string) => {
+    // Prices are stored as whole amounts (e.g., 65 = €65), not cents
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
-    }).format(amount / 100);
+    }).format(amount);
   };
 
-  const formatDateTime = (dateString: string) => {
+  const formatDateTime = (dateString: string | null | undefined) => {
+    if (!dateString) return '-';
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
       dateStyle: 'full',
@@ -71,6 +86,7 @@ export default function BookingDetailPage() {
     if (!booking) return false;
     if (booking.status === 'cancelled' || booking.status === 'completed') return false;
     // Check if booking is in the future
+    if (!booking.startsAt) return false;
     return new Date(booking.startsAt) > new Date();
   };
 
@@ -116,7 +132,7 @@ export default function BookingDetailPage() {
               </div>
               <span
                 className={`px-4 py-2 text-sm font-medium rounded-full ${getStatusBadgeColor(
-                  booking.status
+                  booking.status as BookingStatus
                 )}`}
               >
                 {booking.status}
@@ -134,40 +150,36 @@ export default function BookingDetailPage() {
                   <strong>{t('date_time')}:</strong> {formatDateTime(booking.startsAt)}
                 </p>
                 <p>
-                  <strong>{t('duration')}:</strong>{' '}
-                  {booking.endsAt
-                    ? `${Math.round((new Date(booking.endsAt).getTime() - new Date(booking.startsAt).getTime()) / (1000 * 60 * 60))} hours`
-                    : t('not_specified')}
-                </p>
-                <p>
-                  <strong>{t('guests')}:</strong> {booking.guests}
+                  <strong>{t('guests')}:</strong> {booking.guests ?? booking.quantity}
                 </p>
               </div>
             </div>
 
             {/* Traveler Information */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">{t('traveler_info')}</h2>
-              <div className="space-y-3">
-                {booking.travelers.map((traveler, index) => (
-                  <div key={index} className="pb-3 border-b last:border-b-0">
-                    <p className="font-medium text-gray-900">
-                      {traveler.firstName} {traveler.lastName}
-                    </p>
-                    <p className="text-sm text-gray-600">{traveler.email}</p>
-                    {traveler.phone && <p className="text-sm text-gray-600">{traveler.phone}</p>}
-                    {traveler.specialRequests && (
-                      <div className="mt-2">
-                        <p className="text-sm font-medium text-gray-700">
-                          {t('special_requests')}:
-                        </p>
-                        <p className="text-sm text-gray-600">{traveler.specialRequests}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
+            {booking.travelers && booking.travelers.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">{t('traveler_info')}</h2>
+                <div className="space-y-3">
+                  {booking.travelers.map((traveler, index) => (
+                    <div key={index} className="pb-3 border-b last:border-b-0">
+                      <p className="font-medium text-gray-900">
+                        {traveler.firstName} {traveler.lastName}
+                      </p>
+                      <p className="text-sm text-gray-600">{traveler.email}</p>
+                      {traveler.phone && <p className="text-sm text-gray-600">{traveler.phone}</p>}
+                      {traveler.specialRequests && (
+                        <div className="mt-2">
+                          <p className="text-sm font-medium text-gray-700">
+                            {t('special_requests')}:
+                          </p>
+                          <p className="text-sm text-gray-600">{traveler.specialRequests}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Price Breakdown */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -176,10 +188,10 @@ export default function BookingDetailPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">{t('subtotal')}</span>
                   <span className="font-medium text-gray-900">
-                    {formatPrice(booking.subtotal, booking.currency)}
+                    {formatPrice(booking.totalAmount + booking.discountAmount, booking.currency)}
                   </span>
                 </div>
-                {booking.extras.length > 0 && (
+                {booking.extras && booking.extras.length > 0 && (
                   <>
                     <div className="border-t pt-3">
                       <p className="text-sm font-medium text-gray-700 mb-2">{t('extras')}</p>
@@ -189,7 +201,10 @@ export default function BookingDetailPage() {
                             {extra.name} × {extra.quantity}
                           </span>
                           <span className="text-gray-900">
-                            {formatPrice(extra.totalPrice, booking.currency)}
+                            {formatPrice(
+                              extra.totalPrice ?? (extra.unitPrice ?? 0) * extra.quantity,
+                              booking.currency
+                            )}
                           </span>
                         </div>
                       ))}
@@ -198,18 +213,8 @@ export default function BookingDetailPage() {
                 )}
                 {booking.discountAmount > 0 && (
                   <div className="flex justify-between text-sm text-green-600">
-                    <span>
-                      {t('discount')} {booking.couponCode && `(${booking.couponCode})`}
-                    </span>
+                    <span>{t('discount')}</span>
                     <span>-{formatPrice(booking.discountAmount, booking.currency)}</span>
-                  </div>
-                )}
-                {booking.taxAmount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">{t('tax')}</span>
-                    <span className="text-gray-900">
-                      {formatPrice(booking.taxAmount, booking.currency)}
-                    </span>
                   </div>
                 )}
                 <div className="border-t pt-3">
@@ -224,22 +229,49 @@ export default function BookingDetailPage() {
             </div>
 
             {/* Payment Information */}
-            {booking.paymentIntent && (
+            {booking.latestPaymentIntent && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">{t('payment_info')}</h2>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">{t('payment_status')}:</span>
                     <span className="font-medium text-gray-900">
-                      {booking.paymentIntent.status}
+                      {booking.latestPaymentIntent.status}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">{t('payment_method')}:</span>
                     <span className="font-medium text-gray-900">
-                      {booking.paymentIntent.gateway}
+                      {booking.latestPaymentIntent.gateway}
                     </span>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Participants & Vouchers - show for confirmed bookings */}
+            {booking.status === 'confirmed' && (booking.guests ?? booking.quantity) > 0 && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  {t('participants_vouchers') || 'Participants & Vouchers'}
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  {t('participants_vouchers_desc') ||
+                    'Manage participant names and download vouchers with QR codes for check-in.'}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link
+                    href={`/dashboard/bookings/${bookingId}/participants`}
+                    className="flex-1 px-4 py-3 border border-primary text-primary rounded-lg font-medium text-center hover:bg-primary/5 transition-colors"
+                  >
+                    {t('manage_participants') || 'Manage Participants'}
+                  </Link>
+                  <Link
+                    href={`/dashboard/bookings/${bookingId}/vouchers`}
+                    className="flex-1 px-4 py-3 bg-primary text-white rounded-lg font-medium text-center hover:bg-primary/90 transition-colors"
+                  >
+                    {t('view_vouchers') || 'View Vouchers'}
+                  </Link>
                 </div>
               </div>
             )}

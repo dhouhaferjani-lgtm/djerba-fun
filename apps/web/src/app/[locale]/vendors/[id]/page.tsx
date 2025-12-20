@@ -242,7 +242,12 @@ export default function VendorProfilePage() {
                           <div className="text-right">
                             <div className="text-sm text-gray-500">From</div>
                             <div className="font-bold text-primary">
-                              {listing.pricing.currency} {(listing.pricing.from / 100).toFixed(2)}
+                              {listing.pricing.displayCurrency || 'TND'}{' '}
+                              {(
+                                listing.pricing.displayPrice ||
+                                listing.pricing.tndPrice ||
+                                0
+                              ).toFixed(2)}
                             </div>
                           </div>
                         </div>

@@ -44,7 +44,7 @@ export default function TimeSlotPicker({
   };
 
   const getRemainingText = (slot: AvailabilitySlot) => {
-    const remaining = slot.available;
+    const remaining = slot.remainingCapacity ?? slot.capacity;
     if (slot.status === 'limited' && remaining > 0) {
       return t('remaining_spots', { count: remaining });
     }
@@ -89,13 +89,13 @@ export default function TimeSlotPicker({
               <div className="mb-2 flex items-center gap-2 text-sm text-neutral-600">
                 <Users className="h-4 w-4" />
                 <span>
-                  {slot.available} / {slot.capacity} {t('available')}
+                  {slot.remainingCapacity ?? slot.capacity} / {slot.capacity} {t('available')}
                 </span>
               </div>
 
               {/* Price */}
               <div className="font-semibold text-primary">
-                {formatPrice(slot.price, slot.currency)}
+                {formatPrice(slot.basePrice, slot.currency)}
               </div>
 
               {/* Limited spots warning */}

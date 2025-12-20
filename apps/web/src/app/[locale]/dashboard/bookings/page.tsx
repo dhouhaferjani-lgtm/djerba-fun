@@ -28,7 +28,8 @@ export default function BookingsListPage() {
   const filteredBookings = bookings.filter((booking) => {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      return booking.code.toLowerCase().includes(query);
+      const code = booking.code ?? booking.bookingNumber;
+      return code?.toLowerCase().includes(query) ?? false;
     }
     return true;
   });
@@ -40,7 +41,8 @@ export default function BookingsListPage() {
     }).format(amount / 100);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return '-';
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
       dateStyle: 'medium',
@@ -165,7 +167,7 @@ export default function BookingsListPage() {
                         </div>
                         <span
                           className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusBadgeColor(
-                            booking.status
+                            booking.status as BookingStatus
                           )}`}
                         >
                           {booking.status}

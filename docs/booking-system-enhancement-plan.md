@@ -1,7 +1,8 @@
 # Booking System Enhancement Plan
 
-> **Status**: Planning Phase
+> **Status**: All Phases Complete
 > **Created**: 2025-12-16
+> **Last Updated**: 2025-12-17
 > **Scope**: Multi-guest booking, age-based pricing, UX improvements
 
 ---
@@ -489,22 +490,32 @@ Not included in this plan but mentioned: vendors should be able to manage extras
   - [x] Frontend: Create /checkout/[holdId] page
   - [x] Frontend: Redirect from listing page after hold creation
 
-- [ ] Phase 4: UX improvements
-  - [ ] Create Dialog component in @go-adventure/ui
-  - [ ] Create BookingPanel responsive wrapper
-  - [ ] Update listing page to use BookingPanel
+- [x] Phase 4: UX improvements (COMPLETED 2025-12-16)
+  - [x] Create Dialog component in @go-adventure/ui
+  - [x] Create BookingPanel responsive wrapper
+  - [x] Create useMediaQuery hook
+  - [x] Update listing page to use BookingPanel
 
-- [ ] Phase 2: Age-based pricing
-  - [ ] Migration: Add person_type_breakdown fields
-  - [ ] Backend: Create PriceCalculationService
-  - [ ] Backend: Update hold creation to accept breakdown
-  - [ ] Frontend: Create PersonTypeSelector component
-  - [ ] Frontend: Update listing page to use PersonTypeSelector
-  - [ ] Frontend: Update BookingReview to show breakdown
+- [x] Phase 2: Age-based pricing (COMPLETED 2025-12-16)
+  - [x] Migration: Add person_type_breakdown fields
+  - [x] Backend: Create PriceCalculationService
+  - [x] Backend: Update hold creation to accept breakdown
+  - [x] Frontend: Create PersonTypeSelector component
+  - [x] Frontend: Update listing page to use PersonTypeSelector
+  - [x] Frontend: Update BookingReview to show breakdown
 
-- [ ] Phase 3: Multi-guest booking
-  - [ ] Backend: Update CreateBookingRequest for travelers array
-  - [ ] Backend: Update BookingService for multiple travelers
-  - [ ] Frontend: Create MultiTravelerForm component
-  - [ ] Frontend: Update BookingWizard to use MultiTravelerForm
-  - [ ] Frontend: Update BookingReview to show all travelers
+- [x] Phase 3: Multi-guest booking (COMPLETED 2025-12-17)
+  - [x] Frontend: Create MultiTravelerForm component
+  - [x] Frontend: Update BookingWizard to use MultiTravelerForm
+  - [x] Frontend: Update BookingReview to show all travelers
+  - [x] Backend: Update CreateBookingRequest for travelers array
+  - [x] Backend: Update BookingService for multiple travelers
+  - [x] Backend: Store travelers array in Booking model (migration + model update)
+  - [x] Frontend: Update API client to send all travelers
+
+- [x] UX Improvements (COMPLETED 2025-12-17)
+  - [x] Dialog: Add bottomSheet variant for mobile (slides up from bottom)
+  - [x] BookingPanel: Use bottomSheet on mobile with drag handle
+  - [x] Button text: Changed from "Book Now" to "Continue" (clearer intent)
+  - [x] Step indicator: Added BookingStepIndicator (Date → Time → Guests)
+  - [x] Translations: Added step_date, step_time, step_guests keys (en/fr)

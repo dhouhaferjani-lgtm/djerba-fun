@@ -8,6 +8,7 @@ use App\Enums\ServiceType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -52,6 +53,7 @@ class Listing extends Model
         'cancellation_policy',
         'min_group_size',
         'max_group_size',
+        'min_advance_booking_hours',
         // Tour fields
         'duration',
         'difficulty',
@@ -69,6 +71,12 @@ class Listing extends Model
         'reviews_count',
         'bookings_count',
         'published_at',
+        // Booking settings
+        'require_traveler_names',
+        // Safety & Accessibility
+        'safety_info',
+        'accessibility_info',
+        'difficulty_details',
     ];
 
     /**
@@ -106,12 +114,16 @@ class Listing extends Model
             'venue' => 'array',
             'agenda' => 'array',
             'has_elevation_profile' => 'boolean',
+            'require_traveler_names' => 'boolean',
             'start_date' => 'datetime',
             'end_date' => 'datetime',
             'published_at' => 'datetime',
             'rating' => 'float',
             'reviews_count' => 'integer',
             'bookings_count' => 'integer',
+            'safety_info' => 'array',
+            'accessibility_info' => 'array',
+            'difficulty_details' => 'array',
         ];
     }
 
@@ -177,6 +189,65 @@ class Listing extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get the extras available for this listing.
+     */
+    public function extras(): BelongsToMany
+    {
+        return $this->belongsToMany(Extra::class, 'listing_extras')
+            ->using(ListingExtra::class)
+            ->withPivot([
+                'id',
+                'override_price_tnd',
+                'override_price_eur',
+                'override_person_type_prices',
+                'override_min_quantity',
+                'override_max_quantity',
+                'override_is_required',
+                'available_for_slots',
+                'available_for_person_types',
+                'display_conditions',
+                'display_order',
+                'is_featured',
+                'is_active',
+            ])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the listing extras pivot records.
+     */
+    public function listingExtras(): HasMany
+    {
+        return $this->hasMany(ListingExtra::class);
+    }
+
+    /**
+     * Get active extras for this listing.
+     */
+    public function activeExtras(): BelongsToMany
+    {
+        return $this->extras()
+            ->wherePivot('is_active', true)
+            ->whereHas('extra', fn ($q) => $q->where('is_active', true));
+    }
+
+    /**
+     * Get the FAQs for the listing.
+     */
+    public function faqs(): HasMany
+    {
+        return $this->hasMany(ListingFaq::class)->ordered();
+    }
+
+    /**
+     * Get active FAQs for the listing.
+     */
+    public function activeFaqs(): HasMany
+    {
+        return $this->faqs()->active();
     }
 
     /**
@@ -263,5 +334,29 @@ class Listing extends Model
     public function scopeForVendor($query, $vendorId)
     {
         return $query->where('vendor_id', $vendorId);
+    }
+
+    /**
+     * Get the hero image for the listing.
+     */
+    public function heroImage(): ?Media
+    {
+        return $this->media()->hero()->first();
+    }
+
+    /**
+     * Get gallery images for the listing.
+     */
+    public function galleryImages()
+    {
+        return $this->media()->gallery()->get();
+    }
+
+    /**
+     * Get featured images for the listing.
+     */
+    public function featuredImages()
+    {
+        return $this->media()->featured()->limit(3)->get();
     }
 }

@@ -42,8 +42,8 @@ export default function SearchMap({
             title={listing.title}
             imageUrl={listing.media[0]?.url}
             price={{
-              amount: listing.pricing.from,
-              currency: listing.pricing.currency,
+              amount: listing.pricing.displayPrice || listing.pricing.tndPrice || 0,
+              currency: listing.pricing.displayCurrency || 'TND',
             }}
             slug={listing.slug}
             type="listing"

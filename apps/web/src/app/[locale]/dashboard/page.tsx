@@ -27,10 +27,10 @@ export default function DashboardPage() {
 
   const bookings = bookingsData?.data || [];
   const upcomingBookings = bookings.filter(
-    (b) => b.status === 'confirmed' && new Date(b.startsAt) > new Date()
+    (b) => b.status === 'confirmed' && b.startsAt && new Date(b.startsAt) > new Date()
   );
   const pastBookings = bookings.filter(
-    (b) => b.status === 'completed' || new Date(b.startsAt) < new Date()
+    (b) => b.status === 'completed' || (b.startsAt && new Date(b.startsAt) < new Date())
   );
 
   return (
@@ -194,7 +194,7 @@ export default function DashboardPage() {
                           {t('booking')} #{booking.code}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          {new Date(booking.startsAt).toLocaleDateString()}
+                          {booking.startsAt ? new Date(booking.startsAt).toLocaleDateString() : '-'}
                         </p>
                       </div>
                       <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">

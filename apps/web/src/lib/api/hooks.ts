@@ -6,8 +6,14 @@ import {
   reviewsApi,
   couponsApi,
   vendorsApi,
+  cartApi,
+  participantsApi,
+  vouchersApi,
   type ProcessPaymentRequest,
+  type Cart,
+  type UpdateParticipantData,
 } from './client';
+import { getGuestSessionId } from '@/lib/utils/session';
 import type {
   ListingSearchParams,
   CreateHoldRequest,
@@ -121,6 +127,22 @@ export function useCreateHold(listingSlug: string) {
   });
 }
 
+export function useListingExtras(
+  listingSlug: string,
+  options?: { slotId?: string; personTypes?: string[] },
+  enabled = true
+) {
+  return useQuery({
+    queryKey: ['listings', listingSlug, 'extras', options?.slotId, options?.personTypes],
+    queryFn: async () => {
+      const response = await listingsApi.getExtras(listingSlug, options);
+      return response.data;
+    },
+    enabled: enabled && !!listingSlug,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
 export function useHold(holdId: string | null) {
   return useQuery({
     queryKey: ['holds', holdId],
@@ -152,12 +174,26 @@ export function useMyBookings(params?: { status?: string; page?: number }) {
   });
 }
 
-export function useBooking(id: string) {
+export function useBooking(id: string, useGuestAccess = false) {
   return useQuery({
-    queryKey: ['bookings', id],
+    queryKey: ['bookings', id, useGuestAccess ? 'guest' : 'auth'],
     queryFn: async () => {
-      const response = await bookingsApi.getById(id);
-      return response.data;
+      // Check if user is authenticated
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+
+      if (token && !useGuestAccess) {
+        // Use authenticated endpoint
+        const response = await bookingsApi.getById(id);
+        return response.data;
+      } else {
+        // Use guest endpoint with session_id
+        const sessionId = getGuestSessionId();
+        if (!sessionId) {
+          throw new Error('No session ID available for guest access');
+        }
+        const response = await bookingsApi.getByIdGuest(id, sessionId);
+        return response.data;
+      }
     },
     enabled: !!id,
   });
@@ -191,6 +227,92 @@ export function useProcessPayment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
     },
+  });
+}
+
+// ============================================================================
+// PARTICIPANTS HOOKS
+// ============================================================================
+
+export function useParticipants(bookingId: string, useGuestAccess = false) {
+  return useQuery({
+    queryKey: ['participants', bookingId, useGuestAccess ? 'guest' : 'auth'],
+    queryFn: async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+
+      if (token && !useGuestAccess) {
+        return participantsApi.list(bookingId);
+      } else {
+        const sessionId = getGuestSessionId();
+        if (!sessionId) {
+          throw new Error('No session ID available for guest access');
+        }
+        return participantsApi.listGuest(bookingId, sessionId);
+      }
+    },
+    enabled: !!bookingId,
+  });
+}
+
+export function useUpdateParticipants(useGuestAccess = false) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      bookingId,
+      participants,
+    }: {
+      bookingId: string;
+      participants: UpdateParticipantData[];
+    }) => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+
+      if (token && !useGuestAccess) {
+        return participantsApi.update(bookingId, participants);
+      } else {
+        const sessionId = getGuestSessionId();
+        if (!sessionId) {
+          throw new Error('No session ID available for guest access');
+        }
+        return participantsApi.updateGuest(bookingId, participants, sessionId);
+      }
+    },
+    onSuccess: (_, { bookingId }) => {
+      queryClient.invalidateQueries({ queryKey: ['participants', bookingId] });
+      queryClient.invalidateQueries({ queryKey: ['bookings', bookingId] });
+      queryClient.invalidateQueries({ queryKey: ['vouchers', bookingId] });
+    },
+  });
+}
+
+// ============================================================================
+// VOUCHERS HOOKS
+// ============================================================================
+
+export function useVouchers(bookingId: string, enabled = true, useGuestAccess = false) {
+  return useQuery({
+    queryKey: ['vouchers', bookingId, useGuestAccess ? 'guest' : 'auth'],
+    queryFn: async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+
+      if (token && !useGuestAccess) {
+        return vouchersApi.list(bookingId);
+      } else {
+        const sessionId = getGuestSessionId();
+        if (!sessionId) {
+          throw new Error('No session ID available for guest access');
+        }
+        return vouchersApi.listGuest(bookingId, sessionId);
+      }
+    },
+    enabled: !!bookingId && enabled,
+  });
+}
+
+export function useVoucher(bookingId: string, voucherCode: string) {
+  return useQuery({
+    queryKey: ['vouchers', bookingId, voucherCode],
+    queryFn: () => vouchersApi.get(bookingId, voucherCode),
+    enabled: !!bookingId && !!voucherCode,
   });
 }
 
@@ -263,5 +385,245 @@ export function useVendorListings(vendorId: string, params?: { page?: number }) 
     queryKey: ['vendors', vendorId, 'listings', params],
     queryFn: () => vendorsApi.getListings(vendorId, params),
     enabled: !!vendorId,
+  });
+}
+
+// ============================================================================
+// CART HOOKS
+// ============================================================================
+
+/**
+ * Get or create a session ID for guest cart operations.
+ * Uses the same session ID as booking holds for consistency.
+ */
+export function getOrCreateSessionId(): string {
+  return getGuestSessionId();
+}
+
+export function useCart() {
+  return useQuery({
+    queryKey: ['cart'],
+    queryFn: async () => {
+      const sessionId = getGuestSessionId();
+      const response = await cartApi.getCart(sessionId);
+      // Handle both { data: Cart } and { message: string; cart: null }
+      if ('data' in response && response.data) {
+        return response.data as Cart;
+      }
+      return null;
+    },
+    staleTime: 30 * 1000, // 30 seconds
+    refetchInterval: 60 * 1000, // Refresh every minute to check expiration
+  });
+}
+
+export function useCartSummary() {
+  return useQuery({
+    queryKey: ['cart', 'summary'],
+    queryFn: async () => {
+      const sessionId = getGuestSessionId();
+      return cartApi.getSummary(sessionId);
+    },
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useAddToCart() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (holdId: string) => {
+      const sessionId = getOrCreateSessionId();
+      return cartApi.addItem(holdId, sessionId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+}
+
+export function useRemoveFromCart() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (itemId: string) => {
+      const sessionId = getGuestSessionId();
+      return cartApi.removeItem(itemId, sessionId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+}
+
+export function useUpdateCartItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      data,
+    }: {
+      itemId: string;
+      data: {
+        primaryContact?: {
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone?: string;
+        };
+        guestNames?: Array<{
+          first_name: string;
+          last_name: string;
+          person_type?: string;
+        }>;
+        extras?: Array<{
+          id: string;
+          name: string;
+          price: number;
+          quantity: number;
+        }>;
+      };
+    }) => {
+      const sessionId = getGuestSessionId();
+      return cartApi.updateItem(itemId, { ...data, sessionId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+}
+
+export function useClearCart() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => {
+      const sessionId = getGuestSessionId();
+      return cartApi.clearCart(sessionId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+}
+
+export function useExtendCartHolds() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => {
+      const sessionId = getGuestSessionId();
+      return cartApi.extendHolds(sessionId);
+    },
+    onSuccess: (data) => {
+      // Immediately update the cart's expiration time in cache
+      queryClient.setQueryData(['cart'], (oldCart: Cart | null | undefined) => {
+        if (!oldCart) return oldCart;
+
+        // Update hold validity on items based on what was extended
+        const updatedItems = oldCart.items.map((item) => {
+          // If item was in the unavailable list, mark it as invalid
+          const isUnavailable = data.unavailable?.some((u) => u.item_id === item.id);
+          return {
+            ...item,
+            holdValid: !isUnavailable && (item.holdValid || data.extended > 0),
+          };
+        });
+
+        return {
+          ...oldCart,
+          items: updatedItems,
+          expiresAt: data.expires_at,
+          expiresInSeconds: data.expiresInSeconds,
+          isExpired: data.extended === 0 && data.failed > 0,
+          isActive: data.extended > 0,
+        };
+      });
+      // Also trigger a refetch to ensure full consistency
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+}
+
+export function useMergeCart() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => {
+      const sessionId = getGuestSessionId();
+      if (!sessionId) throw new Error('No session to merge');
+      return cartApi.mergeCart(sessionId);
+    },
+    onSuccess: () => {
+      // Clear the session ID after merge
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('cart_session_id');
+      }
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+}
+
+// Checkout hooks
+export function useInitiateCheckout() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (paymentMethod: string) => {
+      const sessionId = getGuestSessionId();
+      return cartApi.initiateCheckout(paymentMethod, sessionId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+}
+
+export function useProcessCartPayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      paymentId,
+      paymentData,
+    }: {
+      paymentId: string;
+      paymentData?: Record<string, unknown>;
+    }) => {
+      const sessionId = getGuestSessionId();
+      return cartApi.processPayment(paymentId, paymentData, sessionId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    },
+  });
+}
+
+export function useCheckoutStatus(paymentId: string | null) {
+  return useQuery({
+    queryKey: ['cart', 'checkout', paymentId],
+    queryFn: async () => {
+      if (!paymentId) return null;
+      const sessionId = getGuestSessionId();
+      return cartApi.getCheckoutStatus(paymentId, sessionId);
+    },
+    enabled: !!paymentId,
+    refetchInterval: 5000, // Poll every 5 seconds during checkout
+  });
+}
+
+export function useCancelCheckout() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => {
+      const sessionId = getGuestSessionId();
+      return cartApi.cancelCheckout(sessionId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
   });
 }

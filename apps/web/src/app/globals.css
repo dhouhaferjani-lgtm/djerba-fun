@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 :root {
@@ -10,9 +11,9 @@
   --secondary-light: #a2d16a;
   --secondary-dark: #7cb342;
 
-  --accent: #f5f0d1;
-  --accent-light: #faf8e8;
-  --accent-dark: #e8e2bc;
+  --accent: #fbf9eb;
+  --accent-light: #fefdf7;
+  --accent-dark: #f5f3e5;
 
   --cream: #fcfaf2;
 
@@ -23,6 +24,10 @@
   --neutral-dark: #a3a3a3;
   --neutral-darker: #737373;
   --neutral-black: #000000;
+
+  /* Content Colors */
+  --heading-color: #474747;
+  --body-color: #5a5a5a;
   
   /* Semantic Colors */
   --success: #22c55e;
@@ -38,8 +43,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-poppins);
+  --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Spectral', Georgia, serif;
 
   /* Brand colors in Tailwind */
   --color-primary: var(--primary);
@@ -63,6 +68,10 @@
   --color-dark: var(--neutral-dark);
   --color-darker: var(--neutral-darker);
   --color-black: var(--neutral-black);
+
+  /* Content colors */
+  --color-heading: var(--heading-color);
+  --color-body: var(--body-color);
 
   /* Semantic colors in Tailwind */
   --color-success: var(--success);

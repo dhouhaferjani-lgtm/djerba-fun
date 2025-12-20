@@ -10,6 +10,7 @@ interface PriceDisplayProps {
 }
 
 const currencySymbols: Record<string, string> = {
+  TND: 'د.ت',
   EUR: '€',
   USD: '$',
   GBP: '£',

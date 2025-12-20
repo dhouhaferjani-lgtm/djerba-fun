@@ -9,9 +9,17 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\BlogPostController;
 use App\Http\Controllers\Api\V1\BookingController;
+use App\Http\Controllers\Api\V1\CartCheckoutController;
+use App\Http\Controllers\Api\V1\CartController;
+use App\Http\Controllers\Api\V1\CheckInController;
+use App\Http\Controllers\Api\V1\ParticipantController;
+use App\Http\Controllers\Api\V1\VoucherController;
 use App\Http\Controllers\Api\V1\CouponController;
 use App\Http\Controllers\Api\V1\HoldController;
 use App\Http\Controllers\Api\V1\ListingController;
+use App\Http\Controllers\Api\V1\ListingExtrasController;
+use App\Http\Controllers\Api\V1\ConsentController;
+use App\Http\Controllers\Api\V1\MagicLinkController;
 use App\Http\Controllers\Api\V1\PageController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ReviewController;
@@ -61,6 +69,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/listings/{listing:slug}/availability', [AvailabilityController::class, 'index']);
     Route::post('/listings/{listing:slug}/availability/refresh', [AvailabilityController::class, 'refresh']);
 
+    // Extras routes (public - anyone can view available extras)
+    Route::get('/listings/{listing:slug}/extras', [ListingExtrasController::class, 'index']);
+    Route::post('/listings/{listing:slug}/extras/calculate', [ListingExtrasController::class, 'calculate']);
+
     // Booking holds (public - allows guest checkout with session_id)
     Route::post('/listings/{listing:slug}/holds', [HoldController::class, 'store']);
     Route::get('/listings/{listing:slug}/holds/{hold}', [HoldController::class, 'show']);
@@ -69,10 +81,45 @@ Route::prefix('v1')->group(function () {
     // Direct hold access by ID (for checkout page persistence)
     Route::get('/holds/{hold}', [HoldController::class, 'showById']);
 
+    // Cart routes (public - supports guest checkout with session_id)
+    Route::get('/cart', [CartController::class, 'show']);
+    Route::post('/cart/items', [CartController::class, 'addItem']);
+    Route::delete('/cart/items/{item}', [CartController::class, 'removeItem']);
+    Route::patch('/cart/items/{item}', [CartController::class, 'updateItem']);
+    Route::delete('/cart', [CartController::class, 'clear']);
+    Route::get('/cart/summary', [CartController::class, 'summary']);
+    Route::post('/cart/extend-holds', [CartController::class, 'extendHolds']);
+
+    // Cart checkout routes (public - supports guest checkout with session_id)
+    Route::post('/cart/checkout', [CartCheckoutController::class, 'initiateCheckout']);
+    Route::post('/cart/checkout/{payment}/pay', [CartCheckoutController::class, 'processPayment']);
+    Route::get('/cart/checkout/{payment}/status', [CartCheckoutController::class, 'status']);
+    Route::post('/cart/checkout/cancel', [CartCheckoutController::class, 'cancelCheckout']);
+
     // Guest booking flow (public - allows guest checkout with session_id)
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::post('/bookings/{booking}/pay', [PaymentController::class, 'processPayment']);
     Route::get('/bookings/{booking}/payment-status', [PaymentController::class, 'paymentStatus']);
+
+    // Guest booking access (via session_id header or query param)
+    // These routes allow guests to access their bookings without authentication
+    Route::get('/bookings/{booking}/guest', [BookingController::class, 'showGuest']);
+    Route::get('/bookings/{booking}/participants/guest', [ParticipantController::class, 'indexGuest']);
+    Route::put('/bookings/{booking}/participants/guest', [ParticipantController::class, 'updateGuest']);
+    Route::get('/bookings/{booking}/vouchers/guest', [VoucherController::class, 'indexGuest']);
+
+    // Magic link routes (token-based access - no authentication required)
+    // These allow guests to access bookings via secure token sent in email
+    Route::get('/bookings/magic/{token}', [MagicLinkController::class, 'show']);
+    Route::post('/bookings/resend-magic-link', [MagicLinkController::class, 'resend']);
+    Route::get('/bookings/magic/{token}/participants', [MagicLinkController::class, 'participants']);
+    Route::put('/bookings/magic/{token}/participants', [MagicLinkController::class, 'updateParticipants']);
+    Route::get('/bookings/magic/{token}/vouchers', [MagicLinkController::class, 'vouchers']);
+
+    // Consent routes (public - for cookie banner and checkout consent)
+    Route::post('/consent', [ConsentController::class, 'store']);
+    Route::get('/consent/status', [ConsentController::class, 'status']);
+    Route::post('/consent/revoke', [ConsentController::class, 'revoke']);
 
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
@@ -91,6 +138,28 @@ Route::prefix('v1')->group(function () {
 
         // Coupon validation
         Route::post('/coupons/validate', [CouponController::class, 'validate']);
+
+        // Cart merge (merge guest cart into user cart after login)
+        Route::post('/cart/merge', [CartController::class, 'merge']);
+
+        // Consent history (authenticated users only)
+        Route::get('/consent/history', [ConsentController::class, 'history']);
+
+        // Participant management (for post-checkout name entry)
+        Route::get('/bookings/{booking}/participants', [ParticipantController::class, 'index']);
+        Route::put('/bookings/{booking}/participants', [ParticipantController::class, 'update']);
+
+        // Voucher access
+        Route::get('/bookings/{booking}/vouchers', [VoucherController::class, 'index']);
+        Route::get('/bookings/{booking}/vouchers/{voucherCode}', [VoucherController::class, 'show']);
+
+        // Voucher lookup by code (for convenience)
+        Route::get('/vouchers/{voucherCode}', [ParticipantController::class, 'showByVoucherCode']);
+
+        // Vendor check-in endpoints
+        Route::post('/check-in/{voucherCode}', [CheckInController::class, 'checkIn']);
+        Route::delete('/check-in/{voucherCode}', [CheckInController::class, 'undoCheckIn']);
+        Route::get('/check-in/{voucherCode}/lookup', [CheckInController::class, 'lookup']);
 
         // Additional protected routes will be added in later phases
         // - User profile updates

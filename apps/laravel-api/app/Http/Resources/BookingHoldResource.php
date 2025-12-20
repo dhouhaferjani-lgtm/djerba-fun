@@ -22,7 +22,7 @@ class BookingHoldResource extends BaseResource
             'quantity' => $this->quantity,
             'personTypeBreakdown' => is_array($this->person_type_breakdown) ? $this->toCamelCase($this->person_type_breakdown) : $this->person_type_breakdown,
             'expiresAt' => $this->expires_at->toIso8601String(),
-            'expiresInSeconds' => max(0, $this->expires_at->diffInSeconds(now())),
+            'expiresInSeconds' => max(0, $this->expires_at->getTimestamp() - now()->getTimestamp()),
             'status' => $this->status->value,
             'statusLabel' => $this->status->label(),
             'isActive' => $this->isActive(),

@@ -8,7 +8,7 @@ import { PriceDisplay } from '@/components/molecules/PriceDisplay';
 interface PersonType {
   key: string;
   label: { en: string; fr: string } | string;
-  price: number;
+  price?: number;
   minAge: number | null;
   maxAge: number | null;
   minQuantity: number;
@@ -64,7 +64,7 @@ export function PersonTypeSelector({
     for (const type of personTypes) {
       const quantity = value[type.key] || 0;
       totalGuests += quantity;
-      totalPrice += type.price * quantity;
+      totalPrice += (type.price ?? 0) * quantity;
     }
 
     return { totalGuests, totalPrice };
@@ -119,9 +119,9 @@ export function PersonTypeSelector({
                   {ageRange && <span className="text-neutral-500 font-normal">{ageRange}</span>}
                 </div>
                 <div className="text-sm text-neutral-500">
-                  {type.price > 0 ? (
+                  {(type.price ?? 0) > 0 ? (
                     <PriceDisplay
-                      amount={type.price}
+                      amount={type.price ?? 0}
                       currency={currency}
                       size="sm"
                       perPerson={false}

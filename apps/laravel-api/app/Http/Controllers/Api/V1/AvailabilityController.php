@@ -30,9 +30,20 @@ class AvailabilityController extends Controller
         CalculateAvailabilityJob::dispatch($listing, $startDate, $endDate);
 
         // Fetch available slots for the date range
-        $slots = $listing->availabilitySlots()
-            ->betweenDates($startDate, $endDate)
-            ->orderBy('date')
+        $query = $listing->availabilitySlots()
+            ->betweenDates($startDate, $endDate);
+
+        // Apply minimum advance booking time filter
+        if ($listing->min_advance_booking_hours > 0) {
+            $cutoffTime = Carbon::now()->addHours($listing->min_advance_booking_hours);
+
+            // Filter out slots that start before the cutoff time
+            $query->where(function ($q) use ($cutoffTime) {
+                $q->whereRaw("CONCAT(date, ' ', start_time) >= ?", [$cutoffTime->format('Y-m-d H:i:s')]);
+            });
+        }
+
+        $slots = $query->orderBy('date')
             ->orderBy('start_time')
             ->get();
 
