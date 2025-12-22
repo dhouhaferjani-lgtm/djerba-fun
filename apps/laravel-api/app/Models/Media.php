@@ -12,6 +12,12 @@ class Media extends Model
 {
     use HasFactory;
 
+    /**
+     * The table associated with the model.
+     * Renamed to listing_media to avoid conflict with Spatie Media Library.
+     */
+    protected $table = 'listing_media';
+
     protected static function booted(): void
     {
         static::creating(function (Media $media) {

@@ -19,9 +19,9 @@ class VendorProfileResource extends Resource
 {
     protected static ?string $model = VendorProfile::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-identification';
+    protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Users';
+    protected static ?string $navigationGroup = 'People';
 
     protected static ?int $navigationSort = 2;
 
@@ -178,7 +178,7 @@ class VendorProfileResource extends Resource
 
                 Tables\Columns\TextColumn::make('listings_count')
                     ->label('Listings')
-                    ->counts('user.listings')
+                    ->getStateUsing(fn (VendorProfile $record) => $record->user?->listings()->count() ?? 0)
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
 

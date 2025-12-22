@@ -9,6 +9,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Navigation\NavigationGroup;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
 use Filament\SpatieLaravelTranslatablePlugin;
@@ -32,6 +33,24 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('Go Adventure - Admin')
             ->colors([
                 'primary' => '#0D642E', // Dark forest green from design system
+            ])
+            ->navigationGroups([
+                NavigationGroup::make('Operations')
+                    ->icon('heroicon-o-clipboard-document-list'),
+                NavigationGroup::make('People')
+                    ->icon('heroicon-o-user-group'),
+                NavigationGroup::make('Catalog')
+                    ->icon('heroicon-o-squares-2x2'),
+                NavigationGroup::make('Content')
+                    ->icon('heroicon-o-document-text'),
+                NavigationGroup::make('Marketing')
+                    ->icon('heroicon-o-megaphone'),
+                NavigationGroup::make('System')
+                    ->icon('heroicon-o-cog-6-tooth')
+                    ->collapsed(),
+                NavigationGroup::make('Compliance')
+                    ->icon('heroicon-o-shield-check')
+                    ->collapsed(),
             ])
             ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\\Filament\\Admin\\Resources')
             ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\\Filament\\Admin\\Pages')

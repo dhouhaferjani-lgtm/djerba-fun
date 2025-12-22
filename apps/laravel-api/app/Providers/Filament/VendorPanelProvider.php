@@ -9,6 +9,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Navigation\NavigationGroup;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -29,6 +30,16 @@ class VendorPanelProvider extends PanelProvider
             ->brandName('Go Adventure - Vendor Portal')
             ->colors([
                 'primary' => '#0D642E', // Dark forest green from design system
+            ])
+            ->navigationGroups([
+                NavigationGroup::make('My Listings')
+                    ->icon('heroicon-o-map'),
+                NavigationGroup::make('Bookings')
+                    ->icon('heroicon-o-calendar'),
+                NavigationGroup::make('Feedback')
+                    ->icon('heroicon-o-star'),
+                NavigationGroup::make('Finance')
+                    ->icon('heroicon-o-banknotes'),
             ])
             ->discoverResources(in: app_path('Filament/Vendor/Resources'), for: 'App\\Filament\\Vendor\\Resources')
             ->discoverPages(in: app_path('Filament/Vendor/Pages'), for: 'App\\Filament\\Vendor\\Pages')

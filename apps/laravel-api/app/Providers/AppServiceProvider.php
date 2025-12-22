@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Responses\LogoutResponse;
 use App\Models\Booking;
 use App\Models\Coupon;
 use App\Models\Listing;
@@ -17,6 +18,7 @@ use App\Policies\UserPolicy;
 use App\Services\Payment\MockPaymentGateway;
 use App\Services\Payment\OfflinePaymentGateway;
 use App\Services\Payment\PaymentGatewayManager;
+use Filament\Http\Responses\Auth\Contracts\LogoutResponse as LogoutResponseContract;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -51,6 +53,9 @@ class AppServiceProvider extends ServiceProvider
 
             return $manager;
         });
+
+        // Register custom logout response to ensure proper session invalidation
+        $this->app->bind(LogoutResponseContract::class, LogoutResponse::class);
     }
 
     /**

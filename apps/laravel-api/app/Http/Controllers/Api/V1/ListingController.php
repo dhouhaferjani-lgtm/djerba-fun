@@ -19,6 +19,17 @@ class ListingController extends Controller
             ->published()
             ->with(['vendor', 'location', 'media', 'faqs']);
 
+        // Search by query (title, summary, description)
+        if ($request->has('q') && !empty($request->q)) {
+            $searchTerm = $request->q;
+            $query->where(function ($q) use ($searchTerm) {
+                // Search in JSON fields (multilingual)
+                $q->whereRaw("title::text ILIKE ?", ["%{$searchTerm}%"])
+                    ->orWhereRaw("summary::text ILIKE ?", ["%{$searchTerm}%"])
+                    ->orWhereRaw("description::text ILIKE ?", ["%{$searchTerm}%"]);
+            });
+        }
+
         // Filter by service type
         if ($request->has('service_type')) {
             $query->where('service_type', $request->service_type);
@@ -35,6 +46,44 @@ class ListingController extends Controller
         // Filter by difficulty
         if ($request->has('difficulty')) {
             $query->where('difficulty', $request->difficulty);
+        }
+
+        // Filter by price range
+        if ($request->has('price_min') || $request->has('price_max')) {
+            $priceMin = $request->get('price_min');
+            $priceMax = $request->get('price_max');
+
+            if ($priceMin !== null) {
+                $query->whereRaw("(pricing->>'tnd_price')::numeric >= ?", [$priceMin]);
+            }
+            if ($priceMax !== null) {
+                $query->whereRaw("(pricing->>'tnd_price')::numeric <= ?", [$priceMax]);
+            }
+        }
+
+        // Filter by date range (for events)
+        if ($request->has('start_date') || $request->has('end_date')) {
+            $startDate = $request->get('start_date');
+            $endDate = $request->get('end_date');
+
+            if ($startDate !== null) {
+                $query->where(function ($q) use ($startDate) {
+                    $q->where('service_type', 'event')
+                        ->where('start_date', '>=', $startDate);
+                });
+            }
+            if ($endDate !== null) {
+                $query->where(function ($q) use ($endDate) {
+                    $q->where('service_type', 'event')
+                        ->where('end_date', '<=', $endDate);
+                });
+            }
+        }
+
+        // Filter by minimum capacity (for group bookings)
+        if ($request->has('guests')) {
+            $guests = (int) $request->get('guests');
+            $query->where('max_group_size', '>=', $guests);
         }
 
         // Sorting

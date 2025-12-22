@@ -16,10 +16,10 @@ class PlatformStatsWidget extends BaseWidget
 {
     protected function getStats(): array
     {
-        $totalRevenue = Booking::where('status', BookingStatus::CONFIRMED)
+        $totalRevenue = (float) Booking::where('status', BookingStatus::CONFIRMED)
             ->sum('total_amount');
 
-        $monthlyRevenue = Booking::where('status', BookingStatus::CONFIRMED)
+        $monthlyRevenue = (float) Booking::where('status', BookingStatus::CONFIRMED)
             ->whereMonth('created_at', now()->month)
             ->sum('total_amount');
 

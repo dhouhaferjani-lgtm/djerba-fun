@@ -15,13 +15,13 @@ class DataDeletionRequestResource extends Resource
 {
     protected static ?string $model = DataDeletionRequest::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-trash';
+    protected static ?string $navigationIcon = null;
 
     protected static ?string $navigationGroup = 'Compliance';
 
     protected static ?string $navigationLabel = 'Deletion Requests';
 
-    protected static ?int $navigationSort = 101;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

@@ -16,11 +16,11 @@ class AvailabilityRuleResource extends Resource
 {
     protected static ?string $model = AvailabilityRule::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
+    protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Listings';
+    protected static ?string $navigationGroup = 'Catalog';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

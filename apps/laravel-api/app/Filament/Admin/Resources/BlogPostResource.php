@@ -20,11 +20,13 @@ class BlogPostResource extends Resource
 
     protected static ?string $model = BlogPost::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = null;
 
     protected static ?string $navigationGroup = 'Content';
 
     protected static ?int $navigationSort = 1;
+
+    protected static ?string $navigationLabel = 'Blog Posts';
 
     public static function getTranslatableLocales(): array
     {
