@@ -12,10 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Register agent middleware aliases
+        // Register partner middleware aliases
         $middleware->alias([
-            'agent.auth' => \App\Http\Middleware\AgentAuthMiddleware::class,
-            'agent.audit' => \App\Http\Middleware\AgentAuditMiddleware::class,
+            'partner.auth' => \App\Http\Middleware\PartnerAuthMiddleware::class,
+            'partner.audit' => \App\Http\Middleware\PartnerAuditMiddleware::class,
         ]);
 
         // Apply SetLocaleFromHeader and DetectUserCurrency middleware to API routes

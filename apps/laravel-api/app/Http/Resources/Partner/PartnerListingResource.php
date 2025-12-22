@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Resources\Agent;
+namespace App\Http\Resources\Partner;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AgentListingResource extends JsonResource
+class PartnerListingResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -63,7 +63,7 @@ class AgentListingResource extends JsonResource
             'reviewsCount' => $this->reviews_count ?? 0,
             'bookingsCount' => $this->bookings_count ?? 0,
 
-            // Vendor info (simplified for agents)
+            // Vendor info (simplified for partners)
             'vendor' => [
                 'id' => $this->vendor?->id,
                 'name' => $this->vendor?->first_name . ' ' . $this->vendor?->last_name,

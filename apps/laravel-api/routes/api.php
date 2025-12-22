@@ -1,8 +1,11 @@
 <?php
 
-use App\Http\Controllers\Api\Agent\AgentBookingController;
-use App\Http\Controllers\Api\Agent\AgentListingController;
-use App\Http\Controllers\Api\Agent\AgentSearchController;
+use App\Http\Controllers\Api\Partner\PartnerBookingController;
+use App\Http\Controllers\Api\Partner\PartnerDashboardController;
+use App\Http\Controllers\Api\Partner\PartnerListingController;
+use App\Http\Controllers\Api\Partner\PartnerPaymentController;
+use App\Http\Controllers\Api\Partner\PartnerSearchController;
+use App\Http\Controllers\Api\Partner\PartnerTransactionController;
 use App\Http\Controllers\Api\FeedController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\V1\AuthController;
@@ -173,20 +176,34 @@ Route::prefix('v1')->group(function () {
     });
 });
 
-// Agent API routes (authenticated via X-Agent-Key and X-Agent-Secret headers)
-Route::prefix('agent')->middleware(['agent.auth', 'agent.audit'])->group(function () {
+// Partner API routes (authenticated via X-Partner-Key and X-Partner-Secret headers)
+Route::prefix('partner')->middleware(['partner.auth', 'partner.audit'])->group(function () {
     // Listing endpoints
-    Route::get('listings', [AgentListingController::class, 'index']);
-    Route::get('listings/{listing}', [AgentListingController::class, 'show']);
-    Route::get('listings/{listing}/availability', [AgentListingController::class, 'availability']);
+    Route::get('listings', [PartnerListingController::class, 'index']);
+    Route::get('listings/{listing}', [PartnerListingController::class, 'show']);
+    Route::get('listings/{listing}/availability', [PartnerListingController::class, 'availability']);
 
     // Booking endpoints
-    Route::post('bookings', [AgentBookingController::class, 'store']);
-    Route::get('bookings/{booking}', [AgentBookingController::class, 'show']);
-    Route::post('bookings/{booking}/cancel', [AgentBookingController::class, 'cancel']);
+    Route::get('bookings', [PartnerBookingController::class, 'index']);
+    Route::post('bookings', [PartnerBookingController::class, 'store']);
+    Route::get('bookings/{booking}', [PartnerBookingController::class, 'show']);
+    Route::post('bookings/{booking}/confirm', [PartnerBookingController::class, 'confirm']);
+    Route::post('bookings/{booking}/cancel', [PartnerBookingController::class, 'cancel']);
 
     // Search endpoint
-    Route::post('search', [AgentSearchController::class, 'search']);
+    Route::post('search', [PartnerSearchController::class, 'search']);
+
+    // Dashboard endpoints
+    Route::get('dashboard/analytics', [PartnerDashboardController::class, 'analytics']);
+    Route::get('dashboard/balance', [PartnerDashboardController::class, 'balance']);
+
+    // Transaction endpoints
+    Route::get('transactions', [PartnerTransactionController::class, 'index']);
+    Route::get('transactions/{transaction}', [PartnerTransactionController::class, 'show']);
+
+    // Payment endpoints
+    Route::post('payments/initiate', [PartnerPaymentController::class, 'initiate']);
+    Route::get('payments/history', [PartnerPaymentController::class, 'history']);
 });
 
 // Public product feeds (no auth required)

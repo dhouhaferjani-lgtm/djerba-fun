@@ -1,29 +1,29 @@
 <?php
 
-namespace App\Http\Controllers\Api\Agent;
+namespace App\Http\Controllers\Api\Partner;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Agent\AgentListingResource;
+use App\Http\Resources\Partner\PartnerListingResource;
 use App\Models\Listing;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\JsonResponse;
 
-class AgentListingController extends Controller
+class PartnerListingController extends Controller
 {
     /**
-     * Search listings (optimized for AI agents).
+     * Search listings (optimized for API partners).
      *
      * @param Request $request
      * @return AnonymousResourceCollection
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $agent = $request->attributes->get('agent');
+        $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$agent->hasPermission('listings:read')) {
-            abort(403, 'Agent does not have permission to read listings');
+        if (!$partner->hasPermission('listings:read')) {
+            abort(403, 'Partner does not have permission to read listings');
         }
 
         $query = Listing::query()
@@ -100,7 +100,7 @@ class AgentListingController extends Controller
         // Pagination
         $perPage = min($request->get('per_page', 50), 100);
 
-        return AgentListingResource::collection(
+        return PartnerListingResource::collection(
             $query->paginate($perPage)
         );
     }
@@ -110,15 +110,15 @@ class AgentListingController extends Controller
      *
      * @param Request $request
      * @param Listing $listing
-     * @return AgentListingResource
+     * @return PartnerListingResource
      */
-    public function show(Request $request, Listing $listing): AgentListingResource
+    public function show(Request $request, Listing $listing): PartnerListingResource
     {
-        $agent = $request->attributes->get('agent');
+        $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$agent->hasPermission('listings:read')) {
-            abort(403, 'Agent does not have permission to read listings');
+        if (!$partner->hasPermission('listings:read')) {
+            abort(403, 'Partner does not have permission to read listings');
         }
 
         if (!$listing->isPublished()) {
@@ -127,7 +127,7 @@ class AgentListingController extends Controller
 
         $listing->load(['vendor.vendorProfile', 'location', 'media', 'availabilityRules']);
 
-        return new AgentListingResource($listing);
+        return new PartnerListingResource($listing);
     }
 
     /**
@@ -139,11 +139,11 @@ class AgentListingController extends Controller
      */
     public function availability(Request $request, Listing $listing): JsonResponse
     {
-        $agent = $request->attributes->get('agent');
+        $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$agent->hasPermission('listings:read')) {
-            abort(403, 'Agent does not have permission to read listings');
+        if (!$partner->hasPermission('listings:read')) {
+            abort(403, 'Partner does not have permission to read listings');
         }
 
         if (!$listing->isPublished()) {

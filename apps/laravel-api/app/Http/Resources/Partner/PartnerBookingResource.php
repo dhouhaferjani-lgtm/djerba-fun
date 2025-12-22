@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Resources\Agent;
+namespace App\Http\Resources\Partner;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AgentBookingResource extends JsonResource
+class PartnerBookingResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -61,8 +61,8 @@ class AgentBookingResource extends JsonResource
                 'createdAt' => $intent->created_at->toIso8601String(),
             ])->toArray(),
 
-            // Agent metadata
-            'agentMetadata' => $this->agent_metadata,
+            // Partner metadata
+            'partnerMetadata' => $this->partner_metadata,
 
             // Timestamps
             'confirmedAt' => $this->confirmed_at?->toIso8601String(),

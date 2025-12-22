@@ -2,12 +2,12 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\AgentAuditLog;
+use App\Models\PartnerAuditLog;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class AgentAuditMiddleware
+class PartnerAuditMiddleware
 {
     /**
      * Handle an incoming request.
@@ -21,9 +21,9 @@ class AgentAuditMiddleware
         $endTime = microtime(true);
         $duration = (int) (($endTime - $startTime) * 1000);
 
-        $agent = $request->attributes->get('agent');
+        $partner = $request->attributes->get('partner');
 
-        if ($agent) {
+        if ($partner) {
             // Extract action from route
             $action = $this->extractAction($request);
 
@@ -31,9 +31,9 @@ class AgentAuditMiddleware
             $requestData = $this->sanitizeRequestData($request);
 
             // Create audit log asynchronously
-            dispatch(function () use ($agent, $action, $requestData, $response, $request, $duration) {
-                AgentAuditLog::create([
-                    'agent_id' => $agent->id,
+            dispatch(function () use ($partner, $action, $requestData, $response, $request, $duration) {
+                PartnerAuditLog::create([
+                    'partner_id' => $partner->id,
                     'action' => $action,
                     'request_data' => $requestData,
                     'response_status' => $response->getStatusCode(),

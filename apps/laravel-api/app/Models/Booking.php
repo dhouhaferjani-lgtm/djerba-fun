@@ -26,6 +26,7 @@ class Booking extends Model
         'availability_slot_id',
         'coupon_id',
         'cart_payment_id',
+        'partner_id',
         'quantity',
         'person_type_breakdown',
         'total_amount',
@@ -35,6 +36,7 @@ class Booking extends Model
         'traveler_info',
         'travelers',
         'extras',
+        'partner_metadata',
         'billing_contact',
         'confirmed_at',
         'cancelled_at',
@@ -48,6 +50,7 @@ class Booking extends Model
             'traveler_info' => 'array',
             'travelers' => 'array',
             'extras' => 'array',
+            'partner_metadata' => 'array',
             'billing_contact' => 'array',
             'person_type_breakdown' => 'array',
             'total_amount' => 'decimal:2',
@@ -133,6 +136,14 @@ class Booking extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the partner who created the booking (if created via Partner API).
+     */
+    public function partner(): BelongsTo
+    {
+        return $this->belongsTo(Partner::class);
     }
 
     /**

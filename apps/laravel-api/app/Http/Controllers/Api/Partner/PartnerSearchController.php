@@ -1,28 +1,28 @@
 <?php
 
-namespace App\Http\Controllers\Api\Agent;
+namespace App\Http\Controllers\Api\Partner;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Agent\AgentListingResource;
+use App\Http\Resources\Partner\PartnerListingResource;
 use App\Models\Listing;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
-class AgentSearchController extends Controller
+class PartnerSearchController extends Controller
 {
     /**
-     * Natural language search endpoint for AI agents.
+     * Natural language search endpoint for API partners.
      *
      * @param Request $request
      * @return JsonResponse
      */
     public function search(Request $request): JsonResponse
     {
-        $agent = $request->attributes->get('agent');
+        $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$agent->hasPermission('listings:search')) {
-            abort(403, 'Agent does not have permission to search listings');
+        if (!$partner->hasPermission('listings:search')) {
+            abort(403, 'Partner does not have permission to search listings');
         }
 
         $validated = $request->validate([
@@ -101,7 +101,7 @@ class AgentSearchController extends Controller
         $query->orderByDesc('rating')
             ->orderByDesc('bookings_count');
 
-        // Limit results for agents
+        // Limit results for partners
         $results = $query->limit(20)->get();
 
         // Generate recommendations based on search
@@ -110,7 +110,7 @@ class AgentSearchController extends Controller
         return response()->json([
             'query' => $validated,
             'results_count' => $results->count(),
-            'results' => AgentListingResource::collection($results),
+            'results' => PartnerListingResource::collection($results),
             'recommendations' => $recommendations,
         ]);
     }

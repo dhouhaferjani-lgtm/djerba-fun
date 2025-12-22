@@ -1,28 +1,28 @@
 <?php
 
-namespace App\Filament\Admin\Resources\AgentResource\Pages;
+namespace App\Filament\Admin\Resources\PartnerResource\Pages;
 
-use App\Filament\Admin\Resources\AgentResource;
-use App\Models\Agent;
+use App\Filament\Admin\Resources\PartnerResource;
+use App\Models\Partner;
 use Filament\Resources\Pages\Page;
 use Filament\Tables;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 
-class ViewAgentLogs extends Page implements HasTable
+class ViewPartnerLogs extends Page implements HasTable
 {
     use InteractsWithTable;
 
-    protected static string $resource = AgentResource::class;
+    protected static string $resource = PartnerResource::class;
 
-    protected static string $view = 'filament.admin.resources.agent-resource.pages.view-agent-logs';
+    protected static string $view = 'filament.admin.resources.partner-resource.pages.view-partner-logs';
 
-    public Agent $record;
+    public Partner $record;
 
     public function mount(int | string $record): void
     {
-        $this->record = Agent::findOrFail($record);
+        $this->record = Partner::findOrFail($record);
     }
 
     public function table(Table $table): Table

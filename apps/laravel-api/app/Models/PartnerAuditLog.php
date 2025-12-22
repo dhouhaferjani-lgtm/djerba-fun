@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AgentAuditLog extends Model
+class PartnerAuditLog extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'agent_id',
+        'partner_id',
         'action',
         'request_data',
         'response_status',
@@ -27,11 +27,11 @@ class AgentAuditLog extends Model
     ];
 
     /**
-     * Get the agent that owns the audit log.
+     * Get the partner that owns the audit log.
      */
-    public function agent(): BelongsTo
+    public function partner(): BelongsTo
     {
-        return $this->belongsTo(Agent::class);
+        return $this->belongsTo(Partner::class);
     }
 
     /**
