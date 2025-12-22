@@ -151,7 +151,6 @@ class LocationResource extends Resource
 
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
-                    ->sortable()
                     ->weight('medium'),
 
                 Tables\Columns\TextColumn::make('slug')
@@ -203,7 +202,7 @@ class LocationResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->defaultSort('name')
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('country')
                     ->options([
