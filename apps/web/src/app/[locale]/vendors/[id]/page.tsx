@@ -8,6 +8,8 @@ import { format } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
+import { getListingUrl } from '@/lib/utils/urls';
+import type { Locale } from '@/i18n/routing';
 
 type Tab = 'listings' | 'reviews';
 
@@ -200,7 +202,7 @@ export default function VendorProfilePage() {
                   {listings.map((listing) => (
                     <Link
                       key={listing.id}
-                      href={`/${locale}/listings/${listing.slug}`}
+                      href={getListingUrl(listing.slug, listing.location, locale as Locale) as any}
                       className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
                     >
                       {/* Image */}

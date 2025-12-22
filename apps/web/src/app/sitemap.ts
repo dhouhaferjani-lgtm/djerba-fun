@@ -26,10 +26,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
-      url: `${baseUrl}/fr`,
+      url: `${baseUrl}/ar`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
+    },
+    {
+      url: `${baseUrl}/listings`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/en/listings`,
@@ -38,10 +44,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/fr/listings`,
+      url: `${baseUrl}/ar/listings`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/auth/login`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
     },
     {
       url: `${baseUrl}/en/auth/login`,
@@ -50,7 +62,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
-      url: `${baseUrl}/fr/auth/login`,
+      url: `${baseUrl}/ar/auth/login`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/auth/register`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
@@ -62,7 +80,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
-      url: `${baseUrl}/fr/auth/register`,
+      url: `${baseUrl}/ar/auth/register`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
@@ -70,22 +88,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Dynamic listings
-  // In production, fetch from API:
+  // In production, fetch from API and use location-first URL structure:
   // const listings = await fetchAllListings();
-  // const listingPages = listings.flatMap(listing => [
-  //   {
-  //     url: `${baseUrl}/en/listings/${listing.slug}`,
-  //     lastModified: new Date(listing.updatedAt),
-  //     changeFrequency: 'weekly' as const,
-  //     priority: 0.8,
-  //   },
-  //   {
-  //     url: `${baseUrl}/fr/listings/${listing.slug}`,
-  //     lastModified: new Date(listing.updatedAt),
-  //     changeFrequency: 'weekly' as const,
-  //     priority: 0.8,
-  //   },
-  // ]);
+  // const listingPages = listings.flatMap(listing => {
+  //   const locationSlug = listing.location.name
+  //     .toLowerCase()
+  //     .replace(/[^a-z0-9]+/g, '-')
+  //     .replace(/(^-|-$)/g, '');
+  //
+  //   return [
+  //     {
+  //       url: `${baseUrl}/${locationSlug}/${listing.slug}`,
+  //       lastModified: new Date(listing.updatedAt),
+  //       changeFrequency: 'weekly' as const,
+  //       priority: 0.8,
+  //     },
+  //     {
+  //       url: `${baseUrl}/en/${locationSlug}/${listing.slug}`,
+  //       lastModified: new Date(listing.updatedAt),
+  //       changeFrequency: 'weekly' as const,
+  //       priority: 0.8,
+  //     },
+  //     {
+  //       url: `${baseUrl}/ar/${locationSlug}/${listing.slug}`,
+  //       lastModified: new Date(listing.updatedAt),
+  //       changeFrequency: 'weekly' as const,
+  //       priority: 0.8,
+  //     },
+  //   ];
+  // });
 
   // For now, return static pages only
   // In production, combine: [...staticPages, ...listingPages]

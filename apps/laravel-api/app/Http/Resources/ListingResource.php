@@ -29,6 +29,12 @@ class ListingResource extends BaseResource
             'notIncluded' => is_array($this->not_included) ? $this->toCamelCase($this->not_included) : $this->not_included,
             'requirements' => is_array($this->requirements) ? $this->toCamelCase($this->requirements) : $this->requirements,
             'locationId' => $this->location->uuid,
+            'location' => [
+                'id' => $this->location->uuid,
+                'name' => $this->location->name,
+                'latitude' => $this->location->latitude,
+                'longitude' => $this->location->longitude,
+            ],
             'meetingPoint' => is_array($this->meeting_point) ? $this->toCamelCase($this->meeting_point) : $this->meeting_point,
             'media' => MediaResource::collection($this->whenLoaded('media')),
             'pricing' => $this->formatPricing($request),

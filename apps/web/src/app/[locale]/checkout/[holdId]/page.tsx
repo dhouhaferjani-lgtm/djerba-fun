@@ -10,6 +10,8 @@ import { useHold } from '@/lib/api/hooks';
 import { Button } from '@go-adventure/ui';
 import { AlertTriangle, ArrowLeft, Clock } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
+import { getListingUrl, getListingsIndexUrl } from '@/lib/utils/urls';
+import type { Locale } from '@/i18n/routing';
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -63,21 +65,12 @@ export default function CheckoutPage() {
                 'Your reservation has expired. Please select a new date and time to continue booking.'}
             </p>
             <div className="space-y-3">
-              {listingSlug ? (
-                <Link href={`/listings/${listingSlug}`}>
-                  <Button variant="primary" size="lg" className="w-full">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    {tCheckout('back_to_listing') || 'Back to Listing'}
-                  </Button>
-                </Link>
-              ) : (
-                <Link href="/listings">
-                  <Button variant="primary" size="lg" className="w-full">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    {tCheckout('browse_listings') || 'Browse Listings'}
-                  </Button>
-                </Link>
-              )}
+              <Link href={getListingsIndexUrl(locale as Locale)}>
+                <Button variant="primary" size="lg" className="w-full">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  {tCheckout('browse_listings') || 'Browse Listings'}
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -101,7 +94,7 @@ export default function CheckoutPage() {
               {tCheckout('hold_not_found_message') ||
                 'We could not find your reservation. It may have expired or been cancelled.'}
             </p>
-            <Link href="/listings">
+            <Link href={getListingsIndexUrl(locale as Locale)}>
               <Button variant="primary" size="lg" className="w-full">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 {tCheckout('browse_listings') || 'Browse Listings'}
@@ -129,7 +122,7 @@ export default function CheckoutPage() {
               {tCheckout('missing_data_message') ||
                 'Some booking information is missing. Please try again.'}
             </p>
-            <Link href="/listings">
+            <Link href={getListingsIndexUrl(locale as Locale)}>
               <Button variant="primary" size="lg" className="w-full">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 {tCheckout('browse_listings') || 'Browse Listings'}
@@ -143,10 +136,11 @@ export default function CheckoutPage() {
 
   const handleHoldExpired = () => {
     // Redirect to listing page when hold expires
-    if (listing.slug) {
-      router.push(`/listings/${listing.slug}`);
+    if (listing.slug && listing.location) {
+      const listingUrl = getListingUrl(listing.slug, listing.location, locale as Locale);
+      router.push(listingUrl);
     } else {
-      router.push('/listings');
+      router.push(getListingsIndexUrl(locale as Locale));
     }
   };
 
@@ -162,7 +156,7 @@ export default function CheckoutPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link
-                  href={`/listings/${listing.slug}`}
+                  href={getListingUrl(listing.slug, listing.location, locale as Locale)}
                   className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   <ArrowLeft className="h-5 w-5" />

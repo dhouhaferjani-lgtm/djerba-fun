@@ -464,6 +464,8 @@ export const listingSummarySchema = z.object({
   location: z.object({
     id: z.string().uuid(),
     name: z.string(),
+    latitude: z.number().min(-90).max(90).nullable(),
+    longitude: z.number().min(-180).max(180).nullable(),
   }),
   pricing: pricingSchema,
   media: z.array(mediaSchema.pick({ url: true, alt: true })).max(5),

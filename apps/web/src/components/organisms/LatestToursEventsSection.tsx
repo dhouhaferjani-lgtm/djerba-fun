@@ -4,6 +4,8 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLocale } from 'next-intl';
+import { getListingUrl } from '@/lib/utils/urls';
+import type { Locale } from '@/i18n/routing';
 
 interface Activity {
   id: string;
@@ -15,6 +17,7 @@ interface Activity {
   rating: number;
   reviewsCount: number;
   duration?: string;
+  location: string;
   type: 'tour' | 'event';
 }
 
@@ -34,6 +37,7 @@ const defaultActivities: Activity[] = [
     rating: 4.8,
     reviewsCount: 42,
     duration: '8 hours',
+    location: 'djerba',
     type: 'tour',
   },
   {
@@ -46,6 +50,7 @@ const defaultActivities: Activity[] = [
     rating: 4.9,
     reviewsCount: 38,
     duration: '2 days',
+    location: 'tozeur',
     type: 'tour',
   },
   {
@@ -58,6 +63,7 @@ const defaultActivities: Activity[] = [
     rating: 4.7,
     reviewsCount: 28,
     duration: '4 hours',
+    location: 'tunis',
     type: 'event',
   },
   {
@@ -70,6 +76,7 @@ const defaultActivities: Activity[] = [
     rating: 4.6,
     reviewsCount: 56,
     duration: '4 hours',
+    location: 'tunis',
     type: 'tour',
   },
 ];
@@ -113,7 +120,7 @@ export function LatestToursEventsSection({
           {activities.map((activity) => (
             <Link
               key={activity.id}
-              href={`/${locale}/listings/${activity.slug}`}
+              href={getListingUrl(activity.slug, activity.location, locale as Locale) as any}
               className="group bg-neutral-light rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300"
             >
               <div className="relative aspect-[4/3] overflow-hidden">

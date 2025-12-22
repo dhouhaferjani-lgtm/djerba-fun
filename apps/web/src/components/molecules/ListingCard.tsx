@@ -7,6 +7,8 @@ import { PriceDisplay } from './PriceDisplay';
 import { Clock, MapPin } from 'lucide-react';
 import type { ListingSummary } from '@go-adventure/schemas';
 import { resolveTranslation } from '@/lib/utils/translate';
+import { getListingUrl } from '@/lib/utils/urls';
+import type { Locale } from '@/i18n/routing';
 
 interface ListingCardProps {
   listing: ListingSummary;
@@ -15,7 +17,7 @@ interface ListingCardProps {
 
 export function ListingCard({ listing, locale }: ListingCardProps) {
   const mainImage = listing.media[0];
-  const href = `/${locale}/listings/${listing.slug}` as any;
+  const href = getListingUrl(listing.slug, listing.location, locale as Locale) as any;
   const t = (field: any) => resolveTranslation(field, locale);
 
   return (

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import type { LatLngTuple } from 'leaflet';
 import Image from 'next/image';
+import { getListingUrl } from '@/lib/utils/urls';
+import type { Locale } from '@/i18n/routing';
 
 interface MarkerPopupProps {
   position: LatLngTuple;
@@ -14,6 +16,8 @@ interface MarkerPopupProps {
     currency: string;
   };
   slug?: string;
+  location?: string | { name: string };
+  locale?: Locale;
   type?: 'listing' | 'poi' | 'start' | 'end' | 'waypoint';
 }
 
@@ -24,6 +28,8 @@ export default function MarkerPopup({
   imageUrl,
   price,
   slug,
+  location,
+  locale = 'fr',
   type = 'listing',
 }: MarkerPopupProps) {
   const [MarkerComponent, setMarkerComponent] =
@@ -104,9 +110,9 @@ export default function MarkerPopup({
                   From {props.price.amount / 100} {props.price.currency}
                 </div>
               )}
-              {props.slug && (
+              {props.slug && props.location && (
                 <a
-                  href={`/listings/${props.slug}`}
+                  href={getListingUrl(props.slug, props.location, props.locale)}
                   className="inline-block rounded bg-primary px-3 py-1 text-sm text-white hover:bg-primary/90"
                 >
                   View Details

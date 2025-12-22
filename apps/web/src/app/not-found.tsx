@@ -1,6 +1,17 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@go-adventure/ui';
 import { Home, Search } from 'lucide-react';
+import { getListingsUrl } from '@/lib/utils/urls';
+
+export const metadata: Metadata = {
+  title: '404 - Page Not Found',
+  description: 'The page you are looking for could not be found.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 /**
  * 404 Not Found Page
@@ -25,13 +36,13 @@ export default function NotFound() {
 
             {/* Search and Navigation */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/en">
+              <Link href={'/' as any}>
                 <Button variant="primary" size="lg">
                   <Home className="h-5 w-5 mr-2" />
                   Back to Home
                 </Button>
               </Link>
-              <Link href="/en/listings">
+              <Link href={getListingsUrl() as any}>
                 <Button variant="outline" size="lg">
                   <Search className="h-5 w-5 mr-2" />
                   Browse Adventures
@@ -44,19 +55,19 @@ export default function NotFound() {
               <h3 className="text-lg font-semibold text-neutral-900 mb-4">Popular Destinations</h3>
               <div className="flex flex-wrap gap-3 justify-center">
                 <Link
-                  href="/en/listings?type=tour"
+                  href={getListingsUrl('fr', { type: 'tour' }) as any}
                   className="px-4 py-2 bg-white rounded-full text-sm text-neutral-700 hover:bg-secondary hover:text-white transition-colors"
                 >
                   Tours
                 </Link>
                 <Link
-                  href="/en/listings?type=event"
+                  href={getListingsUrl('fr', { type: 'event' }) as any}
                   className="px-4 py-2 bg-white rounded-full text-sm text-neutral-700 hover:bg-secondary hover:text-white transition-colors"
                 >
                   Events
                 </Link>
                 <Link
-                  href="/en/listings?category=outdoor"
+                  href={getListingsUrl('fr', { category: 'outdoor' }) as any}
                   className="px-4 py-2 bg-white rounded-full text-sm text-neutral-700 hover:bg-secondary hover:text-white transition-colors"
                 >
                   Outdoor Activities

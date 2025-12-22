@@ -1,12 +1,15 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { LatLngTuple } from 'leaflet';
 import MapContainer from './MapContainer';
 import MarkerPopup from './MarkerPopup';
 import type { ListingSummary } from '@go-adventure/schemas';
+import type { Locale } from '@/i18n/routing';
 
 interface SearchMapProps {
   listings: ListingSummary[];
+  locale?: Locale;
   center?: LatLngTuple;
   zoom?: number;
   className?: string;
@@ -14,26 +17,61 @@ interface SearchMapProps {
 
 export default function SearchMap({
   listings,
-  center = [46.2276, 2.2137], // Center of France
+  locale = 'fr',
+  center,
   zoom = 6,
   className,
 }: SearchMapProps) {
-  // Note: Marker clustering can be added later with leaflet.markercluster
-  // For now, we render individual markers directly
+  // Calculate map center based on listings' coordinates
+  const mapCenter: LatLngTuple = useMemo(() => {
+    if (center) return center;
 
-  // TODO: The SearchMap component needs coordinates in the listing data
-  // Current ListingSummary schema only has location.id and location.name
-  // The backend should include coordinates when returning search results
-  // For now, we'll use the default center until the backend provides coordinates
+    // Filter listings with valid coordinates
+    const listingsWithCoords = listings.filter((l) => {
+      const loc = l.location as any;
+      return (
+        loc?.latitude !== null &&
+        loc?.latitude !== undefined &&
+        loc?.longitude !== null &&
+        loc?.longitude !== undefined &&
+        !isNaN(loc.latitude) &&
+        !isNaN(loc.longitude)
+      );
+    });
 
-  const mapCenter: LatLngTuple = center;
+    if (listingsWithCoords.length === 0) {
+      // Default to Tunisia center if no valid coordinates
+      return [33.8869, 9.5375]; // Tunisia
+    }
+
+    // Calculate average center
+    const avgLat =
+      listingsWithCoords.reduce((sum, l) => sum + ((l.location as any).latitude as number), 0) /
+      listingsWithCoords.length;
+    const avgLng =
+      listingsWithCoords.reduce((sum, l) => sum + ((l.location as any).longitude as number), 0) /
+      listingsWithCoords.length;
+
+    return [avgLat, avgLng];
+  }, [listings, center]);
 
   return (
     <MapContainer center={mapCenter} zoom={zoom} className={className}>
       {listings.map((listing) => {
-        // TODO: Extract coordinates from listing when backend provides them
-        // For now, all markers will be at the default position
-        const position: LatLngTuple = [46.2276, 2.2137];
+        const loc = listing.location as any;
+        // Skip listings without valid coordinates
+        if (
+          !loc?.latitude ||
+          !loc?.longitude ||
+          loc.latitude === null ||
+          loc.longitude === null ||
+          isNaN(loc.latitude) ||
+          isNaN(loc.longitude)
+        ) {
+          return null;
+        }
+
+        const position: LatLngTuple = [loc.latitude as number, loc.longitude as number];
 
         return (
           <MarkerPopup
@@ -46,6 +84,8 @@ export default function SearchMap({
               currency: listing.pricing.displayCurrency || 'TND',
             }}
             slug={listing.slug}
+            location={listing.location}
+            locale={locale}
             type="listing"
           />
         );

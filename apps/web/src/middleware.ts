@@ -1,7 +1,35 @@
 import createMiddleware from 'next-intl/middleware';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
 
-export default createMiddleware(routing);
+// Create the next-intl middleware
+const intlMiddleware = createMiddleware(routing);
+
+export default async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Handle redirects from old URL structure to new location-first structure
+  // Old: /{locale}/listings/{slug}
+  // New: /{location}/{slug} (fr) or /{locale}/{location}/{slug} (en/ar)
+
+  // Match pattern: /{locale}/listings/{slug}
+  const oldListingPattern = /^\/(fr|en|ar)\/listings\/([a-z0-9-]+)$/;
+  const match = pathname.match(oldListingPattern);
+
+  if (match) {
+    const [, locale, slug] = match;
+
+    // For now, redirect to a generic location "tunisia"
+    // In production, this would fetch the listing's actual location
+    const newPath = locale === 'fr' ? `/tunisia/${slug}` : `/${locale}/tunisia/${slug}`;
+
+    return NextResponse.redirect(new URL(newPath, request.url), 301);
+  }
+
+  // Let next-intl handle locale detection and routing
+  return intlMiddleware(request);
+}
 
 export const config = {
   matcher: [

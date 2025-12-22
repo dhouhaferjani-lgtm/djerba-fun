@@ -4,10 +4,14 @@ import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import { useCurrentUser, useMyBookings } from '@/lib/api/hooks';
 import { useEffect } from 'react';
+import { useLocale } from 'next-intl';
+import { getListingsIndexUrl } from '@/lib/utils/urls';
+import type { Locale } from '@/i18n/routing';
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
   const router = useRouter();
+  const locale = useLocale();
   const { data: user, isLoading: isLoadingUser } = useCurrentUser();
   const { data: bookingsData, isLoading: isLoadingBookings } = useMyBookings();
 
@@ -150,7 +154,7 @@ export default function DashboardPage() {
             </Link>
 
             <Link
-              href="/listings"
+              href={getListingsIndexUrl(locale as Locale)}
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-center gap-4">
