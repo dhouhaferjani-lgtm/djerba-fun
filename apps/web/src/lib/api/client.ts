@@ -707,6 +707,39 @@ export interface CartSummary {
 }
 
 // ============================================================================
+// LOCATIONS API
+// ============================================================================
+
+export interface Location {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  imageUrl: string | null;
+  city: string | null;
+  region: string | null;
+  country: string;
+  timezone: string;
+  listingsCount: number;
+}
+
+export const locationsApi = {
+  list: async () => {
+    return fetchApi<{ data: Location[] }>('/locations');
+  },
+
+  getBySlug: async (slug: string, locale?: string) => {
+    const params = locale ? `?locale=${locale}` : '';
+    return fetchApi<{
+      location: Location;
+      listings: ListingSummary[];
+    }>(`/locations/${slug}${params}`);
+  },
+};
+
+// ============================================================================
 // CONSENT API
 // ============================================================================
 

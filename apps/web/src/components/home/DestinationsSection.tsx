@@ -5,22 +5,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useLocale } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import { fetchApi } from '@/lib/api/client';
-
-interface Destination {
-  id: string;
-  slug: string;
-  name: string;
-  imageUrl: string | null;
-  listingsCount: number;
-}
+import { locationsApi, type Location } from '@/lib/api/client';
 
 interface DestinationsSectionProps {
-  destinations?: Destination[];
+  destinations?: Location[];
 }
 
-async function getDestinations(): Promise<{ data: Destination[] }> {
-  return fetchApi('/locations');
+async function getDestinations(): Promise<{ data: Location[] }> {
+  return locationsApi.list();
 }
 
 export function DestinationsSection({
@@ -66,7 +58,7 @@ export function DestinationsSection({
             return (
               <Link
                 key={destination.id}
-                href={`/${locale}/destinations/${destination.slug}`}
+                href={`/destinations/${destination.slug}` as any}
                 className={`
                   relative rounded-2xl overflow-hidden group
                   ${isLarge ? 'md:col-span-2 md:row-span-2' : ''}
