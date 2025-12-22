@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Custom media table for listings (uses mediable morphs)
         Schema::create('media', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
