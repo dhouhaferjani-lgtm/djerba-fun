@@ -48,7 +48,7 @@ class PageResource extends Resource
 {
     use Translatable;
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = null;
 
     protected static ?string $navigationGroup = 'Content';
 
