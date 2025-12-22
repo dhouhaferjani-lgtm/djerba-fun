@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class GdprDashboard extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-shield-check';
+    protected static ?string $navigationIcon = null;
 
     protected static string $view = 'filament.admin.pages.gdpr-dashboard';
 
