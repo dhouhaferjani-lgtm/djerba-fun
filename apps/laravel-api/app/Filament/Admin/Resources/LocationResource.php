@@ -24,7 +24,14 @@ class LocationResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    protected static ?string $navigationLabel = 'Locations';
+
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getTranslatableLocales(): array
+    {
+        return ['en', 'fr'];
+    }
 
     public static function form(Form $form): Form
     {
