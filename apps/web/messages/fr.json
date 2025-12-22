@@ -655,5 +655,8 @@
     "complete_names_first": "Veuillez entrer tous les noms des participants avant de télécharger les bons.",
     "enter_names": "Entrer les Noms des Participants",
     "booking_not_found": "Réservation non trouvée"
+  },
+  "destinations": {
+    "available_experiences": "Expériences disponibles"
   }
 }

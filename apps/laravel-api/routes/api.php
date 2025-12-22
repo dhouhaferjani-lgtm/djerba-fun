@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V1\CouponController;
 use App\Http\Controllers\Api\V1\HoldController;
 use App\Http\Controllers\Api\V1\ListingController;
 use App\Http\Controllers\Api\V1\ListingExtrasController;
+use App\Http\Controllers\Api\V1\LocationController;
 use App\Http\Controllers\Api\V1\ConsentController;
 use App\Http\Controllers\Api\V1\MagicLinkController;
 use App\Http\Controllers\Api\V1\PageController;
@@ -49,6 +50,10 @@ Route::prefix('v1')->group(function () {
     // Public listing routes
     Route::get('/listings', [ListingController::class, 'index']);
     Route::get('/listings/{listing:slug}', [ListingController::class, 'show']);
+
+    // Public location/destination routes
+    Route::get('/locations', [LocationController::class, 'index']);
+    Route::get('/locations/{slug}', [LocationController::class, 'show']);
 
     // Public review routes
     Route::get('/listings/{listing:slug}/reviews', [ReviewController::class, 'index']);

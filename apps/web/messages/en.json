@@ -654,5 +654,8 @@
       "duration_1year": "1 year",
       "duration_2years": "2 years"
     }
+  },
+  "destinations": {
+    "available_experiences": "Available Experiences"
   }
 }

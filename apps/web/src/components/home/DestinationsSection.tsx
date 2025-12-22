@@ -4,62 +4,40 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLocale } from 'next-intl';
+import { useQuery } from '@tanstack/react-query';
+import { fetchApi } from '@/lib/api/client';
 
 interface Destination {
+  id: string;
   slug: string;
   name: string;
-  image: string;
-  count: number;
+  imageUrl: string | null;
+  listingsCount: number;
 }
 
 interface DestinationsSectionProps {
   destinations?: Destination[];
 }
 
-const defaultDestinations: Destination[] = [
-  {
-    slug: 'djerba',
-    name: 'Djerba',
-    image: 'https://images.unsplash.com/photo-1590059390047-f5e617690a0b?w=800&q=80',
-    count: 12,
-  },
-  {
-    slug: 'sahara-desert',
-    name: 'Sahara Desert',
-    image: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=800&q=80',
-    count: 8,
-  },
-  {
-    slug: 'tunis',
-    name: 'Tunis',
-    image: 'https://images.unsplash.com/photo-1590492106698-05dc0e19fb26?w=800&q=80',
-    count: 15,
-  },
-  {
-    slug: 'sidi-bou-said',
-    name: 'Sidi Bou Said',
-    image: 'https://images.unsplash.com/photo-1568797629192-789acf8e4df3?w=800&q=80',
-    count: 6,
-  },
-  {
-    slug: 'tozeur',
-    name: 'Tozeur',
-    image: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&q=80',
-    count: 5,
-  },
-  {
-    slug: 'carthage',
-    name: 'Carthage',
-    image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&q=80',
-    count: 4,
-  },
-];
+async function getDestinations(): Promise<{ data: Destination[] }> {
+  return fetchApi('/locations');
+}
 
 export function DestinationsSection({
-  destinations = defaultDestinations,
+  destinations: initialDestinations,
 }: DestinationsSectionProps) {
   const t = useTranslations('home');
   const locale = useLocale();
+
+  // Fetch destinations from API
+  const { data } = useQuery({
+    queryKey: ['destinations'],
+    queryFn: getDestinations,
+    staleTime: 1000 * 60 * 60, // 1 hour
+    initialData: initialDestinations ? { data: initialDestinations } : undefined,
+  });
+
+  const destinations = data?.data || [];
 
   return (
     <section className="py-20 bg-neutral-light">
@@ -75,15 +53,20 @@ export function DestinationsSection({
 
         {/* Bento grid layout */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[200px]">
-          {destinations.map((destination, index) => {
+          {destinations.slice(0, 6).map((destination, index) => {
             // Create varied sizes for bento effect
             const isLarge = index === 0 || index === 3;
             const isTall = index === 1 || index === 4;
 
+            // Fallback image if no image URL provided
+            const imageUrl =
+              destination.imageUrl ||
+              `https://images.unsplash.com/photo-1590059390047-f5e617690a0b?w=800&q=80&sig=${destination.id}`;
+
             return (
               <Link
-                key={destination.slug}
-                href={`/${locale}/listings?location=${destination.slug}`}
+                key={destination.id}
+                href={`/${locale}/destinations/${destination.slug}`}
                 className={`
                   relative rounded-2xl overflow-hidden group
                   ${isLarge ? 'md:col-span-2 md:row-span-2' : ''}
@@ -91,7 +74,7 @@ export function DestinationsSection({
                 `}
               >
                 <Image
-                  src={destination.image}
+                  src={imageUrl}
                   alt={destination.name}
                   fill
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -102,7 +85,10 @@ export function DestinationsSection({
                   <h3 className="text-white font-bold text-xl md:text-2xl mb-1">
                     {destination.name}
                   </h3>
-                  <p className="text-white/80 text-sm">{destination.count} experiences</p>
+                  <p className="text-white/80 text-sm">
+                    {destination.listingsCount}{' '}
+                    {destination.listingsCount === 1 ? 'experience' : 'experiences'}
+                  </p>
                 </div>
                 <div className="absolute inset-0 border-2 border-white/0 group-hover:border-white/30 rounded-2xl transition-colors" />
               </Link>
