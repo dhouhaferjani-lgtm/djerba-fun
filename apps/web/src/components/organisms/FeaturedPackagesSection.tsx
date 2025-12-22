@@ -16,21 +16,21 @@ export function FeaturedPackagesSection() {
       icon: <Award className="w-12 h-12" />,
       title: t('featured_package_1_title'),
       description: t('featured_package_1_description'),
-      image: 'http://localhost:9002/go-adventure/featured/djerba-island.jpg',
+      image: 'https://images.unsplash.com/photo-1590059390047-f5e617690a0b?w=800&q=80',
       link: '/en/listings?type=tour&destination=djerba',
     },
     {
       icon: <Leaf className="w-12 h-12" />,
       title: t('featured_package_2_title'),
       description: t('featured_package_2_description'),
-      image: 'http://localhost:9002/go-adventure/featured/sahara-desert.jpg',
+      image: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=800&q=80',
       link: '/en/listings?type=event&category=eco-tourism',
     },
     {
       icon: <Globe className="w-12 h-12" />,
       title: t('featured_package_3_title'),
       description: t('featured_package_3_description'),
-      image: 'http://localhost:9002/go-adventure/featured/mountain-trek.jpg',
+      image: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&q=80',
       link: '/en/listings?type=tour&category=adventure',
     },
   ];
@@ -57,7 +57,13 @@ export function FeaturedPackagesSection() {
             >
               {/* Image with Badge */}
               <div className="relative h-64 w-full">
-                <Image src={pkg.image} alt={pkg.title} fill className="object-cover" />
+                <Image
+                  src={pkg.image}
+                  alt={pkg.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
+                  className="object-cover"
+                />
                 {/* Badge (Category) on Top-Left */}
                 <div className="absolute top-4 left-4">
                   <div className="bg-primary text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">

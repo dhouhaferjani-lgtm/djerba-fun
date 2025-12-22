@@ -20,37 +20,37 @@ const defaultDestinations: Destination[] = [
   {
     slug: 'djerba',
     name: 'Djerba',
-    image: 'http://localhost:9002/go-adventure/featured/djerba-island.jpg',
+    image: 'https://images.unsplash.com/photo-1590059390047-f5e617690a0b?w=800&q=80',
     count: 12,
   },
   {
     slug: 'sahara-desert',
     name: 'Sahara Desert',
-    image: 'http://localhost:9002/go-adventure/featured/sahara-desert.jpg',
+    image: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=800&q=80',
     count: 8,
   },
   {
     slug: 'tunis',
     name: 'Tunis',
-    image: 'https://images.unsplash.com/photo-1590492106698-05dc0e19fb26?w=600',
+    image: 'https://images.unsplash.com/photo-1590492106698-05dc0e19fb26?w=800&q=80',
     count: 15,
   },
   {
     slug: 'sidi-bou-said',
     name: 'Sidi Bou Said',
-    image: 'https://images.unsplash.com/photo-1568797629192-789acf8e4df3?w=600',
+    image: 'https://images.unsplash.com/photo-1568797629192-789acf8e4df3?w=800&q=80',
     count: 6,
   },
   {
     slug: 'tozeur',
     name: 'Tozeur',
-    image: 'http://localhost:9002/go-adventure/featured/mountain-trek.jpg',
+    image: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&q=80',
     count: 5,
   },
   {
     slug: 'carthage',
     name: 'Carthage',
-    image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600',
+    image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&q=80',
     count: 4,
   },
 ];
@@ -94,6 +94,7 @@ export function DestinationsSection({
                   src={destination.image}
                   alt={destination.name}
                   fill
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />

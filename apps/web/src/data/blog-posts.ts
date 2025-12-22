@@ -21,7 +21,7 @@ const blogPosts: BlogPost[] = [
     title: 'Hidden Gems of Tunisia: 10 Places Most Tourists Never See',
     excerpt:
       'Venture beyond the typical tourist trail and discover the secret wonders of Tunisia that will take your breath away.',
-    coverImage: 'http://localhost:9002/go-adventure/featured/djerba-island.jpg',
+    coverImage: 'https://images.unsplash.com/photo-1590059390047-f5e617690a0b?w=1920&q=80',
     date: 'December 10, 2024',
     author: {
       name: 'Sarah Johnson',
@@ -70,7 +70,7 @@ Renting a car provides the most flexibility for reaching these off-the-beaten-pa
     title: 'The Complete Guide to Sustainable Travel in Tunisia',
     excerpt:
       'Learn how to explore Tunisia responsibly while supporting local communities and protecting the environment for future generations.',
-    coverImage: 'http://localhost:9002/go-adventure/featured/sahara-desert.jpg',
+    coverImage: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=1920&q=80',
     date: 'December 5, 2024',
     author: {
       name: 'Ahmed Mansouri',

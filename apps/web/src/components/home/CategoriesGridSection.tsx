@@ -9,25 +9,25 @@ const categories = [
     id: 'trail-running',
     name: 'Trail Running',
     count: 12,
-    image: 'http://localhost:9002/go-adventure/categories/trail-running.jpg',
+    image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&q=80',
   },
   {
     id: 'hiking',
     name: 'Hiking & Trekking',
     count: 24,
-    image: 'http://localhost:9002/go-adventure/categories/hiking.jpg',
+    image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&q=80',
   },
   {
     id: 'cycling',
     name: 'Cycling Tours',
     count: 18,
-    image: 'http://localhost:9002/go-adventure/categories/cycling.jpg',
+    image: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=600&q=80',
   },
   {
     id: 'cultural',
     name: 'Cultural Tours',
     count: 32,
-    image: 'http://localhost:9002/go-adventure/categories/cultural.jpg',
+    image: 'https://images.unsplash.com/photo-1590492106698-05dc0e19fb26?w=600&q=80',
   },
 ];
 
@@ -61,6 +61,7 @@ export function CategoriesGridSection({ locale }: CategoriesGridSectionProps) {
                   src={category.image}
                   alt={category.name}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover transition-all duration-300 group-hover:scale-110"
                 />
                 {/* Dark Overlay on Hover */}

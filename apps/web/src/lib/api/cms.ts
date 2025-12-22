@@ -81,8 +81,7 @@ export async function getPageByCode(params: GetPageByCodeParams): Promise<CMSPag
     const response = await fetchApi<{ data: CMSPage }>(`/pages/code/${code}?${query}`);
     return response.data;
   } catch (error) {
-    // Page not found - return null to trigger fallback
-    console.warn(`Page with code ${code} not found`);
+    // Page not found - return null to trigger fallback (this is expected for HOME page)
     return null;
   }
 }

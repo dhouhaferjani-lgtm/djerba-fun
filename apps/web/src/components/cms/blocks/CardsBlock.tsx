@@ -24,7 +24,13 @@ export function CardsBlock({ cards, columns = 3 }: CardsBlockData) {
         >
           {card.image && (
             <div className="relative w-full h-48">
-              <Image src={card.image} alt={card.title} fill className="object-cover" />
+              <Image
+                src={card.image}
+                alt={card.title}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover"
+              />
             </div>
           )}
 
