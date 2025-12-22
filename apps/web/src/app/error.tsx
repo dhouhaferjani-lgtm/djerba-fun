@@ -24,6 +24,10 @@ export default function Error({
 
   return (
     <html lang="en">
+      <head>
+        <title>Error - Go Adventure</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </head>
       <body>
         <div className="min-h-screen bg-gradient-to-b from-red-50 to-white flex items-center justify-center px-4">
           <div className="max-w-2xl w-full text-center space-y-8">

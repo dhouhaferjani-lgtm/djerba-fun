@@ -1,0 +1,807 @@
+'use client';
+
+import { useState, useMemo } from 'react';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
+import { useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
+import { format, addMonths } from 'date-fns';
+import { MainLayout } from '@/components/templates/MainLayout';
+import { useAvailability, useCreateHold, useAddToCart } from '@/lib/api/hooks';
+import { Button } from '@go-adventure/ui';
+import { PersonTypeSelector } from '@/components/booking/PersonTypeSelector';
+import { BookingStepIndicator, type BookingStep } from '@/components/booking/BookingStepIndicator';
+
+// Dynamic imports for heavy components to reduce initial bundle size
+const AvailabilityCalendar = dynamic(
+  () => import('@/components/availability/AvailabilityCalendar'),
+  {
+    loading: () => (
+      <div className="h-96 w-full rounded-lg flex items-center justify-center bg-neutral-100 animate-pulse">
+        <div className="text-neutral-500">Loading calendar...</div>
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
+const BookingPanel = dynamic(
+  () => import('@/components/booking/BookingPanel').then((mod) => ({ default: mod.BookingPanel })),
+  {
+    loading: () => (
+      <div className="h-24 w-full rounded-lg flex items-center justify-center bg-neutral-100 animate-pulse">
+        <div className="text-neutral-500">Loading...</div>
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
+const FixedBookingPanel = dynamic(
+  () =>
+    import('@/components/booking/FixedBookingPanel').then((mod) => ({
+      default: mod.FixedBookingPanel,
+    })),
+  {
+    loading: () => (
+      <div className="h-96 w-full rounded-lg flex items-center justify-center bg-neutral-50 animate-pulse">
+        <div className="text-neutral-500">Loading booking panel...</div>
+      </div>
+    ),
+    ssr: false,
+  }
+);
+import { ImageLightbox } from '@/components/gallery/ImageLightbox';
+import { FAQSection } from '@/components/listing/FAQSection';
+import { SafetySection } from '@/components/listing/SafetySection';
+import { AccessibilitySection } from '@/components/listing/AccessibilitySection';
+import { CancellationPolicyCard } from '@/components/listing/CancellationPolicyCard';
+import { ReviewsSection } from '@/components/listing/ReviewsSection';
+import {
+  MapPin,
+  Clock,
+  Users,
+  Star,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  ShoppingCart,
+  Camera,
+} from 'lucide-react';
+import { resolveTranslation } from '@/lib/utils/translate';
+import { getGuestSessionId } from '@/lib/utils/session';
+import type { AvailabilitySlot, Listing, PersonType } from '@go-adventure/schemas';
+
+// Get person types from listing pricing or return defaults
+function getPersonTypesFromListing(listing: Listing): PersonType[] {
+  const pricing = listing.pricing || {};
+  const personTypes = pricing.personTypes;
+
+  if (personTypes && Array.isArray(personTypes) && personTypes.length > 0) {
+    return personTypes;
+  }
+
+  // Return defaults based on display price (or fallback to TND price)
+  const basePrice = pricing.displayPrice || pricing.tndPrice || 0;
+  const numericPrice = typeof basePrice === 'string' ? parseFloat(basePrice) : basePrice;
+
+  return [
+    {
+      key: 'adult',
+      label: { en: 'Adult', fr: 'Adulte' },
+      price: numericPrice,
+      minAge: 18,
+      maxAge: null,
+      minQuantity: 1,
+      maxQuantity: null,
+    },
+    {
+      key: 'child',
+      label: { en: 'Child (4-17)', fr: 'Enfant (4-17)' },
+      price: Math.round(numericPrice * 0.5),
+      minAge: 4,
+      maxAge: 17,
+      minQuantity: 0,
+      maxQuantity: null,
+    },
+    {
+      key: 'infant',
+      label: { en: 'Infant (0-3)', fr: 'Bébé (0-3)' },
+      price: 0,
+      minAge: 0,
+      maxAge: 3,
+      minQuantity: 0,
+      maxQuantity: null,
+    },
+  ];
+}
+
+// Calculate total from person type breakdown
+function calculateTotalFromBreakdown(
+  personTypes: PersonType[],
+  breakdown: Record<string, number>
+): { totalGuests: number; totalPrice: number } {
+  let totalGuests = 0;
+  let totalPrice = 0;
+
+  for (const type of personTypes) {
+    const quantity = breakdown[type.key] || 0;
+    totalGuests += quantity;
+    totalPrice += (type.price ?? 0) * quantity;
+  }
+
+  return { totalGuests, totalPrice };
+}
+
+// Booking flow content component - extracted for reuse in both desktop and mobile
+interface BookingFlowContentProps {
+  isLoadingAvailability: boolean;
+  availabilityData: AvailabilitySlot[] | undefined;
+  selectedDate: Date | undefined;
+  selectedSlot: AvailabilitySlot | undefined;
+  slotsForSelectedDate: AvailabilitySlot[];
+  personTypes: PersonType[];
+  personTypeBreakdown: Record<string, number>;
+  maxCapacity: number;
+  listing: Listing;
+  createHoldMutation: ReturnType<typeof useCreateHold>;
+  onDateSelect: (date: Date) => void;
+  onSlotSelect: (slot: AvailabilitySlot) => void;
+  onPersonTypeChange: (breakdown: Record<string, number>) => void;
+  onCreateHold: () => void;
+  onAddToCart: () => void;
+  isAddingToCart: boolean;
+  onClose: () => void;
+  locale: string;
+  t: ReturnType<typeof useTranslations>;
+  tAvail: ReturnType<typeof useTranslations>;
+  tBooking: ReturnType<typeof useTranslations>;
+  tCommon: ReturnType<typeof useTranslations>;
+  tCart: ReturnType<typeof useTranslations>;
+}
+
+function BookingFlowContent({
+  isLoadingAvailability,
+  availabilityData,
+  selectedDate,
+  selectedSlot,
+  slotsForSelectedDate,
+  personTypes,
+  personTypeBreakdown,
+  maxCapacity,
+  listing,
+  createHoldMutation,
+  onDateSelect,
+  onSlotSelect,
+  onPersonTypeChange,
+  onCreateHold,
+  onAddToCart,
+  isAddingToCart,
+  onClose,
+  locale,
+  t,
+  tAvail,
+  tBooking,
+  tCommon,
+  tCart,
+}: BookingFlowContentProps) {
+  const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
+
+  // Calculate totals from breakdown
+  const { totalGuests, totalPrice } = calculateTotalFromBreakdown(personTypes, personTypeBreakdown);
+  const canProceed = totalGuests > 0;
+
+  // Determine current step and completed steps for indicator
+  const getCurrentStep = (): BookingStep => {
+    if (wizardStep === 1) return 'date';
+    if (wizardStep === 2) return 'time';
+    return 'guests';
+  };
+
+  const getCompletedSteps = (): BookingStep[] => {
+    const completed: BookingStep[] = [];
+    if (selectedDate) completed.push('date');
+    if (selectedSlot) completed.push('time');
+    if (totalGuests > 0 && selectedSlot) completed.push('guests');
+    return completed;
+  };
+
+  // Handle step transitions
+  const handleDateSelect = (date: Date) => {
+    onDateSelect(date);
+    setWizardStep(2); // Auto-advance to time slots
+  };
+
+  const handleSlotSelect = (slot: AvailabilitySlot) => {
+    onSlotSelect(slot);
+    setWizardStep(3); // Auto-advance to participants
+  };
+
+  const handleBack = () => {
+    if (wizardStep > 1) {
+      setWizardStep((prev) => (prev - 1) as 1 | 2 | 3);
+    }
+  };
+
+  const currentStep = getCurrentStep();
+  const completedSteps = getCompletedSteps();
+
+  return (
+    <div className="space-y-4">
+      {/* Step Progress Indicator */}
+      <BookingStepIndicator currentStep={currentStep} completedSteps={completedSteps} />
+
+      {/* Back Button (show on steps 2 and 3) */}
+      {wizardStep > 1 && (
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 text-sm text-neutral-600 hover:text-heading transition-colors"
+        >
+          <span>←</span>
+          <span>Back</span>
+        </button>
+      )}
+
+      {/* STEP 1: Calendar Only */}
+      {wizardStep === 1 && (
+        <div>
+          <h3 className="font-semibold text-heading mb-4">{tAvail('select_date')}</h3>
+          {isLoadingAvailability ? (
+            <p className="text-center text-neutral-500 py-8">{tCommon('loading')}</p>
+          ) : (
+            <AvailabilityCalendar
+              slots={availabilityData || []}
+              onDateSelect={handleDateSelect}
+              selectedDate={selectedDate}
+            />
+          )}
+        </div>
+      )}
+
+      {/* STEP 2: Time Slots Only */}
+      {wizardStep === 2 && (
+        <div>
+          <h3 className="font-semibold text-heading mb-4">{tAvail('select_time')}</h3>
+          {slotsForSelectedDate.length > 0 ? (
+            <div className="space-y-2">
+              {slotsForSelectedDate.map((slot) => {
+                const remainingCapacity = slot.remainingCapacity ?? slot.capacity;
+                const isLowCapacity = remainingCapacity <= 3;
+                const isAlmostFull = remainingCapacity <= 5;
+
+                return (
+                  <button
+                    key={slot.id}
+                    onClick={() => handleSlotSelect(slot)}
+                    className={`w-full p-3 rounded-lg border text-left transition-colors ${
+                      selectedSlot?.id === slot.id
+                        ? 'border-primary bg-primary/5'
+                        : 'border-neutral-200 hover:border-neutral-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium">{format(new Date(slot.start), 'HH:mm')}</span>
+                      <span
+                        className={`text-sm font-semibold ${
+                          isLowCapacity
+                            ? 'text-red-600'
+                            : isAlmostFull
+                              ? 'text-yellow-600'
+                              : 'text-green-600'
+                        }`}
+                      >
+                        {remainingCapacity} {tAvail('available')}
+                      </span>
+                    </div>
+                    {isLowCapacity && (
+                      <div className="text-xs text-red-600 font-medium">
+                        ⚠️ Only {remainingCapacity} spot{remainingCapacity !== 1 ? 's' : ''} left!
+                      </div>
+                    )}
+                    {isAlmostFull && !isLowCapacity && (
+                      <div className="text-xs text-yellow-700">🔥 Filling up fast</div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-center text-neutral-500 py-4">{tAvail('no_slots_available')}</p>
+          )}
+        </div>
+      )}
+
+      {/* STEP 3: Participants Only */}
+      {wizardStep === 3 && selectedSlot && (
+        <div>
+          <h3 className="font-semibold text-heading mb-4">{tBooking('travelers')}</h3>
+          <PersonTypeSelector
+            personTypes={personTypes}
+            value={personTypeBreakdown}
+            onChange={onPersonTypeChange}
+            currency={selectedSlot.currency || listing.pricing?.currency || 'EUR'}
+            maxCapacity={maxCapacity}
+            locale={locale}
+          />
+
+          {/* Book Buttons */}
+          <div className="pt-6 space-y-3">
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full"
+              onClick={onCreateHold}
+              disabled={createHoldMutation.isPending || isAddingToCart || !canProceed}
+            >
+              {createHoldMutation.isPending ? tCommon('loading') : tBooking('continue')}
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full"
+              onClick={onAddToCart}
+              disabled={createHoldMutation.isPending || isAddingToCart || !canProceed}
+            >
+              <ShoppingCart className="h-5 w-5 mr-2" />
+              {isAddingToCart ? tCommon('loading') : tCart('add_to_cart')}
+            </Button>
+            {createHoldMutation.isError && (
+              <p className="text-sm text-red-600 mt-2 text-center">
+                {createHoldMutation.error?.message || tCommon('error')}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface ListingDetailClientProps {
+  listing: Listing;
+  locale: string;
+  slug: string;
+}
+
+export default function ListingDetailClient({ listing, locale, slug }: ListingDetailClientProps) {
+  const router = useRouter();
+  const t = useTranslations('listing');
+  const tCommon = useTranslations('common');
+  const tAvail = useTranslations('availability');
+  const tBooking = useTranslations('booking');
+  const tCart = useTranslations('cart');
+
+  // Booking flow state
+  const [showBookingFlow, setShowBookingFlow] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | undefined>();
+  const [personTypeBreakdown, setPersonTypeBreakdown] = useState<Record<string, number>>({
+    adult: 1,
+  });
+
+  // Lightbox state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  // Get person types from listing (memoized)
+  const personTypes = useMemo(() => {
+    return getPersonTypesFromListing(listing);
+  }, [listing]);
+
+  // Get availability for the next 3 months (always fetch since booking panel is visible from start)
+  const startDate = format(new Date(), 'yyyy-MM-dd');
+  const endDate = format(addMonths(new Date(), 3), 'yyyy-MM-dd');
+  const { data: availabilityData, isLoading: isLoadingAvailability } = useAvailability(
+    slug,
+    startDate,
+    endDate,
+    true // Always fetch availability since booking panel is visible from the start
+  );
+
+  const createHoldMutation = useCreateHold(slug);
+  const addToCartMutation = useAddToCart();
+
+  // State for cart success message
+  const [showCartSuccess, setShowCartSuccess] = useState(false);
+
+  // Get time slots for selected date
+  const slotsForSelectedDate = useMemo(() => {
+    if (!selectedDate || !availabilityData) return [];
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    return availabilityData.filter(
+      (slot) =>
+        slot.start.startsWith(dateStr) && (slot.status === 'available' || slot.status === 'limited')
+    );
+  }, [selectedDate, availabilityData]);
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    setSelectedSlot(undefined);
+  };
+
+  const handleSlotSelect = (slot: AvailabilitySlot) => {
+    setSelectedSlot(slot);
+  };
+
+  const handleCreateHold = async () => {
+    if (!selectedSlot) return;
+
+    // Filter out zero values from breakdown
+    const filteredBreakdown = Object.fromEntries(
+      Object.entries(personTypeBreakdown).filter(([, qty]) => qty > 0)
+    );
+
+    try {
+      const sessionId = getGuestSessionId();
+      const response = await createHoldMutation.mutateAsync({
+        slotId: String(selectedSlot.id),
+        person_types: filteredBreakdown,
+        session_id: sessionId,
+        extras: [],
+      });
+      // Redirect to dedicated checkout page with hold ID
+      const holdId = response.data.id;
+      router.push(`/checkout/${holdId}`);
+    } catch (err) {
+      console.error('Failed to create hold:', err);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!selectedSlot) return;
+
+    // Filter out zero values from breakdown
+    const filteredBreakdown = Object.fromEntries(
+      Object.entries(personTypeBreakdown).filter(([, qty]) => qty > 0)
+    );
+
+    try {
+      const sessionId = getGuestSessionId();
+      // First create a hold
+      const holdResponse = await createHoldMutation.mutateAsync({
+        slotId: String(selectedSlot.id),
+        person_types: filteredBreakdown,
+        session_id: sessionId,
+        extras: [],
+      });
+      const holdId = holdResponse.data.id;
+
+      // Then add the hold to the cart
+      await addToCartMutation.mutateAsync(holdId);
+
+      // Show success message and reset selection
+      setShowCartSuccess(true);
+      setShowBookingFlow(false);
+      setSelectedDate(undefined);
+      setSelectedSlot(undefined);
+
+      // Hide success message after 5 seconds
+      setTimeout(() => setShowCartSuccess(false), 5000);
+    } catch (err) {
+      console.error('Failed to add to cart:', err);
+    }
+  };
+
+  const tr = (field: any) => resolveTranslation(field, locale);
+  const title = tr(listing.title);
+  const description = tr(listing.description);
+  const maxCapacity = selectedSlot?.remainingCapacity || listing.maxGroupSize || 10;
+
+  return (
+    <MainLayout locale={locale}>
+      {/* Cart Success Toast */}
+      {showCartSuccess && (
+        <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-right duration-300">
+          <div className="bg-[#0D642E] text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4">
+            <CheckCircle className="h-6 w-6 flex-shrink-0" />
+            <div>
+              <p className="font-semibold">{tCart('added_to_cart')}</p>
+              <div className="flex gap-3 mt-2">
+                <button
+                  onClick={() => router.push(`/cart`)}
+                  className="text-sm underline hover:no-underline opacity-90 hover:opacity-100"
+                >
+                  {tCart('view_cart')}
+                </button>
+                <button
+                  onClick={() => setShowCartSuccess(false)}
+                  className="text-sm underline hover:no-underline opacity-90 hover:opacity-100"
+                >
+                  {tCart('continue_shopping')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hero Section + Content - Unified Layout */}
+      <div className="bg-accent min-h-screen">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 py-6">
+            {/* Left Column: Hero + Content */}
+            <div className="space-y-3">
+              {/* Badge */}
+              <div>
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-semibold uppercase tracking-wider">
+                  <span className="w-2 h-2 bg-secondary rounded-full"></span>
+                  {listing.serviceType === 'tour' ? 'Guided Tour' : 'Special Event'}
+                </span>
+              </div>
+
+              {/* Title */}
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-heading leading-none">
+                {title}
+              </h1>
+
+              {/* Meta Row */}
+              <div className="flex flex-wrap gap-4 text-sm text-body">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <span>{listing.meetingPoint?.address || 'Tunisia'}</span>
+                </div>
+                {listing.serviceType === 'tour' && listing.duration && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span>
+                      {listing.duration.value} {listing.duration.unit}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  <span>Max {listing.maxGroupSize} guests</span>
+                </div>
+                {listing.rating && (
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4 fill-secondary text-secondary" />
+                    <span className="font-semibold">{listing.rating}</span>
+                    <span>({listing.reviewsCount || 0} reviews)</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Bento Gallery */}
+              {listing.media && listing.media.length > 0 && (
+                <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[400px]">
+                  {/* Large image - takes 2x2 */}
+                  {listing.media[0] && (
+                    <button
+                      onClick={() => {
+                        setLightboxIndex(0);
+                        setLightboxOpen(true);
+                      }}
+                      className="col-span-2 row-span-2 relative overflow-hidden rounded-lg group"
+                    >
+                      <Image
+                        src={listing.media[0].url}
+                        alt={tr(listing.media[0].alt) || title}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        priority
+                      />
+                    </button>
+                  )}
+                  {/* Small images - 4 images in 2x2 grid on the right */}
+                  {listing.media.slice(1, 5).map((media, index) => (
+                    <button
+                      key={media.id}
+                      onClick={() => {
+                        setLightboxIndex(index + 1);
+                        setLightboxOpen(true);
+                      }}
+                      className="relative overflow-hidden rounded-lg group"
+                    >
+                      <Image
+                        src={media.url}
+                        alt={tr(media.alt) || title}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      {/* "View all" overlay on last image */}
+                      {index === 3 && listing.media.length > 5 && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-semibold">
+                          <div className="text-center">
+                            <Camera className="h-6 w-6 mx-auto mb-2" />
+                            <div>View all {listing.media.length}</div>
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Main Content Sections */}
+              <div className="border-t border-neutral-200 pt-12 mt-8">
+                <div className="space-y-16">
+                  {/* Description Section */}
+                  <section>
+                    <h2 className="font-display text-4xl font-bold text-heading mb-6 tracking-tight">
+                      About This Experience
+                    </h2>
+                    <p className="font-sans text-lg text-neutral-700 leading-relaxed whitespace-pre-line">
+                      {description}
+                    </p>
+                  </section>
+
+                  {/* Highlights */}
+                  {listing.highlights && listing.highlights.length > 0 && (
+                    <section>
+                      <h2 className="font-display text-3xl font-bold text-heading mb-6 tracking-tight">
+                        Experience Highlights
+                      </h2>
+                      <ul className="space-y-4">
+                        {listing.highlights.map((highlight: any, index: number) => (
+                          <li key={index} className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center mt-1">
+                              <CheckCircle className="h-4 w-4 text-primary" />
+                            </div>
+                            <span className="font-sans text-lg text-neutral-700 leading-relaxed">
+                              {tr(highlight)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  )}
+
+                  {/* Reviews Section */}
+                  <ReviewsSection
+                    listingId={listing.id}
+                    rating={listing.rating ?? undefined}
+                    reviewsCount={listing.reviewsCount || 0}
+                  />
+
+                  {/* Included / Not Included */}
+                  <section className="grid md:grid-cols-2 gap-12">
+                    {listing.included && listing.included.length > 0 && (
+                      <div>
+                        <h3 className="font-display text-2xl font-bold text-heading mb-6 tracking-tight">
+                          What's Included
+                        </h3>
+                        <ul className="space-y-3">
+                          {listing.included.map((item: any, index: number) => (
+                            <li key={index} className="flex items-start gap-3">
+                              <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                              <span className="font-sans text-neutral-700">{tr(item)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {listing.notIncluded && listing.notIncluded.length > 0 && (
+                      <div>
+                        <h3 className="font-display text-2xl font-bold text-heading mb-6 tracking-tight">
+                          Not Included
+                        </h3>
+                        <ul className="space-y-3">
+                          {listing.notIncluded.map((item: any, index: number) => (
+                            <li key={index} className="flex items-start gap-3">
+                              <XCircle className="h-5 w-5 text-error flex-shrink-0 mt-0.5" />
+                              <span className="font-sans text-neutral-700">{tr(item)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Requirements */}
+                  {listing.requirements && listing.requirements.length > 0 && (
+                    <section>
+                      <h3 className="font-display text-2xl font-bold text-heading mb-6 tracking-tight">
+                        Important Requirements
+                      </h3>
+                      <ul className="space-y-3">
+                        {listing.requirements.map((req: any, index: number) => (
+                          <li key={index} className="flex items-start gap-3">
+                            <AlertCircle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
+                            <span className="font-sans text-neutral-700">{tr(req)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  )}
+
+                  {/* Safety & Accessibility */}
+                  <section className="grid md:grid-cols-2 gap-8">
+                    <SafetySection safety={listing.safetyInfo} />
+                    <AccessibilitySection accessibility={listing.accessibilityInfo} />
+                  </section>
+
+                  {/* Cancellation Policy */}
+                  <CancellationPolicyCard policy={listing.cancellationPolicy} />
+
+                  {/* FAQs */}
+                  {listing.faqs && listing.faqs.length > 0 && <FAQSection faqs={listing.faqs} />}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Sticky Booking Panel (visible from hero through all content) */}
+            <div className="hidden lg:block">
+              <FixedBookingPanel
+                listing={listing}
+                availabilityData={availabilityData}
+                hasActualReviews={false}
+              >
+                <BookingFlowContent
+                  isLoadingAvailability={isLoadingAvailability}
+                  availabilityData={availabilityData}
+                  selectedDate={selectedDate}
+                  selectedSlot={selectedSlot}
+                  slotsForSelectedDate={slotsForSelectedDate}
+                  personTypes={personTypes}
+                  personTypeBreakdown={personTypeBreakdown}
+                  maxCapacity={maxCapacity}
+                  listing={listing}
+                  createHoldMutation={createHoldMutation}
+                  onDateSelect={handleDateSelect}
+                  onSlotSelect={handleSlotSelect}
+                  onPersonTypeChange={setPersonTypeBreakdown}
+                  onCreateHold={handleCreateHold}
+                  onAddToCart={handleAddToCart}
+                  isAddingToCart={addToCartMutation.isPending}
+                  onClose={() => setShowBookingFlow(false)}
+                  locale={locale}
+                  t={t}
+                  tAvail={tAvail}
+                  tBooking={tBooking}
+                  tCommon={tCommon}
+                  tCart={tCart}
+                />
+              </FixedBookingPanel>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Bottom Bar */}
+      <div className="lg:hidden">
+        <BookingPanel
+          pricing={listing.pricing}
+          isOpen={showBookingFlow}
+          onOpenChange={setShowBookingFlow}
+        >
+          <BookingFlowContent
+            isLoadingAvailability={isLoadingAvailability}
+            availabilityData={availabilityData}
+            selectedDate={selectedDate}
+            selectedSlot={selectedSlot}
+            slotsForSelectedDate={slotsForSelectedDate}
+            personTypes={personTypes}
+            personTypeBreakdown={personTypeBreakdown}
+            maxCapacity={maxCapacity}
+            listing={listing}
+            createHoldMutation={createHoldMutation}
+            onDateSelect={handleDateSelect}
+            onSlotSelect={handleSlotSelect}
+            onPersonTypeChange={setPersonTypeBreakdown}
+            onCreateHold={handleCreateHold}
+            onAddToCart={handleAddToCart}
+            isAddingToCart={addToCartMutation.isPending}
+            onClose={() => setShowBookingFlow(false)}
+            locale={locale}
+            t={t}
+            tAvail={tAvail}
+            tBooking={tBooking}
+            tCommon={tCommon}
+            tCart={tCart}
+          />
+        </BookingPanel>
+      </div>
+
+      {/* Image Lightbox */}
+      {lightboxOpen && (
+        <ImageLightbox
+          images={listing.media}
+          initialIndex={lightboxIndex}
+          isOpen={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
+    </MainLayout>
+  );
+}

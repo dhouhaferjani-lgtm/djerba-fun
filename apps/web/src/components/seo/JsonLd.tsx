@@ -50,6 +50,9 @@ type EventSchema = JsonLdBase & {
   image?: string | string[];
   startDate: string;
   endDate?: string;
+  url?: string;
+  eventStatus?: string;
+  eventAttendanceMode?: string;
   location: {
     '@type': 'Place';
     name?: string;
@@ -65,12 +68,16 @@ type EventSchema = JsonLdBase & {
         };
   };
   offers?: {
-    '@type': 'Offer';
-    price: number;
+    '@type': 'Offer' | 'AggregateOffer';
+    price: number | string;
     priceCurrency: string;
     availability?: string;
     url?: string;
     validFrom?: string;
+    seller?: {
+      '@type': 'Organization';
+      name: string;
+    };
   };
   performer?: {
     '@type': 'Organization' | 'Person';
@@ -80,6 +87,7 @@ type EventSchema = JsonLdBase & {
     '@type': 'Organization' | 'Person';
     name: string;
     url?: string;
+    image?: string;
   };
 };
 

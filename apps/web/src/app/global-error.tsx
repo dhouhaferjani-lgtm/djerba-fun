@@ -24,6 +24,8 @@ export default function GlobalError({
   return (
     <html lang="en">
       <head>
+        <title>Critical Error - Go Adventure</title>
+        <meta name="robots" content="noindex, nofollow" />
         <style
           dangerouslySetInnerHTML={{
             __html: `

@@ -196,14 +196,15 @@ export function FixedBookingPanel({
                   </div>
                 )}
 
-                {listing.minAdvanceBookingHours && listing.minAdvanceBookingHours > 0 && (
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
-                    <span className="text-neutral-800">
-                      Book at least {listing.minAdvanceBookingHours}h in advance
-                    </span>
-                  </div>
-                )}
+                {(listing as any).minAdvanceBookingHours &&
+                  (listing as any).minAdvanceBookingHours > 0 && (
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                      <span className="text-neutral-800">
+                        Book at least {(listing as any).minAdvanceBookingHours}h in advance
+                      </span>
+                    </div>
+                  )}
 
                 <div className="flex items-center gap-2">
                   <Smartphone className="h-4 w-4 text-primary flex-shrink-0" />
