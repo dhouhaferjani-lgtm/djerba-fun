@@ -16,6 +16,7 @@
     "package": "Forfait",
     "packages": "Forfaits",
     "back": "Retour",
+    "back_arrow": "← Retour",
     "cancel": "Annuler",
     "back_to_bookings": "Retour aux Réservations"
   },
@@ -102,6 +103,25 @@
     "difficulty": "Difficulté",
     "group_size": "Taille du Groupe",
     "check_availability": "Vérifier la Disponibilité",
+    "trust_signals": {
+      "instant_confirmation": "Confirmation instantanée",
+      "mobile_ticket": "Billet mobile accepté",
+      "secure_payment": "Paiement sécurisé",
+      "small_group": "Petit groupe (max {size})",
+      "book_advance": "Réserver au moins {hours}h à l'avance"
+    },
+    "urgency": {
+      "spots_left_today": "⚠️ Plus que {count, plural, =1 {1 place} other {# places}} aujourd'hui !",
+      "filling_fast_tomorrow": "🔥 Se remplit rapidement pour demain",
+      "limited_month": "📅 Disponibilité limitée ce mois-ci",
+      "top_rated": "⭐ Top noté · {count} avis",
+      "popular_choice": "🔥 Choix populaire · {count} réservations"
+    },
+    "cancellation_message": {
+      "flexible": "Annulation gratuite jusqu'à 24h avant",
+      "moderate": "Annulation gratuite jusqu'à 48h avant",
+      "strict": "Annulation avec restrictions"
+    },
     "faqs": {
       "title": "Questions Fréquentes"
     },
@@ -142,6 +162,10 @@
   "booking": {
     "select_date": "Sélectionnez une Date",
     "travelers": "Voyageurs",
+    "person_types": {
+      "free": "Gratuit"
+    },
+    "guests_count": "{count} {count, plural, =1 {voyageur} other {voyageurs}}",
     "traveler_info": "Informations Voyageur",
     "payment": "Paiement",
     "confirm": "Confirmer la Réservation",
@@ -487,6 +511,10 @@
     "available": "disponible",
     "remaining_spots": "{count, plural, =1 {Plus qu'1 place} other {Plus que # places}}",
     "spots_left_short": "restantes",
+    "aria_labels": {
+      "previous_month": "Mois précédent",
+      "next_month": "Mois suivant"
+    },
     "no_slots_available": "Aucun créneau disponible pour cette date",
     "hold_expires_in": "Temps restant pour finaliser la réservation",
     "hold_expired": "Réservation Expirée",

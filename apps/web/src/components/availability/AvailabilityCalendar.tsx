@@ -136,14 +136,14 @@ export default function AvailabilityCalendar({
           <button
             onClick={handlePreviousMonth}
             className="rounded-lg border border-neutral-300 p-2 hover:bg-neutral-50"
-            aria-label="Previous month"
+            aria-label={t('aria_labels.previous_month')}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           <button
             onClick={handleNextMonth}
             className="rounded-lg border border-neutral-300 p-2 hover:bg-neutral-50"
-            aria-label="Next month"
+            aria-label={t('aria_labels.next_month')}
           >
             <ChevronRight className="h-5 w-5" />
           </button>

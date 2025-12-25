@@ -16,6 +16,7 @@
     "package": "Package",
     "packages": "Packages",
     "back": "Back",
+    "back_arrow": "→ رجوع",
     "cancel": "Cancel",
     "back_to_bookings": "Back to Bookings"
   },
@@ -102,6 +103,25 @@
     "difficulty": "Difficulty",
     "group_size": "Group Size",
     "check_availability": "Check Availability",
+    "trust_signals": {
+      "instant_confirmation": "تأكيد فوري",
+      "mobile_ticket": "تذكرة الهاتف المحمول مقبولة",
+      "secure_payment": "دفع آمن",
+      "small_group": "مجموعة صغيرة (الحد الأقصى {size})",
+      "book_advance": "احجز قبل {hours} ساعة على الأقل"
+    },
+    "urgency": {
+      "spots_left_today": "⚠️ {count, plural, =0 {لا توجد أماكن} =1 {مكان واحد فقط} =2 {مكانان فقط} few {# أماكن فقط} many {# مكانًا فقط} other {# مكان فقط}} متبقية اليوم!",
+      "filling_fast_tomorrow": "🔥 يمتلئ بسرعة لغدًا",
+      "limited_month": "📅 توافر محدود هذا الشهر",
+      "top_rated": "⭐ الأعلى تقييمًا · {count} مراجعات",
+      "popular_choice": "🔥 اختيار شائع · {count} حجوزات"
+    },
+    "cancellation_message": {
+      "flexible": "إلغاء مجاني حتى 24 ساعة قبل",
+      "moderate": "إلغاء مجاني حتى 48 ساعة قبل",
+      "strict": "إلغاء مع قيود"
+    },
     "faqs": {
       "title": "Frequently Asked Questions"
     },
@@ -142,6 +162,10 @@
   "booking": {
     "select_date": "Select a Date",
     "travelers": "Travelers",
+    "person_types": {
+      "free": "مجاني"
+    },
+    "guests_count": "{count} {count, plural, =0 {ضيوف} =1 {ضيف} =2 {ضيفان} few {ضيوف} many {ضيفًا} other {ضيف}}",
     "traveler_info": "Traveler Information",
     "payment": "Payment",
     "confirm": "Confirm Booking",
@@ -439,6 +463,11 @@
     "select_time": "Select a Time",
     "available": "available",
     "remaining_spots": "{count, plural, =1 {Only 1 spot left} other {Only # spots left}}",
+    "spots_left_short": "left",
+    "aria_labels": {
+      "previous_month": "الشهر السابق",
+      "next_month": "الشهر التالي"
+    },
     "no_slots_available": "No time slots available for this date",
     "hold_expires_in": "Time remaining to complete booking",
     "hold_expired": "Hold Expired",

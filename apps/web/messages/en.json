@@ -16,6 +16,7 @@
     "package": "Package",
     "packages": "Packages",
     "back": "Back",
+    "back_arrow": "← Back",
     "cancel": "Cancel",
     "back_to_bookings": "Back to Bookings"
   },
@@ -102,6 +103,25 @@
     "difficulty": "Difficulty",
     "group_size": "Group Size",
     "check_availability": "Check Availability",
+    "trust_signals": {
+      "instant_confirmation": "Instant confirmation",
+      "mobile_ticket": "Mobile ticket accepted",
+      "secure_payment": "Secure payment",
+      "small_group": "Small group (max {size})",
+      "book_advance": "Book at least {hours}h in advance"
+    },
+    "urgency": {
+      "spots_left_today": "⚠️ Only {count, plural, =1 {1 spot} other {# spots}} left today!",
+      "filling_fast_tomorrow": "🔥 Filling up fast for tomorrow",
+      "limited_month": "📅 Limited availability this month",
+      "top_rated": "⭐ Top rated · {count} reviews",
+      "popular_choice": "🔥 Popular choice · {count} bookings"
+    },
+    "cancellation_message": {
+      "flexible": "Free cancellation up to 24h before",
+      "moderate": "Free cancellation up to 48h before",
+      "strict": "Cancellation with restrictions"
+    },
     "faqs": {
       "title": "Frequently Asked Questions"
     },
@@ -142,6 +162,10 @@
   "booking": {
     "select_date": "Select a Date",
     "travelers": "Travelers",
+    "person_types": {
+      "free": "Free"
+    },
+    "guests_count": "{count} {count, plural, =1 {guest} other {guests}}",
     "traveler_info": "Traveler Information",
     "payment": "Payment",
     "confirm": "Confirm Booking",
@@ -529,6 +553,10 @@
     "available": "available",
     "remaining_spots": "{count, plural, =1 {Only 1 spot left} other {Only # spots left}}",
     "spots_left_short": "left",
+    "aria_labels": {
+      "previous_month": "Previous month",
+      "next_month": "Next month"
+    },
     "no_slots_available": "No time slots available for this date",
     "hold_expires_in": "Time remaining to complete booking",
     "hold_expired": "Hold Expired",

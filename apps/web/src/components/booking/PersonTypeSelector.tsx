@@ -141,7 +141,7 @@ export function PersonTypeSelector({
                       perPerson={false}
                     />
                   ) : (
-                    <span className="text-green-600 font-medium">Free</span>
+                    <span className="text-green-600 font-medium">{t('person_types.free')}</span>
                   )}
                 </div>
               </div>
@@ -179,7 +179,7 @@ export function PersonTypeSelector({
           <div className="text-neutral-600">
             {t('total')}:{' '}
             <span className="font-medium text-neutral-900">
-              {totals.totalGuests} {totals.totalGuests === 1 ? 'guest' : 'guests'}
+              {t('guests_count', { count: totals.totalGuests })}
             </span>
           </div>
           <PriceDisplay

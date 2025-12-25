@@ -25,18 +25,18 @@ interface FixedBookingPanelProps {
   children?: React.ReactNode;
 }
 
-// Helper function to get cancellation message
-function getCancellationMessage(listing: Listing): string | null {
+// Helper function to get cancellation message key
+function getCancellationMessageKey(listing: Listing): string | null {
   if (!listing.cancellationPolicy) return null;
 
   const policy = listing.cancellationPolicy;
 
   if (policy.type === 'flexible') {
-    return 'Free cancellation up to 24h before';
+    return 'cancellation_message.flexible';
   } else if (policy.type === 'moderate') {
-    return 'Free cancellation up to 48h before';
+    return 'cancellation_message.moderate';
   } else if (policy.type === 'strict') {
-    return 'Cancellation with restrictions';
+    return 'cancellation_message.strict';
   }
 
   return null;
@@ -47,7 +47,7 @@ function getUrgencyMessage(
   listing: Listing,
   availabilityData?: AvailabilitySlot[],
   hasActualReviews?: boolean
-): { message: string; variant: 'warning' | 'success' | 'info' } | null {
+): { key: string; count?: number; variant: 'warning' | 'success' | 'info' } | null {
   // Priority 1: Availability-based urgency (real-time scarcity)
   if (availabilityData && availabilityData.length > 0) {
     // Check for today's slots with low capacity
@@ -62,7 +62,8 @@ function getUrgencyMessage(
     if (lowCapacityToday) {
       const remaining = lowCapacityToday.remainingCapacity ?? lowCapacityToday.capacity;
       return {
-        message: `⚠️ Only ${remaining} spot${remaining !== 1 ? 's' : ''} left today!`,
+        key: 'urgency.spots_left_today',
+        count: remaining,
         variant: 'warning',
       };
     }
@@ -79,7 +80,7 @@ function getUrgencyMessage(
 
     if (lowCapacityTomorrow) {
       return {
-        message: '🔥 Filling up fast for tomorrow',
+        key: 'urgency.filling_fast_tomorrow',
         variant: 'warning',
       };
     }
@@ -90,7 +91,7 @@ function getUrgencyMessage(
 
     if (limitedSlots > 0 && limitedSlots / totalSlots > 0.3) {
       return {
-        message: '📅 Limited availability this month',
+        key: 'urgency.limited_month',
         variant: 'info',
       };
     }
@@ -104,7 +105,8 @@ function getUrgencyMessage(
     // High rated with many reviews
     if (rating >= 4.5 && reviewsCount >= 20) {
       return {
-        message: `⭐ Top rated · ${reviewsCount} reviews`,
+        key: 'urgency.top_rated',
+        count: reviewsCount,
         variant: 'success',
       };
     }
@@ -112,7 +114,8 @@ function getUrgencyMessage(
     // Popular listing
     if (reviewsCount >= 10) {
       return {
-        message: `🔥 Popular choice · ${reviewsCount} bookings`,
+        key: 'urgency.popular_choice',
+        count: reviewsCount,
         variant: 'info',
       };
     }
@@ -128,13 +131,14 @@ export function FixedBookingPanel({
   children,
 }: FixedBookingPanelProps) {
   const t = useTranslations('listing');
+  const tCommon = useTranslations('common');
   const [showBookingFlow, setShowBookingFlow] = useState(false);
 
   const basePrice = listing.pricing?.displayPrice || listing.pricing?.tndPrice || 0;
   const currency = listing.pricing?.displayCurrency || 'TND';
 
-  // Get dynamic messages
-  const cancellationMessage = getCancellationMessage(listing);
+  // Get dynamic message keys
+  const cancellationMessageKey = getCancellationMessageKey(listing);
   const urgencyData = getUrgencyMessage(listing, availabilityData, hasActualReviews);
 
   // Urgency banner styling based on variant
@@ -168,7 +172,11 @@ export function FixedBookingPanel({
                 <div
                   className={`border rounded-lg px-3 py-2 ${getUrgencyStyles(urgencyData.variant)}`}
                 >
-                  <p className="text-sm font-medium">{urgencyData.message}</p>
+                  <p className="text-sm font-medium">
+                    {urgencyData.count !== undefined
+                      ? t(urgencyData.key, { count: urgencyData.count })
+                      : t(urgencyData.key)}
+                  </p>
                 </div>
               )}
 
@@ -186,13 +194,15 @@ export function FixedBookingPanel({
               <div className="space-y-3 text-sm">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span className="text-neutral-800">Instant confirmation</span>
+                  <span className="text-neutral-800">
+                    {t('trust_signals.instant_confirmation')}
+                  </span>
                 </div>
 
-                {cancellationMessage && (
+                {cancellationMessageKey && (
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                    <span className="text-neutral-800">{cancellationMessage}</span>
+                    <span className="text-neutral-800">{t(cancellationMessageKey)}</span>
                   </div>
                 )}
 
@@ -201,28 +211,30 @@ export function FixedBookingPanel({
                     <div className="flex items-center gap-2">
                       <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
                       <span className="text-neutral-800">
-                        Book at least {(listing as any).minAdvanceBookingHours}h in advance
+                        {t('trust_signals.book_advance', {
+                          hours: (listing as any).minAdvanceBookingHours,
+                        })}
                       </span>
                     </div>
                   )}
 
                 <div className="flex items-center gap-2">
                   <Smartphone className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span className="text-neutral-800">Mobile ticket accepted</span>
+                  <span className="text-neutral-800">{t('trust_signals.mobile_ticket')}</span>
                 </div>
 
                 {listing.maxGroupSize && (
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-primary flex-shrink-0" />
                     <span className="text-neutral-800">
-                      Small group (max {listing.maxGroupSize})
+                      {t('trust_signals.small_group', { size: listing.maxGroupSize })}
                     </span>
                   </div>
                 )}
 
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span className="text-neutral-800">Secure payment</span>
+                  <span className="text-neutral-800">{t('trust_signals.secure_payment')}</span>
                 </div>
               </div>
             </div>
@@ -235,7 +247,7 @@ export function FixedBookingPanel({
                   onClick={() => setShowBookingFlow(false)}
                   className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors font-medium"
                 >
-                  ← Back
+                  {tCommon('back_arrow')}
                 </button>
                 <button
                   onClick={() => setShowBookingFlow(false)}
