@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Minus, Plus } from 'lucide-react';
+import { Minus, Plus, Users, AlertTriangle } from 'lucide-react';
 import { PriceDisplay } from '@/components/molecules/PriceDisplay';
 
 interface PersonType {
@@ -100,6 +100,20 @@ export function PersonTypeSelector({
 
   return (
     <div className="space-y-4">
+      {/* Prominent capacity indicator */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Users className="h-5 w-5 text-blue-600" />
+          <span className="text-sm font-medium text-blue-900">{t('available_capacity')}</span>
+        </div>
+        <div className="text-right">
+          <div className="text-lg font-bold text-blue-900">
+            {maxCapacity - totals.totalGuests} / {maxCapacity}
+          </div>
+          <div className="text-xs text-blue-700">{t('spots_remaining')}</div>
+        </div>
+      </div>
+
       {/* Person type rows */}
       <div className="space-y-3">
         {personTypes.map((type) => {
@@ -175,9 +189,10 @@ export function PersonTypeSelector({
             perPerson={false}
           />
         </div>
-        {maxCapacity - totals.totalGuests <= 5 && totals.totalGuests < maxCapacity && (
-          <p className="text-sm text-yellow-600 mt-2">
-            Only {maxCapacity - totals.totalGuests} spots left
+        {maxCapacity - totals.totalGuests <= 3 && totals.totalGuests < maxCapacity && (
+          <p className="text-sm text-orange-600 font-medium mt-2 flex items-center gap-1">
+            <AlertTriangle className="h-4 w-4" />
+            {t('only_x_spots_left', { count: maxCapacity - totals.totalGuests })}
           </p>
         )}
       </div>

@@ -50,6 +50,10 @@ class VendorPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
             ])
+            ->plugins([
+                \Filament\SpatieLaravelTranslatablePlugin::make()
+                    ->defaultLocales(['en', 'fr']),
+            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

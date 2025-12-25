@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useState, useEffect } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   format,
   startOfMonth,
@@ -18,6 +18,7 @@ import {
 } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { AvailabilitySlot } from '@go-adventure/schemas';
+import { getDateFnsLocale, getLocalizedWeekdays } from '@/lib/date-locale';
 
 interface AvailabilityCalendarProps {
   slots: AvailabilitySlot[];
@@ -33,7 +34,28 @@ export default function AvailabilityCalendar({
   className = '',
 }: AvailabilityCalendarProps) {
   const t = useTranslations('availability');
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const locale = useLocale();
+  const dateFnsLocale = getDateFnsLocale(locale);
+  const weekdays = getLocalizedWeekdays(locale, 1); // Week starts on Monday
+
+  const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
+  const [today, setToday] = useState<Date | null>(null);
+
+  // Initialize dates on client side only to avoid hydration mismatch
+  useEffect(() => {
+    const now = new Date();
+    setCurrentMonth(now);
+    setToday(startOfDay(now));
+  }, []);
+
+  // Don't render until dates are initialized
+  if (!currentMonth || !today) {
+    return (
+      <div className={`space-y-4 ${className}`}>
+        <div className="h-96 animate-pulse rounded-lg bg-neutral-100" />
+      </div>
+    );
+  }
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -58,6 +80,18 @@ export default function AvailabilityCalendar({
     if (hasAvailable) return 'available';
     if (hasLimited) return 'limited';
     return null;
+  };
+
+  const getRemainingCapacity = (date: Date): number => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const daySlots = slots.filter((slot) => slot.start.startsWith(dateStr));
+
+    if (daySlots.length === 0) return 0;
+
+    // Sum up remaining capacity from all slots for this date
+    return daySlots.reduce((total, slot) => {
+      return total + (slot.remainingCapacity || 0);
+    }, 0);
   };
 
   const getStatusColor = (status: string | null): string => {
@@ -90,14 +124,13 @@ export default function AvailabilityCalendar({
     }
   };
 
-  const today = startOfDay(new Date());
   const isPastDate = (date: Date) => isBefore(date, today);
 
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-neutral-900">
-          {format(currentMonth, 'MMMM yyyy')}
+          {format(currentMonth, 'MMMM yyyy', { locale: dateFnsLocale })}
         </h3>
         <div className="flex gap-2">
           <button
@@ -119,8 +152,11 @@ export default function AvailabilityCalendar({
 
       {/* Weekday headers */}
       <div className="grid grid-cols-7 gap-1">
-        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-          <div key={day} className="p-2 text-center text-xs font-medium text-neutral-600">
+        {weekdays.map((day, index) => (
+          <div
+            key={`${day}-${index}`}
+            className="p-2 text-center text-xs font-medium text-neutral-600"
+          >
             {day}
           </div>
         ))}
@@ -130,6 +166,7 @@ export default function AvailabilityCalendar({
       <div className="grid grid-cols-7 gap-1">
         {calendarDays.map((day) => {
           const status = getDateStatus(day);
+          const remainingCapacity = getRemainingCapacity(day);
           const isCurrentMonth = isSameMonth(day, currentMonth);
           const isSelected = selectedDate && isSameDay(day, selectedDate);
           const isPast = isPastDate(day);
@@ -149,8 +186,19 @@ export default function AvailabilityCalendar({
               `}
             >
               <span className="block">{format(day, 'd')}</span>
-              {status && !isPast && isCurrentMonth && (
-                <span className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-current" />
+
+              {/* Capacity badge - small number only */}
+              {remainingCapacity > 0 && !isPast && isCurrentMonth && (
+                <span
+                  className={`absolute bottom-0.5 right-0.5 text-[7px] leading-none font-semibold px-0.5 py-0.5 rounded ${
+                    status === 'limited'
+                      ? 'bg-yellow-300/90 text-yellow-950'
+                      : 'bg-green-300/90 text-green-950'
+                  }`}
+                  title={`${remainingCapacity} ${t('spots_left_short')}`}
+                >
+                  {remainingCapacity}
+                </span>
               )}
             </button>
           );

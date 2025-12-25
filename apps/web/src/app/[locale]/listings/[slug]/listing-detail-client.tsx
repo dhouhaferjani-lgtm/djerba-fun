@@ -25,6 +25,33 @@ const AvailabilityCalendar = dynamic(
   }
 );
 
+const ListingMap = dynamic(() => import('@/components/maps/ListingMap'), {
+  loading: () => (
+    <div className="h-96 w-full rounded-lg flex items-center justify-center bg-neutral-100 animate-pulse">
+      <div className="text-neutral-500">Loading map...</div>
+    </div>
+  ),
+  ssr: false,
+});
+
+const ItineraryTimeline = dynamic(() => import('@/components/itinerary/ItineraryTimeline'), {
+  loading: () => (
+    <div className="h-64 w-full rounded-lg flex items-center justify-center bg-neutral-100 animate-pulse">
+      <div className="text-neutral-500">Loading itinerary...</div>
+    </div>
+  ),
+  ssr: false,
+});
+
+const ElevationProfile = dynamic(() => import('@/components/itinerary/ElevationProfile'), {
+  loading: () => (
+    <div className="h-64 w-full rounded-lg flex items-center justify-center bg-neutral-100 animate-pulse">
+      <div className="text-neutral-500">Loading elevation profile...</div>
+    </div>
+  ),
+  ssr: false,
+});
+
 const BookingPanel = dynamic(
   () => import('@/components/booking/BookingPanel').then((mod) => ({ default: mod.BookingPanel })),
   {
@@ -71,6 +98,27 @@ import {
 import { resolveTranslation } from '@/lib/utils/translate';
 import { getGuestSessionId } from '@/lib/utils/session';
 import type { AvailabilitySlot, Listing, PersonType } from '@go-adventure/schemas';
+
+// Parse API errors from hold creation
+function parseHoldError(error: any, t: any): string {
+  const response = error?.response?.data;
+
+  // Check for structured capacity error
+  if (response?.available !== undefined && response?.requested !== undefined) {
+    return t('insufficient_capacity_detailed', {
+      available: response.available,
+      requested: response.requested,
+    });
+  }
+
+  // Check for expired hold
+  if (response?.message?.includes('expired') || response?.message?.includes('hold')) {
+    return t('hold_expired_error');
+  }
+
+  // Fallback to generic message
+  return response?.message || error?.message || t('generic_booking_error');
+}
 
 // Get person types from listing pricing or return defaults
 function getPersonTypesFromListing(listing: Listing): PersonType[] {
@@ -315,6 +363,21 @@ function BookingFlowContent({
       {wizardStep === 3 && selectedSlot && (
         <div>
           <h3 className="font-semibold text-heading mb-4">{tBooking('travelers')}</h3>
+
+          {/* Slot capacity indicator */}
+          <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">{tBooking('time_slot_capacity')}</span>
+              <span
+                className={`font-semibold ${
+                  selectedSlot.status === 'limited' ? 'text-yellow-600' : 'text-green-600'
+                }`}
+              >
+                {selectedSlot.remainingCapacity} / {selectedSlot.capacity} {tBooking('available')}
+              </span>
+            </div>
+          </div>
+
           <PersonTypeSelector
             personTypes={personTypes}
             value={personTypeBreakdown}
@@ -346,13 +409,91 @@ function BookingFlowContent({
               {isAddingToCart ? tCommon('loading') : tCart('add_to_cart')}
             </Button>
             {createHoldMutation.isError && (
-              <p className="text-sm text-red-600 mt-2 text-center">
-                {createHoldMutation.error?.message || tCommon('error')}
-              </p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-3">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-red-900 mb-1">
+                      {tBooking('booking_failed')}
+                    </p>
+                    <p className="text-sm text-red-700">
+                      {parseHoldError(createHoldMutation.error, tBooking)}
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Route & Itinerary Tabs Component
+interface RouteItineraryTabsProps {
+  itinerary: any[];
+  center: [number, number];
+  title: string;
+  imageUrl?: string;
+  locale: string;
+}
+
+function RouteItineraryTabs({
+  itinerary,
+  center,
+  title,
+  imageUrl,
+  locale,
+}: RouteItineraryTabsProps) {
+  const [activeTab, setActiveTab] = useState<'map' | 'itinerary'>('map');
+
+  return (
+    <div className="space-y-4">
+      {/* Tab Buttons */}
+      <div className="flex gap-2 border-b border-neutral-200">
+        <button
+          onClick={() => setActiveTab('map')}
+          className={`px-6 py-3 font-semibold transition-colors relative ${
+            activeTab === 'map'
+              ? 'text-primary border-b-2 border-primary'
+              : 'text-neutral-600 hover:text-neutral-900'
+          }`}
+        >
+          Trail Map
+        </button>
+        <button
+          onClick={() => setActiveTab('itinerary')}
+          className={`px-6 py-3 font-semibold transition-colors relative ${
+            activeTab === 'itinerary'
+              ? 'text-primary border-b-2 border-primary'
+              : 'text-neutral-600 hover:text-neutral-900'
+          }`}
+        >
+          Itinerary
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      <div className="mt-6">
+        {activeTab === 'map' && (
+          <div className="h-[600px] rounded-lg overflow-hidden border border-neutral-200 relative z-0">
+            <ListingMap
+              center={center}
+              title={title}
+              imageUrl={imageUrl}
+              itinerary={itinerary}
+              className="h-full w-full"
+            />
+          </div>
+        )}
+
+        {activeTab === 'itinerary' && (
+          <div className="bg-white rounded-lg border border-neutral-200 p-6">
+            <ItineraryTimeline stops={itinerary} locale={locale} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -643,6 +784,129 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                           </li>
                         ))}
                       </ul>
+                    </section>
+                  )}
+
+                  {/* Itinerary & Map Section */}
+                  {listing.itinerary && listing.itinerary.length > 0 && (
+                    <section>
+                      <h2 className="font-display text-3xl font-bold text-heading mb-6 tracking-tight">
+                        Route & Itinerary
+                      </h2>
+
+                      {/* Tabs */}
+                      <RouteItineraryTabs
+                        itinerary={listing.itinerary.map((stop: any, index: number) => ({
+                          id: stop.id || index.toString(),
+                          listingId: listing.id,
+                          order: index,
+                          title: stop.title,
+                          description: stop.description,
+                          durationMinutes: stop.durationMinutes || stop.duration || null,
+                          stopType:
+                            index === 0
+                              ? 'start'
+                              : index === listing.itinerary.length - 1
+                                ? 'end'
+                                : 'stop',
+                          lat: stop.lat || stop.coordinates?.lat || 0,
+                          lng: stop.lng || stop.coordinates?.lng || 0,
+                          elevationMeters:
+                            stop.elevationMeters || stop.coordinates?.elevation || null,
+                          photos: stop.photos || [],
+                        }))}
+                        center={[
+                          listing.itinerary[0]?.lat ||
+                            listing.itinerary[0]?.coordinates?.lat ||
+                            36.8,
+                          listing.itinerary[0]?.lng ||
+                            listing.itinerary[0]?.coordinates?.lng ||
+                            10.2,
+                        ]}
+                        title={title}
+                        imageUrl={listing.media?.[0]?.url}
+                        locale={locale}
+                      />
+
+                      {/* Elevation Profile */}
+                      {listing.hasElevationProfile &&
+                        listing.itinerary.some((stop: any) => stop.coordinates?.elevation) && (
+                          <div className="mt-8">
+                            <ElevationProfile
+                              checkpoints={listing.itinerary.map((stop: any) => ({
+                                id: stop.order.toString(),
+                                listingId: listing.id,
+                                order: stop.order,
+                                title: stop.title,
+                                description: stop.description,
+                                durationMinutes: stop.duration,
+                                stopType:
+                                  stop.order === 0
+                                    ? 'start'
+                                    : stop.order === listing.itinerary.length - 1
+                                      ? 'end'
+                                      : 'stop',
+                                lat: stop.coordinates?.lat || 0,
+                                lng: stop.coordinates?.lng || 0,
+                                elevationMeters: stop.coordinates?.elevation || null,
+                                photos: [],
+                              }))}
+                              locale={locale}
+                              profile={(() => {
+                                // Calculate elevation profile from itinerary
+                                const points = listing.itinerary.map((stop: any, index: number) => {
+                                  let distance = 0;
+                                  if (index > 0) {
+                                    // Calculate cumulative distance using Haversine formula
+                                    for (let i = 1; i <= index; i++) {
+                                      const prev = listing.itinerary[i - 1];
+                                      const curr = listing.itinerary[i];
+                                      const R = 6371000; // Earth's radius in meters
+                                      const dLat =
+                                        ((curr.coordinates.lat - prev.coordinates.lat) * Math.PI) /
+                                        180;
+                                      const dLon =
+                                        ((curr.coordinates.lng - prev.coordinates.lng) * Math.PI) /
+                                        180;
+                                      const a =
+                                        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                                        Math.cos((prev.coordinates.lat * Math.PI) / 180) *
+                                          Math.cos((curr.coordinates.lat * Math.PI) / 180) *
+                                          Math.sin(dLon / 2) *
+                                          Math.sin(dLon / 2);
+                                      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                                      distance += R * c;
+                                    }
+                                  }
+                                  return {
+                                    distance,
+                                    elevation: stop.coordinates?.elevation || 0,
+                                  };
+                                });
+
+                                // Calculate total ascent/descent
+                                let totalAscent = 0;
+                                let totalDescent = 0;
+                                for (let i = 1; i < points.length; i++) {
+                                  const diff = points[i].elevation - points[i - 1].elevation;
+                                  if (diff > 0) totalAscent += diff;
+                                  else totalDescent += Math.abs(diff);
+                                }
+
+                                const elevations = points.map((p) => p.elevation);
+                                return {
+                                  listingId: listing.id,
+                                  points,
+                                  totalAscent,
+                                  totalDescent,
+                                  maxElevation: Math.max(...elevations),
+                                  minElevation: Math.min(...elevations),
+                                  totalDistance: points[points.length - 1].distance,
+                                };
+                              })()}
+                            />
+                          </div>
+                        )}
                     </section>
                   )}
 

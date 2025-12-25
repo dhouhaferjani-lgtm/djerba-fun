@@ -104,26 +104,38 @@ class LocationResource extends Resource
 
                 Forms\Components\Section::make('Map Coordinates')
                     ->schema([
-                        Forms\Components\TextInput::make('latitude')
-                            ->numeric()
-                            ->step(0.00000001)
-                            ->minValue(-90)
-                            ->maxValue(90)
-                            ->helperText('Latitude (e.g., 33.8869 for Djerba)')
-                            ->columnSpan(1),
-
-                        Forms\Components\TextInput::make('longitude')
-                            ->numeric()
-                            ->step(0.00000001)
-                            ->minValue(-180)
-                            ->maxValue(180)
-                            ->helperText('Longitude (e.g., 10.8453 for Djerba)')
-                            ->columnSpan(1),
-
-                        Forms\Components\Placeholder::make('map_help')
-                            ->content('💡 Tip: Use https://www.latlong.net/ to find coordinates')
+                        \Cheesegrits\FilamentGoogleMaps\Fields\Map::make('location')
+                            ->mapControls([
+                                'mapTypeControl' => true,
+                                'scaleControl' => true,
+                                'streetViewControl' => true,
+                                'rotateControl' => true,
+                                'fullscreenControl' => true,
+                                'searchBoxControl' => true,
+                                'zoomControl' => true,
+                            ])
+                            ->height('400px')
+                            ->defaultZoom(12)
+                            ->defaultLocation([33.8869, 10.8453]) // Djerba, Tunisia
+                            ->clickable()
+                            ->draggable()
+                            ->autocompleteReverse(true)
                             ->columnSpanFull(),
-                    ])->columns(2),
+
+                        Forms\Components\Grid::make(2)->schema([
+                            Forms\Components\TextInput::make('latitude')
+                                ->numeric()
+                                ->readOnly()
+                                ->dehydrated()
+                                ->columnSpan(1),
+
+                            Forms\Components\TextInput::make('longitude')
+                                ->numeric()
+                                ->readOnly()
+                                ->dehydrated()
+                                ->columnSpan(1),
+                        ]),
+                    ]),
 
                 Forms\Components\Section::make('Statistics')
                     ->schema([
