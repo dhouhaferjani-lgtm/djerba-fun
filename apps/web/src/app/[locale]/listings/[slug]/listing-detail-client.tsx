@@ -125,13 +125,19 @@ function getPersonTypesFromListing(listing: Listing): PersonType[] {
   const pricing = listing.pricing || {};
   const personTypes = pricing.personTypes;
 
+  // Get base price for fallback
+  const basePrice = pricing.displayPrice || pricing.tndPrice || 0;
+  const numericPrice = typeof basePrice === 'string' ? parseFloat(basePrice) : basePrice;
+
   if (personTypes && Array.isArray(personTypes) && personTypes.length > 0) {
-    return personTypes;
+    // Fill in missing 'price' field with displayPrice/tndPrice/eurPrice
+    return personTypes.map((pt: any) => ({
+      ...pt,
+      price: pt.price ?? pt.displayPrice ?? pt.tndPrice ?? pt.eurPrice ?? numericPrice,
+    }));
   }
 
   // Return defaults based on display price (or fallback to TND price)
-  const basePrice = pricing.displayPrice || pricing.tndPrice || 0;
-  const numericPrice = typeof basePrice === 'string' ? parseFloat(basePrice) : basePrice;
 
   return [
     {

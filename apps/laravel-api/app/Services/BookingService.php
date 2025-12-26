@@ -296,8 +296,15 @@ class BookingService
                     $personType = collect($personTypes)->firstWhere('key', $personTypeKey);
 
                     if ($personType) {
-                        // Use person type price or fall back to base price
-                        $price = $personType['price'] ?? $basePrice;
+                        // Use person type price with fallback chain
+                        // Try: price → displayPrice → tndPrice → tnd_price → eurPrice → eur_price → basePrice
+                        $price = $personType['price']
+                            ?? $personType['displayPrice']
+                            ?? $personType['tndPrice']
+                            ?? $personType['tnd_price']
+                            ?? $personType['eurPrice']
+                            ?? $personType['eur_price']
+                            ?? $basePrice;
                         $price = (float) $price;
                         $baseAmount += $price * (int) $quantity;
                     } else {
