@@ -71,13 +71,35 @@ export function BookingReview({
     const pricing = listing.pricing || {};
     const personTypes = pricing.personTypes;
 
+    // Get base price for fallback
+    const basePrice =
+      pricing.displayPrice || pricing.tndPrice || slot.displayPrice || slot.tndPrice || 0;
+    const numericPrice = typeof basePrice === 'string' ? parseFloat(basePrice) : basePrice;
+
+    console.log('DEBUG getPersonTypes:', {
+      hasPricing: !!pricing,
+      hasPersonTypes: !!personTypes,
+      personTypesLength: personTypes?.length,
+      personTypes: personTypes,
+      displayPrice: pricing.displayPrice,
+      tndPrice: pricing.tndPrice,
+      slotDisplayPrice: slot.displayPrice,
+      slotTndPrice: slot.tndPrice,
+      basePrice: numericPrice,
+    });
+
     if (personTypes && Array.isArray(personTypes) && personTypes.length > 0) {
-      return personTypes;
+      // Fill in missing prices with the base price
+      const typesWithPrices = personTypes.map((pt) => ({
+        ...pt,
+        price: pt.price !== undefined && pt.price !== null ? pt.price : numericPrice,
+      }));
+
+      console.log('DEBUG using person types with filled prices:', typesWithPrices);
+      return typesWithPrices;
     }
 
-    // Return defaults based on display price (dual pricing)
-    const basePrice = pricing.displayPrice || pricing.tndPrice || 0;
-    const numericPrice = typeof basePrice === 'string' ? parseFloat(basePrice) : basePrice;
+    console.log('DEBUG using fallback person types with basePrice:', numericPrice);
 
     return [
       {
