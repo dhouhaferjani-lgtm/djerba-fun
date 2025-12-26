@@ -775,5 +775,14 @@
   },
   "destinations": {
     "available_experiences": "Expériences disponibles"
+  },
+  "errors": {
+    "404": {
+      "title": "404 - Page Introuvable",
+      "heading": "Page Introuvable",
+      "message": "Oups ! L'aventure que vous recherchez n'existe pas. Il est peut-être temps d'explorer de nouveaux horizons.",
+      "home_button": "Retour à l'Accueil",
+      "browse_button": "Explorer les Aventures"
+    }
   }
 }

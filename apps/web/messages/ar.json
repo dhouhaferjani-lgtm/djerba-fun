@@ -571,6 +571,15 @@
     "hide_details": "Hide details",
     "cookie_policy": "Cookie Policy"
   },
+  "errors": {
+    "404": {
+      "title": "404 - الصفحة غير موجودة",
+      "heading": "الصفحة غير موجودة",
+      "message": "عذراً! المغامرة التي تبحث عنها غير موجودة. ربما حان الوقت لاستكشاف آفاق جديدة.",
+      "home_button": "العودة للرئيسية",
+      "browse_button": "تصفح المغامرات"
+    }
+  },
   "legal": {
     "back_to_home": "Back to Home",
     "last_updated": "Last updated",

@@ -775,5 +775,14 @@
   },
   "destinations": {
     "available_experiences": "Available Experiences"
+  },
+  "errors": {
+    "404": {
+      "title": "404 - Page Not Found",
+      "heading": "Page Not Found",
+      "message": "Oops! The adventure you're looking for doesn't exist. Perhaps it's time to explore new horizons.",
+      "home_button": "Back to Home",
+      "browse_button": "Browse Adventures"
+    }
   }
 }

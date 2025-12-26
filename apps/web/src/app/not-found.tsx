@@ -1,82 +1,70 @@
 import type { Metadata } from 'next';
+import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { Button } from '@go-adventure/ui';
-import { Home, Search } from 'lucide-react';
-import { getListingsUrl } from '@/lib/utils/urls';
+import { Home, Search, Compass } from 'lucide-react';
+import { MainLayout } from '@/components/templates/MainLayout';
 
-export const metadata: Metadata = {
-  title: '404 - Page Not Found',
-  description: 'The page you are looking for could not be found.',
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('errors.404');
+  return {
+    title: t('title'),
+    robots: { index: false, follow: false },
+  };
+}
 
 /**
  * 404 Not Found Page
- *
  * Displayed when a user navigates to a non-existent route.
+ * Uses MainLayout for consistent header/footer and i18n support.
  */
 export default function NotFound() {
+  const locale = 'en'; // Default locale for root-level 404
+  const t = useTranslations('errors.404');
+
   return (
-    <html lang="en">
-      <body>
-        <div className="min-h-screen bg-gradient-to-b from-accent to-white flex items-center justify-center px-4">
-          <div className="max-w-2xl w-full text-center space-y-8">
-            {/* 404 Illustration */}
-            <div className="space-y-4">
-              <h1 className="text-9xl font-bold text-primary">404</h1>
-              <h2 className="text-3xl font-semibold text-neutral-900">Page Not Found</h2>
-              <p className="text-lg text-neutral-600">
-                Oops! The adventure you&apos;re looking for doesn&apos;t exist. Perhaps it&apos;s
-                time to explore new horizons.
-              </p>
+    <MainLayout locale={locale}>
+      {/* Hero Section with Primary Gradient */}
+      <div className="relative bg-gradient-to-b from-primary/5 via-secondary/5 to-white py-20 md:py-32">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center space-y-8">
+            {/* 404 with Icon */}
+            <div className="relative">
+              <h1 className="text-[10rem] md:text-[14rem] font-display font-bold text-primary leading-none opacity-10 select-none">
+                404
+              </h1>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Compass className="h-24 w-24 md:h-32 md:w-32 text-primary animate-pulse" />
+              </div>
             </div>
 
-            {/* Search and Navigation */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href={'/' as any}>
+            {/* Message */}
+            <div className="space-y-4">
+              <h2 className="text-3xl md:text-4xl font-display font-semibold text-heading">
+                {t('heading')}
+              </h2>
+              <p className="text-lg md:text-xl text-body max-w-2xl mx-auto">{t('message')}</p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
+              <Link href={`/${locale}`}>
                 <Button variant="primary" size="lg">
                   <Home className="h-5 w-5 mr-2" />
-                  Back to Home
+                  {t('home_button')}
                 </Button>
               </Link>
-              <Link href={getListingsUrl() as any}>
+              <Link href={`/${locale}/listings`}>
                 <Button variant="outline" size="lg">
                   <Search className="h-5 w-5 mr-2" />
-                  Browse Adventures
+                  {t('browse_button')}
                 </Button>
               </Link>
-            </div>
-
-            {/* Helpful Suggestions */}
-            <div className="pt-8 border-t border-neutral-200">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-4">Popular Destinations</h3>
-              <div className="flex flex-wrap gap-3 justify-center">
-                <Link
-                  href={getListingsUrl('fr', { type: 'tour' }) as any}
-                  className="px-4 py-2 bg-white rounded-full text-sm text-neutral-700 hover:bg-secondary hover:text-white transition-colors"
-                >
-                  Tours
-                </Link>
-                <Link
-                  href={getListingsUrl('fr', { type: 'event' }) as any}
-                  className="px-4 py-2 bg-white rounded-full text-sm text-neutral-700 hover:bg-secondary hover:text-white transition-colors"
-                >
-                  Events
-                </Link>
-                <Link
-                  href={getListingsUrl('fr', { category: 'outdoor' }) as any}
-                  className="px-4 py-2 bg-white rounded-full text-sm text-neutral-700 hover:bg-secondary hover:text-white transition-colors"
-                >
-                  Outdoor Activities
-                </Link>
-              </div>
             </div>
           </div>
         </div>
-      </body>
-    </html>
+      </div>
+    </MainLayout>
   );
 }
