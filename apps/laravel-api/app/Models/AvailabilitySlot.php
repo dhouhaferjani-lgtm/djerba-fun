@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\BookingStatus;
+use App\Enums\HoldStatus;
 use App\Enums\SlotStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +13,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class AvailabilitySlot extends Model
 {
     use HasFactory;
+
+    /**
+     * The attributes that should be appended to model's array form.
+     *
+     * @var array<string>
+     */
+    protected $appends = ['remainingCapacity'];
 
     /**
      * The attributes that are mass assignable.
@@ -70,6 +79,14 @@ class AvailabilitySlot extends Model
     }
 
     /**
+     * Get the confirmed bookings for this slot.
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'availability_slot_id');
+    }
+
+    /**
      * Scope for available slots.
      */
     public function scopeAvailable($query)
@@ -103,12 +120,15 @@ class AvailabilitySlot extends Model
 
     /**
      * Update the slot status based on remaining capacity.
+     * Uses the computed remainingCapacity accessor.
      */
     public function updateStatus(): void
     {
+        $remaining = $this->remainingCapacity; // Use computed accessor
+
         $this->status = match (true) {
-            $this->remaining_capacity === 0 => SlotStatus::SOLD_OUT,
-            $this->remaining_capacity <= $this->capacity * 0.3 => SlotStatus::LIMITED,
+            $remaining === 0 => SlotStatus::SOLD_OUT,
+            $remaining <= $this->capacity * 0.3 => SlotStatus::LIMITED,
             default => SlotStatus::AVAILABLE,
         };
 
@@ -144,6 +164,32 @@ class AvailabilitySlot extends Model
      */
     public function isBookable(): bool
     {
-        return $this->status->isBookable() && $this->remaining_capacity > 0;
+        return $this->status->isBookable() && $this->remainingCapacity > 0;
+    }
+
+    /**
+     * Computed accessor for remaining capacity.
+     * Dynamically calculates based on confirmed bookings and active holds.
+     *
+     * @return int
+     */
+    public function getRemainingCapacityAttribute(): int
+    {
+        // Count spots taken by confirmed/completed bookings
+        $bookedQuantity = $this->bookings()
+            ->whereIn('status', [
+                BookingStatus::CONFIRMED,
+                BookingStatus::COMPLETED,
+            ])
+            ->sum('quantity');
+
+        // Count spots held by active holds (temporary reservations)
+        $heldQuantity = $this->holds()
+            ->where('status', HoldStatus::ACTIVE)
+            ->where('expires_at', '>', now())
+            ->sum('quantity');
+
+        // Calculate remaining: capacity - (confirmed bookings + active holds)
+        return max(0, $this->capacity - $bookedQuantity - $heldQuantity);
     }
 }

@@ -31,7 +31,7 @@ class AvailabilitySlotResource extends JsonResource
             'startTime' => $this->start_time->format('H:i:s'),
             'endTime' => $this->end_time->format('H:i:s'),
             'capacity' => $this->capacity,
-            'remainingCapacity' => $this->remaining_capacity,
+            'remainingCapacity' => $this->remainingCapacity, // Uses computed accessor
             'tndPrice' => (float) ($listing?->pricing['tnd_price'] ?? $this->base_price ?? 0),
             'eurPrice' => (float) ($listing?->pricing['eur_price'] ?? $this->base_price ?? 0),
             'displayCurrency' => $currency,

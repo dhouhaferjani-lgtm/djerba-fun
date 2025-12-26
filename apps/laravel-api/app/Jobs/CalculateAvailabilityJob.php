@@ -17,7 +17,10 @@ use Illuminate\Queue\SerializesModels;
 
 class CalculateAvailabilityJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * Create a new job instance.
@@ -91,7 +94,7 @@ class CalculateAvailabilityJob implements ShouldQueue
                 'availability_rule_id' => $rule->id,
                 'end_time' => $endTime->format('H:i:s'),
                 'capacity' => $rule->capacity,
-                'remaining_capacity' => $rule->capacity,
+                // remaining_capacity is now computed via accessor, not stored
                 'base_price' => $basePrice,
                 'status' => SlotStatus::AVAILABLE,
             ]
@@ -113,7 +116,7 @@ class CalculateAvailabilityJob implements ShouldQueue
                 'availability_rule_id' => $rule->id,
                 'end_time' => ($rule->end_time ?: now()->endOfDay())->format('H:i:s'),
                 'capacity' => 0,
-                'remaining_capacity' => 0,
+                // remaining_capacity is computed via accessor (will be 0 since capacity is 0)
                 'base_price' => 0,
                 'status' => SlotStatus::BLOCKED,
             ]

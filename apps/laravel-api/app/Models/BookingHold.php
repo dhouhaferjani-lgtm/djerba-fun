@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Redis;
 
 class BookingHold extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     /**
      * The number of minutes a hold is valid for.
@@ -146,7 +147,8 @@ class BookingHold extends Model
     }
 
     /**
-     * Expire the hold and release capacity.
+     * Expire the hold.
+     * Capacity is automatically recalculated via the slot's computed accessor.
      */
     public function expire(): void
     {
@@ -155,7 +157,7 @@ class BookingHold extends Model
         }
 
         $this->update(['status' => HoldStatus::EXPIRED]);
-        $this->slot->releaseCapacity($this->quantity);
+        // No need to release capacity - it's computed automatically
     }
 
     /**
@@ -229,11 +231,11 @@ class BookingHold extends Model
      * Create a new hold for a slot.
      * Supports both authenticated users and guest checkout via session_id.
      *
-     * @param AvailabilitySlot $slot The availability slot
-     * @param User|null $user The authenticated user, if any
-     * @param int $quantity The total number of guests
-     * @param string|null $sessionId The guest session ID
-     * @param array|null $personTypeBreakdown Optional breakdown by person type: ["adult" => 2, "child" => 1]
+     * @param  AvailabilitySlot  $slot  The availability slot
+     * @param  User|null  $user  The authenticated user, if any
+     * @param  int  $quantity  The total number of guests
+     * @param  string|null  $sessionId  The guest session ID
+     * @param  array|null  $personTypeBreakdown  Optional breakdown by person type: ["adult" => 2, "child" => 1]
      */
     public static function createForSlot(
         AvailabilitySlot $slot,
@@ -242,12 +244,12 @@ class BookingHold extends Model
         ?string $sessionId = null,
         ?array $personTypeBreakdown = null
     ): ?self {
-        // Check if slot has enough capacity
-        if (! $slot->reserveCapacity($quantity)) {
+        // Check if slot has enough capacity (uses computed remainingCapacity accessor)
+        if ($slot->remainingCapacity < $quantity) {
             return null;
         }
 
-        // Create the hold
+        // Create the hold (capacity is now tracked automatically via accessor)
         $hold = static::create([
             'listing_id' => $slot->listing_id,
             'slot_id' => $slot->id,
