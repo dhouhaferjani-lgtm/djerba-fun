@@ -25,10 +25,10 @@ class BookingService
     /**
      * Create a booking from a hold.
      * Supports both authenticated users and guest checkout via session_id.
-     * Accepts either single traveler info (legacy) or array of travelers.
+     * SIMPLIFIED: Only requires email, traveler details collected post-payment.
      *
      * @param  BookingHold  $hold  The hold to convert to a booking
-     * @param  array  $travelers  Array of traveler information (or single traveler for backward compatibility)
+     * @param  array  $travelers  Array with minimal contact info (email required, name/phone optional)
      * @param  array  $extras  Selected extras
      * @param  int|null  $authenticatedUserId  The authenticated user's ID (if logged in during checkout)
      */
@@ -44,15 +44,32 @@ class BookingService
 
             // Normalize travelers: ensure it's an array of travelers
             $normalizedTravelers = $this->normalizeTravelers($travelers);
-            $primaryTraveler = $normalizedTravelers[0] ?? [];
 
-            // Extract billing contact from primary traveler
+            // Validate that at least one traveler with email is provided
+            if (empty($normalizedTravelers)) {
+                throw new \InvalidArgumentException('At least one traveler with email is required');
+            }
+
+            $primaryTraveler = $normalizedTravelers[0];
+
+            // Validate email presence (REQUIRED for all bookings)
+            if (empty($primaryTraveler['email'])) {
+                throw new \InvalidArgumentException('Email is required for booking');
+            }
+
+            // Extract minimal contact info (email is REQUIRED, everything else optional)
             $billingContact = [
+                'email' => $primaryTraveler['email'], // REQUIRED
                 'first_name' => $primaryTraveler['first_name'] ?? null,
                 'last_name' => $primaryTraveler['last_name'] ?? null,
-                'email' => $primaryTraveler['email'] ?? null,
                 'phone' => $primaryTraveler['phone'] ?? null,
             ];
+
+            // Determine traveler details status based on listing configuration
+            $listing = $hold->listing;
+            $travelerDetailsStatus = $listing?->requiresTravelerNames()
+                ? 'pending'
+                : 'not_required';
 
             // Create the booking (copy session_id from hold for guest checkout)
             $booking = Booking::create([
@@ -66,19 +83,20 @@ class BookingService
                 'quantity' => $hold->quantity,
                 'person_type_breakdown' => $hold->person_type_breakdown,
                 'total_amount' => $this->calculateTotalAmount($hold, $extras),
-                'currency' => $hold->slot?->currency ?? 'EUR',
+                'currency' => $hold->slot?->listing?->pricing['currency'] ?? 'TND',
                 'status' => BookingStatus::PENDING_PAYMENT,
                 'traveler_info' => $primaryTraveler, // Backward compatibility
                 'travelers' => $normalizedTravelers, // Full travelers array
                 'extras' => $extras,
                 'billing_contact' => $billingContact,
+                'traveler_details_status' => $travelerDetailsStatus,
             ]);
 
-            // Create participant records based on quantity and person type breakdown
-            $this->createParticipantRecords($booking, $hold, $billingContact);
+            // Create empty participant records (names to be filled post-payment)
+            $this->createEmptyParticipantRecords($booking, $hold);
 
             // Create booking extras records (if extras service is available and extras are selected)
-            if ($this->extrasService && !empty($extras)) {
+            if ($this->extrasService && ! empty($extras)) {
                 $personTypeBreakdown = $hold->person_type_breakdown ?? [];
                 $currency = $hold->slot?->currency ?? 'EUR';
 
@@ -99,55 +117,31 @@ class BookingService
     }
 
     /**
-     * Create participant records for a booking.
-     * Pre-populates the first participant with billing contact data.
+     * Create empty participant records for a booking.
+     * Participant names will be collected post-payment if required by the listing.
      */
-    private function createParticipantRecords(Booking $booking, BookingHold $hold, array $billingContact): void
+    private function createEmptyParticipantRecords(Booking $booking, BookingHold $hold): void
     {
         $breakdown = $hold->person_type_breakdown ?? [];
-        $participantIndex = 0;
 
         // If breakdown is available, create participants with person types
-        if (!empty($breakdown)) {
+        if (! empty($breakdown)) {
             foreach ($breakdown as $personType => $count) {
                 for ($i = 0; $i < $count; $i++) {
-                    $participantData = [
+                    BookingParticipant::create([
                         'booking_id' => $booking->id,
                         'person_type' => $personType,
-                    ];
-
-                    // Pre-populate first participant with billing contact
-                    if ($participantIndex === 0) {
-                        $participantData = array_merge($participantData, [
-                            'first_name' => $billingContact['first_name'],
-                            'last_name' => $billingContact['last_name'],
-                            'email' => $billingContact['email'],
-                            'phone' => $billingContact['phone'],
-                        ]);
-                    }
-
-                    BookingParticipant::create($participantData);
-                    $participantIndex++;
+                        // Names, email, phone intentionally left null - to be filled post-payment
+                    ]);
                 }
             }
         } else {
             // No breakdown, create based on quantity only
             for ($i = 0; $i < $booking->quantity; $i++) {
-                $participantData = [
+                BookingParticipant::create([
                     'booking_id' => $booking->id,
-                ];
-
-                // Pre-populate first participant with billing contact
-                if ($i === 0) {
-                    $participantData = array_merge($participantData, [
-                        'first_name' => $billingContact['first_name'],
-                        'last_name' => $billingContact['last_name'],
-                        'email' => $billingContact['email'],
-                        'phone' => $billingContact['phone'],
-                    ]);
-                }
-
-                BookingParticipant::create($participantData);
+                    // Names, email, phone intentionally left null - to be filled post-payment
+                ]);
             }
         }
     }
@@ -164,7 +158,7 @@ class BookingService
         }
 
         // It's already an array of travelers
-        return array_map(fn($t) => $this->normalizeTravelerKeys($t), $travelers);
+        return array_map(fn ($t) => $this->normalizeTravelerKeys($t), $travelers);
     }
 
     /**
@@ -209,11 +203,12 @@ class BookingService
         // Reserve inventory for extras now that payment is confirmed
         if ($this->extrasService) {
             foreach ($booking->bookingExtras as $bookingExtra) {
-                if (!$bookingExtra->inventory_reserved && $bookingExtra->extra?->track_inventory) {
+                if (! $bookingExtra->inventory_reserved && $bookingExtra->extra?->track_inventory) {
                     $reserved = $bookingExtra->extra->reserveInventory(
                         $bookingExtra->quantity,
                         $booking
                     );
+
                     if ($reserved) {
                         $bookingExtra->update(['inventory_reserved' => true]);
                     }
@@ -223,6 +218,7 @@ class BookingService
 
         // Send confirmation email to primary traveler
         $email = $booking->getPrimaryEmail();
+
         if ($email) {
             Mail::to($email)->queue(new BookingConfirmationMail($booking));
         }
@@ -252,6 +248,7 @@ class BookingService
 
         // Send cancellation email to primary traveler
         $email = $booking->getPrimaryEmail();
+
         if ($email) {
             Mail::to($email)->queue(new BookingCancellationMail($booking));
         }
@@ -279,15 +276,51 @@ class BookingService
      */
     private function calculateTotalAmount(BookingHold $hold, array $extras): float
     {
-        // Get price from slot (base_price is stored in the availability_slot)
-        $pricePerUnit = (float) ($hold->slot?->base_price ?? 0);
-        $baseAmount = $pricePerUnit * $hold->quantity;
+        $baseAmount = 0;
+        $listing = $hold->slot?->listing;
+        $personTypeBreakdown = $hold->person_type_breakdown ?? [];
+
+        // Try to calculate using person_type_breakdown (most accurate)
+        if (! empty($personTypeBreakdown) && $listing) {
+            $pricing = $listing->pricing ?? [];
+            $personTypes = $pricing['personTypes'] ?? [];
+
+            // Get base price for fallback
+            $basePrice = $pricing['displayPrice'] ?? $pricing['tndPrice'] ?? $hold->slot?->base_price ?? 0;
+            $basePrice = (float) $basePrice;
+
+            if (! empty($personTypes) && is_array($personTypes)) {
+                // Calculate using person type prices
+                foreach ($personTypeBreakdown as $personTypeKey => $quantity) {
+                    // Find the person type definition
+                    $personType = collect($personTypes)->firstWhere('key', $personTypeKey);
+
+                    if ($personType) {
+                        // Use person type price or fall back to base price
+                        $price = $personType['price'] ?? $basePrice;
+                        $price = (float) $price;
+                        $baseAmount += $price * (int) $quantity;
+                    } else {
+                        // Person type not found, use base price
+                        $baseAmount += $basePrice * (int) $quantity;
+                    }
+                }
+            } else {
+                // No person types defined, use base price
+                $baseAmount = $basePrice * $hold->quantity;
+            }
+        } else {
+            // Fallback: use base_price from slot or listing
+            $pricePerUnit = (float) ($hold->slot?->base_price ?? $listing?->pricing['displayPrice'] ?? $listing?->pricing['tndPrice'] ?? 0);
+            $baseAmount = $pricePerUnit * $hold->quantity;
+        }
+
         $extrasAmount = 0;
 
         // Use ExtrasService for proper calculation if available
-        if ($this->extrasService && !empty($extras)) {
-            $currency = $hold->slot?->currency ?? 'EUR';
-            $personTypeBreakdown = $hold->person_type_breakdown ?? [];
+        if ($this->extrasService && ! empty($extras)) {
+            // Get currency from listing pricing
+            $currency = $listing?->pricing['currency'] ?? 'TND';
 
             $calculation = $this->extrasService->calculateExtrasTotal(
                 $extras,
@@ -353,7 +386,7 @@ class BookingService
     {
         $booking = $this->findByMagicToken($token);
 
-        if (!$booking || !$booking->hasMagicTokenValid()) {
+        if (! $booking || ! $booking->hasMagicTokenValid()) {
             return null;
         }
 
