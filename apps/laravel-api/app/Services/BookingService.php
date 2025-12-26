@@ -323,8 +323,13 @@ class BookingService
                 $baseAmount = $basePrice * $hold->quantity;
             }
         } else {
-            // Fallback: use base_price from slot or listing
-            $pricePerUnit = (float) ($hold->slot?->base_price ?? $listing?->pricing['displayPrice'] ?? $listing?->pricing['tndPrice'] ?? 0);
+            // Fallback: use base_price from slot or listing (support both camelCase and snake_case)
+            $pricePerUnit = (float) ($hold->slot?->base_price
+                ?? $listing?->pricing['displayPrice']
+                ?? $listing?->pricing['tndPrice']
+                ?? $listing?->pricing['tnd_price']
+                ?? $listing?->pricing['eur_price']
+                ?? 0);
             $baseAmount = $pricePerUnit * $hold->quantity;
         }
 
