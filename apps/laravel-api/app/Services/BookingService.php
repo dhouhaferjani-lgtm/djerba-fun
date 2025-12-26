@@ -283,10 +283,16 @@ class BookingService
         // Try to calculate using person_type_breakdown (most accurate)
         if (! empty($personTypeBreakdown) && $listing) {
             $pricing = $listing->pricing ?? [];
-            $personTypes = $pricing['personTypes'] ?? [];
+            // Support both camelCase and snake_case (database uses snake_case)
+            $personTypes = $pricing['person_types'] ?? $pricing['personTypes'] ?? [];
 
-            // Get base price for fallback
-            $basePrice = $pricing['displayPrice'] ?? $pricing['tndPrice'] ?? $hold->slot?->base_price ?? 0;
+            // Get base price for fallback (support both camelCase and snake_case)
+            $basePrice = $pricing['displayPrice']
+                ?? $pricing['tndPrice']
+                ?? $pricing['tnd_price']
+                ?? $pricing['eur_price']
+                ?? $hold->slot?->base_price
+                ?? 0;
             $basePrice = (float) $basePrice;
 
             if (! empty($personTypes) && is_array($personTypes)) {
