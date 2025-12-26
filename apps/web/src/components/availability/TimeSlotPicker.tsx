@@ -72,6 +72,7 @@ export default function TimeSlotPicker({
             <button
               key={slot.id}
               onClick={() => onSlotSelect(slot)}
+              data-testid="time-slot"
               className={`
                 relative rounded-lg border-2 p-4 text-left transition-all
                 ${isSelected ? 'border-primary ring-2 ring-primary ring-opacity-50' : getSlotStatusColor(slot.status)}
@@ -88,7 +89,7 @@ export default function TimeSlotPicker({
               {/* Capacity */}
               <div className="mb-2 flex items-center gap-2 text-sm text-neutral-600">
                 <Users className="h-4 w-4" />
-                <span>
+                <span data-testid="slot-capacity">
                   {slot.remainingCapacity ?? slot.capacity} / {slot.capacity} {t('available')}
                 </span>
               </div>
