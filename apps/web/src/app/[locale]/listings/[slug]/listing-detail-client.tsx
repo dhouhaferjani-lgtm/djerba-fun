@@ -572,6 +572,20 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       Object.entries(personTypeBreakdown).filter(([, qty]) => qty > 0)
     );
 
+    // Validate breakdown has at least one person
+    const totalGuests = Object.values(filteredBreakdown).reduce((sum, qty) => sum + qty, 0);
+    if (totalGuests === 0) {
+      console.error('No guests selected');
+      return;
+    }
+
+    // Log for debugging
+    console.log('Creating hold with breakdown:', {
+      filteredBreakdown,
+      totalGuests,
+      slotCapacity: selectedSlot.remainingCapacity,
+    });
+
     try {
       const sessionId = getGuestSessionId();
       const response = await createHoldMutation.mutateAsync({

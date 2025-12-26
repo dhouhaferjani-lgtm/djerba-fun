@@ -138,10 +138,23 @@ export function BookingReview({
     if (personTypeBreakdown && Object.keys(personTypeBreakdown).length > 0) {
       const personTypes = getPersonTypes();
       let total = 0;
+
+      console.log('Calculating subtotal from breakdown:', {
+        personTypeBreakdown,
+        personTypes: personTypes.map((pt) => ({ key: pt.key, price: pt.price })),
+      });
+
       for (const type of personTypes) {
         const qty = personTypeBreakdown[type.key] || 0;
-        total += (type.price ?? 0) * qty;
+        const price = type.price ?? 0;
+        total += price * qty;
+
+        if (qty > 0) {
+          console.log(`  ${type.key}: ${qty} × ${price} = ${price * qty}`);
+        }
       }
+
+      console.log('Total calculated:', total);
       return total;
     }
 
@@ -152,6 +165,7 @@ export function BookingReview({
       listing.pricing?.displayPrice ||
       listing.pricing?.tndPrice ||
       0;
+    console.log('Using fallback price:', { unitPrice, quantity });
     return unitPrice * quantity;
   };
 

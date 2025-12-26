@@ -101,7 +101,10 @@ export function PersonTypeSelector({
   return (
     <div className="space-y-4">
       {/* Prominent capacity indicator */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
+      <div
+        className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between"
+        data-testid="capacity-indicator"
+      >
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-blue-600" />
           <span className="text-sm font-medium text-blue-900">{t('available_capacity')}</span>
@@ -157,7 +160,12 @@ export function PersonTypeSelector({
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <span className="w-8 text-center font-medium">{quantity}</span>
+                <span
+                  className="w-8 text-center font-medium"
+                  data-testid={`person-type-${type.key}-count`}
+                >
+                  {quantity}
+                </span>
                 <button
                   type="button"
                   onClick={() => handleQuantityChange(type.key, 1)}
@@ -187,6 +195,7 @@ export function PersonTypeSelector({
             currency={currency}
             size="md"
             perPerson={false}
+            data-testid="total-price"
           />
         </div>
         {maxCapacity - totals.totalGuests <= 3 && totals.totalGuests < maxCapacity && (
@@ -194,6 +203,15 @@ export function PersonTypeSelector({
             <AlertTriangle className="h-4 w-4" />
             {t('only_x_spots_left', { count: maxCapacity - totals.totalGuests })}
           </p>
+        )}
+        {totals.totalGuests > maxCapacity && (
+          <div
+            className="text-sm text-red-600 font-medium mt-2 flex items-center gap-1"
+            data-testid="capacity-error"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            {t('exceeds_capacity', { max: maxCapacity })}
+          </div>
         )}
       </div>
     </div>
