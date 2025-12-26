@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
 class BookingHold extends Model
@@ -244,23 +245,33 @@ class BookingHold extends Model
         ?string $sessionId = null,
         ?array $personTypeBreakdown = null
     ): ?self {
-        // Check if slot has enough capacity (uses computed remainingCapacity accessor)
-        if ($slot->remainingCapacity < $quantity) {
-            return null;
-        }
+        // Wrap in transaction with row-level locking to prevent race conditions
+        return DB::transaction(function () use ($slot, $user, $quantity, $sessionId, $personTypeBreakdown) {
+            // Lock the slot row for this transaction to prevent concurrent bookings
+            $lockedSlot = AvailabilitySlot::lockForUpdate()->find($slot->id);
 
-        // Create the hold (capacity is now tracked automatically via accessor)
-        $hold = static::create([
-            'listing_id' => $slot->listing_id,
-            'slot_id' => $slot->id,
-            'user_id' => $user?->id,
-            'session_id' => $sessionId,
-            'quantity' => $quantity,
-            'person_type_breakdown' => $personTypeBreakdown,
-            'expires_at' => now()->addMinutes(self::HOLD_DURATION_MINUTES),
-            'status' => HoldStatus::ACTIVE,
-        ]);
+            if (! $lockedSlot) {
+                return null;
+            }
 
-        return $hold;
+            // Check if slot has enough capacity (uses computed remainingCapacity accessor)
+            if ($lockedSlot->remainingCapacity < $quantity) {
+                return null;
+            }
+
+            // Create the hold (capacity is now tracked automatically via accessor)
+            $hold = static::create([
+                'listing_id' => $lockedSlot->listing_id,
+                'slot_id' => $lockedSlot->id,
+                'user_id' => $user?->id,
+                'session_id' => $sessionId,
+                'quantity' => $quantity,
+                'person_type_breakdown' => $personTypeBreakdown,
+                'expires_at' => now()->addMinutes(self::HOLD_DURATION_MINUTES),
+                'status' => HoldStatus::ACTIVE,
+            ]);
+
+            return $hold;
+        });
     }
 }

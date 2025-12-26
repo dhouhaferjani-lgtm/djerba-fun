@@ -25,7 +25,7 @@ class CartService
     {
         $cart = $this->getActiveCart($user, $sessionId);
 
-        if (!$cart) {
+        if (! $cart) {
             $cart = Cart::create([
                 'user_id' => $user?->id,
                 'session_id' => $sessionId,
@@ -51,10 +51,10 @@ class CartService
     /**
      * Add an item to the cart from a booking hold.
      *
-     * @param Cart $cart The cart to add to
-     * @param BookingHold $hold The booking hold to add
-     * @param Listing $listing The listing being booked
-     * @param string|null $currency The currency to use (detected from middleware)
+     * @param  Cart  $cart  The cart to add to
+     * @param  BookingHold  $hold  The booking hold to add
+     * @param  Listing  $listing  The listing being booked
+     * @param  string|null  $currency  The currency to use (detected from middleware)
      * @return CartItem The created cart item
      */
     public function addItem(Cart $cart, BookingHold $hold, Listing $listing, ?string $currency = null): CartItem
@@ -64,7 +64,7 @@ class CartService
             $hold->update(['cart_id' => $cart->id]);
 
             // Determine currency (use provided, or get from request, or default to EUR)
-            if (!$currency) {
+            if (! $currency) {
                 $currency = request()->attributes->get('user_currency', 'EUR');
             }
 
@@ -96,8 +96,8 @@ class CartService
     /**
      * Remove an item from the cart.
      *
-     * @param CartItem $item The item to remove
-     * @param bool $releaseHold Whether to release the hold capacity
+     * @param  CartItem  $item  The item to remove
+     * @param  bool  $releaseHold  Whether to release the hold capacity
      */
     public function removeItem(CartItem $item, bool $releaseHold = true): void
     {
@@ -129,8 +129,8 @@ class CartService
     /**
      * Update the primary contact for a cart item.
      *
-     * @param CartItem $item The cart item
-     * @param array $contact Contact info: [firstName, lastName, email, phone]
+     * @param  CartItem  $item  The cart item
+     * @param  array  $contact  Contact info: [firstName, lastName, email, phone]
      */
     public function updatePrimaryContact(CartItem $item, array $contact): void
     {
@@ -140,12 +140,12 @@ class CartService
     /**
      * Update guest names for a cart item (only if listing requires it).
      *
-     * @param CartItem $item The cart item
-     * @param array $names Array of guest names
+     * @param  CartItem  $item  The cart item
+     * @param  array  $names  Array of guest names
      */
     public function updateGuestNames(CartItem $item, array $names): void
     {
-        if (!$item->requiresTravelerNames()) {
+        if (! $item->requiresTravelerNames()) {
             return;
         }
 
@@ -155,8 +155,8 @@ class CartService
     /**
      * Update extras for a cart item.
      *
-     * @param CartItem $item The cart item
-     * @param array $extras Array of extras: [{id, name, price, quantity}]
+     * @param  CartItem  $item  The cart item
+     * @param  array  $extras  Array of extras: [{id, name, price, quantity}]
      */
     public function updateExtras(CartItem $item, array $extras): void
     {
@@ -166,7 +166,7 @@ class CartService
     /**
      * Calculate cart totals using the price calculation service.
      *
-     * @param Cart $cart The cart to calculate
+     * @param  Cart  $cart  The cart to calculate
      * @return array{items: array, subtotal: float, total: float, currency: string}
      */
     public function calculateTotals(Cart $cart): array
@@ -180,12 +180,12 @@ class CartService
         foreach ($cart->items as $item) {
             $listing = $item->listing;
 
-            if (!$listing) {
+            if (! $listing) {
                 continue;
             }
 
             // Calculate item price using person type breakdown if available
-            if (!empty($item->person_type_breakdown)) {
+            if (! empty($item->person_type_breakdown)) {
                 $result = $this->priceService->calculateTotal($listing, $item->person_type_breakdown);
                 $itemSubtotal = $result['total'];
                 $currency = $result['currency'];
@@ -229,7 +229,7 @@ class CartService
     /**
      * Validate cart before checkout.
      *
-     * @param Cart $cart The cart to validate
+     * @param  Cart  $cart  The cart to validate
      * @return array{valid: bool, errors: array}
      */
     public function validateForCheckout(Cart $cart): array
@@ -237,7 +237,7 @@ class CartService
         $errors = [];
 
         // Check cart is active
-        if (!$cart->isActive()) {
+        if (! $cart->isActive()) {
             $errors[] = [
                 'code' => 'cart_expired',
                 'message' => 'Cart has expired',
@@ -255,7 +255,8 @@ class CartService
         // Validate each item
         foreach ($cart->items as $item) {
             $itemErrors = $this->validateItem($item);
-            if (!empty($itemErrors)) {
+
+            if (! empty($itemErrors)) {
                 $errors = array_merge($errors, $itemErrors);
             }
         }
@@ -269,7 +270,7 @@ class CartService
     /**
      * Validate a single cart item.
      *
-     * @param CartItem $item The item to validate
+     * @param  CartItem  $item  The item to validate
      * @return array Array of errors (empty if valid)
      */
     protected function validateItem(CartItem $item): array
@@ -277,7 +278,7 @@ class CartService
         $errors = [];
 
         // Check hold is still valid
-        if (!$item->isHoldValid()) {
+        if (! $item->isHoldValid()) {
             $errors[] = [
                 'code' => 'hold_expired',
                 'message' => 'Hold has expired for ' . $item->getTitle(),
@@ -314,8 +315,8 @@ class CartService
     /**
      * Merge a guest cart into a user's cart after login.
      *
-     * @param string $sessionId The guest session ID
-     * @param User $user The logged-in user
+     * @param  string  $sessionId  The guest session ID
+     * @param  User  $user  The logged-in user
      * @return Cart|null The merged cart
      */
     public function mergeGuestCart(string $sessionId, User $user): ?Cart
@@ -326,16 +327,17 @@ class CartService
             ->whereNull('user_id')
             ->first();
 
-        if (!$guestCart) {
+        if (! $guestCart) {
             return null;
         }
 
         // Find or create user cart
         $userCart = $this->getActiveCart($user, null);
 
-        if (!$userCart) {
+        if (! $userCart) {
             // Just assign the guest cart to the user
             $guestCart->update(['user_id' => $user->id]);
+
             return $guestCart->fresh();
         }
 
@@ -380,7 +382,7 @@ class CartService
         $unavailable = [];
 
         foreach ($cart->items as $item) {
-            if (!$item->hold) {
+            if (! $item->hold) {
                 $failed++;
                 continue;
             }
@@ -407,17 +409,15 @@ class CartService
             if ($hold->status === HoldStatus::EXPIRED) {
                 $slot = $hold->slot;
 
-                // Check if slot still has capacity
-                if ($slot && $slot->remaining_capacity >= $hold->quantity) {
-                    // Re-reserve capacity and reactivate hold
-                    if ($slot->reserveCapacity($hold->quantity)) {
-                        $hold->update([
-                            'status' => HoldStatus::ACTIVE,
-                            'expires_at' => $newExpiration,
-                        ]);
-                        $extended++;
-                        continue;
-                    }
+                // Check if slot still has capacity (uses computed accessor)
+                if ($slot && $slot->remainingCapacity >= $hold->quantity) {
+                    // Reactivate hold (capacity tracked automatically via accessor)
+                    $hold->update([
+                        'status' => HoldStatus::ACTIVE,
+                        'expires_at' => $newExpiration,
+                    ]);
+                    $extended++;
+                    continue;
                 }
 
                 // Slot no longer available

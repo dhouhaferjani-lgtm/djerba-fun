@@ -15,10 +15,6 @@ class HoldController extends Controller
     /**
      * Create a new booking hold.
      * Supports both authenticated users and guest checkout via session_id.
-     *
-     * @param  CreateHoldRequest  $request
-     * @param  Listing  $listing
-     * @return BookingHoldResource|JsonResponse
      */
     public function store(CreateHoldRequest $request, Listing $listing): BookingHoldResource|JsonResponse
     {
@@ -39,12 +35,12 @@ class HoldController extends Controller
         $quantity = $request->getTotalQuantity();
         $personTypeBreakdown = $request->getPersonTypeBreakdown();
 
-        // Check if quantity is available
-        if ($slot->remaining_capacity < $quantity) {
+        // Check if quantity is available (uses computed accessor)
+        if ($slot->remainingCapacity < $quantity) {
             return response()->json([
                 'message' => 'Insufficient capacity',
                 'requested' => $quantity,
-                'available' => $slot->remaining_capacity,
+                'available' => $slot->remainingCapacity,
             ], 422);
         }
 
@@ -66,10 +62,6 @@ class HoldController extends Controller
 
     /**
      * Get a specific hold.
-     *
-     * @param  Listing  $listing
-     * @param  BookingHold  $hold
-     * @return BookingHoldResource|JsonResponse
      */
     public function show(Listing $listing, BookingHold $hold): BookingHoldResource|JsonResponse
     {
@@ -96,9 +88,6 @@ class HoldController extends Controller
     /**
      * Get a hold by ID directly (for checkout page persistence).
      * Includes full listing and slot data.
-     *
-     * @param  BookingHold  $hold
-     * @return BookingHoldResource|JsonResponse
      */
     public function showById(BookingHold $hold): BookingHoldResource|JsonResponse
     {
@@ -122,10 +111,6 @@ class HoldController extends Controller
     /**
      * Cancel a hold.
      * Supports both authenticated users and guest checkout via session_id.
-     *
-     * @param  Listing  $listing
-     * @param  BookingHold  $hold
-     * @return JsonResponse
      */
     public function destroy(Listing $listing, BookingHold $hold): JsonResponse
     {

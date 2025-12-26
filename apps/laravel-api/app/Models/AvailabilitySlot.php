@@ -136,30 +136,6 @@ class AvailabilitySlot extends Model
     }
 
     /**
-     * Reserve capacity for a hold.
-     */
-    public function reserveCapacity(int $quantity): bool
-    {
-        if ($this->remaining_capacity < $quantity) {
-            return false;
-        }
-
-        $this->remaining_capacity -= $quantity;
-        $this->updateStatus();
-
-        return true;
-    }
-
-    /**
-     * Release capacity from a hold.
-     */
-    public function releaseCapacity(int $quantity): void
-    {
-        $this->remaining_capacity = min($this->remaining_capacity + $quantity, $this->capacity);
-        $this->updateStatus();
-    }
-
-    /**
      * Check if slot is bookable.
      */
     public function isBookable(): bool
