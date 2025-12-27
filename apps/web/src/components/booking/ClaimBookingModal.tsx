@@ -91,8 +91,8 @@ export function ClaimBookingModal({ onClose, onSuccess }: ClaimBookingModalProps
         <div className="bg-white rounded-lg max-w-md w-full p-8">
           <div className="text-center">
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <Check className="w-10 h-10 text-green-600" />
+              <div className="w-16 h-16 bg-success-light rounded-full flex items-center justify-center">
+                <Check className="w-10 h-10 text-success" />
               </div>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -138,10 +138,10 @@ export function ClaimBookingModal({ onClose, onSuccess }: ClaimBookingModalProps
         {/* Body */}
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
           {/* Info Banner */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="bg-success-light border border-success/20 rounded-lg p-4">
             <div className="flex gap-3">
-              <AlertCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-green-800">
+              <AlertCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-success-dark">
                 <p className="font-medium mb-1">
                   {t('claim_booking_info_title') || 'Link a past booking'}
                 </p>
@@ -163,14 +163,14 @@ export function ClaimBookingModal({ onClose, onSuccess }: ClaimBookingModalProps
               type="text"
               {...register('bookingNumber')}
               className={`w-full px-4 py-3 border rounded-lg font-mono text-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
-                errors.bookingNumber ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                errors.bookingNumber ? 'border-error/30 bg-error-light' : 'border-gray-300'
               }`}
               placeholder="GA-202512-A1B2C"
               autoComplete="off"
               autoFocus
             />
             {errors.bookingNumber && (
-              <p className="text-sm text-red-600 mt-2 flex items-start gap-2">
+              <p className="text-sm text-error mt-2 flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <span>{errors.bookingNumber.message}</span>
               </p>

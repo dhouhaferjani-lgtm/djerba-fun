@@ -145,13 +145,13 @@ export function FixedBookingPanel({
   const getUrgencyStyles = (variant: 'warning' | 'success' | 'info') => {
     switch (variant) {
       case 'warning':
-        return 'bg-red-50 border-red-200 text-red-900';
+        return 'bg-error-light border-error/20 text-error-dark';
       case 'success':
-        return 'bg-green-50 border-green-200 text-green-900';
+        return 'bg-success-light border-success/20 text-success-dark';
       case 'info':
-        return 'bg-green-50 border-green-200 text-green-900';
+        return 'bg-success-light border-success/20 text-success-dark';
       default:
-        return 'bg-yellow-50 border-yellow-200 text-yellow-900';
+        return 'bg-warning-light border-warning/20 text-warning-dark';
     }
   };
 
@@ -210,7 +210,7 @@ export function FixedBookingPanel({
                 {(listing as any).minAdvanceBookingHours &&
                   (listing as any).minAdvanceBookingHours > 0 && (
                     <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                      <AlertCircle className="h-4 w-4 text-warning flex-shrink-0" />
                       <span className="text-neutral-800">
                         {t('trust_signals.book_advance', {
                           hours: (listing as any).minAdvanceBookingHours,

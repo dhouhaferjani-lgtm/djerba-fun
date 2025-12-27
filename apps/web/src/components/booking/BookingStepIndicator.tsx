@@ -39,7 +39,7 @@ export function BookingStepIndicator({ currentStep, completedSteps }: BookingSte
               <div
                 className={cn(
                   'w-10 h-10 rounded-full flex items-center justify-center transition-colors',
-                  status === 'completed' && 'bg-green-500 text-white',
+                  status === 'completed' && 'bg-success text-white',
                   status === 'active' && 'bg-primary text-white',
                   status === 'pending' && 'bg-gray-200 text-gray-400'
                 )}
@@ -49,7 +49,7 @@ export function BookingStepIndicator({ currentStep, completedSteps }: BookingSte
               <span
                 className={cn(
                   'text-xs mt-1.5 font-medium text-center',
-                  status === 'completed' && 'text-green-600',
+                  status === 'completed' && 'text-success',
                   status === 'active' && 'text-primary',
                   status === 'pending' && 'text-gray-400'
                 )}
@@ -63,7 +63,7 @@ export function BookingStepIndicator({ currentStep, completedSteps }: BookingSte
               <div
                 className={cn(
                   'flex-1 h-0.5 mx-2 mt-[-1rem]',
-                  completedSteps.includes(step.key) ? 'bg-green-500' : 'bg-gray-200'
+                  completedSteps.includes(step.key) ? 'bg-success' : 'bg-gray-200'
                 )}
               />
             )}

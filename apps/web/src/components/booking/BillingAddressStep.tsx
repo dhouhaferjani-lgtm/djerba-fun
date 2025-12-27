@@ -113,7 +113,7 @@ export function BillingAddressStep({
         {/* Country */}
         <div>
           <label htmlFor="billing-country" className="block text-sm font-medium text-gray-700 mb-1">
-            {t('billing_country') || 'Country'} <span className="text-red-500">*</span>
+            {t('billing_country') || 'Country'} <span className="text-error">*</span>
           </label>
           <select
             id="billing-country"
@@ -121,7 +121,7 @@ export function BillingAddressStep({
             value={formData.country_code}
             onChange={(e) => handleChange('country_code', e.target.value)}
             className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-              errors.country_code ? 'border-red-500' : 'border-gray-300'
+              errors.country_code ? 'border-error' : 'border-gray-300'
             }`}
             disabled={isProcessing}
           >
@@ -132,9 +132,7 @@ export function BillingAddressStep({
               </option>
             ))}
           </select>
-          {errors.country_code && (
-            <p className="mt-1 text-sm text-red-600">{errors.country_code}</p>
-          )}
+          {errors.country_code && <p className="mt-1 text-sm text-error">{errors.country_code}</p>}
         </div>
 
         {/* Address Line 1 */}
@@ -143,7 +141,7 @@ export function BillingAddressStep({
             htmlFor="billing-address-line1"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            {t('billing_address') || 'Street Address'} <span className="text-red-500">*</span>
+            {t('billing_address') || 'Street Address'} <span className="text-error">*</span>
           </label>
           <input
             type="text"
@@ -153,12 +151,12 @@ export function BillingAddressStep({
             onChange={(e) => handleChange('address_line1', e.target.value)}
             placeholder={t('billing_address_placeholder') || '123 Main Street'}
             className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-              errors.address_line1 ? 'border-red-500' : 'border-gray-300'
+              errors.address_line1 ? 'border-error' : 'border-gray-300'
             }`}
             disabled={isProcessing}
           />
           {errors.address_line1 && (
-            <p className="mt-1 text-sm text-red-600">{errors.address_line1}</p>
+            <p className="mt-1 text-sm text-error">{errors.address_line1}</p>
           )}
         </div>
 
@@ -188,7 +186,7 @@ export function BillingAddressStep({
           {/* City */}
           <div>
             <label htmlFor="billing-city" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('billing_city') || 'City'} <span className="text-red-500">*</span>
+              {t('billing_city') || 'City'} <span className="text-error">*</span>
             </label>
             <input
               type="text"
@@ -198,11 +196,11 @@ export function BillingAddressStep({
               onChange={(e) => handleChange('city', e.target.value)}
               placeholder={t('billing_city_placeholder') || 'Tunis'}
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-                errors.city ? 'border-red-500' : 'border-gray-300'
+                errors.city ? 'border-error' : 'border-gray-300'
               }`}
               disabled={isProcessing}
             />
-            {errors.city && <p className="mt-1 text-sm text-red-600">{errors.city}</p>}
+            {errors.city && <p className="mt-1 text-sm text-error">{errors.city}</p>}
           </div>
 
           {/* Postal Code */}
@@ -211,7 +209,7 @@ export function BillingAddressStep({
               htmlFor="billing-postal-code"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              {t('billing_postal_code') || 'Postal Code'} <span className="text-red-500">*</span>
+              {t('billing_postal_code') || 'Postal Code'} <span className="text-error">*</span>
             </label>
             <input
               type="text"
@@ -221,13 +219,11 @@ export function BillingAddressStep({
               onChange={(e) => handleChange('postal_code', e.target.value)}
               placeholder={t('billing_postal_code_placeholder') || '1000'}
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-                errors.postal_code ? 'border-red-500' : 'border-gray-300'
+                errors.postal_code ? 'border-error' : 'border-gray-300'
               }`}
               disabled={isProcessing}
             />
-            {errors.postal_code && (
-              <p className="mt-1 text-sm text-red-600">{errors.postal_code}</p>
-            )}
+            {errors.postal_code && <p className="mt-1 text-sm text-error">{errors.postal_code}</p>}
           </div>
         </div>
 

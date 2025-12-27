@@ -397,7 +397,7 @@ export function BookingWizard({
                         isActive
                           ? 'bg-primary text-white'
                           : isCompleted
-                            ? 'bg-green-500 text-white'
+                            ? 'bg-success text-white'
                             : 'bg-gray-200 text-gray-600'
                       }`}
                     >
@@ -415,7 +415,7 @@ export function BookingWizard({
                     </div>
                     <span
                       className={`mt-2 text-sm font-medium ${
-                        isActive ? 'text-primary' : isCompleted ? 'text-green-600' : 'text-gray-500'
+                        isActive ? 'text-primary' : isCompleted ? 'text-success' : 'text-gray-500'
                       }`}
                     >
                       {step.label}
@@ -423,7 +423,7 @@ export function BookingWizard({
                   </div>
                   {index < steps.length - 1 && (
                     <div
-                      className={`h-1 flex-1 mx-2 ${isCompleted ? 'bg-green-500' : 'bg-gray-200'}`}
+                      className={`h-1 flex-1 mx-2 ${isCompleted ? 'bg-success' : 'bg-gray-200'}`}
                     />
                   )}
                 </div>
@@ -439,8 +439,8 @@ export function BookingWizard({
 
         {/* Error Display */}
         {(createBookingMutation.isError || processPaymentMutation.isError) && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-800">
+          <div className="mt-4 p-4 bg-error-light border border-error/20 rounded-lg">
+            <p className="text-sm text-error-dark">
               {createBookingMutation.error?.message ||
                 processPaymentMutation.error?.message ||
                 t('booking_error')}

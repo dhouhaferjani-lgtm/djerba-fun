@@ -169,7 +169,7 @@ export function MultiTravelerForm({
           {/* First Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('first_name')} <span className="text-red-500">*</span>
+              {t('first_name')} <span className="text-error">*</span>
             </label>
             <input
               {...register('primaryTraveler.firstName')}
@@ -178,16 +178,14 @@ export function MultiTravelerForm({
               placeholder={t('first_name')}
             />
             {errors.primaryTraveler?.firstName && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.primaryTraveler.firstName.message}
-              </p>
+              <p className="mt-1 text-sm text-error">{errors.primaryTraveler.firstName.message}</p>
             )}
           </div>
 
           {/* Last Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('last_name')} <span className="text-red-500">*</span>
+              {t('last_name')} <span className="text-error">*</span>
             </label>
             <input
               {...register('primaryTraveler.lastName')}
@@ -196,14 +194,14 @@ export function MultiTravelerForm({
               placeholder={t('last_name')}
             />
             {errors.primaryTraveler?.lastName && (
-              <p className="mt-1 text-sm text-red-600">{errors.primaryTraveler.lastName.message}</p>
+              <p className="mt-1 text-sm text-error">{errors.primaryTraveler.lastName.message}</p>
             )}
           </div>
 
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('email')} <span className="text-red-500">*</span>
+              {t('email')} <span className="text-error">*</span>
             </label>
             <input
               {...register('primaryTraveler.email')}
@@ -212,14 +210,14 @@ export function MultiTravelerForm({
               placeholder={t('email_placeholder')}
             />
             {errors.primaryTraveler?.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.primaryTraveler.email.message}</p>
+              <p className="mt-1 text-sm text-error">{errors.primaryTraveler.email.message}</p>
             )}
           </div>
 
           {/* Phone */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('phone')} <span className="text-red-500">*</span>
+              {t('phone')} <span className="text-error">*</span>
             </label>
             <input
               {...register('primaryTraveler.phone')}
@@ -228,7 +226,7 @@ export function MultiTravelerForm({
               placeholder={t('phone_placeholder')}
             />
             {errors.primaryTraveler?.phone && (
-              <p className="mt-1 text-sm text-red-600">{errors.primaryTraveler.phone.message}</p>
+              <p className="mt-1 text-sm text-error">{errors.primaryTraveler.phone.message}</p>
             )}
           </div>
         </div>
@@ -287,7 +285,7 @@ export function MultiTravelerForm({
                     {/* First Name */}
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
-                        {t('first_name')} <span className="text-red-500">*</span>
+                        {t('first_name')} <span className="text-error">*</span>
                       </label>
                       <input
                         {...register(`additionalTravelers.${index}.firstName`)}
@@ -296,7 +294,7 @@ export function MultiTravelerForm({
                         placeholder={t('first_name')}
                       />
                       {errors.additionalTravelers?.[index]?.firstName && (
-                        <p className="mt-1 text-xs text-red-600">
+                        <p className="mt-1 text-xs text-error">
                           {errors.additionalTravelers[index]?.firstName?.message}
                         </p>
                       )}
@@ -305,7 +303,7 @@ export function MultiTravelerForm({
                     {/* Last Name */}
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
-                        {t('last_name')} <span className="text-red-500">*</span>
+                        {t('last_name')} <span className="text-error">*</span>
                       </label>
                       <input
                         {...register(`additionalTravelers.${index}.lastName`)}
@@ -314,7 +312,7 @@ export function MultiTravelerForm({
                         placeholder={t('last_name')}
                       />
                       {errors.additionalTravelers?.[index]?.lastName && (
-                        <p className="mt-1 text-xs text-red-600">
+                        <p className="mt-1 text-xs text-error">
                           {errors.additionalTravelers[index]?.lastName?.message}
                         </p>
                       )}

@@ -95,7 +95,7 @@ export function ParticipantsForm({ booking, onSubmit, isLoading = false }: Parti
           </h2>
           <div className="flex items-center gap-2">
             {completionPercentage === 100 ? (
-              <div className="flex items-center gap-2 text-green-600">
+              <div className="flex items-center gap-2 text-success">
                 <Check className="w-5 h-5" />
                 <span className="text-sm font-medium">Complete</span>
               </div>
@@ -134,9 +134,9 @@ export function ParticipantsForm({ booking, onSubmit, isLoading = false }: Parti
               key={participant.id || index}
               className={`border rounded-lg p-6 transition-colors ${
                 isComplete
-                  ? 'border-green-200 bg-green-50/30'
+                  ? 'border-success/20 bg-success-light/30'
                   : hasErrors
-                    ? 'border-red-200 bg-red-50/30'
+                    ? 'border-error/20 bg-error-light/30'
                     : 'border-gray-200 bg-white'
               }`}
             >
@@ -144,7 +144,7 @@ export function ParticipantsForm({ booking, onSubmit, isLoading = false }: Parti
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      isComplete ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
+                      isComplete ? 'bg-success-light text-success' : 'bg-gray-100 text-gray-600'
                     }`}
                   >
                     {isComplete ? <Check className="w-5 h-5" /> : <User className="w-5 h-5" />}
@@ -154,7 +154,7 @@ export function ParticipantsForm({ booking, onSubmit, isLoading = false }: Parti
                   </h3>
                 </div>
                 {isComplete && (
-                  <span className="text-sm font-medium text-green-600">
+                  <span className="text-sm font-medium text-success">
                     {t('complete') || 'Complete'}
                   </span>
                 )}
@@ -170,7 +170,7 @@ export function ParticipantsForm({ booking, onSubmit, isLoading = false }: Parti
                     htmlFor={`participant-${index}-firstName`}
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    {t('first_name') || 'First Name'} <span className="text-red-500">*</span>
+                    {t('first_name') || 'First Name'} <span className="text-error">*</span>
                   </label>
                   <input
                     id={`participant-${index}-firstName`}
@@ -178,13 +178,13 @@ export function ParticipantsForm({ booking, onSubmit, isLoading = false }: Parti
                     {...register(`participants.${index}.firstName`)}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
                       errors.participants?.[index]?.firstName
-                        ? 'border-red-300 bg-red-50'
+                        ? 'border-error/30 bg-error-light'
                         : 'border-gray-300'
                     }`}
                     placeholder="John"
                   />
                   {errors.participants?.[index]?.firstName && (
-                    <p className="text-sm text-red-600 mt-1">
+                    <p className="text-sm text-error mt-1">
                       {errors.participants[index]?.firstName?.message}
                     </p>
                   )}
@@ -196,7 +196,7 @@ export function ParticipantsForm({ booking, onSubmit, isLoading = false }: Parti
                     htmlFor={`participant-${index}-lastName`}
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    {t('last_name') || 'Last Name'} <span className="text-red-500">*</span>
+                    {t('last_name') || 'Last Name'} <span className="text-error">*</span>
                   </label>
                   <input
                     id={`participant-${index}-lastName`}
@@ -204,13 +204,13 @@ export function ParticipantsForm({ booking, onSubmit, isLoading = false }: Parti
                     {...register(`participants.${index}.lastName`)}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
                       errors.participants?.[index]?.lastName
-                        ? 'border-red-300 bg-red-50'
+                        ? 'border-error/30 bg-error-light'
                         : 'border-gray-300'
                     }`}
                     placeholder="Doe"
                   />
                   {errors.participants?.[index]?.lastName && (
-                    <p className="text-sm text-red-600 mt-1">
+                    <p className="text-sm text-error mt-1">
                       {errors.participants[index]?.lastName?.message}
                     </p>
                   )}
@@ -233,7 +233,7 @@ export function ParticipantsForm({ booking, onSubmit, isLoading = false }: Parti
                     placeholder="john@example.com"
                   />
                   {errors.participants?.[index]?.email && (
-                    <p className="text-sm text-red-600 mt-1">
+                    <p className="text-sm text-error mt-1">
                       {errors.participants[index]?.email?.message}
                     </p>
                   )}
