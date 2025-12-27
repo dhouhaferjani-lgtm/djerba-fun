@@ -5,6 +5,7 @@ import { Calendar, Clock, Users, MapPin } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
 import { useLocale } from 'next-intl';
+import { resolveTranslation } from '@/lib/utils/translate';
 import type {
   BookingHold,
   ListingSummary,
@@ -38,6 +39,12 @@ export function BookingSummary({
   const tCommon = useTranslations('common');
   const locale = useLocale();
   const dateLocale = locale === 'fr' ? fr : enUS;
+
+  // Resolve translated fields
+  const tr = (field: any) => resolveTranslation(field, locale);
+  const listingTitle = tr(listing.title);
+  const listingLocation =
+    typeof listing.location === 'string' ? listing.location : tr(listing.location);
 
   // Calculate prices
   const basePrice = slot.displayPrice || slot.tndPrice || 0;
@@ -75,11 +82,11 @@ export function BookingSummary({
       <div className="p-6 space-y-6">
         {/* Listing Title */}
         <div>
-          <h3 className="text-xl font-bold text-neutral-900 mb-1">{listing.title}</h3>
-          {listing.location && (
+          <h3 className="text-xl font-bold text-neutral-900 mb-1">{listingTitle}</h3>
+          {listingLocation && (
             <div className="flex items-center gap-1 text-sm text-neutral-600">
               <MapPin className="h-4 w-4" />
-              <span>{listing.location}</span>
+              <span>{listingLocation}</span>
             </div>
           )}
         </div>
