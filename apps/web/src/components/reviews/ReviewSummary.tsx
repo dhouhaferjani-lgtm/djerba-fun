@@ -13,7 +13,7 @@ const StarRating = ({ rating }: { rating: number }) => {
       {[1, 2, 3, 4, 5].map((star) => (
         <svg
           key={star}
-          className={`w-6 h-6 ${star <= Math.round(rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+          className={`w-6 h-6 ${star <= Math.round(rating) ? 'text-warning fill-warning' : 'text-gray-300'}`}
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="currentColor"
@@ -33,7 +33,7 @@ const RatingBar = ({ rating, count, total }: { rating: number; count: number; to
       <span className="text-sm font-medium text-gray-700 w-12">{rating} stars</span>
       <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
         <div
-          className="bg-yellow-400 h-full transition-all duration-300"
+          className="bg-warning h-full transition-all duration-300"
           style={{ width: `${percentage}%` }}
         />
       </div>

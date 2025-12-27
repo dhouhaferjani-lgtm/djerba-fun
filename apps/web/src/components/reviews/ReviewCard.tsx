@@ -19,7 +19,7 @@ const StarRating = ({ rating }: { rating: number }) => {
       {[1, 2, 3, 4, 5].map((star) => (
         <svg
           key={star}
-          className={`w-5 h-5 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+          className={`w-5 h-5 ${star <= rating ? 'text-warning fill-warning' : 'text-gray-300'}`}
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="currentColor"
@@ -73,7 +73,7 @@ export default function ReviewCard({ review, onMarkHelpful, isMarkingHelpful }: 
               {review.isVerified && (
                 <>
                   <span>•</span>
-                  <span className="flex items-center gap-1 text-green-600">
+                  <span className="flex items-center gap-1 text-success">
                     <svg
                       className="w-4 h-4"
                       fill="currentColor"
@@ -108,7 +108,7 @@ export default function ReviewCard({ review, onMarkHelpful, isMarkingHelpful }: 
         <div className="grid md:grid-cols-2 gap-4 mb-4">
           {review.pros.length > 0 && (
             <div>
-              <h5 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-1">
+              <h5 className="text-sm font-semibold text-success-dark mb-2 flex items-center gap-1">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
@@ -130,7 +130,7 @@ export default function ReviewCard({ review, onMarkHelpful, isMarkingHelpful }: 
 
           {review.cons.length > 0 && (
             <div>
-              <h5 className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-1">
+              <h5 className="text-sm font-semibold text-error-dark mb-2 flex items-center gap-1">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"

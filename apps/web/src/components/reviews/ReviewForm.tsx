@@ -31,7 +31,7 @@ const StarSelector = ({
           className="transition-transform hover:scale-110"
         >
           <svg
-            className={`w-10 h-10 ${star <= displayRating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+            className={`w-10 h-10 ${star <= displayRating ? 'text-warning fill-warning' : 'text-gray-300'}`}
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
@@ -115,16 +115,16 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
       {/* Rating */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          {t('rating')} <span className="text-red-500">*</span>
+          {t('rating')} <span className="text-error">*</span>
         </label>
         <StarSelector rating={rating} onChange={setRating} />
-        {errors.rating && <p className="mt-1 text-sm text-red-600">{errors.rating}</p>}
+        {errors.rating && <p className="mt-1 text-sm text-error">{errors.rating}</p>}
       </div>
 
       {/* Title */}
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-          {t('review_title')} <span className="text-red-500">*</span>
+          {t('review_title')} <span className="text-error">*</span>
         </label>
         <input
           type="text"
@@ -137,7 +137,7 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
         />
         <div className="flex justify-between mt-1">
           {errors.title ? (
-            <p className="text-sm text-red-600">{errors.title}</p>
+            <p className="text-sm text-error">{errors.title}</p>
           ) : (
             <span className="text-sm text-gray-500">Min. 5 characters</span>
           )}
@@ -148,7 +148,7 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
       {/* Content */}
       <div>
         <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-          {t('review_content')} <span className="text-red-500">*</span>
+          {t('review_content')} <span className="text-error">*</span>
         </label>
         <textarea
           id="content"
@@ -161,7 +161,7 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
         />
         <div className="flex justify-between mt-1">
           {errors.content ? (
-            <p className="text-sm text-red-600">{errors.content}</p>
+            <p className="text-sm text-error">{errors.content}</p>
           ) : (
             <span className="text-sm text-gray-500">Min. 20 characters</span>
           )}
@@ -186,7 +186,7 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
           <button
             type="button"
             onClick={addPro}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="px-4 py-2 bg-success text-white rounded-lg hover:bg-success-dark transition-colors"
           >
             {t('add_pro')}
           </button>
@@ -196,13 +196,13 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
             {pros.map((pro, index) => (
               <div
                 key={index}
-                className="bg-green-50 text-green-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                className="bg-success-light text-success-dark px-3 py-1 rounded-full text-sm flex items-center gap-2"
               >
                 {pro}
                 <button
                   type="button"
                   onClick={() => removePro(index)}
-                  className="text-green-600 hover:text-green-800"
+                  className="text-success hover:text-success-dark"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path
@@ -235,7 +235,7 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
           <button
             type="button"
             onClick={addCon}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error-dark transition-colors"
           >
             {t('add_con')}
           </button>
@@ -245,13 +245,13 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
             {cons.map((con, index) => (
               <div
                 key={index}
-                className="bg-red-50 text-red-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                className="bg-error-light text-error-dark px-3 py-1 rounded-full text-sm flex items-center gap-2"
               >
                 {con}
                 <button
                   type="button"
                   onClick={() => removeCon(index)}
-                  className="text-red-600 hover:text-red-800"
+                  className="text-error hover:text-error-dark"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path
