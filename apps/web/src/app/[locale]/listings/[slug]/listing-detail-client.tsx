@@ -600,8 +600,12 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
         session_id: sessionId,
         extras: [],
       });
-      // Redirect to dedicated checkout page with hold ID
       const holdId = response.data.id;
+
+      // Add to cart in background (for abandoned cart marketing)
+      await addToCartMutation.mutateAsync(holdId);
+
+      // Redirect to dedicated checkout page with hold ID (skip cart view)
       router.push(`/checkout/${holdId}`);
     } catch (err) {
       console.error('Failed to create hold:', err);
