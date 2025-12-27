@@ -273,7 +273,14 @@
     "insufficient_capacity_detailed": "Capacité insuffisante. Vous avez demandé {requested} places, mais seulement {available} sont disponibles.",
     "hold_expired_error": "Votre réservation a expiré. Veuillez sélectionner à nouveau votre date et heure.",
     "generic_booking_error": "Impossible de créer la réservation. Veuillez réessayer.",
-    "step_billing": "Facturation"
+    "step_billing": "Facturation",
+    "step_contact": "Contact",
+    "step_date": "Date",
+    "step_time": "Heure",
+    "step_guests": "Invités",
+    "step_traveler": "Info Voyageur",
+    "step_extras": "Extras",
+    "step_review": "Révision & Paiement"
   },
   "cart": {
     "title": "Votre Panier",
