@@ -35,9 +35,9 @@ export default function TimeSlotPicker({
   const getSlotStatusColor = (status: string) => {
     switch (status) {
       case 'available':
-        return 'border-green-300 bg-green-50 hover:bg-green-100';
+        return 'border-success bg-success-light hover:bg-success-light/80';
       case 'limited':
-        return 'border-yellow-300 bg-yellow-50 hover:bg-yellow-100';
+        return 'border-warning bg-warning-light hover:bg-warning-light/80';
       default:
         return 'border-neutral-300 bg-neutral-50';
     }

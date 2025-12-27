@@ -66,34 +66,34 @@ export default function CouponInput({
 
   if (appliedCode && appliedDiscount) {
     return (
-      <div className="border border-green-200 bg-green-50 rounded-lg p-4">
+      <div className="border border-success/20 bg-success-light rounded-lg p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                 clipRule="evenodd"
               />
             </svg>
-            <span className="font-semibold text-green-900">{t('applied')}</span>
+            <span className="font-semibold text-success-dark">{t('applied')}</span>
           </div>
           <button
             onClick={handleRemove}
-            className="text-green-700 hover:text-green-900 text-sm font-medium"
+            className="text-success hover:text-success-dark text-sm font-medium"
           >
             {t('remove')}
           </button>
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-green-800">
+            <p className="text-sm text-success-dark">
               Code: <span className="font-mono font-semibold">{appliedCode}</span>
             </p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-green-700">{t('discount')}</p>
-            <p className="text-lg font-bold text-green-900">
+            <p className="text-sm text-success">{t('discount')}</p>
+            <p className="text-lg font-bold text-success-dark">
               -{(appliedDiscount / 100).toFixed(2)} EUR
             </p>
           </div>
@@ -119,7 +119,7 @@ export default function CouponInput({
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent uppercase font-mono"
             disabled={validateCoupon.isPending}
           />
-          {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
+          {error && <p className="text-sm text-error mt-1">{error}</p>}
         </div>
         <button
           onClick={handleApply}

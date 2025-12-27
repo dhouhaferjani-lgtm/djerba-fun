@@ -111,9 +111,9 @@ export default function AvailabilityCalendar({
   const getStatusColor = (status: string | null): string => {
     switch (status) {
       case 'available':
-        return 'bg-green-100 text-green-900 hover:bg-green-200';
+        return 'bg-success-light text-success-dark hover:bg-success-light/80';
       case 'limited':
-        return 'bg-yellow-100 text-yellow-900 hover:bg-yellow-200';
+        return 'bg-warning-light text-warning-dark hover:bg-warning-light/80';
       case 'sold_out':
         return 'bg-neutral-100 text-neutral-400 cursor-not-allowed';
       case 'blocked':
@@ -207,8 +207,8 @@ export default function AvailabilityCalendar({
                 <span
                   className={`absolute bottom-0.5 right-0.5 text-[7px] leading-none font-semibold px-0.5 py-0.5 rounded ${
                     status === 'limited'
-                      ? 'bg-yellow-300/90 text-yellow-950'
-                      : 'bg-green-300/90 text-green-950'
+                      ? 'bg-warning/90 text-warning-dark'
+                      : 'bg-success/90 text-success-dark'
                   }`}
                   title={`${remainingCapacity} ${t('spots_left_short')}`}
                 >
@@ -223,11 +223,11 @@ export default function AvailabilityCalendar({
       {/* Legend */}
       <div className="flex flex-wrap gap-4 text-xs">
         <div className="flex items-center gap-2">
-          <div className="h-4 w-4 rounded bg-green-100 border border-green-300" />
+          <div className="h-4 w-4 rounded bg-success-light border border-success" />
           <span className="text-neutral-600">{t('status.available')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="h-4 w-4 rounded bg-yellow-100 border border-yellow-300" />
+          <div className="h-4 w-4 rounded bg-warning-light border border-warning" />
           <span className="text-neutral-600">{t('status.limited')}</span>
         </div>
         <div className="flex items-center gap-2">
