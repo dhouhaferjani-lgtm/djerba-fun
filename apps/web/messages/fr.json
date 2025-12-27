@@ -310,7 +310,12 @@
     "continue": "Continuer",
     "processing": "Traitement en cours...",
     "total": "Total",
-    "price_breakdown": "Détail des Prix"
+    "price_breakdown": "Détail des Prix",
+    "complete_booking_title": "Finalisez Votre Réservation",
+    "complete_booking_subtitle": "Choisissez comment vous souhaitez continuer",
+    "continue_as_guest": "Continuer en tant qu'Invité",
+    "sign_in_benefits_title": "Avantages de la connexion",
+    "sign_in_benefits": "Sauvegardez vos réservations, paiement plus rapide, offres exclusives"
   },
   "cart": {
     "title": "Votre Panier",
@@ -428,7 +433,9 @@
     "create_account_subtitle": "Aucun mot de passe requis - nous utilisons une vérification par email sécurisée",
     "preferred_language": "Langue préférée",
     "registration_error": "Erreur lors de l'inscription. Veuillez réessayer.",
-    "send_magic_link_error": "Échec de l'envoi du lien magique. Veuillez réessayer."
+    "send_magic_link_error": "Échec de l'envoi du lien magique. Veuillez réessayer.",
+    "or_sign_in": "ou se connecter",
+    "sign_in_email": "Se connecter avec Email"
   },
   "navigation": {
     "home": "Accueil",

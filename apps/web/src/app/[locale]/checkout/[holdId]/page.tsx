@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useRouter, Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { BookingWizard } from '@/components/booking/BookingWizard';
 import { BookingSummary } from '@/components/booking/BookingSummary';
+import { CheckoutAuthModal } from '@/components/booking/CheckoutAuthModal';
 import { useHold, useListingExtras } from '@/lib/api/hooks';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import { Button } from '@go-adventure/ui';
 import { AlertTriangle, ArrowLeft, Clock } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
@@ -24,7 +26,18 @@ export default function CheckoutPage() {
   const tCheckout = useTranslations('checkout');
   const tBooking = useTranslations('booking');
 
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [hasChosenAuthMethod, setHasChosenAuthMethod] = useState(false);
+
   const { data: holdData, isLoading, error, isError } = useHold(holdId);
+
+  // Show auth modal if user is not logged in and hasn't chosen a method yet
+  useEffect(() => {
+    if (!isAuthLoading && !user && !hasChosenAuthMethod && holdData) {
+      setShowAuthModal(true);
+    }
+  }, [isAuthLoading, user, hasChosenAuthMethod, holdData]);
 
   // Fetch available extras for the listing (only when we have hold data)
   const {
@@ -168,6 +181,22 @@ export default function CheckoutPage() {
     }
   };
 
+  // Auth modal handlers
+  const handleGuestCheckout = () => {
+    setHasChosenAuthMethod(true);
+    setShowAuthModal(false);
+  };
+
+  const handleEmailLogin = () => {
+    // Redirect to login page with return URL
+    router.push(`/auth/login?returnUrl=/checkout/${holdId}` as any);
+  };
+
+  const handleCreateAccount = () => {
+    // Redirect to register page with return URL
+    router.push(`/auth/register?returnUrl=/checkout/${holdId}` as any);
+  };
+
   const tr = (field: any) => resolveTranslation(field, locale);
   const title = tr(listing.title);
 
@@ -224,6 +253,15 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <CheckoutAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onGuestCheckout={handleGuestCheckout}
+        onEmailLogin={handleEmailLogin}
+        onCreateAccount={handleCreateAccount}
+      />
     </MainLayout>
   );
 }
