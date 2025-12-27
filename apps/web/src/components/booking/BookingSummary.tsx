@@ -46,8 +46,11 @@ export function BookingSummary({
   const listingLocation =
     typeof listing.location === 'string' ? listing.location : tr(listing.location);
 
-  // Calculate prices
-  const basePrice = slot.displayPrice || slot.tndPrice || 0;
+  // Calculate prices (check listing.pricing first, then slot, matching BookingReview logic)
+  const pricing = listing.pricing || {};
+  const rawBasePrice =
+    pricing.displayPrice || pricing.tndPrice || slot.displayPrice || slot.tndPrice || 0;
+  const basePrice = typeof rawBasePrice === 'string' ? parseFloat(rawBasePrice) : rawBasePrice;
   const quantity = hold.quantity || 1;
   const subtotal = basePrice * quantity;
 
