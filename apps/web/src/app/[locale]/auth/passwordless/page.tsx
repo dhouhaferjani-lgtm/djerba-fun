@@ -35,8 +35,8 @@ export default function PasswordlessLoginPage() {
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
           {/* Success Icon */}
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <Check className="w-10 h-10 text-green-600" />
+            <div className="w-16 h-16 bg-success-light rounded-full flex items-center justify-center">
+              <Check className="w-10 h-10 text-success" />
             </div>
           </div>
 
@@ -54,11 +54,11 @@ export default function PasswordlessLoginPage() {
           </div>
 
           {/* Instructions */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-green-800">
+          <div className="bg-success-light border border-success/20 rounded-lg p-4 mb-6">
+            <p className="text-sm text-success-dark">
               {t('link_expires_15_min') || 'This link expires in 15 minutes.'}
             </p>
-            <p className="text-sm text-green-800 mt-2">
+            <p className="text-sm text-success-dark mt-2">
               Click the link in your email to log in instantly - no password needed!
             </p>
           </div>
@@ -150,8 +150,8 @@ export default function PasswordlessLoginPage() {
 
           {/* Error Display */}
           {sendMagicLinkMutation.isError && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">
+            <div className="p-4 bg-error-light border border-error/20 rounded-lg">
+              <p className="text-sm text-error-dark">
                 {sendMagicLinkMutation.error?.message ||
                   t('send_magic_link_error') ||
                   'Failed to send magic link. Please try again.'}
@@ -179,8 +179,8 @@ export default function PasswordlessLoginPage() {
         </Link>
 
         {/* Info Note */}
-        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-xs text-green-800">
+        <div className="mt-6 p-4 bg-success-light border border-success/20 rounded-lg">
+          <p className="text-xs text-success-dark">
             <strong>How it works:</strong> Enter your email and we&apos;ll send you a secure link.
             Click the link to log in instantly - no password needed! The link expires in 15 minutes
             for security.

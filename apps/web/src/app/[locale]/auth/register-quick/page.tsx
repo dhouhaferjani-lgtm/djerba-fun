@@ -83,8 +83,8 @@ export default function QuickRegisterPage() {
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
           {/* Success Icon */}
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <Check className="w-10 h-10 text-green-600" />
+            <div className="w-16 h-16 bg-success-light rounded-full flex items-center justify-center">
+              <Check className="w-10 h-10 text-success" />
             </div>
           </div>
 
@@ -102,12 +102,12 @@ export default function QuickRegisterPage() {
           </div>
 
           {/* Instructions */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-green-800 mb-2">
+          <div className="bg-success-light border border-success/20 rounded-lg p-4 mb-6">
+            <p className="text-sm text-success-dark mb-2">
               Click the verification link in your email to activate your account.
             </p>
             {bookingIdParam && (
-              <p className="text-sm text-green-800">
+              <p className="text-sm text-success-dark">
                 <strong>We found your recent booking!</strong> After verification, we&apos;ll link
                 it to your account automatically.
               </p>
@@ -193,7 +193,7 @@ export default function QuickRegisterPage() {
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('email') || 'Email'} <span className="text-red-500">*</span>
+              {t('email') || 'Email'} <span className="text-error">*</span>
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -202,19 +202,19 @@ export default function QuickRegisterPage() {
                 type="email"
                 {...register('email')}
                 className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
-                  errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  errors.email ? 'border-error/30 bg-error-light' : 'border-gray-300'
                 }`}
                 placeholder="your@email.com"
                 readOnly={!!emailParam}
               />
             </div>
-            {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>}
+            {errors.email && <p className="text-sm text-error mt-1">{errors.email.message}</p>}
           </div>
 
           {/* First Name */}
           <div>
             <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('first_name') || 'First Name'} <span className="text-red-500">*</span>
+              {t('first_name') || 'First Name'} <span className="text-error">*</span>
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -223,20 +223,20 @@ export default function QuickRegisterPage() {
                 type="text"
                 {...register('firstName')}
                 className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
-                  errors.firstName ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  errors.firstName ? 'border-error/30 bg-error-light' : 'border-gray-300'
                 }`}
                 placeholder="John"
               />
             </div>
             {errors.firstName && (
-              <p className="text-sm text-red-600 mt-1">{errors.firstName.message}</p>
+              <p className="text-sm text-error mt-1">{errors.firstName.message}</p>
             )}
           </div>
 
           {/* Last Name */}
           <div>
             <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('last_name') || 'Last Name'} <span className="text-red-500">*</span>
+              {t('last_name') || 'Last Name'} <span className="text-error">*</span>
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -245,13 +245,13 @@ export default function QuickRegisterPage() {
                 type="text"
                 {...register('lastName')}
                 className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
-                  errors.lastName ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  errors.lastName ? 'border-error/30 bg-error-light' : 'border-gray-300'
                 }`}
                 placeholder="Doe"
               />
             </div>
             {errors.lastName && (
-              <p className="text-sm text-red-600 mt-1">{errors.lastName.message}</p>
+              <p className="text-sm text-error mt-1">{errors.lastName.message}</p>
             )}
           </div>
 
@@ -303,8 +303,8 @@ export default function QuickRegisterPage() {
 
           {/* Error Display */}
           {registerMutation.isError && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">
+            <div className="p-4 bg-error-light border border-error/20 rounded-lg">
+              <p className="text-sm text-error-dark">
                 {registerMutation.error?.message ||
                   t('registration_error') ||
                   'Registration failed. Please try again.'}
@@ -314,8 +314,8 @@ export default function QuickRegisterPage() {
         </form>
 
         {/* Info Note */}
-        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-xs text-green-800">
+        <div className="mt-6 p-4 bg-success-light border border-success/20 rounded-lg">
+          <p className="text-xs text-success-dark">
             <strong>No password needed!</strong> We&apos;ll send you a verification email. Click the
             link to activate your account - it&apos;s that simple.
           </p>

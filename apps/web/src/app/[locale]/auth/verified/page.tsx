@@ -114,8 +114,8 @@ export default function EmailVerifiedPage() {
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
           <div className="text-center">
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <Check className="w-10 h-10 text-green-600" />
+              <div className="w-16 h-16 bg-success-light rounded-full flex items-center justify-center">
+                <Check className="w-10 h-10 text-success" />
               </div>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -142,8 +142,8 @@ export default function EmailVerifiedPage() {
         {/* Success Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <Check className="w-10 h-10 text-green-600" />
+            <div className="w-16 h-16 bg-success-light rounded-full flex items-center justify-center">
+              <Check className="w-10 h-10 text-success" />
             </div>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -215,7 +215,7 @@ export default function EmailVerifiedPage() {
                           <span
                             className={`text-xs px-2 py-1 rounded-full ${
                               booking.status === 'confirmed'
-                                ? 'bg-green-100 text-green-700'
+                                ? 'bg-success-light text-success-dark'
                                 : 'bg-gray-100 text-gray-700'
                             }`}
                           >
@@ -255,8 +255,8 @@ export default function EmailVerifiedPage() {
 
             {/* Error Display */}
             {linkBookingsMutation.isError && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800">
+              <div className="mt-4 p-4 bg-error-light border border-error/20 rounded-lg">
+                <p className="text-sm text-error-dark">
                   {linkBookingsMutation.error?.message ||
                     t('link_error') ||
                     'Failed to link bookings. Please try again.'}

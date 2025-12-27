@@ -99,8 +99,8 @@ export default function VerifyMagicLinkPage() {
         {verificationStatus === 'success' && (
           <div className="text-center">
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <Check className="w-10 h-10 text-green-600" />
+              <div className="w-16 h-16 bg-success-light rounded-full flex items-center justify-center">
+                <Check className="w-10 h-10 text-success" />
               </div>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -132,15 +132,15 @@ export default function VerifyMagicLinkPage() {
         {verificationStatus === 'error' && (
           <div className="text-center">
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                <XCircle className="w-10 h-10 text-red-600" />
+              <div className="w-16 h-16 bg-error-light rounded-full flex items-center justify-center">
+                <XCircle className="w-10 h-10 text-error" />
               </div>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               {t('verification_failed_title') || 'Verification failed'}
             </h1>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-red-800">{errorMessage}</p>
+            <div className="bg-error-light border border-error/20 rounded-lg p-4 mb-6">
+              <p className="text-sm text-error-dark">{errorMessage}</p>
             </div>
 
             {/* Action Buttons */}
