@@ -6,7 +6,7 @@ import { ExtrasSelection } from './ExtrasSelection';
 import { BookingReview } from './BookingReview';
 import { PaymentMethodSelector, type PaymentMethod } from './PaymentMethodSelector';
 import { BookingConfirmation } from './BookingConfirmation';
-import { CheckoutAuth } from './CheckoutAuth';
+import { CheckoutContactForm, type ContactInfo } from './CheckoutContactForm';
 import CheckoutConsents from '@/components/consent/CheckoutConsents';
 import HoldTimer from '@/components/availability/HoldTimer';
 import { useCreateBooking, useProcessPayment } from '@/lib/api/hooks';
@@ -34,7 +34,7 @@ interface BookingWizardProps {
   onExpired?: () => void;
 }
 
-type Step = 'email' | 'extras' | 'review' | 'confirmation';
+type Step = 'contact' | 'extras' | 'review' | 'confirmation';
 
 export function BookingWizard({
   hold,
@@ -46,9 +46,9 @@ export function BookingWizard({
   const t = useTranslations('booking');
   const { user } = useAuth();
 
-  // Simplified: Start with email collection
-  const [currentStep, setCurrentStep] = useState<Step>('email');
-  const [email, setEmail] = useState<string | null>(null);
+  // Start with contact information collection
+  const [currentStep, setCurrentStep] = useState<Step>('contact');
+  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
   const [selectedExtras, setSelectedExtras] = useState<SelectedExtra[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>();
   const [completedBooking, setCompletedBooking] = useState<Booking | null>(null);
@@ -63,16 +63,16 @@ export function BookingWizard({
 
   // Progress steps - Show ALL steps for clarity
   const steps: { key: Step; label: string }[] = [
-    { key: 'email', label: t('step_contact') || 'Contact' },
+    { key: 'contact', label: t('step_contact') || 'Contact' },
     { key: 'extras', label: t('step_extras') || 'Extras' },
     { key: 'review', label: t('step_review') || 'Review & Payment' },
   ];
 
   const currentStepIndex = steps.findIndex((s) => s.key === currentStep);
 
-  // Handle email submission
-  const handleEmailSubmit = (submittedEmail: string) => {
-    setEmail(submittedEmail);
+  // Handle contact information submission
+  const handleContactSubmit = (info: ContactInfo) => {
+    setContactInfo(info);
     // Skip extras step if no extras are available
     if (!availableExtras || availableExtras.length === 0) {
       setCurrentStep('review');
@@ -87,7 +87,7 @@ export function BookingWizard({
   };
 
   const handleConfirmBooking = async () => {
-    if (!email) return;
+    if (!contactInfo) return;
 
     // Validate terms acceptance
     if (!termsAccepted) {
@@ -110,7 +110,7 @@ export function BookingWizard({
           },
           {
             sessionId,
-            email: email,
+            email: contactInfo.email,
             context: 'checkout',
           }
         );
@@ -120,13 +120,18 @@ export function BookingWizard({
         // The consent is still given (checkbox checked), just not recorded in DB
       }
 
-      // Email-only checkout: send ONLY email in travelers array
-      // Empty participant records will be created server-side
-      // and can be filled in post-payment if required by the listing
+      // Send full contact information in travelers array
       const extrasForBooking = getExtrasWithDetails();
       const bookingResponse = await createBookingMutation.mutateAsync({
         holdId: hold.id,
-        travelers: [{ email }], // MINIMAL DATA - email only
+        travelers: [
+          {
+            email: contactInfo.email,
+            firstName: contactInfo.firstName,
+            lastName: contactInfo.lastName,
+            phone: contactInfo.phone,
+          },
+        ],
         extras: extrasForBooking.map((e) => ({
           name: e.name,
           price: e.price,
@@ -178,11 +183,16 @@ export function BookingWizard({
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 'email':
+      case 'contact':
         return (
-          <CheckoutAuth
-            onEmailSubmit={handleEmailSubmit}
-            defaultEmail={user?.email || email || undefined}
+          <CheckoutContactForm
+            onSubmit={handleContactSubmit}
+            defaultValues={{
+              email: user?.email || contactInfo?.email || '',
+              phone: user?.phone || contactInfo?.phone || '',
+              firstName: user?.firstName || contactInfo?.firstName || '',
+              lastName: user?.lastName || contactInfo?.lastName || '',
+            }}
           />
         );
 
@@ -192,14 +202,14 @@ export function BookingWizard({
             extras={availableExtras}
             currency={slot.currency}
             onSubmit={handleExtrasSubmit}
-            onBack={() => setCurrentStep('email')}
+            onBack={() => setCurrentStep('contact')}
             defaultSelections={selectedExtras}
           />
         );
 
       case 'review':
-        if (!email) {
-          setCurrentStep('email');
+        if (!contactInfo) {
+          setCurrentStep('contact');
           return null;
         }
         return (
@@ -207,12 +217,12 @@ export function BookingWizard({
             <BookingReview
               listing={listing}
               slot={slot}
-              travelerInfo={{ email, firstName: '', lastName: '', phone: '' }}
+              travelerInfo={contactInfo}
               extras={getExtrasWithDetails()}
               currency={slot.currency}
               quantity={hold.quantity || 1}
               personTypeBreakdown={hold.personTypeBreakdown}
-              onEditTraveler={() => setCurrentStep('email')}
+              onEditTraveler={() => setCurrentStep('contact')}
               onEditExtras={() => setCurrentStep('extras')}
               onConfirm={handleConfirmBooking}
               onBack={() => setCurrentStep('extras')}
@@ -220,6 +230,9 @@ export function BookingWizard({
               isBillingOnly={true}
             />
             <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+                {t('payment_method') || 'Payment Method'}
+              </h3>
               <PaymentMethodSelector
                 availableMethods={['mock', 'offline', 'click_to_pay']}
                 onSelect={setPaymentMethod}
@@ -248,15 +261,15 @@ export function BookingWizard({
     return <div className="py-8">{renderStepContent()}</div>;
   }
 
-  // Email step has simpler layout (no progress indicator - it's the entry point)
-  if (currentStep === 'email') {
+  // Contact step has simpler layout (no progress indicator - it's the entry point)
+  if (currentStep === 'contact') {
     return (
-      <div className="max-w-md mx-auto">
+      <div>
         {/* Hold Timer */}
         <div className="mb-6">
           <HoldTimer expiresAt={hold.expiresAt} onExpire={onExpired} />
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6">
           {renderStepContent()}
         </div>
       </div>
@@ -264,7 +277,7 @@ export function BookingWizard({
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div>
       {/* Hold Timer */}
       <div className="mb-6">
         <HoldTimer expiresAt={hold.expiresAt} onExpire={onExpired} />

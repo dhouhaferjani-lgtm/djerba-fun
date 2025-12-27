@@ -6,6 +6,7 @@ import { useRouter, Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { BookingWizard } from '@/components/booking/BookingWizard';
+import { BookingSummary } from '@/components/booking/BookingSummary';
 import { useHold, useListingExtras } from '@/lib/api/hooks';
 import { Button } from '@go-adventure/ui';
 import { AlertTriangle, ArrowLeft, Clock } from 'lucide-react';
@@ -194,15 +195,33 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {/* Checkout Content */}
+        {/* Checkout Content - Two Column Layout */}
         <div className="container mx-auto px-4 py-8">
-          <BookingWizard
-            hold={holdData as any}
-            listing={listing as any}
-            slot={slot as any}
-            availableExtras={extrasData || []}
-            onExpired={handleHoldExpired}
-          />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Booking Form (2/3 width on large screens) */}
+            <div className="lg:col-span-2">
+              <BookingWizard
+                hold={holdData as any}
+                listing={listing as any}
+                slot={slot as any}
+                availableExtras={extrasData || []}
+                onExpired={handleHoldExpired}
+              />
+            </div>
+
+            {/* Right Column - Booking Summary (1/3 width on large screens, sticky) */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-24">
+                <BookingSummary
+                  hold={holdData as any}
+                  listing={listing as any}
+                  slot={slot as any}
+                  selectedExtras={[]}
+                  currency={slot.currency}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </MainLayout>
