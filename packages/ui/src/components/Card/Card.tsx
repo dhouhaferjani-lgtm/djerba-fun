@@ -2,19 +2,27 @@ import { forwardRef } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../utils/cn';
 
-const cardVariants = cva('rounded-lg border bg-white transition-shadow', {
+const cardVariants = cva('rounded-lg border bg-white transition-all duration-200', {
   variants: {
     variant: {
-      default: 'border-neutral-200 shadow-sm',
-      elevated: 'border-neutral-200 shadow-md',
+      // Default: Subtle shadow for background cards
+      default: 'border-neutral-200 shadow-sm hover:shadow-md',
+      // Elevated: More prominent shadow for important content
+      elevated: 'border-neutral-200 shadow-md hover:shadow-lg',
+      // Outlined: No shadow, just border
       outlined: 'border-neutral-300 shadow-none',
-      interactive: 'border-neutral-200 shadow-sm hover:shadow-md cursor-pointer',
+      // Interactive: Clear hover feedback for clickable cards (listings, bookings)
+      interactive:
+        'border-neutral-200 shadow-sm hover:shadow-lg hover:border-primary-200 cursor-pointer transform hover:-translate-y-0.5',
+      // Featured: Highlighted cards with brand accent
+      featured: 'border-primary-300 bg-primary-50/30 shadow-md ring-1 ring-primary-200',
     },
     padding: {
       none: 'p-0',
-      sm: 'p-4',
-      md: 'p-6',
-      lg: 'p-8',
+      sm: 'p-3',
+      md: 'p-4',
+      lg: 'p-6',
+      xl: 'p-8',
     },
   },
   defaultVariants: {

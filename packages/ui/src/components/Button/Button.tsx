@@ -4,28 +4,34 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../utils/cn';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed',
   {
     variants: {
       variant: {
+        // Primary: Forest green with proper color scale and shadow elevation
         primary:
-          'bg-primary text-white hover:bg-primary-dark active:scale-[0.98] focus-visible:ring-primary',
+          'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 active:scale-[0.98] shadow-sm hover:shadow-md focus-visible:ring-primary-500',
+        // Secondary: Lime green with proper color scale
         secondary:
-          'bg-secondary text-white hover:bg-secondary-dark active:scale-[0.98] focus-visible:ring-secondary',
+          'bg-secondary-500 text-white hover:bg-secondary-600 active:bg-secondary-700 active:scale-[0.98] shadow-sm hover:shadow-md focus-visible:ring-secondary-500',
+        // Accent: Cream with proper contrast text color
         accent:
-          'bg-accent text-primary hover:bg-accent-dark active:scale-[0.98] focus-visible:ring-accent',
+          'bg-accent-300 text-primary-800 hover:bg-accent-400 active:bg-accent-500 active:scale-[0.98] shadow-sm hover:shadow-md focus-visible:ring-accent-400',
+        // Outline: Transparent with brand border
         outline:
-          'border-2 border-primary text-primary bg-transparent hover:bg-primary/10 active:bg-primary/20 focus-visible:ring-primary',
+          'border-2 border-primary-600 text-primary-700 bg-transparent hover:bg-primary-50 active:bg-primary-100 focus-visible:ring-primary-500',
+        // Ghost: Minimal style with subtle hover
         ghost:
-          'text-primary bg-transparent hover:bg-primary/10 active:bg-primary/20 focus-visible:ring-primary',
+          'text-primary-700 bg-transparent hover:bg-primary-50 active:bg-primary-100 focus-visible:ring-primary-500',
+        // Destructive: Brand-aligned error color (earthy terracotta, NOT generic red)
         destructive:
-          'bg-error text-white hover:bg-error/90 active:scale-[0.98] focus-visible:ring-error',
+          'bg-error text-white hover:bg-error-dark active:bg-error-dark active:scale-[0.98] shadow-sm hover:shadow-md focus-visible:ring-error',
       },
       size: {
-        sm: 'h-10 px-4 text-sm',
-        md: 'h-12 px-6 text-base',
-        lg: 'h-14 px-8 text-base font-semibold',
-        icon: 'h-10 w-10',
+        sm: 'h-9 px-3 text-sm gap-1.5 min-h-[44px] sm:min-h-0', // Touch-friendly on mobile
+        md: 'h-11 px-5 text-base gap-2',
+        lg: 'h-13 px-7 text-base font-semibold gap-2',
+        icon: 'h-10 w-10 min-h-[44px] min-w-[44px]', // WCAG touch target
       },
     },
     defaultVariants: {

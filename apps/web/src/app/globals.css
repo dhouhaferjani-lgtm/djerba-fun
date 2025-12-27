@@ -1,111 +1,220 @@
 @import 'tailwindcss';
 
 :root {
-  /* Brand Colors */
-  --primary: #0D642E;
-  --primary-light: #1a7e45;
-  --primary-dark: #0a5025;
+  /* PRIMARY - Forest Green (Brand) */
+  --primary-50: #f0f7f3;
+  --primary-100: #d4e8dd;
+  --primary-200: #a9d1bb;
+  --primary-300: #7fba99;
+  --primary-400: #54a377;
+  --primary-500: #0D642E;
+  --primary-600: #0a5025;
+  --primary-700: #083c1c;
+  --primary-800: #052813;
+  --primary-900: #03140a;
 
-  --secondary: #8BC34A;
-  --secondary-light: #a2d16a;
-  --secondary-dark: #7cb342;
+  /* SECONDARY - Lime Green (Brand) */
+  --secondary-50: #f7fbed;
+  --secondary-100: #e8f4c8;
+  --secondary-200: #d1e991;
+  --secondary-300: #badf5a;
+  --secondary-400: #a2d46a;
+  --secondary-500: #8BC34A;
+  --secondary-600: #7cb342;
+  --secondary-700: #689635;
+  --secondary-800: #547a2b;
+  --secondary-900: #405d21;
 
-  --accent: #fbf9eb;
-  --accent-light: #fefdf7;
-  --accent-dark: #f5f3e5;
+  /* ACCENT - Warm Cream (Brand) */
+  --accent-50: #fefdf9;
+  --accent-100: #fcfaf2;
+  --accent-200: #f5f0d1;
+  --accent-300: #ece3b3;
+  --accent-400: #e3d695;
+  --accent-500: #dac977;
+  --accent-600: #c5b05e;
+  --accent-700: #a89449;
+  --accent-800: #8b7835;
+  --accent-900: #6e5c20;
 
-  --cream: #fcfaf2;
+  /* NEUTRALS - Warm grays that complement brand */
+  --neutral-50: #fafaf9;
+  --neutral-100: #f5f5f4;
+  --neutral-200: #e7e5e4;
+  --neutral-300: #d6d3d1;
+  --neutral-400: #a8a29e;
+  --neutral-500: #78716c;
+  --neutral-600: #57534e;
+  --neutral-700: #44403c;
+  --neutral-800: #292524;
+  --neutral-900: #1c1917;
 
-  /* Neutral Colors */
+  /* SEMANTIC - Brand-aligned (NOT generic AI colors) */
+  --success: #5a9f3d; /* Derived from secondary, NOT #22c55e */
+  --success-light: #e8f5e1;
+  --success-dark: #3d6b29;
+
+  --warning: #d4a017; /* Warm gold that complements cream, NOT #f59e0b */
+  --warning-light: #fef3e2;
+  --warning-dark: #a07810;
+
+  --error: #c84c3c; /* Earthy terracotta, NOT #ef4444 */
+  --error-light: #fdecea;
+  --error-dark: #8f3629;
+
+  --info: #2d7a5f; /* Teal derived from primary, NOT #3b82f6 */
+  --info-light: #e6f3ed;
+  --info-dark: #1f5442;
+
+  /* Legacy aliases for backward compatibility */
+  --primary: var(--primary-500);
+  --primary-light: var(--primary-400);
+  --primary-dark: var(--primary-700);
+  --secondary: var(--secondary-500);
+  --secondary-light: var(--secondary-400);
+  --secondary-dark: var(--secondary-700);
+  --accent: var(--accent-100);
+  --accent-light: var(--accent-50);
+  --accent-dark: var(--accent-200);
+  --cream: var(--accent-100);
   --neutral-white: #ffffff;
-  --neutral-light: #f5f5f5;
-  --neutral: #e5e5e5;
-  --neutral-dark: #a3a3a3;
-  --neutral-darker: #737373;
-  --neutral-black: #000000;
+  --neutral-light: var(--neutral-100);
+  --neutral: var(--neutral-200);
+  --neutral-dark: var(--neutral-400);
+  --neutral-darker: var(--neutral-600);
+  --neutral-black: var(--neutral-900);
 
-  /* Content Colors */
-  --heading-color: #474747;
-  --body-color: #5a5a5a;
-  
-  /* Semantic Colors */
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --error: #ef4444;
-  --info: #3b82f6;
+  /* Typography colors */
+  --heading-color: var(--neutral-700);
+  --body-color: var(--neutral-600);
 
   /* Light theme */
-  --background: var(--neutral-white);
-  --foreground: var(--neutral-black);
+  --background: #ffffff;
+  --foreground: var(--neutral-900);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   /* Fonts: Inter (sans) and Poppins (display) loaded via next/font in layout.tsx */
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
   --font-display: var(--font-poppins), system-ui, sans-serif;
 
-  /* Brand colors in Tailwind */
-  --color-primary: var(--primary);
-  --color-primary-light: var(--primary-light);
-  --color-primary-dark: var(--primary-dark);
+  /* PRIMARY color scale for Tailwind (50-900) */
+  --color-primary-50: var(--primary-50);
+  --color-primary-100: var(--primary-100);
+  --color-primary-200: var(--primary-200);
+  --color-primary-300: var(--primary-300);
+  --color-primary-400: var(--primary-400);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
+  --color-primary-700: var(--primary-700);
+  --color-primary-800: var(--primary-800);
+  --color-primary-900: var(--primary-900);
 
-  --color-secondary: var(--secondary);
-  --color-secondary-light: var(--secondary-light);
-  --color-secondary-dark: var(--secondary-dark);
+  /* SECONDARY color scale for Tailwind (50-900) */
+  --color-secondary-50: var(--secondary-50);
+  --color-secondary-100: var(--secondary-100);
+  --color-secondary-200: var(--secondary-200);
+  --color-secondary-300: var(--secondary-300);
+  --color-secondary-400: var(--secondary-400);
+  --color-secondary-500: var(--secondary-500);
+  --color-secondary-600: var(--secondary-600);
+  --color-secondary-700: var(--secondary-700);
+  --color-secondary-800: var(--secondary-800);
+  --color-secondary-900: var(--secondary-900);
 
-  --color-accent: var(--accent);
-  --color-accent-light: var(--accent-light);
-  --color-accent-dark: var(--accent-dark);
+  /* ACCENT color scale for Tailwind (50-900) */
+  --color-accent-50: var(--accent-50);
+  --color-accent-100: var(--accent-100);
+  --color-accent-200: var(--accent-200);
+  --color-accent-300: var(--accent-300);
+  --color-accent-400: var(--accent-400);
+  --color-accent-500: var(--accent-500);
+  --color-accent-600: var(--accent-600);
+  --color-accent-700: var(--accent-700);
+  --color-accent-800: var(--accent-800);
+  --color-accent-900: var(--accent-900);
 
-  --color-cream: var(--cream);
+  /* NEUTRAL color scale for Tailwind (50-900) */
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
 
-  /* Neutral colors in Tailwind */
-  --color-white: var(--neutral-white);
-  --color-light: var(--neutral-light);
-  --color-neutral: var(--neutral);
-  --color-dark: var(--neutral-dark);
-  --color-darker: var(--neutral-darker);
-  --color-black: var(--neutral-black);
+  /* SEMANTIC colors for Tailwind (brand-aligned) */
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-success-dark: var(--success-dark);
+
+  --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
+  --color-warning-dark: var(--warning-dark);
+
+  --color-error: var(--error);
+  --color-error-light: var(--error-light);
+  --color-error-dark: var(--error-dark);
+
+  --color-info: var(--info);
+  --color-info-light: var(--info-light);
+  --color-info-dark: var(--info-dark);
+
+  /* Legacy aliases for backward compatibility */
+  --color-primary: var(--primary-500);
+  --color-primary-light: var(--primary-400);
+  --color-primary-dark: var(--primary-700);
+  --color-secondary: var(--secondary-500);
+  --color-secondary-light: var(--secondary-400);
+  --color-secondary-dark: var(--secondary-700);
+  --color-accent: var(--accent-100);
+  --color-cream: var(--accent-100);
+  --color-white: #ffffff;
+  --color-black: var(--neutral-900);
 
   /* Content colors */
   --color-heading: var(--heading-color);
   --color-body: var(--body-color);
-
-  /* Semantic colors in Tailwind */
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-error: var(--error);
-  --color-info: var(--info);
 }
 
-/* Ensure text utilities take precedence over default colors */
-.text-white {
-  color: #ffffff !important;
+/* Apply default styles with proper brand colors */
+body {
+  background: var(--neutral-50);
+  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+  color: var(--body-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.text-neutral-200 {
-  color: rgb(229, 229, 229) !important;
+main {
+  color: var(--body-color);
+}
+
+/* Typography defaults with brand-aligned colors */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--heading-color);
+  font-family: var(--font-display, sans-serif);
+  font-weight: 700;
 }
 
 /* Dark mode disabled - will be implemented with proper toggle later */
 /* @media (prefers-color-scheme: dark) {
   :root {
-    --background: var(--neutral-black);
-    --foreground: var(--neutral-light);
+    --background: var(--neutral-900);
+    --foreground: var(--neutral-100);
   }
 } */
-
-body {
-  background: var(--background);
-  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
-}
-
-/* Apply default text color only to main content areas, not globally */
-main {
-  color: var(--foreground);
-}
 
 /* Accessibility: Screen reader only content */
 .sr-only {

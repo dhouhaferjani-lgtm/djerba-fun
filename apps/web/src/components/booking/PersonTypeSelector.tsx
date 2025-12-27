@@ -102,18 +102,18 @@ export function PersonTypeSelector({
     <div className="space-y-4">
       {/* Prominent capacity indicator */}
       <div
-        className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center justify-between"
+        className="bg-success-light border border-success/20 rounded-lg p-3 flex items-center justify-between"
         data-testid="capacity-indicator"
       >
         <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-green-600" />
-          <span className="text-sm font-medium text-green-900">{t('available_capacity')}</span>
+          <Users className="h-5 w-5 text-success" />
+          <span className="text-sm font-medium text-success-dark">{t('available_capacity')}</span>
         </div>
         <div className="text-right">
-          <div className="text-lg font-bold text-green-900">
+          <div className="text-lg font-bold text-success-dark">
             {maxCapacity - totals.totalGuests} / {maxCapacity}
           </div>
-          <div className="text-xs text-green-700">{t('spots_remaining')}</div>
+          <div className="text-xs text-success-dark/80">{t('spots_remaining')}</div>
         </div>
       </div>
 
@@ -144,7 +144,7 @@ export function PersonTypeSelector({
                       perPerson={false}
                     />
                   ) : (
-                    <span className="text-green-600 font-medium">{t('person_types.free')}</span>
+                    <span className="text-success font-medium">{t('person_types.free')}</span>
                   )}
                 </div>
               </div>
@@ -201,14 +201,14 @@ export function PersonTypeSelector({
           />
         </div>
         {maxCapacity - totals.totalGuests <= 3 && totals.totalGuests < maxCapacity && (
-          <p className="text-sm text-orange-600 font-medium mt-2 flex items-center gap-1">
+          <p className="text-sm text-warning font-medium mt-2 flex items-center gap-1">
             <AlertTriangle className="h-4 w-4" />
             {t('only_x_spots_left', { count: maxCapacity - totals.totalGuests })}
           </p>
         )}
         {totals.totalGuests > maxCapacity && (
           <div
-            className="text-sm text-red-600 font-medium mt-2 flex items-center gap-1"
+            className="text-sm text-error font-medium mt-2 flex items-center gap-1"
             data-testid="capacity-error"
           >
             <AlertTriangle className="h-4 w-4" />

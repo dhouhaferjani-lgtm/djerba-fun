@@ -61,10 +61,11 @@ export function BookingWizard({
   const createBookingMutation = useCreateBooking();
   const processPaymentMutation = useProcessPayment();
 
-  // Progress steps (email is not shown in progress, it's the entry point)
+  // Progress steps - Show ALL steps for clarity
   const steps: { key: Step; label: string }[] = [
-    { key: 'extras', label: t('step_extras') },
-    { key: 'review', label: t('step_review') },
+    { key: 'email', label: t('step_contact') || 'Contact' },
+    { key: 'extras', label: t('step_extras') || 'Extras' },
+    { key: 'review', label: t('step_review') || 'Review & Payment' },
   ];
 
   const currentStepIndex = steps.findIndex((s) => s.key === currentStep);
