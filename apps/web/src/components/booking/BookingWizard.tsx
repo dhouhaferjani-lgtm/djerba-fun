@@ -283,10 +283,10 @@ export function BookingWizard({
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                       isActive
-                        ? 'bg-primary text-white'
+                        ? 'bg-primary-600 text-white'
                         : isCompleted
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-200 text-gray-600'
+                          ? 'bg-success text-white'
+                          : 'bg-neutral-200 text-neutral-600'
                     }`}
                   >
                     {isCompleted ? (
@@ -303,7 +303,11 @@ export function BookingWizard({
                   </div>
                   <span
                     className={`mt-2 text-sm font-medium ${
-                      isActive ? 'text-primary' : isCompleted ? 'text-green-600' : 'text-gray-500'
+                      isActive
+                        ? 'text-primary-700'
+                        : isCompleted
+                          ? 'text-success'
+                          : 'text-neutral-500'
                     }`}
                   >
                     {step.label}
@@ -311,7 +315,7 @@ export function BookingWizard({
                 </div>
                 {index < steps.length - 1 && (
                   <div
-                    className={`h-1 flex-1 mx-2 ${isCompleted ? 'bg-green-500' : 'bg-gray-200'}`}
+                    className={`h-1 flex-1 mx-2 ${isCompleted ? 'bg-success' : 'bg-neutral-200'}`}
                   />
                 )}
               </div>
@@ -327,8 +331,20 @@ export function BookingWizard({
 
       {/* Error Display */}
       {(createBookingMutation.isError || processPaymentMutation.isError) && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-800">
+        <div className="mt-4 p-4 bg-error-light border border-error/20 rounded-lg">
+          <p className="text-sm text-error-dark flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
             {createBookingMutation.error?.message ||
               processPaymentMutation.error?.message ||
               t('booking_error')}

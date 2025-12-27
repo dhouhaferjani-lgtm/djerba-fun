@@ -293,8 +293,8 @@ export function BookingReview({
               )}
             </div>
             {quantity > 1 && (
-              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-800">
+              <div className="mt-3 p-3 bg-success-light border border-success/20 rounded-lg">
+                <p className="text-sm text-success-dark">
                   {t('participant_entry_note') ||
                     `You'll be able to enter names for all ${quantity} participants after completing the booking.`}
                 </p>
@@ -440,8 +440,8 @@ export function BookingReview({
           )}
           {couponDiscount && couponDiscount > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-green-600">{tDashboard('discount')}</span>
-              <span className="font-medium text-green-600">-{formatPrice(couponDiscount)}</span>
+              <span className="text-success">{tDashboard('discount')}</span>
+              <span className="font-medium text-success">-{formatPrice(couponDiscount)}</span>
             </div>
           )}
           <div className="border-t pt-3">

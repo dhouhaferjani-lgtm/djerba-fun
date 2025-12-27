@@ -225,7 +225,7 @@ export function ExtrasSelection({
                         isSelected
                           ? 'border-primary bg-primary/5'
                           : 'border-gray-200 hover:border-gray-300'
-                      } ${extra.isRequired ? 'ring-2 ring-amber-200' : ''}`}
+                      } ${extra.isRequired ? 'ring-2 ring-warning/20' : ''}`}
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
@@ -244,12 +244,12 @@ export function ExtrasSelection({
                             >
                               {extra.name}
                               {extra.isFeatured && (
-                                <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-800 text-xs rounded-full">
+                                <span className="ml-2 px-2 py-0.5 bg-warning-light text-warning-dark text-xs rounded-full">
                                   {t('recommended') || 'Recommended'}
                                 </span>
                               )}
                               {extra.isRequired && (
-                                <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded-full">
+                                <span className="ml-2 px-2 py-0.5 bg-error-light text-error-dark text-xs rounded-full">
                                   {t('required') || 'Required'}
                                 </span>
                               )}
@@ -266,7 +266,7 @@ export function ExtrasSelection({
                             {getPricingDescription(extra)}
                             {extra.trackInventory && extra.inventoryCount !== null && (
                               <span
-                                className={`ml-2 ${extra.inventoryCount <= 5 ? 'text-amber-600' : ''}`}
+                                className={`ml-2 ${extra.inventoryCount <= 5 ? 'text-warning' : ''}`}
                               >
                                 ({extra.inventoryCount} {t('available') || 'available'})
                               </span>

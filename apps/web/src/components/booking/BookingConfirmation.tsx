@@ -66,9 +66,9 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
     <div className="max-w-2xl mx-auto" data-testid="booking-confirmation">
       <div className="text-center space-y-6">
         {/* Success Animation */}
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-success-light rounded-full">
           <svg
-            className="w-12 h-12 text-green-600"
+            className="w-12 h-12 text-success"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -116,8 +116,8 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
 
         {/* Email Confirmation Notice */}
         {travelerEmail && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-sm text-green-800">
+          <div className="bg-success-light border border-success/20 rounded-lg p-4">
+            <p className="text-sm text-success-dark">
               {t('email_sent')} <strong>{travelerEmail}</strong>
             </p>
           </div>
@@ -125,11 +125,11 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
 
         {/* URGENT Participant Names Prompt - immediate requirement */}
         {needsParticipantNames && promptImmediately && (
-          <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-6 text-left shadow-md">
+          <div className="bg-warning-light border-2 border-warning rounded-lg p-6 text-left shadow-md">
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+              <div className="flex-shrink-0 w-12 h-12 bg-warning-light rounded-full flex items-center justify-center">
                 <svg
-                  className="w-6 h-6 text-amber-600"
+                  className="w-6 h-6 text-warning"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -143,16 +143,16 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-amber-900 mb-2 text-lg">
+                <h3 className="font-bold text-warning-dark mb-2 text-lg">
                   {t('names_required_title') || '⚠️ Participant Names Required'}
                 </h3>
-                <p className="text-sm text-amber-800 mb-4">
+                <p className="text-sm text-warning-dark mb-4">
                   {t('names_required_message') ||
                     'This activity requires participant names before departure. Please provide names now to ensure a smooth check-in process.'}
                 </p>
                 <Link
                   href={`/dashboard/bookings/${booking.id}/participants`}
-                  className="inline-flex items-center px-5 py-3 bg-amber-600 text-white rounded-lg font-semibold text-sm hover:bg-amber-700 transition-colors shadow-sm"
+                  className="inline-flex items-center px-5 py-3 bg-warning text-white rounded-lg font-semibold text-sm hover:bg-warning-dark transition-colors shadow-sm"
                 >
                   {t('provide_names_now') || 'Provide Names Now'}
                   <svg
@@ -176,11 +176,11 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
 
         {/* FLEXIBLE Participant Names Prompt - optional/before activity */}
         {needsParticipantNames && !promptImmediately && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-left">
+          <div className="bg-success-light border border-success/20 rounded-lg p-6 text-left">
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <div className="flex-shrink-0 w-10 h-10 bg-success-light rounded-full flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-green-600"
+                  className="w-5 h-5 text-success"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -194,16 +194,16 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-green-900 mb-1">
+                <h3 className="font-semibold text-success-dark mb-1">
                   {t('names_optional_title') || 'Participant Names (Optional)'}
                 </h3>
-                <p className="text-sm text-green-800 mb-3">
+                <p className="text-sm text-success-dark mb-3">
                   {t('names_optional_message') ||
                     'You can provide participant names now or later before your activity date.'}
                 </p>
                 <Link
                   href={`/dashboard/bookings/${booking.id}/participants`}
-                  className="inline-flex items-center text-green-700 hover:text-green-800 font-medium text-sm hover:underline"
+                  className="inline-flex items-center text-success hover:text-success-dark font-medium text-sm hover:underline"
                 >
                   {t('add_names') || 'Add Names'} →
                 </Link>
@@ -241,7 +241,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                 </p>
                 <ul className="space-y-2 mb-4 text-sm text-gray-700">
                   <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20">
                       <path
                         fillRule="evenodd"
                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -251,7 +251,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                     <span>View all bookings anytime</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20">
                       <path
                         fillRule="evenodd"
                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -261,7 +261,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                     <span>One-click future checkouts</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20">
                       <path
                         fillRule="evenodd"
                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

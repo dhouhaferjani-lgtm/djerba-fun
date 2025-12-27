@@ -45,21 +45,21 @@ export default function HoldTimer({ expiresAt, onExpire, className = '' }: HoldT
   };
 
   const getProgressColor = () => {
-    if (timeRemaining <= 60) return 'bg-red-500'; // Last minute - red
-    if (timeRemaining <= 300) return 'bg-yellow-500'; // Last 5 minutes - yellow
-    return 'bg-green-500'; // Green
+    if (timeRemaining <= 60) return 'bg-error'; // Last minute - brand error
+    if (timeRemaining <= 300) return 'bg-warning'; // Last 5 minutes - brand warning
+    return 'bg-success'; // Brand success
   };
 
   const getBackgroundColor = () => {
-    if (timeRemaining <= 60) return 'bg-red-50 border-red-300'; // Last minute
-    if (timeRemaining <= 300) return 'bg-yellow-50 border-yellow-300'; // Last 5 minutes
-    return 'bg-green-50 border-green-300';
+    if (timeRemaining <= 60) return 'bg-error-light border-error/20'; // Last minute
+    if (timeRemaining <= 300) return 'bg-warning-light border-warning/20'; // Last 5 minutes
+    return 'bg-success-light border-success/20';
   };
 
   const getTextColor = () => {
-    if (timeRemaining <= 60) return 'text-red-900';
-    if (timeRemaining <= 300) return 'text-yellow-900';
-    return 'text-green-900';
+    if (timeRemaining <= 60) return 'text-error-dark';
+    if (timeRemaining <= 300) return 'text-warning-dark';
+    return 'text-success-dark';
   };
 
   const shouldPulse = timeRemaining <= 60;
@@ -69,14 +69,14 @@ export default function HoldTimer({ expiresAt, onExpire, className = '' }: HoldT
   if (timeRemaining === 0) {
     return (
       <div
-        className={`rounded-lg border-2 border-red-300 bg-red-50 p-4 ${className}`}
+        className={`rounded-lg border-2 border-error/20 bg-error-light p-4 ${className}`}
         data-testid="hold-timer"
       >
         <div className="flex items-center gap-3">
-          <AlertTriangle className="h-5 w-5 text-red-600" />
+          <AlertTriangle className="h-5 w-5 text-error" />
           <div>
-            <div className="font-semibold text-red-900">{t('hold_expired')}</div>
-            <div className="text-sm text-red-700">{t('hold_expired_message')}</div>
+            <div className="font-semibold text-error-dark">{t('hold_expired')}</div>
+            <div className="text-sm text-error-dark/80">{t('hold_expired_message')}</div>
           </div>
         </div>
       </div>
