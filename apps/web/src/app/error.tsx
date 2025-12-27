@@ -29,12 +29,12 @@ export default function Error({
         <meta name="robots" content="noindex, nofollow" />
       </head>
       <body>
-        <div className="min-h-screen bg-gradient-to-b from-red-50 to-white flex items-center justify-center px-4">
+        <div className="min-h-screen bg-gradient-to-b from-error-light to-white flex items-center justify-center px-4">
           <div className="max-w-2xl w-full text-center space-y-8">
             {/* Error Illustration */}
             <div className="flex justify-center">
-              <div className="bg-red-100 rounded-full p-6">
-                <AlertTriangle className="h-16 w-16 text-red-600" />
+              <div className="bg-error-light rounded-full p-6">
+                <AlertTriangle className="h-16 w-16 text-error-dark" />
               </div>
             </div>
 

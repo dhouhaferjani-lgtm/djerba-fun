@@ -173,7 +173,7 @@ function ListingsContent({ locale }: { locale: string }) {
 
         {error && (
           <div className="text-center py-12">
-            <p className="text-lg text-red-500">{t('error')}</p>
+            <p className="text-lg text-error">{t('error')}</p>
             <Button variant="outline" className="mt-4">
               {t('retry')}
             </Button>

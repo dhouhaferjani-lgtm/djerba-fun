@@ -171,11 +171,11 @@ function ReviewCard({ review }: { review: Review }) {
         <div className="grid md:grid-cols-2 gap-4 mb-4">
           {review.pros.length > 0 && (
             <div>
-              <p className="text-sm font-semibold text-green-700 mb-2">Highlights</p>
+              <p className="text-sm font-semibold text-success-dark mb-2">Highlights</p>
               <ul className="space-y-1">
                 {review.pros.map((pro, index) => (
                   <li key={index} className="text-sm text-neutral-700 flex items-start gap-2">
-                    <span className="text-green-600">✓</span>
+                    <span className="text-success-dark">✓</span>
                     <span>{pro}</span>
                   </li>
                 ))}

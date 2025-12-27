@@ -131,9 +131,9 @@ export default function MagicLinkParticipantsPage() {
     return (
       <div className="max-w-3xl mx-auto p-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-error-light rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-8 h-8 text-red-600"
+              className="w-8 h-8 text-error-dark"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -206,8 +206,8 @@ export default function MagicLinkParticipantsPage() {
             </div>
           </div>
           {meta.requiresNames && !allComplete && (
-            <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-sm text-amber-800">
+            <div className="mt-3 p-3 bg-warning-light border border-warning rounded-lg">
+              <p className="text-sm text-warning-dark">
                 {t('names_required_notice') ||
                   'This activity requires participant names. Please fill in all names to download your vouchers.'}
               </p>
@@ -291,8 +291,8 @@ export default function MagicLinkParticipantsPage() {
 
         {/* Error Display */}
         {saveError && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-800">{saveError}</p>
+          <div className="mt-4 p-4 bg-error-light border border-error rounded-lg">
+            <p className="text-sm text-error-dark">{saveError}</p>
           </div>
         )}
 

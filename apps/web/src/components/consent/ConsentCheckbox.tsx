@@ -37,7 +37,7 @@ export default function ConsentCheckbox({
             h-4 w-4 rounded border-gray-300 text-primary
             focus:ring-primary focus:ring-offset-0 focus:ring-2
             ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
-            ${error ? 'border-red-500' : ''}
+            ${error ? 'border-error' : ''}
           `}
         />
       </div>
@@ -50,10 +50,10 @@ export default function ConsentCheckbox({
           `}
         >
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-error ml-1">*</span>}
         </label>
         {description && <p className="text-xs text-gray-500 mt-0.5">{description}</p>}
-        {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
+        {error && <p className="text-xs text-error mt-0.5">{error}</p>}
       </div>
     </div>
   );

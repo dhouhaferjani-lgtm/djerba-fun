@@ -159,8 +159,8 @@ export default function ReviewSubmissionPage() {
 
           {/* Error Message */}
           {createReview.isError && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800 text-sm">Failed to submit review. Please try again.</p>
+            <div className="mt-4 p-4 bg-error-light border border-error rounded-lg">
+              <p className="text-error-dark text-sm">Failed to submit review. Please try again.</p>
             </div>
           )}
         </div>

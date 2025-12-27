@@ -74,8 +74,8 @@ export function PricingDisclosureModal({
           </button>
 
           {/* Icon */}
-          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-yellow-100 rounded-full">
-            <AlertCircle className="w-6 h-6 text-yellow-600" />
+          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-warning-light rounded-full">
+            <AlertCircle className="w-6 h-6 text-warning-dark" />
           </div>
 
           {/* Title */}

@@ -70,7 +70,7 @@ export function TestimonialsSection() {
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
-                    className={`w-5 h-5 ${i < testimonial.rating ? 'text-yellow-400' : 'text-neutral-200'}`}
+                    className={`w-5 h-5 ${i < testimonial.rating ? 'text-secondary' : 'text-neutral-200'}`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >

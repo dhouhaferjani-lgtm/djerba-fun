@@ -84,10 +84,10 @@ export default function VouchersPage() {
           <h1 className="text-2xl font-bold text-gray-900 mt-2">{t('title') || 'Your Vouchers'}</h1>
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="bg-warning-light border border-warning rounded-lg p-6 text-center">
+          <div className="w-16 h-16 bg-warning-light rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-8 h-8 text-amber-600"
+              className="w-8 h-8 text-warning-dark"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -100,16 +100,16 @@ export default function VouchersPage() {
               />
             </svg>
           </div>
-          <h2 className="text-lg font-semibold text-amber-900 mb-2">
+          <h2 className="text-lg font-semibold text-warning-dark mb-2">
             {t('vouchers_not_ready') || 'Vouchers Not Ready Yet'}
           </h2>
-          <p className="text-amber-800 mb-4">
+          <p className="text-warning-dark mb-4">
             {t('complete_names_first') ||
               'Please enter all participant names before downloading vouchers.'}
           </p>
           <Link
             href={`/dashboard/bookings/${bookingId}/participants`}
-            className="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-warning-dark text-white rounded-lg font-medium hover:bg-warning-dark/90 transition-colors"
           >
             {t('enter_names') || 'Enter Participant Names'}
           </Link>
@@ -255,9 +255,9 @@ export default function VouchersPage() {
 
               {/* Check-in Status */}
               {voucher.participant.checkedIn && (
-                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+                <div className="mt-4 p-3 bg-success-light border border-success rounded-lg flex items-center gap-2">
                   <svg
-                    className="w-5 h-5 text-green-600"
+                    className="w-5 h-5 text-success-dark"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -269,7 +269,7 @@ export default function VouchersPage() {
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                  <span className="text-sm font-medium text-green-800">
+                  <span className="text-sm font-medium text-success-dark">
                     {t('checked_in') || 'Checked In'}
                   </span>
                 </div>

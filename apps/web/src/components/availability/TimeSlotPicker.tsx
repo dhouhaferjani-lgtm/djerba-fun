@@ -101,7 +101,7 @@ export default function TimeSlotPicker({
 
               {/* Limited spots warning */}
               {remainingText && (
-                <div className="mt-2 text-xs font-medium text-yellow-700">{remainingText}</div>
+                <div className="mt-2 text-xs font-medium text-warning-dark">{remainingText}</div>
               )}
 
               {/* Selected indicator */}

@@ -53,8 +53,8 @@ export function BlockRenderer({ blocks }: BlockRendererProps) {
         if (!BlockComponent) {
           console.warn(`Unknown block type: ${block.type}`);
           return (
-            <div key={index} className="bg-yellow-50 border border-yellow-200 p-4 rounded">
-              <p className="text-sm text-yellow-800">
+            <div key={index} className="bg-warning-light border border-warning p-4 rounded">
+              <p className="text-sm text-warning-dark">
                 Unsupported block type: <code>{block.type}</code>
               </p>
             </div>

@@ -69,12 +69,12 @@ export default function MagicLinkBookingPage() {
   const getStatusBadgeColor = (status: BookingStatus) => {
     const colors: Record<BookingStatus, string> = {
       draft: 'bg-gray-100 text-gray-800',
-      payment_pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-green-100 text-green-800',
-      completed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
+      payment_pending: 'bg-warning-light text-warning-dark',
+      confirmed: 'bg-success-light text-success-dark',
+      completed: 'bg-success-light text-success-dark',
+      cancelled: 'bg-error-light text-error-dark',
       refunded: 'bg-gray-100 text-gray-800',
-      no_show: 'bg-orange-100 text-orange-800',
+      no_show: 'bg-warning-light text-warning-dark',
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
@@ -92,9 +92,9 @@ export default function MagicLinkBookingPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="max-w-md w-full mx-4">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-error-light rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
-                className="w-8 h-8 text-red-600"
+                className="w-8 h-8 text-error-dark"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -192,7 +192,7 @@ export default function MagicLinkBookingPage() {
                   </span>
                 </div>
                 {booking.discountAmount > 0 && (
-                  <div className="flex justify-between text-sm text-green-600">
+                  <div className="flex justify-between text-sm text-success-dark">
                     <span>{t('discount') || 'Discount'}</span>
                     <span>-{formatPrice(booking.discountAmount, booking.currency)}</span>
                   </div>
@@ -235,10 +235,10 @@ export default function MagicLinkBookingPage() {
             )}
 
             {/* Security Notice */}
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="bg-warning-light border border-warning rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <svg
-                  className="w-5 h-5 text-amber-600 mt-0.5"
+                  className="w-5 h-5 text-warning-dark mt-0.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -250,7 +250,7 @@ export default function MagicLinkBookingPage() {
                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <div className="text-sm text-amber-800">
+                <div className="text-sm text-warning-dark">
                   <p className="font-medium mb-1">
                     {t('secure_link_notice') || 'This is a secure booking link'}
                   </p>

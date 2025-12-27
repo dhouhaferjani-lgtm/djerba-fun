@@ -338,22 +338,22 @@ function BookingFlowContent({
                       <span
                         className={`text-sm font-semibold ${
                           isLowCapacity
-                            ? 'text-red-600'
+                            ? 'text-error-dark'
                             : isAlmostFull
-                              ? 'text-yellow-600'
-                              : 'text-green-600'
+                              ? 'text-warning-dark'
+                              : 'text-success-dark'
                         }`}
                       >
                         {remainingCapacity} {tAvail('available')}
                       </span>
                     </div>
                     {isLowCapacity && (
-                      <div className="text-xs text-red-600 font-medium">
+                      <div className="text-xs text-error-dark font-medium">
                         ⚠️ Only {remainingCapacity} spot{remainingCapacity !== 1 ? 's' : ''} left!
                       </div>
                     )}
                     {isAlmostFull && !isLowCapacity && (
-                      <div className="text-xs text-yellow-700">🔥 Filling up fast</div>
+                      <div className="text-xs text-warning-dark">🔥 Filling up fast</div>
                     )}
                   </button>
                 );
@@ -376,7 +376,7 @@ function BookingFlowContent({
               <span className="text-gray-600">{tBooking('time_slot_capacity')}</span>
               <span
                 className={`font-semibold ${
-                  selectedSlot.status === 'limited' ? 'text-yellow-600' : 'text-green-600'
+                  selectedSlot.status === 'limited' ? 'text-warning-dark' : 'text-success-dark'
                 }`}
               >
                 {selectedSlot.remainingCapacity} / {selectedSlot.capacity} {tBooking('available')}
@@ -415,14 +415,14 @@ function BookingFlowContent({
               {isAddingToCart ? tCommon('loading') : tCart('add_to_cart')}
             </Button>
             {createHoldMutation.isError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-3">
+              <div className="bg-error-light border border-error rounded-lg p-4 mt-3">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-error-dark flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-red-900 mb-1">
+                    <p className="text-sm font-medium text-error-dark mb-1">
                       {tBooking('booking_failed')}
                     </p>
-                    <p className="text-sm text-red-700">
+                    <p className="text-sm text-error-dark">
                       {parseHoldError(createHoldMutation.error, tBooking)}
                     </p>
                   </div>

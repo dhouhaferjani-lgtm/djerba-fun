@@ -113,7 +113,7 @@ export default function VendorProfilePage() {
                       {vendor.verificationBadges.map((badge: string) => (
                         <span
                           key={badge}
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium"
+                          className="inline-flex items-center gap-1 px-3 py-1 bg-success-light text-success-dark rounded-full text-sm font-medium"
                         >
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path

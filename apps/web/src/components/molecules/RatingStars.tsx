@@ -36,9 +36,9 @@ export function RatingStars({
             key={key}
             className={`${sizeMap[size]} ${
               filled
-                ? 'fill-yellow-500 text-yellow-500'
+                ? 'fill-secondary text-secondary'
                 : partial
-                  ? 'fill-yellow-500 text-yellow-500 opacity-50'
+                  ? 'fill-secondary text-secondary opacity-50'
                   : 'fill-none text-neutral-300'
             }`}
           />

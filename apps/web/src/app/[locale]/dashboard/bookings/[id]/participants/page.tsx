@@ -174,8 +174,8 @@ export default function ParticipantsPage() {
           </div>
         </div>
         {requiresNames && !allComplete && (
-          <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-sm text-amber-800">
+          <div className="mt-3 p-3 bg-warning-light border border-warning rounded-lg">
+            <p className="text-sm text-warning-dark">
               {t('names_required_notice') ||
                 'This activity requires participant names. Please fill in all names to download your vouchers.'}
             </p>
@@ -277,8 +277,8 @@ export default function ParticipantsPage() {
 
         {/* Error Display */}
         {updateMutation.isError && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-800">
+          <div className="mt-4 p-4 bg-error-light border border-error rounded-lg">
+            <p className="text-sm text-error-dark">
               {t('update_error') || 'Failed to update participants. Please try again.'}
             </p>
           </div>
