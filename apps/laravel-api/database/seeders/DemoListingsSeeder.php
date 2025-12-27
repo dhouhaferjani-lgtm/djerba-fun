@@ -7,7 +7,6 @@ use App\Models\Location;
 use App\Models\Media;
 use App\Models\VendorProfile;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class DemoListingsSeeder extends Seeder
 {

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BookingParticipantResource;
+use App\Jobs\SendVoucherEmailJob;
 use App\Models\Booking;
 use App\Models\BookingParticipant;
+use App\Services\VoucherPdfService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 
 class VoucherController extends Controller
@@ -21,8 +23,8 @@ class VoucherController extends Controller
     {
         Gate::authorize('view', $booking);
 
-        if (!$booking->canGenerateVouchers()) {
-            $reason = !$booking->isConfirmed()
+        if (! $booking->canGenerateVouchers()) {
+            $reason = ! $booking->isConfirmed()
                 ? 'Booking is not confirmed'
                 : 'Participant names are required but not complete';
 
@@ -58,14 +60,14 @@ class VoucherController extends Controller
     {
         $sessionId = $request->header('X-Session-ID') ?? $request->query('session_id');
 
-        if (!$sessionId || $booking->session_id !== $sessionId) {
+        if (! $sessionId || $booking->session_id !== $sessionId) {
             return response()->json([
                 'message' => 'Unauthorized. Invalid session.',
             ], 403);
         }
 
-        if (!$booking->canGenerateVouchers()) {
-            $reason = !$booking->isConfirmed()
+        if (! $booking->canGenerateVouchers()) {
+            $reason = ! $booking->isConfirmed()
                 ? 'Booking is not confirmed'
                 : 'Participant names are required but not complete';
 
@@ -105,13 +107,13 @@ class VoucherController extends Controller
             ->byVoucherCode($voucherCode)
             ->first();
 
-        if (!$participant) {
+        if (! $participant) {
             return response()->json([
                 'message' => 'Voucher not found',
             ], 404);
         }
 
-        if (!$booking->canGenerateVouchers()) {
+        if (! $booking->canGenerateVouchers()) {
             return response()->json([
                 'message' => 'Vouchers are not available yet',
                 'canGenerate' => false,
@@ -120,6 +122,127 @@ class VoucherController extends Controller
 
         return response()->json([
             'data' => $this->formatVoucher($participant, $booking),
+        ]);
+    }
+
+    /**
+     * Download single voucher as PDF.
+     */
+    public function downloadSingle(
+        Request $request,
+        Booking $booking,
+        string $voucherCode,
+        VoucherPdfService $pdfService
+    ): Response {
+        Gate::authorize('view', $booking);
+
+        if (! $booking->canGenerateVouchers()) {
+            return response()->json([
+                'message' => 'Vouchers are not available yet',
+            ], 422);
+        }
+
+        $participant = $booking->participants()
+            ->byVoucherCode($voucherCode)
+            ->firstOrFail();
+
+        $pdf = $pdfService->generateSingleVoucher($participant);
+        $filename = $pdfService->getFilename($booking, $voucherCode);
+
+        return response($pdf)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
+    }
+
+    /**
+     * Download all vouchers for a booking as PDF.
+     */
+    public function downloadAll(
+        Request $request,
+        Booking $booking,
+        VoucherPdfService $pdfService
+    ): Response {
+        Gate::authorize('view', $booking);
+
+        if (! $booking->canGenerateVouchers()) {
+            return response()->json([
+                'message' => 'Vouchers are not available yet',
+            ], 422);
+        }
+
+        $pdf = $pdfService->generateAllVouchers($booking);
+        $filename = $pdfService->getFilename($booking);
+
+        return response($pdf)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
+    }
+
+    /**
+     * Email single voucher.
+     */
+    public function emailSingle(
+        Request $request,
+        Booking $booking,
+        string $voucherCode
+    ): JsonResponse {
+        Gate::authorize('view', $booking);
+
+        if (! $booking->canGenerateVouchers()) {
+            return response()->json([
+                'message' => 'Vouchers are not available yet',
+            ], 422);
+        }
+
+        $participant = $booking->participants()
+            ->byVoucherCode($voucherCode)
+            ->firstOrFail();
+
+        $email = $request->input('email') ?? $participant->email ?? $booking->getPrimaryEmail();
+
+        if (! $email) {
+            return response()->json([
+                'message' => 'No email address available',
+            ], 422);
+        }
+
+        // Queue email job
+        SendVoucherEmailJob::dispatch($booking, $voucherCode, $email);
+
+        return response()->json([
+            'message' => 'Voucher will be sent to ' . $email,
+            'email' => $email,
+        ]);
+    }
+
+    /**
+     * Email all vouchers.
+     */
+    public function emailAll(Request $request, Booking $booking): JsonResponse
+    {
+        Gate::authorize('view', $booking);
+
+        if (! $booking->canGenerateVouchers()) {
+            return response()->json([
+                'message' => 'Vouchers are not available yet',
+            ], 422);
+        }
+
+        $email = $request->input('email') ?? $booking->getPrimaryEmail();
+
+        if (! $email) {
+            return response()->json([
+                'message' => 'No email address available',
+            ], 422);
+        }
+
+        // Queue email job
+        SendVoucherEmailJob::dispatch($booking, null, $email);
+
+        return response()->json([
+            'message' => 'Vouchers will be sent to ' . $email,
+            'email' => $email,
+            'count' => $booking->participants()->count(),
         ]);
     }
 
@@ -133,6 +256,7 @@ class VoucherController extends Controller
 
         return [
             'voucherCode' => $participant->voucher_code,
+            'badgeNumber' => $participant->badge_number,
             'qrCodeData' => $participant->getQrCodeData(),
             'participant' => [
                 'id' => $participant->id,

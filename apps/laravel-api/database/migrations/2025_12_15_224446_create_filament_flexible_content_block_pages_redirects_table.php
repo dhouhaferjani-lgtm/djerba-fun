@@ -5,7 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Statikbe\FilamentFlexibleContentBlockPages\Facades\FilamentFlexibleContentBlockPages;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up()
     {
         Schema::create(FilamentFlexibleContentBlockPages::config()->getRedirectsTable(), function (Blueprint $table) {

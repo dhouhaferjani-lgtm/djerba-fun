@@ -35,6 +35,10 @@ export default defineConfig({
 
     /* Video on failure */
     video: 'retain-on-failure',
+
+    /* Longer timeout for PPP pricing tests (some involve waiting for timers) */
+    actionTimeout: 30000,
+    navigationTimeout: 30000,
   },
 
   /* Configure projects for major browsers */

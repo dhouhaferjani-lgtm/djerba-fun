@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Coupon extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'code',
@@ -52,11 +53,12 @@ class Coupon extends Model
      */
     public function isValid(): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 
         $now = now();
+
         if ($now->lt($this->valid_from) || $now->gt($this->valid_until)) {
             return false;
         }

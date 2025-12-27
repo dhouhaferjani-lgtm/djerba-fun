@@ -5,23 +5,20 @@ namespace App\Http\Controllers\Api\Partner;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Partner\PartnerListingResource;
 use App\Models\Listing;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class PartnerSearchController extends Controller
 {
     /**
      * Natural language search endpoint for API partners.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function search(Request $request): JsonResponse
     {
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('listings:search')) {
+        if (! $partner->hasPermission('listings:search')) {
             abort(403, 'Partner does not have permission to search listings');
         }
 
@@ -42,7 +39,7 @@ class PartnerSearchController extends Controller
             ->with(['vendor.vendorProfile', 'location', 'media']);
 
         // Natural language query processing
-        if (!empty($validated['query'])) {
+        if (! empty($validated['query'])) {
             $keywords = $validated['query'];
             $query->where(function ($q) use ($keywords) {
                 $q->where('title', 'like', "%{$keywords}%")
@@ -52,7 +49,7 @@ class PartnerSearchController extends Controller
         }
 
         // Location filter
-        if (!empty($validated['location'])) {
+        if (! empty($validated['location'])) {
             $location = $validated['location'];
             $query->whereHas('location', function ($q) use ($location) {
                 $q->where('city', 'like', "%{$location}%")
@@ -62,12 +59,12 @@ class PartnerSearchController extends Controller
         }
 
         // Service type
-        if (!empty($validated['service_type'])) {
+        if (! empty($validated['service_type'])) {
             $query->where('service_type', $validated['service_type']);
         }
 
         // Difficulty
-        if (!empty($validated['difficulty'])) {
+        if (! empty($validated['difficulty'])) {
             $query->where('difficulty', $validated['difficulty']);
         }
 
@@ -82,18 +79,18 @@ class PartnerSearchController extends Controller
         }
 
         // Date availability filter
-        if (!empty($validated['date_from']) && !empty($validated['date_to'])) {
+        if (! empty($validated['date_from']) && ! empty($validated['date_to'])) {
             $query->whereHas('availabilitySlots', function ($q) use ($validated) {
                 $q->whereBetween('start_time', [
                     $validated['date_from'],
                     $validated['date_to'],
                 ])
-                ->where('available_quantity', '>', 0);
+                    ->where('available_quantity', '>', 0);
             });
         }
 
         // Guest capacity filter
-        if (!empty($validated['guests'])) {
+        if (! empty($validated['guests'])) {
             $query->whereRaw("(capacity->>'max')::integer >= ?", [$validated['guests']]);
         }
 
@@ -118,9 +115,7 @@ class PartnerSearchController extends Controller
     /**
      * Generate recommendations based on search parameters.
      *
-     * @param array $params
-     * @param \Illuminate\Support\Collection $results
-     * @return array
+     * @param  \Illuminate\Support\Collection  $results
      */
     protected function generateRecommendations(array $params, $results): array
     {
@@ -135,7 +130,7 @@ class PartnerSearchController extends Controller
         }
 
         // Location recommendation
-        if (!empty($params['location']) && $results->isEmpty()) {
+        if (! empty($params['location']) && $results->isEmpty()) {
             $recommendations[] = [
                 'type' => 'location',
                 'message' => 'No listings found in this location. Consider nearby areas or different service types.',
@@ -143,7 +138,7 @@ class PartnerSearchController extends Controller
         }
 
         // Date recommendation
-        if (!empty($params['date_from']) && $results->isEmpty()) {
+        if (! empty($params['date_from']) && $results->isEmpty()) {
             $recommendations[] = [
                 'type' => 'dates',
                 'message' => 'No availability for selected dates. Try flexible dates or check availability calendar.',

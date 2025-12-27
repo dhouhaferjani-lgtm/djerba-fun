@@ -4,23 +4,28 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Exceptions\BookingAlreadyLinkedException;
+use App\Exceptions\BookingNotFoundException;
+use App\Exceptions\EmailMismatchException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CancelBookingRequest;
 use App\Http\Requests\CreateBookingRequest;
 use App\Http\Resources\BookingResource;
 use App\Models\Booking;
 use App\Models\BookingHold;
+use App\Services\BookingLinkingService;
 use App\Services\BookingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
     public function __construct(
-        private readonly BookingService $bookingService
-    ) {
-    }
+        private readonly BookingService $bookingService,
+        private readonly BookingLinkingService $bookingLinkingService
+    ) {}
 
     /**
      * List user's bookings.
@@ -50,7 +55,7 @@ class BookingController extends Controller
      */
     public function store(CreateBookingRequest $request): JsonResponse
     {
-        $hold = BookingHold::findOrFail($request->input('hold_id'));
+        $hold = BookingHold::with('slot', 'listing')->findOrFail($request->input('hold_id'));
 
         // Verify hold ownership: either authenticated user owns it, or guest has matching session_id
         $userId = $request->user()?->id;
@@ -112,7 +117,7 @@ class BookingController extends Controller
     {
         $sessionId = $request->header('X-Session-ID') ?? $request->query('session_id');
 
-        if (!$sessionId || $booking->session_id !== $sessionId) {
+        if (! $sessionId || $booking->session_id !== $sessionId) {
             return response()->json([
                 'message' => 'Unauthorized. Invalid session.',
             ], 403);
@@ -148,5 +153,125 @@ class BookingController extends Controller
             'data' => new BookingResource($booking),
             'message' => 'Booking cancelled successfully.',
         ]);
+    }
+
+    /**
+     * Get all claimable bookings for the authenticated user.
+     * Returns guest bookings that match the user's email.
+     */
+    public function claimable(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $claimableBookings = $this->bookingLinkingService->findClaimableBookings($user);
+
+        return response()->json([
+            'data' => BookingResource::collection($claimableBookings),
+            'meta' => [
+                'total' => $claimableBookings->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * Link selected bookings to the authenticated user's account.
+     */
+    public function link(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'booking_ids' => ['required', 'array', 'min:1'],
+            'booking_ids.*' => ['required', 'uuid', 'exists:bookings,id'],
+        ]);
+
+        $user = $request->user();
+
+        // CRITICAL SECURITY: Verify all bookings are actually claimable by this user
+        $claimableIds = $this->bookingLinkingService
+            ->findClaimableBookings($user)
+            ->pluck('id')
+            ->toArray();
+
+        $invalidIds = array_diff($validated['booking_ids'], $claimableIds);
+
+        if (! empty($invalidIds)) {
+            return response()->json([
+                'error' => [
+                    'code' => 'INVALID_BOOKING_IDS',
+                    'message' => 'One or more booking IDs are not claimable by your account.',
+                    'invalid_ids' => array_values($invalidIds),
+                ],
+            ], 403);
+        }
+
+        $result = $this->bookingLinkingService->linkBookingsByEmail(
+            user: $user,
+            bookingIds: $validated['booking_ids']
+        );
+
+        return response()->json([
+            'data' => BookingResource::collection($result['bookings']),
+            'meta' => [
+                'linked' => $result['linked'],
+            ],
+            'message' => "Successfully linked {$result['linked']} booking(s) to your account.",
+        ]);
+    }
+
+    /**
+     * Claim a booking by booking number.
+     * Verifies email match before linking.
+     */
+    public function claim(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'booking_number' => ['required', 'string', 'regex:/^GA-\d{6}-[A-Z0-9]{5}$/'],
+        ]);
+
+        $user = $request->user();
+
+        try {
+            $booking = $this->bookingLinkingService->linkBookingByNumber(
+                user: $user,
+                bookingNumber: $validated['booking_number']
+            );
+
+            return response()->json([
+                'data' => new BookingResource($booking),
+                'message' => 'Booking successfully claimed and linked to your account.',
+            ]);
+        } catch (BookingNotFoundException $e) {
+            return response()->json([
+                'error' => [
+                    'code' => 'NOT_FOUND',
+                    'message' => $e->getMessage(),
+                ],
+            ], 404);
+        } catch (BookingAlreadyLinkedException $e) {
+            return response()->json([
+                'error' => [
+                    'code' => 'ALREADY_LINKED',
+                    'message' => $e->getMessage(),
+                ],
+            ], 409);
+        } catch (EmailMismatchException $e) {
+            return response()->json([
+                'error' => [
+                    'code' => 'EMAIL_MISMATCH',
+                    'message' => $e->getMessage(),
+                ],
+            ], 403);
+        } catch (\Exception $e) {
+            Log::error('Unexpected error claiming booking', [
+                'user_id' => $user->id,
+                'booking_number' => $validated['booking_number'],
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'error' => [
+                    'code' => 'CLAIM_FAILED',
+                    'message' => 'An unexpected error occurred. Please try again.',
+                ],
+            ], 500);
+        }
     }
 }

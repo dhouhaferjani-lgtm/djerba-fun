@@ -8,11 +8,13 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class BookingParticipant extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     /**
      * Voucher code prefix.
@@ -22,6 +24,7 @@ class BookingParticipant extends Model
     protected $fillable = [
         'booking_id',
         'voucher_code',
+        'badge_number',
         'first_name',
         'last_name',
         'email',
@@ -51,6 +54,22 @@ class BookingParticipant extends Model
             if (empty($participant->voucher_code)) {
                 $participant->voucher_code = self::generateVoucherCode();
             }
+
+            // Generate badge number for events only
+            if ($participant->booking && $participant->booking->listing?->isEvent()) {
+                $participant->badge_number = self::generateBadgeNumber(
+                    $participant->booking->listing_id
+                );
+            }
+        });
+
+        // Auto-update parent booking's traveler_details_status when participant changes
+        static::saved(function (BookingParticipant $participant) {
+            $participant->booking?->updateTravelerDetailsStatus();
+        });
+
+        static::deleted(function (BookingParticipant $participant) {
+            $participant->booking?->updateTravelerDetailsStatus();
         });
     }
 
@@ -64,6 +83,30 @@ class BookingParticipant extends Model
         } while (self::where('voucher_code', $code)->exists());
 
         return $code;
+    }
+
+    /**
+     * Generate sequential badge number for a listing (event only).
+     * Badge numbers are sequential per listing, starting from 1.
+     * Uses database lock to prevent race conditions during concurrent bookings.
+     */
+    public static function generateBadgeNumber(int $listingId): int
+    {
+        return DB::transaction(function () use ($listingId) {
+            // Use query builder to get max badge number with lock
+            // PostgreSQL doesn't support FOR UPDATE with aggregate functions directly
+            $result = DB::table('booking_participants')
+                ->join('bookings', 'booking_participants.booking_id', '=', 'bookings.id')
+                ->where('bookings.listing_id', $listingId)
+                ->whereNotNull('booking_participants.badge_number')
+                ->orderByDesc('booking_participants.badge_number')
+                ->lockForUpdate()
+                ->first(['booking_participants.badge_number']);
+
+            $maxBadge = $result?->badge_number ?? 0;
+
+            return $maxBadge + 1;
+        });
     }
 
     /**
@@ -87,11 +130,19 @@ class BookingParticipant extends Model
     }
 
     /**
+     * Get formatted badge number for display (e.g., "#42" or null for tours).
+     */
+    public function getFormattedBadgeNumberAttribute(): ?string
+    {
+        return $this->badge_number ? "#{$this->badge_number}" : null;
+    }
+
+    /**
      * Check if participant details have been filled.
      */
     public function isComplete(): bool
     {
-        return !empty($this->first_name) && !empty($this->last_name);
+        return ! empty($this->first_name) && ! empty($this->last_name);
     }
 
     /**

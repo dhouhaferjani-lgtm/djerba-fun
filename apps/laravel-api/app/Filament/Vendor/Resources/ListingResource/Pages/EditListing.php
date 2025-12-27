@@ -35,15 +35,18 @@ class EditListing extends EditRecord
                     $errors = [];
 
                     // Basic info
-                    if (!$record->location_id) {
+                    if (! $record->location_id) {
                         $errors[] = 'Location is required';
                     }
+
                     if (empty($record->getTranslation('title', 'en'))) {
                         $errors[] = 'English title is required';
                     }
+
                     if (empty($record->getTranslation('summary', 'en'))) {
                         $errors[] = 'English summary is required';
                     }
+
                     if (empty($record->getTranslation('description', 'en'))) {
                         $errors[] = 'English description is required';
                     }
@@ -57,9 +60,11 @@ class EditListing extends EditRecord
                         if (empty($record->event_type)) {
                             $errors[] = 'Event type is required';
                         }
+
                         if (empty($record->start_date)) {
                             $errors[] = 'Start date is required for events';
                         }
+
                         if (empty($record->venue['name'])) {
                             $errors[] = 'Venue name is required for events';
                         }
@@ -76,13 +81,15 @@ class EditListing extends EditRecord
                     } else {
                         // Validate each person type has prices
                         $hasValidPricing = false;
+
                         foreach ($record->pricing['person_types'] as $personType) {
-                            if (!empty($personType['tnd_price']) && !empty($personType['eur_price'])) {
+                            if (! empty($personType['tnd_price']) && ! empty($personType['eur_price'])) {
                                 $hasValidPricing = true;
                                 break;
                             }
                         }
-                        if (!$hasValidPricing) {
+
+                        if (! $hasValidPricing) {
                             $errors[] = 'At least one person type must have both TND and EUR prices';
                         }
                     }
@@ -97,13 +104,14 @@ class EditListing extends EditRecord
                         $errors[] = 'Cancellation policy is required';
                     }
 
-                    if (!empty($errors)) {
+                    if (! empty($errors)) {
                         Notification::make()
                             ->title('Cannot Submit for Review')
                             ->body('Please fix the following issues:' . "\n• " . implode("\n• ", $errors))
                             ->danger()
                             ->persistent()
                             ->send();
+
                         return;
                     }
 

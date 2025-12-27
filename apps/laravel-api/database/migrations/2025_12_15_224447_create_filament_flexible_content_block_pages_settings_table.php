@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Schema;
 use Statikbe\FilamentFlexibleContentBlockPages\Facades\FilamentFlexibleContentBlockPages;
 use Statikbe\FilamentFlexibleContentBlockPages\Models\Settings;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up()
     {
         Schema::create(FilamentFlexibleContentBlockPages::config()->getSettingsTable(), function (Blueprint $table) {

@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class CartPayment extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'cart_id',

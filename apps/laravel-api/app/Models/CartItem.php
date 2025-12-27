@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CartItem extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'cart_id',
@@ -73,12 +74,14 @@ class CartItem extends Model
     public function getSubtotal(): float
     {
         // If we have person type breakdown, calculate from that
-        if (!empty($this->person_type_breakdown)) {
+        if (! empty($this->person_type_breakdown)) {
             $total = 0;
+
             foreach ($this->person_type_breakdown as $type => $qty) {
                 // Use unit_price as base, or calculate per type if pricing is available
                 $total += $this->unit_price * $qty;
             }
+
             return $total;
         }
 
@@ -96,9 +99,11 @@ class CartItem extends Model
         }
 
         $total = 0;
+
         foreach ($this->extras as $extra) {
             $total += ($extra['price'] ?? 0) * ($extra['quantity'] ?? 1);
         }
+
         return $total;
     }
 
@@ -118,6 +123,7 @@ class CartItem extends Model
         if (is_array($this->listing_title)) {
             return $this->listing_title[$locale] ?? $this->listing_title['en'] ?? 'Activity';
         }
+
         return $this->listing_title ?? 'Activity';
     }
 
@@ -126,7 +132,7 @@ class CartItem extends Model
      */
     public function isHoldValid(): bool
     {
-        return $this->hold && !$this->hold->hasExpired() && $this->hold->isActive();
+        return $this->hold && ! $this->hold->hasExpired() && $this->hold->isActive();
     }
 
     /**

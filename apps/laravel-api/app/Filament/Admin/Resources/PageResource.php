@@ -172,7 +172,7 @@ class PageResource extends Resource
             $gridFields[] = UndeletableToggle::create();
         }
 
-        if (!empty($gridFields)) {
+        if (! empty($gridFields)) {
             $fields[] = Grid::make()->schema($gridFields);
         }
 
@@ -266,6 +266,7 @@ class PageResource extends Resource
     {
         /** @var Page $record */
         $published = 'Draft';
+
         if ($record->isPublished()) {
             $published = 'Published';
         }

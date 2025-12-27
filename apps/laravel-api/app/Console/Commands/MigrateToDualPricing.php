@@ -28,13 +28,15 @@ class MigrateToDualPricing extends Command
 
         if ($totalListings === 0) {
             $this->warn('No listings found.');
+
             return self::SUCCESS;
         }
 
         // Analyze listings
         $needsMigration = $listings->filter(function ($listing) {
             $pricing = $listing->pricing;
-            return !isset($pricing['tnd_price']) || !isset($pricing['eur_price']);
+
+            return ! isset($pricing['tnd_price']) || ! isset($pricing['eur_price']);
         });
 
         $migrationCount = $needsMigration->count();
@@ -50,13 +52,15 @@ class MigrateToDualPricing extends Command
 
         if ($migrationCount === 0) {
             $this->info('✅ All listings already have dual pricing!');
+
             return self::SUCCESS;
         }
 
         // Confirm migration
-        if (!$isDryRun && !$isForced) {
-            if (!$this->confirm("Migrate {$migrationCount} listing(s) to dual pricing?")) {
+        if (! $isDryRun && ! $isForced) {
+            if (! $this->confirm("Migrate {$migrationCount} listing(s) to dual pricing?")) {
                 $this->warn('Migration cancelled.');
+
                 return self::FAILURE;
             }
         }
@@ -81,7 +85,7 @@ class MigrateToDualPricing extends Command
                 $existingCurrency = $pricing['currency'] ?? null;
                 $basePrice = $pricing['basePrice'] ?? $pricing['base_price'] ?? $pricing['base'] ?? null;
 
-                if (!$basePrice) {
+                if (! $basePrice) {
                     $errors[] = "Listing {$listing->id}: No base price found";
                     $skipped++;
                     $progressBar->advance();
@@ -133,7 +137,7 @@ class MigrateToDualPricing extends Command
                 }
 
                 // Save changes
-                if (!$isDryRun) {
+                if (! $isDryRun) {
                     $listing->update(['pricing' => $newPricing]);
                 }
 
@@ -161,9 +165,10 @@ class MigrateToDualPricing extends Command
             ]
         );
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $this->newLine();
             $this->error('⚠️  Errors encountered:');
+
             foreach ($errors as $error) {
                 $this->line("  • {$error}");
             }

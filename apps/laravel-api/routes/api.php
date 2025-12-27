@@ -1,13 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\FeedController;
+use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\Partner\PartnerBookingController;
 use App\Http\Controllers\Api\Partner\PartnerDashboardController;
 use App\Http\Controllers\Api\Partner\PartnerListingController;
 use App\Http\Controllers\Api\Partner\PartnerPaymentController;
 use App\Http\Controllers\Api\Partner\PartnerSearchController;
 use App\Http\Controllers\Api\Partner\PartnerTransactionController;
-use App\Http\Controllers\Api\FeedController;
-use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\BlogPostController;
@@ -15,18 +15,21 @@ use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\CartCheckoutController;
 use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CheckInController;
-use App\Http\Controllers\Api\V1\ParticipantController;
-use App\Http\Controllers\Api\V1\VoucherController;
+use App\Http\Controllers\Api\V1\CheckoutController;
+use App\Http\Controllers\Api\V1\ConsentController;
 use App\Http\Controllers\Api\V1\CouponController;
 use App\Http\Controllers\Api\V1\HoldController;
 use App\Http\Controllers\Api\V1\ListingController;
 use App\Http\Controllers\Api\V1\ListingExtrasController;
 use App\Http\Controllers\Api\V1\LocationController;
-use App\Http\Controllers\Api\V1\ConsentController;
 use App\Http\Controllers\Api\V1\MagicLinkController;
 use App\Http\Controllers\Api\V1\PageController;
+use App\Http\Controllers\Api\V1\ParticipantController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\PlatformSettingsController;
 use App\Http\Controllers\Api\V1\ReviewController;
+use App\Http\Controllers\Api\V1\VoucherController;
+use App\Http\Controllers\Api\Vendor\VendorVoucherController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,6 +53,11 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/auth/login', [AuthController::class, 'login']);
 
+    // Magic link authentication (public)
+    Route::post('/auth/magic-link/send', [AuthController::class, 'sendMagicLink']);
+    Route::post('/auth/magic-link/verify', [AuthController::class, 'verifyMagicLink']);
+    Route::post('/auth/magic-link/register', [AuthController::class, 'registerPasswordless']);
+
     // Public listing routes
     Route::get('/listings', [ListingController::class, 'index']);
     Route::get('/listings/{listing:slug}', [ListingController::class, 'show']);
@@ -72,6 +80,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/blog/posts/{slug}', [BlogPostController::class, 'show']);
     Route::get('/blog/posts/{slug}/related', [BlogPostController::class, 'related']);
     Route::get('/menus/{menuCode}', [PageController::class, 'getMenu']);
+
+    // Platform settings routes (public - for frontend configuration)
+    Route::get('/platform/settings', [PlatformSettingsController::class, 'index']);
+    Route::get('/platform/schema', [PlatformSettingsController::class, 'schema']);
 
     // Availability routes (public - anyone can view availability)
     Route::get('/listings/{listing:slug}/availability', [AvailabilityController::class, 'index']);
@@ -103,6 +115,11 @@ Route::prefix('v1')->group(function () {
     Route::post('/cart/checkout/{payment}/pay', [CartCheckoutController::class, 'processPayment']);
     Route::get('/cart/checkout/{payment}/status', [CartCheckoutController::class, 'status']);
     Route::post('/cart/checkout/cancel', [CartCheckoutController::class, 'cancelCheckout']);
+
+    // Checkout endpoints (public - for billing verification and pricing)
+    Route::prefix('checkout')->group(function () {
+        Route::post('/verify-billing', [CheckoutController::class, 'verifyBilling']);
+    });
 
     // Guest booking flow (public - allows guest checkout with session_id)
     Route::post('/bookings', [BookingController::class, 'store']);
@@ -140,6 +157,15 @@ Route::prefix('v1')->group(function () {
         Route::get('/bookings/{booking}', [BookingController::class, 'show']);
         Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
 
+        // Booking linking (authenticated users only)
+        // Rate limited to prevent brute-force booking number guessing
+        Route::get('/bookings/claimable', [BookingController::class, 'claimable'])
+            ->middleware('throttle:10,1');
+        Route::post('/bookings/link', [BookingController::class, 'link'])
+            ->middleware('throttle:10,1');
+        Route::post('/bookings/claim', [BookingController::class, 'claim'])
+            ->middleware('throttle:5,1'); // Stricter limit for claim attempts
+
         // Review management
         Route::post('/bookings/{booking}/review', [ReviewController::class, 'store']);
         Route::post('/reviews/{review}/helpful', [ReviewController::class, 'markHelpful']);
@@ -161,13 +187,33 @@ Route::prefix('v1')->group(function () {
         Route::get('/bookings/{booking}/vouchers', [VoucherController::class, 'index']);
         Route::get('/bookings/{booking}/vouchers/{voucherCode}', [VoucherController::class, 'show']);
 
+        // Voucher PDF download
+        Route::get('/bookings/{booking}/vouchers/pdf', [VoucherController::class, 'downloadAll']);
+        Route::get('/bookings/{booking}/vouchers/{voucherCode}/pdf', [VoucherController::class, 'downloadSingle']);
+
+        // Voucher email
+        Route::post('/bookings/{booking}/vouchers/email', [VoucherController::class, 'emailAll']);
+        Route::post('/bookings/{booking}/vouchers/{voucherCode}/email', [VoucherController::class, 'emailSingle']);
+
         // Voucher lookup by code (for convenience)
         Route::get('/vouchers/{voucherCode}', [ParticipantController::class, 'showByVoucherCode']);
 
         // Vendor check-in endpoints
+        // Bulk check-in endpoints (must come before parameterized routes)
+        Route::post('/check-in/bulk', [CheckInController::class, 'bulkCheckIn']);
+        Route::post('/check-in/bulk/undo', [CheckInController::class, 'bulkUndoCheckIn']);
+
+        // Individual check-in endpoints
         Route::post('/check-in/{voucherCode}', [CheckInController::class, 'checkIn']);
         Route::delete('/check-in/{voucherCode}', [CheckInController::class, 'undoCheckIn']);
         Route::get('/check-in/{voucherCode}/lookup', [CheckInController::class, 'lookup']);
+
+        // Vendor-specific voucher management
+        // These routes allow vendors to download/email vouchers for their own listings
+        Route::prefix('vendor')->group(function () {
+            Route::get('/bookings/{booking}/vouchers/download', [VendorVoucherController::class, 'download']);
+            Route::post('/bookings/{booking}/vouchers/email', [VendorVoucherController::class, 'email']);
+        });
 
         // Additional protected routes will be added in later phases
         // - User profile updates

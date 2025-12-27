@@ -10,7 +10,8 @@ use Spatie\Translatable\HasTranslations;
 
 class ListingFaq extends Model
 {
-    use HasFactory, HasTranslations;
+    use HasFactory;
+    use HasTranslations;
 
     protected static function booted(): void
     {

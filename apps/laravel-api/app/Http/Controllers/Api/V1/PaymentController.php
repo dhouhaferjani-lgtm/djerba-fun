@@ -20,8 +20,7 @@ class PaymentController extends Controller
     public function __construct(
         private readonly PaymentGatewayManager $gatewayManager,
         private readonly BookingService $bookingService
-    ) {
-    }
+    ) {}
 
     /**
      * Process payment for a booking.

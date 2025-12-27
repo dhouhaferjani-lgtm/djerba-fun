@@ -12,26 +12,27 @@ return new class extends Migration
         $pageTable = FilamentFlexibleContentBlockPages::config()->getPagesTable();
         $pageModel = FilamentFlexibleContentBlockPages::config()->getPageModel()::class;
 
-        Schema::create($pageTable, function (Blueprint $table) use ($pageTable, $pageModel) {
+        Schema::create($pageTable, function (Blueprint $table) use ($pageModel) {
             $table->id();
 
             $table->json('title');
 
-            //Intro:
+            // Intro:
             $table->json('intro')
                 ->nullable();
 
-            //Hero image:
+            // Hero image:
             $table->json('hero_image_copyright')
                 ->nullable();
             $table->json('hero_image_title')
                 ->nullable();
-            if(FilamentFlexibleContentBlockPages::config()->isHeroCallToActionsEnabled($pageModel)) {
+
+            if (FilamentFlexibleContentBlockPages::config()->isHeroCallToActionsEnabled($pageModel)) {
                 $table->json('hero_call_to_actions')
                     ->nullable();
             }
 
-            //Publishing:
+            // Publishing:
             $table->timestamp('publishing_begins_at')
                 ->nullable();
             $table->timestamp('publishing_ends_at')
@@ -39,7 +40,7 @@ return new class extends Migration
             $table->index('publishing_begins_at');
             $table->index('publishing_ends_at');
 
-            //SEO:
+            // SEO:
             $table->json('seo_title')
                 ->nullable();
             $table->json('seo_description')
@@ -47,27 +48,27 @@ return new class extends Migration
             $table->json('seo_keywords')
                 ->nullable();
 
-            //Overview:
+            // Overview:
             $table->json('overview_title')
                 ->nullable();
             $table->json('overview_description')
                 ->nullable();
 
-            //Content blocks:
+            // Content blocks:
             $table->json('content_blocks')
                 ->nullable();
 
-            //Slug:
+            // Slug:
             $table->json('slug')
                 ->nullable();
 
-            //Unique code:
+            // Unique code:
             $table->string('code')
                 ->nullable()
                 ->unique();
 
-            //Author:
-            if(FilamentFlexibleContentBlockPages::config()->isAuthorEnabled($pageModel)) {
+            // Author:
+            if (FilamentFlexibleContentBlockPages::config()->isAuthorEnabled($pageModel)) {
                 $table->unsignedBigInteger('author_id')
                     ->nullable();
                 $table->foreign('author_id')
@@ -77,7 +78,7 @@ return new class extends Migration
             }
 
             // Parent-child:
-            if(FilamentFlexibleContentBlockPages::config()->isParentAndPageTreeEnabled($pageModel)) {
+            if (FilamentFlexibleContentBlockPages::config()->isParentAndPageTreeEnabled($pageModel)) {
                 $table->bigInteger('parent_id')
                     ->default(\SolutionForest\FilamentTree\Support\Utils::defaultParentId())
                     ->index();
@@ -86,7 +87,7 @@ return new class extends Migration
             }
 
             // Deletable:
-            if(FilamentFlexibleContentBlockPages::config()->isUndeletableEnabled($pageModel)) {
+            if (FilamentFlexibleContentBlockPages::config()->isUndeletableEnabled($pageModel)) {
                 $table->boolean('is_undeletable')
                     ->default(false);
             }

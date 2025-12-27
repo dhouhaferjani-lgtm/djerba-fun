@@ -32,7 +32,7 @@ class CartController extends Controller
 
         $cart = $this->cartService->getActiveCart($user, $sessionId);
 
-        if (!$cart) {
+        if (! $cart) {
             return response()->json([
                 'message' => 'No active cart found',
                 'cart' => null,
@@ -60,14 +60,14 @@ class CartController extends Controller
         $isOwner = ($user && $hold->user_id === $user->id) ||
                    ($sessionId && $hold->session_id === $sessionId);
 
-        if (!$isOwner) {
+        if (! $isOwner) {
             return response()->json([
                 'message' => 'This hold does not belong to you',
             ], 403);
         }
 
         // Check hold is still valid
-        if (!$hold->isActive()) {
+        if (! $hold->isActive()) {
             return response()->json([
                 'message' => 'This hold has expired',
             ], 410);
@@ -104,7 +104,7 @@ class CartController extends Controller
         $isOwner = ($user && $cart->user_id === $user->id) ||
                    ($sessionId && $cart->session_id === $sessionId);
 
-        if (!$isOwner) {
+        if (! $isOwner) {
             return response()->json([
                 'message' => 'This cart does not belong to you',
             ], 403);
@@ -131,7 +131,7 @@ class CartController extends Controller
         $isOwner = ($user && $cart->user_id === $user->id) ||
                    ($sessionId && $cart->session_id === $sessionId);
 
-        if (!$isOwner) {
+        if (! $isOwner) {
             return response()->json([
                 'message' => 'This cart does not belong to you',
             ], 403);
@@ -139,18 +139,21 @@ class CartController extends Controller
 
         // Update primary contact if provided
         $primaryContact = $request->getPrimaryContact();
+
         if ($primaryContact) {
             $this->cartService->updatePrimaryContact($item, $primaryContact);
         }
 
         // Update guest names if provided
         $guestNames = $request->getGuestNames();
+
         if ($guestNames !== null) {
             $this->cartService->updateGuestNames($item, $guestNames);
         }
 
         // Update extras if provided
         $extras = $request->getExtras();
+
         if ($extras !== null) {
             $this->cartService->updateExtras($item, $extras);
         }
@@ -170,7 +173,7 @@ class CartController extends Controller
 
         $cart = $this->cartService->getActiveCart($user, $sessionId);
 
-        if (!$cart) {
+        if (! $cart) {
             return response()->json([
                 'message' => 'No active cart found',
             ], 404);
@@ -180,7 +183,7 @@ class CartController extends Controller
         $isOwner = ($user && $cart->user_id === $user->id) ||
                    ($sessionId && $cart->session_id === $sessionId);
 
-        if (!$isOwner) {
+        if (! $isOwner) {
             return response()->json([
                 'message' => 'This cart does not belong to you',
             ], 403);
@@ -203,7 +206,7 @@ class CartController extends Controller
 
         $cart = $this->cartService->getActiveCart($user, $sessionId);
 
-        if (!$cart) {
+        if (! $cart) {
             return response()->json([
                 'message' => 'No active cart found',
                 'cart' => null,
@@ -235,7 +238,7 @@ class CartController extends Controller
             ->with(['items.hold', 'items.listing'])
             ->first();
 
-        if (!$cart) {
+        if (! $cart) {
             return response()->json([
                 'message' => 'No cart found to extend',
             ], 404);
@@ -245,7 +248,7 @@ class CartController extends Controller
         $isOwner = ($user && $cart->user_id === $user->id) ||
                    ($sessionId && $cart->session_id === $sessionId);
 
-        if (!$isOwner) {
+        if (! $isOwner) {
             return response()->json([
                 'message' => 'This cart does not belong to you',
             ], 403);
@@ -266,7 +269,7 @@ class CartController extends Controller
         ];
 
         // Include unavailable items if any
-        if (!empty($result['unavailable'])) {
+        if (! empty($result['unavailable'])) {
             $response['unavailable'] = $result['unavailable'];
         }
 
@@ -285,7 +288,7 @@ class CartController extends Controller
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'message' => 'Authentication required',
             ], 401);
@@ -293,7 +296,7 @@ class CartController extends Controller
 
         $sessionId = $request->input('session_id');
 
-        if (!$sessionId) {
+        if (! $sessionId) {
             return response()->json([
                 'message' => 'Session ID required',
             ], 422);
@@ -301,11 +304,11 @@ class CartController extends Controller
 
         $mergedCart = $this->cartService->mergeGuestCart($sessionId, $user);
 
-        if (!$mergedCart) {
+        if (! $mergedCart) {
             // No guest cart to merge, return user's cart
             $cart = $this->cartService->getActiveCart($user, null);
 
-            if (!$cart) {
+            if (! $cart) {
                 return response()->json([
                     'message' => 'No cart to merge',
                     'cart' => null,
@@ -313,6 +316,7 @@ class CartController extends Controller
             }
 
             $cart->load(['items.hold', 'items.listing']);
+
             return new CartResource($cart);
         }
 

@@ -76,11 +76,16 @@ class BookingResource extends Resource
                         Forms\Components\TextInput::make('total_amount')
                             ->numeric()
                             ->required()
-                            ->prefix('$')
+                            ->prefix(fn ($record) => match ($record?->currency ?? 'TND') {
+                                'TND' => 'د.ت',
+                                'EUR' => '€',
+                                'USD' => '$',
+                                default => '',
+                            })
                             ->step(0.01),
 
                         Forms\Components\TextInput::make('currency')
-                            ->default('USD')
+                            ->default('TND')
                             ->maxLength(3),
                     ])
                     ->columns(3),
@@ -164,6 +169,46 @@ class BookingResource extends Resource
                 Tables\Columns\TextColumn::make('confirmed_at')
                     ->label('Confirmed')
                     ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\BadgeColumn::make('traveler_details_status')
+                    ->label('Participant Names')
+                    ->colors([
+                        'secondary' => 'not_required',
+                        'warning' => fn ($state) => in_array($state, ['pending', 'partial']),
+                        'success' => 'complete',
+                    ])
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'not_required' => 'Not Required',
+                        'pending' => 'Pending',
+                        'partial' => 'Partial',
+                        'complete' => 'Complete',
+                        default => $state,
+                    })
+                    ->sortable()
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('linked_at')
+                    ->label('Linked to Account')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\BadgeColumn::make('linked_method')
+                    ->label('Link Method')
+                    ->colors([
+                        'secondary' => 'auto',
+                        'primary' => 'manual',
+                        'success' => 'claimed',
+                    ])
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'auto' => 'Auto',
+                        'manual' => 'Manual',
+                        'claimed' => 'Claimed',
+                        default => 'N/A',
+                    })
+                    ->visible(fn ($record) => $record->linked_at !== null)
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

@@ -70,16 +70,30 @@ export default function AvailabilityCalendar({
 
     if (daySlots.length === 0) return null;
 
-    const hasAvailable = daySlots.some((slot) => slot.status === 'available');
-    const hasLimited = daySlots.some((slot) => slot.status === 'limited');
-    const allSoldOut = daySlots.every((slot) => slot.status === 'sold_out');
-    const allBlocked = daySlots.every((slot) => slot.status === 'blocked');
+    // Calculate total remaining capacity for this date
+    const totalRemaining = daySlots.reduce((total, slot) => {
+      return total + (slot.remainingCapacity ?? slot.capacity ?? 0);
+    }, 0);
 
+    // If no capacity left, it's sold out regardless of slot status
+    if (totalRemaining === 0) return 'sold_out';
+
+    const allBlocked = daySlots.every((slot) => slot.status === 'blocked');
     if (allBlocked) return 'blocked';
-    if (allSoldOut) return 'sold_out';
+
+    // Check for available slots with remaining capacity
+    const hasAvailable = daySlots.some(
+      (slot) => slot.status === 'available' && (slot.remainingCapacity ?? slot.capacity ?? 0) > 0
+    );
+    const hasLimited = daySlots.some(
+      (slot) => slot.status === 'limited' && (slot.remainingCapacity ?? slot.capacity ?? 0) > 0
+    );
+
     if (hasAvailable) return 'available';
     if (hasLimited) return 'limited';
-    return null;
+
+    // Fallback: if slots exist but no capacity, mark as sold out
+    return 'sold_out';
   };
 
   const getRemainingCapacity = (date: Date): number => {
@@ -184,6 +198,7 @@ export default function AvailabilityCalendar({
                 ${isPast ? 'cursor-not-allowed opacity-50' : ''}
                 ${isCurrentMonth && !isPast ? getStatusColor(status) : 'text-neutral-400'}
               `}
+              data-testid={`date-${format(day, 'yyyy-MM-dd')}`}
             >
               <span className="block">{format(day, 'd')}</span>
 

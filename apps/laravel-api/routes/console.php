@@ -13,3 +13,9 @@ Schedule::command('booking:cleanup-holds')
     ->everyMinute()
     ->withoutOverlapping()
     ->runInBackground();
+
+// Update exchange rates daily at 2 AM
+Schedule::command('exchange-rates:update')
+    ->dailyAt('02:00')
+    ->withoutOverlapping()
+    ->runInBackground();

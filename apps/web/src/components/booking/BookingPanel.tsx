@@ -50,7 +50,7 @@ export function BookingPanel({
       {/* Floating Book Now button at bottom of screen */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-40 shadow-lg safe-area-bottom">
         <div className="flex items-center justify-between gap-4 max-w-lg mx-auto">
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0" data-testid="listing-price">
             <PriceDisplay amount={basePrice} currency={currency} size="sm" showFrom perPerson />
           </div>
           <Button
@@ -58,6 +58,7 @@ export function BookingPanel({
             size="lg"
             onClick={() => setIsOpen(true)}
             className="flex-1 max-w-xs"
+            data-testid="book-now-button"
           >
             <Calendar className="h-5 w-5 mr-2" />
             {t('check_availability')}

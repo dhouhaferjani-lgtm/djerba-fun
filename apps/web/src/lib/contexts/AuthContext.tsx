@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser, useLogin, useLogout, useRegister } from '../api/hooks';
 import type { User } from '@go-adventure/schemas';
 
@@ -26,10 +27,24 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const { data: userData, isLoading } = useCurrentUser();
   const loginMutation = useLogin();
   const registerMutation = useRegister();
   const logoutMutation = useLogout();
+
+  // Handle 401 unauthorized errors from API
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      // Invalidate user query to trigger re-fetch (which will fail and clear user state)
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      // Optionally redirect to login page
+      // window.location.href = '/auth/login';
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, [queryClient]);
 
   const login = async (email: string, password: string) => {
     await loginMutation.mutateAsync({ email, password });

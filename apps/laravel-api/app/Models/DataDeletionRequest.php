@@ -11,14 +11,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DataDeletionRequest extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     /**
      * Possible statuses.
      */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_PROCESSING = 'processing';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [

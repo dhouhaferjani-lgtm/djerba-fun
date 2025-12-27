@@ -54,6 +54,7 @@ class CleanupExpiredHoldsCommand extends Command
         $this->info("Found {$expiredHolds->count()} expired holds");
 
         $cleaned = 0;
+
         foreach ($expiredHolds as $hold) {
             if ($dryRun) {
                 $this->line("  Would expire hold {$hold->id} (slot: {$hold->slot_id}, qty: {$hold->quantity})");
@@ -71,7 +72,7 @@ class CleanupExpiredHoldsCommand extends Command
             }
         }
 
-        if (!$dryRun) {
+        if (! $dryRun) {
             $this->info("Cleaned up {$cleaned} expired holds");
         }
     }
@@ -86,6 +87,7 @@ class CleanupExpiredHoldsCommand extends Command
         $this->info("Found {$expiredCarts->count()} expired carts");
 
         $cleaned = 0;
+
         foreach ($expiredCarts as $cart) {
             if ($dryRun) {
                 $itemCount = $cart->items->count();
@@ -112,7 +114,7 @@ class CleanupExpiredHoldsCommand extends Command
             }
         }
 
-        if (!$dryRun) {
+        if (! $dryRun) {
             $this->info("Cleaned up {$cleaned} expired carts");
         }
     }

@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Review extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'booking_id',

@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payout extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'vendor_id',

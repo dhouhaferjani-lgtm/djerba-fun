@@ -18,6 +18,7 @@ class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens;
+
     use HasFactory;
     use Notifiable;
 
@@ -44,8 +45,17 @@ class User extends Authenticatable implements FilamentUser
         'role',
         'status',
         'display_name',
+        'first_name',
+        'last_name',
+        'phone',
         'avatar_url',
+        'preferred_locale',
         'email_verified_at',
+        'magic_token_hash',
+        'magic_token_expires_at',
+        'magic_token_used_at',
+        'prefers_passwordless',
+        'last_magic_login_at',
     ];
 
     /**
@@ -56,6 +66,7 @@ class User extends Authenticatable implements FilamentUser
     protected $hidden = [
         'password',
         'remember_token',
+        'magic_token_hash',
     ];
 
     /**
@@ -70,6 +81,10 @@ class User extends Authenticatable implements FilamentUser
             'password' => 'hashed',
             'role' => UserRole::class,
             'status' => UserStatus::class,
+            'magic_token_expires_at' => 'datetime',
+            'magic_token_used_at' => 'datetime',
+            'last_magic_login_at' => 'datetime',
+            'prefers_passwordless' => 'boolean',
         ];
     }
 

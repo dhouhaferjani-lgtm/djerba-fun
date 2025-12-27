@@ -19,11 +19,11 @@ return new class extends Migration
         });
 
         // Migrate existing bookings: copy traveler_info to travelers array
-        DB::statement("
+        DB::statement('
             UPDATE bookings
             SET travelers = JSON_BUILD_ARRAY(traveler_info)
             WHERE traveler_info IS NOT NULL AND travelers IS NULL
-        ");
+        ');
     }
 
     /**

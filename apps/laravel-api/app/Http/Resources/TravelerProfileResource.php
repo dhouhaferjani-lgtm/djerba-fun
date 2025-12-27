@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
+
 class TravelerProfileResource extends BaseResource
 {
     /**

@@ -17,7 +17,10 @@ use Spatie\Translatable\HasTranslations;
 
 class Extra extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes, HasTranslations;
+    use HasFactory;
+    use HasTranslations;
+    use HasUuids;
+    use SoftDeletes;
 
     protected $fillable = [
         'vendor_id',
@@ -209,7 +212,7 @@ class Extra extends Model
      */
     public function hasAvailableInventory(int $quantity): bool
     {
-        if (!$this->track_inventory) {
+        if (! $this->track_inventory) {
             return true;
         }
 
@@ -221,11 +224,11 @@ class Extra extends Model
      */
     public function reserveInventory(int $quantity, ?Booking $booking = null, ?User $user = null): bool
     {
-        if (!$this->track_inventory) {
+        if (! $this->track_inventory) {
             return true;
         }
 
-        if (!$this->hasAvailableInventory($quantity)) {
+        if (! $this->hasAvailableInventory($quantity)) {
             return false;
         }
 
@@ -251,7 +254,7 @@ class Extra extends Model
      */
     public function releaseInventory(int $quantity, ?Booking $booking = null, ?User $user = null): void
     {
-        if (!$this->track_inventory) {
+        if (! $this->track_inventory) {
             return;
         }
 

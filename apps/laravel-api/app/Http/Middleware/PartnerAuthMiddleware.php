@@ -21,7 +21,7 @@ class PartnerAuthMiddleware
         $apiKey = $request->header('X-Partner-Key');
         $apiSecret = $request->header('X-Partner-Secret');
 
-        if (!$apiKey || !$apiSecret) {
+        if (! $apiKey || ! $apiSecret) {
             return response()->json([
                 'error' => 'Missing partner credentials',
                 'message' => 'X-Partner-Key and X-Partner-Secret headers are required',
@@ -30,7 +30,7 @@ class PartnerAuthMiddleware
 
         $partner = $this->authService->authenticate($apiKey, $apiSecret);
 
-        if (!$partner) {
+        if (! $partner) {
             return response()->json([
                 'error' => 'Invalid partner credentials',
                 'message' => 'The provided partner credentials are invalid or the partner is inactive',
@@ -44,10 +44,10 @@ class PartnerAuthMiddleware
                 'message' => 'You have exceeded your rate limit',
                 'retry_after' => $this->authService->getRateLimitResetTime() - time(),
             ], 429)
-            ->header('X-RateLimit-Limit', $partner->rate_limit)
-            ->header('X-RateLimit-Remaining', 0)
-            ->header('X-RateLimit-Reset', $this->authService->getRateLimitResetTime())
-            ->header('Retry-After', $this->authService->getRateLimitResetTime() - time());
+                ->header('X-RateLimit-Limit', $partner->rate_limit)
+                ->header('X-RateLimit-Remaining', 0)
+                ->header('X-RateLimit-Reset', $this->authService->getRateLimitResetTime())
+                ->header('Retry-After', $this->authService->getRateLimitResetTime() - time());
         }
 
         // Increment rate limit

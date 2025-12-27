@@ -14,7 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Booking extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'booking_number',
@@ -32,6 +33,13 @@ class Booking extends Model
         'total_amount',
         'discount_amount',
         'currency',
+        'billing_country_code',
+        'billing_city',
+        'billing_postal_code',
+        'billing_address_line1',
+        'billing_address_line2',
+        'pricing_snapshot',
+        'pricing_disclosed',
         'status',
         'traveler_info',
         'travelers',
@@ -41,6 +49,10 @@ class Booking extends Model
         'confirmed_at',
         'cancelled_at',
         'cancellation_reason',
+        'traveler_details_status',
+        'traveler_details_completed_at',
+        'linked_at',
+        'linked_method',
     ];
 
     protected function casts(): array
@@ -53,11 +65,17 @@ class Booking extends Model
             'partner_metadata' => 'array',
             'billing_contact' => 'array',
             'person_type_breakdown' => 'array',
+            'pricing_snapshot' => 'array',
             'total_amount' => 'decimal:2',
             'discount_amount' => 'decimal:2',
+            'pricing_disclosed' => 'boolean',
             'confirmed_at' => 'datetime',
             'cancelled_at' => 'datetime',
             'magic_token_expires_at' => 'datetime',
+            'traveler_details_status' => 'string',
+            'traveler_details_completed_at' => 'datetime',
+            'linked_at' => 'datetime',
+            'linked_method' => 'string',
         ];
     }
 
@@ -86,11 +104,12 @@ class Booking extends Model
      */
     public function getMagicLinkUrl(): ?string
     {
-        if (!$this->magic_token) {
+        if (! $this->magic_token) {
             return null;
         }
 
         $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+
         return "{$frontendUrl}/booking/{$this->magic_token}";
     }
 
@@ -100,12 +119,12 @@ class Booking extends Model
      */
     public function getAllTravelers(): array
     {
-        if (!empty($this->travelers)) {
+        if (! empty($this->travelers)) {
             return $this->travelers;
         }
 
         // Fallback for backward compatibility
-        if (!empty($this->traveler_info)) {
+        if (! empty($this->traveler_info)) {
             return [$this->traveler_info];
         }
 
@@ -118,6 +137,7 @@ class Booking extends Model
     public function getPrimaryTraveler(): ?array
     {
         $travelers = $this->getAllTravelers();
+
         return $travelers[0] ?? null;
     }
 
@@ -127,6 +147,7 @@ class Booking extends Model
     public function getPrimaryEmail(): ?string
     {
         $primary = $this->getPrimaryTraveler();
+
         return $primary['email'] ?? null;
     }
 
@@ -290,7 +311,7 @@ class Booking extends Model
      */
     public function canGenerateVouchers(): bool
     {
-        if (!$this->isConfirmed()) {
+        if (! $this->isConfirmed()) {
             return false;
         }
 
@@ -308,7 +329,7 @@ class Booking extends Model
      */
     public function getBillingContactNameAttribute(): ?string
     {
-        if (!$this->billing_contact) {
+        if (! $this->billing_contact) {
             return null;
         }
 
@@ -340,5 +361,89 @@ class Booking extends Model
     public function scopeForUser($query, int $userId)
     {
         return $query->where('user_id', $userId);
+    }
+
+    /**
+     * Check if this booking requires traveler details.
+     */
+    public function requiresTravelerDetails(): bool
+    {
+        return $this->traveler_details_status !== 'not_required';
+    }
+
+    /**
+     * Check if traveler details are complete.
+     */
+    public function travelerDetailsComplete(): bool
+    {
+        return $this->traveler_details_status === 'complete';
+    }
+
+    /**
+     * Check if traveler details are pending or partial.
+     */
+    public function travelerDetailsPending(): bool
+    {
+        return in_array($this->traveler_details_status, ['pending', 'partial'], true);
+    }
+
+    /**
+     * Update traveler details status based on participant completion.
+     */
+    public function updateTravelerDetailsStatus(): void
+    {
+        if (! $this->listing?->requiresTravelerNames()) {
+            $this->update(['traveler_details_status' => 'not_required']);
+
+            return;
+        }
+
+        $totalParticipants = $this->participants()->count();
+        $completeParticipants = $this->participants()
+            ->whereNotNull('first_name')
+            ->whereNotNull('last_name')
+            ->count();
+
+        if ($completeParticipants === 0) {
+            $status = 'pending';
+        } elseif ($completeParticipants < $totalParticipants) {
+            $status = 'partial';
+        } else {
+            $status = 'complete';
+        }
+
+        $this->update([
+            'traveler_details_status' => $status,
+            'traveler_details_completed_at' => $status === 'complete' ? now() : null,
+        ]);
+    }
+
+    /**
+     * Check if this booking requires pricing disclosure.
+     * Returns true if the price was changed due to PPP adjustments.
+     */
+    public function requiresPricingDisclosure(): bool
+    {
+        if (!$this->pricing_snapshot) {
+            return false;
+        }
+
+        return $this->pricing_snapshot['price_changed'] === true;
+    }
+
+    /**
+     * Get the billing address as an array.
+     *
+     * @return array{country_code: string|null, city: string|null, postal_code: string|null, address_line1: string|null, address_line2: string|null}
+     */
+    public function getBillingAddress(): array
+    {
+        return [
+            'country_code' => $this->billing_country_code,
+            'city' => $this->billing_city,
+            'postal_code' => $this->billing_postal_code,
+            'address_line1' => $this->billing_address_line1,
+            'address_line2' => $this->billing_address_line2,
+        ];
     }
 }

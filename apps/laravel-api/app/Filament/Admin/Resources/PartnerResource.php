@@ -4,8 +4,6 @@ namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\PartnerResource\Pages;
 use App\Models\Partner;
-use App\Enums\PartnerKycStatus;
-use App\Enums\PartnerTier;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;

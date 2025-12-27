@@ -248,8 +248,10 @@ class LocationResource extends Resource
                         ->before(function ($records) {
                             // Prevent bulk deletion if any location has listings
                             $hasListings = $records->filter(fn ($record) => $record->listings_count > 0);
+
                             if ($hasListings->isNotEmpty()) {
                                 $names = $hasListings->pluck('name')->join(', ');
+
                                 throw new \Exception("Cannot delete locations with existing listings: {$names}");
                             }
                         }),

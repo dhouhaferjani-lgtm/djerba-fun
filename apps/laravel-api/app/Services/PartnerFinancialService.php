@@ -12,10 +12,6 @@ class PartnerFinancialService
 {
     /**
      * Create a charge transaction when a booking is created.
-     *
-     * @param Booking $booking
-     * @param Partner $partner
-     * @return PartnerTransaction
      */
     public function createChargeForBooking(Booking $booking, Partner $partner): PartnerTransaction
     {
@@ -45,10 +41,6 @@ class PartnerFinancialService
 
     /**
      * Create a refund transaction when a booking is cancelled.
-     *
-     * @param Booking $booking
-     * @param Partner $partner
-     * @return PartnerTransaction
      */
     public function createRefundForBooking(Booking $booking, Partner $partner): PartnerTransaction
     {
@@ -78,14 +70,6 @@ class PartnerFinancialService
 
     /**
      * Create a payment transaction when partner pays platform.
-     *
-     * @param Partner $partner
-     * @param float $amount
-     * @param string $currency
-     * @param string $paymentMethod
-     * @param string $paymentReference
-     * @param array $metadata
-     * @return PartnerTransaction
      */
     public function createPayment(
         Partner $partner,
@@ -116,13 +100,6 @@ class PartnerFinancialService
 
     /**
      * Create an adjustment transaction (manual admin adjustment).
-     *
-     * @param Partner $partner
-     * @param float $amount
-     * @param string $currency
-     * @param string $description
-     * @param array $metadata
-     * @return PartnerTransaction
      */
     public function createAdjustment(
         Partner $partner,
@@ -154,11 +131,6 @@ class PartnerFinancialService
 
     /**
      * Calculate total revenue for a partner in a date range.
-     *
-     * @param Partner $partner
-     * @param \DateTime|null $fromDate
-     * @param \DateTime|null $toDate
-     * @return float
      */
     public function calculateRevenue(Partner $partner, ?\DateTime $fromDate = null, ?\DateTime $toDate = null): float
     {
@@ -178,9 +150,6 @@ class PartnerFinancialService
 
     /**
      * Get transaction summary for a partner.
-     *
-     * @param Partner $partner
-     * @return array
      */
     public function getTransactionSummary(Partner $partner): array
     {
@@ -214,10 +183,6 @@ class PartnerFinancialService
 
     /**
      * Check if partner can make a payment of given amount.
-     *
-     * @param Partner $partner
-     * @param float $amount
-     * @return bool
      */
     public function canMakePayment(Partner $partner, float $amount): bool
     {

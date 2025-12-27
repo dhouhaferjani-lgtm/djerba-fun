@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Cart extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'user_id',
@@ -33,8 +34,11 @@ class Cart extends Model
      * Cart statuses.
      */
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_CHECKING_OUT = 'checking_out';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_ABANDONED = 'abandoned';
 
     /**
@@ -92,7 +96,7 @@ class Cart extends Model
      */
     public function isActive(): bool
     {
-        return $this->status === self::STATUS_ACTIVE && !$this->hasExpired();
+        return $this->status === self::STATUS_ACTIVE && ! $this->hasExpired();
     }
 
     /**

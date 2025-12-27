@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\Partner;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Crypt;
 
 class CreatePartnerCommand extends Command
 {

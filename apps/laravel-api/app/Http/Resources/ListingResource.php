@@ -88,7 +88,8 @@ class ListingResource extends BaseResource
 
         // Format person types with dual pricing
         $personTypes = $pricing['personTypes'] ?? $pricing['person_types'] ?? [];
-        if (!empty($personTypes)) {
+
+        if (! empty($personTypes)) {
             $personTypes = array_map(function ($type) use ($detectedCurrency) {
                 $tndTypePrice = $type['tnd_price'] ?? $type['price'] ?? 0;
                 $eurTypePrice = $type['eur_price'] ?? $type['price'] ?? 0;
@@ -109,6 +110,7 @@ class ListingResource extends BaseResource
 
         // Format group discount
         $groupDiscount = $pricing['groupDiscount'] ?? $pricing['group_discount'] ?? null;
+
         if ($groupDiscount) {
             $groupDiscount = $this->toCamelCase($groupDiscount);
         }

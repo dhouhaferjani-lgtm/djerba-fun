@@ -13,7 +13,6 @@ class PartnerDashboardController extends Controller
     /**
      * Get partner analytics dashboard data.
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function analytics(Request $request)
@@ -21,7 +20,7 @@ class PartnerDashboardController extends Controller
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('analytics:read') && !$partner->hasPermission('*')) {
+        if (! $partner->hasPermission('analytics:read') && ! $partner->hasPermission('*')) {
             abort(403, 'Partner does not have permission to view analytics');
         }
 
@@ -107,7 +106,6 @@ class PartnerDashboardController extends Controller
     /**
      * Get partner current balance.
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function balance(Request $request)
@@ -115,7 +113,7 @@ class PartnerDashboardController extends Controller
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('balance:read') && !$partner->hasPermission('*')) {
+        if (! $partner->hasPermission('balance:read') && ! $partner->hasPermission('*')) {
             abort(403, 'Partner does not have permission to view balance');
         }
 

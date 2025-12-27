@@ -20,13 +20,13 @@ class ListingController extends Controller
             ->with(['vendor', 'location', 'media', 'faqs']);
 
         // Search by query (title, summary, description)
-        if ($request->has('q') && !empty($request->q)) {
+        if ($request->has('q') && ! empty($request->q)) {
             $searchTerm = $request->q;
             $query->where(function ($q) use ($searchTerm) {
                 // Search in JSON fields (multilingual)
-                $q->whereRaw("title::text ILIKE ?", ["%{$searchTerm}%"])
-                    ->orWhereRaw("summary::text ILIKE ?", ["%{$searchTerm}%"])
-                    ->orWhereRaw("description::text ILIKE ?", ["%{$searchTerm}%"]);
+                $q->whereRaw('title::text ILIKE ?', ["%{$searchTerm}%"])
+                    ->orWhereRaw('summary::text ILIKE ?', ["%{$searchTerm}%"])
+                    ->orWhereRaw('description::text ILIKE ?', ["%{$searchTerm}%"]);
             });
         }
 
@@ -56,6 +56,7 @@ class ListingController extends Controller
             if ($priceMin !== null) {
                 $query->whereRaw("(pricing->>'tnd_price')::numeric >= ?", [$priceMin]);
             }
+
             if ($priceMax !== null) {
                 $query->whereRaw("(pricing->>'tnd_price')::numeric <= ?", [$priceMax]);
             }
@@ -72,6 +73,7 @@ class ListingController extends Controller
                         ->where('start_date', '>=', $startDate);
                 });
             }
+
             if ($endDate !== null) {
                 $query->where(function ($q) use ($endDate) {
                     $q->where('service_type', 'event')
@@ -110,7 +112,7 @@ class ListingController extends Controller
     public function show(Listing $listing): ListingResource
     {
         // Check if listing is published or user is the vendor/admin
-        if (!$listing->isPublished()) {
+        if (! $listing->isPublished()) {
             abort(404);
         }
 

@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\BookingExtraStatus;
-use App\Enums\ExtraPricingType;
-use App\Enums\InventoryChangeType;
 use App\Models\Booking;
 use App\Models\BookingExtra;
 use App\Models\Extra;
@@ -21,11 +19,9 @@ class ExtrasService
     /**
      * Get available extras for a listing.
      *
-     * @param Listing $listing
-     * @param string|null $slotId Filter by slot availability
-     * @param array $personTypes Filter by person types in booking
-     * @param string $locale Locale for translatable fields
-     * @return Collection
+     * @param  string|null  $slotId  Filter by slot availability
+     * @param  array  $personTypes  Filter by person types in booking
+     * @param  string  $locale  Locale for translatable fields
      */
     public function getAvailableExtras(
         Listing $listing,
@@ -40,21 +36,22 @@ class ExtrasService
             ->get()
             ->filter(function (ListingExtra $listingExtra) use ($slotId, $personTypes) {
                 // Check if extra is active
-                if (!$listingExtra->extra || !$listingExtra->extra->is_active) {
+                if (! $listingExtra->extra || ! $listingExtra->extra->is_active) {
                     return false;
                 }
 
                 // Check slot availability
-                if ($slotId && !$listingExtra->isAvailableForSlot($slotId)) {
+                if ($slotId && ! $listingExtra->isAvailableForSlot($slotId)) {
                     return false;
                 }
 
                 // Check person type availability (at least one must match)
-                if (!empty($personTypes) && $listingExtra->available_for_person_types !== null) {
+                if (! empty($personTypes) && $listingExtra->available_for_person_types !== null) {
                     $matchingTypes = array_intersect(
                         array_map('strtolower', $personTypes),
                         array_map('strtolower', $listingExtra->available_for_person_types)
                     );
+
                     if (empty($matchingTypes)) {
                         return false;
                     }
@@ -91,17 +88,16 @@ class ExtrasService
             'allowQuantityChange' => $extra->allow_quantity_change,
             'trackInventory' => $extra->track_inventory,
             'inventoryCount' => $extra->inventory_count,
-            'hasAvailableInventory' => !$extra->track_inventory || ($extra->inventory_count ?? 0) > 0,
+            'hasAvailableInventory' => ! $extra->track_inventory || ($extra->inventory_count ?? 0) > 0,
         ];
     }
 
     /**
      * Calculate pricing for selected extras.
      *
-     * @param array $selectedExtras Array of ['id' => listing_extra_id, 'quantity' => int]
-     * @param array $personTypeBreakdown ['adult' => 2, 'child' => 1]
-     * @param string $currency 'TND' or 'EUR'
-     * @return array
+     * @param  array  $selectedExtras  Array of ['id' => listing_extra_id, 'quantity' => int]
+     * @param  array  $personTypeBreakdown  ['adult' => 2, 'child' => 1]
+     * @param  string  $currency  'TND' or 'EUR'
      */
     public function calculateExtrasTotal(
         array $selectedExtras,
@@ -113,7 +109,8 @@ class ExtrasService
 
         foreach ($selectedExtras as $selection) {
             $listingExtra = ListingExtra::with('extra')->find($selection['id']);
-            if (!$listingExtra || !$listingExtra->extra) {
+
+            if (! $listingExtra || ! $listingExtra->extra) {
                 continue;
             }
 
@@ -167,9 +164,11 @@ class ExtrasService
 
         // Check for required extras
         $requiredExtras = $availableExtras->filter(fn ($le) => $le->getEffectiveIsRequired());
+
         foreach ($requiredExtras as $required) {
             $found = collect($selectedExtras)->first(fn ($s) => $s['id'] === $required->id);
-            if (!$found) {
+
+            if (! $found) {
                 $errors[] = [
                     'field' => 'extras',
                     'message' => "Extra '{$required->extra->getTranslation('name', 'en')}' is required.",
@@ -182,10 +181,10 @@ class ExtrasService
         foreach ($selectedExtras as $selection) {
             $listingExtra = $availableExtras->get($selection['id']);
 
-            if (!$listingExtra) {
+            if (! $listingExtra) {
                 $errors[] = [
                     'field' => 'extras',
-                    'message' => "Extra not available for this listing.",
+                    'message' => 'Extra not available for this listing.',
                     'id' => $selection['id'],
                 ];
                 continue;
@@ -215,7 +214,7 @@ class ExtrasService
             }
 
             // Check inventory
-            if ($extra->track_inventory && !$extra->hasAvailableInventory($quantity)) {
+            if ($extra->track_inventory && ! $extra->hasAvailableInventory($quantity)) {
                 $errors[] = [
                     'field' => 'extras',
                     'message' => "Insufficient inventory for '{$extra->getTranslation('name', 'en')}'. Only {$extra->inventory_count} available.",
@@ -241,7 +240,8 @@ class ExtrasService
 
         foreach ($selectedExtras as $selection) {
             $listingExtra = ListingExtra::with('extra')->find($selection['id']);
-            if (!$listingExtra || !$listingExtra->extra) {
+
+            if (! $listingExtra || ! $listingExtra->extra) {
                 continue;
             }
 
@@ -272,6 +272,7 @@ class ExtrasService
             // Reserve inventory if needed
             if ($reserveInventory && $extra->track_inventory) {
                 $reserved = $extra->reserveInventory($quantity, $booking);
+
                 if ($reserved) {
                     $bookingExtra->update(['inventory_reserved' => true]);
                 }

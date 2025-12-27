@@ -81,8 +81,15 @@ export const userSchema = z.object({
   role: userRoleSchema,
   status: userStatusSchema,
   displayName: z.string().min(1).max(100),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  phone: z.string().optional(),
+  preferredLocale: z.enum(['en', 'fr']).optional(),
   avatarUrl: z.string().url().nullable(),
   emailVerifiedAt: z.string().datetime().nullable(),
+  // Passwordless auth
+  prefersPasswordless: z.boolean().optional(),
+  lastMagicLoginAt: z.string().datetime().nullable().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -785,11 +792,20 @@ export const paymentIntentSchema = z.object({
   updatedAt: z.string().datetime(),
 });
 
+export const travelerDetailsStatusSchema = z.enum([
+  'not_required',
+  'pending',
+  'partial',
+  'complete',
+]);
+
+export const linkedMethodSchema = z.enum(['auto', 'manual', 'claimed']);
+
 export const bookingSchema = z.object({
   id: z.string().uuid(),
   bookingNumber: z.string(),
   code: z.string().optional(), // Alias for bookingNumber
-  userId: z.string().uuid().optional(),
+  userId: z.string().uuid().nullable().optional(),
   listingId: z.string().uuid(),
   availabilitySlotId: z.string().uuid().or(z.number()).optional(),
   quantity: z.number().int().positive(),
@@ -801,10 +817,27 @@ export const bookingSchema = z.object({
   statusLabel: z.string().optional(),
   travelerInfo: travelerInfoSchema.optional(),
   travelers: z.array(travelerInfoSchema).optional(),
+  billingContact: z
+    .object({
+      email: z.string().email(),
+      firstName: z.string().optional(),
+      lastName: z.string().optional(),
+      phone: z.string().optional(),
+    })
+    .optional(),
   extras: z.array(bookingExtraSchema).optional(),
   confirmedAt: z.string().datetime().nullable().optional(),
   cancelledAt: z.string().datetime().nullable().optional(),
   cancellationReason: z.string().nullable().optional(),
+  // Traveler details tracking
+  travelerDetailsStatus: travelerDetailsStatusSchema.optional(),
+  travelerDetailsCompletedAt: z.string().datetime().nullable().optional(),
+  requiresTravelerDetails: z.boolean().optional(),
+  travelerDetailsComplete: z.boolean().optional(),
+  travelerDetailsPending: z.boolean().optional(),
+  // Account linking
+  linkedAt: z.string().datetime().nullable().optional(),
+  linkedMethod: linkedMethodSchema.nullable().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   // Computed properties
@@ -819,6 +852,7 @@ export const bookingSchema = z.object({
   availabilitySlot: availabilitySlotSchema.optional(),
   paymentIntents: z.array(paymentIntentSchema).optional(),
   latestPaymentIntent: paymentIntentSchema.nullable().optional(),
+  participants: z.array(z.unknown()).optional(),
 });
 
 export const bookingSummarySchema = bookingSchema
@@ -1082,3 +1116,335 @@ export type ListingSearchResponse = z.infer<typeof listingSearchResponseSchema>;
 export type CreateBookingRequest = z.infer<typeof createBookingRequestSchema>;
 export type CreateHoldRequest = z.infer<typeof createHoldRequestSchema>;
 export type CreateHoldResponse = z.infer<typeof createHoldResponseSchema>;
+
+// ============================================================================
+// PLATFORM SETTINGS
+// ============================================================================
+
+/** Platform identity settings */
+export const platformIdentitySchema = z.object({
+  name: z.string(),
+  tagline: z.string().nullable(),
+  description: z.string().nullable(),
+  domain: z.string().nullable(),
+  frontendUrl: z.string().nullable(),
+});
+
+/** Platform branding (logos, images) */
+export const platformBrandingSchema = z.object({
+  logoLight: z.string().url().nullable(),
+  logoDark: z.string().url().nullable(),
+  favicon: z.string().url().nullable(),
+  ogImage: z.string().url().nullable(),
+  appleTouchIcon: z.string().url().nullable(),
+});
+
+/** SEO metadata */
+export const platformSeoSchema = z.object({
+  metaTitle: z.string().nullable(),
+  metaDescription: z.string().nullable(),
+  keywords: z.array(z.string()),
+  author: z.string().nullable(),
+  organizationType: z.string().nullable(),
+  foundedYear: z.number().int().nullable(),
+});
+
+/** Platform contact information */
+export const platformContactSchema = z.object({
+  supportEmail: z.string().email().nullable(),
+  generalEmail: z.string().email().nullable(),
+  phone: z.string().nullable(),
+  whatsapp: z.string().nullable(),
+  businessHours: z
+    .record(
+      z.string(),
+      z
+        .object({
+          open: z.string(),
+          close: z.string(),
+        })
+        .nullable()
+    )
+    .nullable(),
+});
+
+/** Platform physical address */
+export const platformAddressSchema = z.object({
+  street: z.string().nullable(),
+  city: z.string().nullable(),
+  region: z.string().nullable(),
+  postalCode: z.string().nullable(),
+  country: z.string().nullable(),
+  googleMapsUrl: z.string().url().nullable(),
+  full: z.string().nullable(),
+});
+
+/** Platform social media links */
+export const platformSocialSchema = z.object({
+  facebook: z.string().url().nullable().optional(),
+  instagram: z.string().url().nullable().optional(),
+  twitter: z.string().url().nullable().optional(),
+  linkedin: z.string().url().nullable().optional(),
+  youtube: z.string().url().nullable().optional(),
+  tiktok: z.string().url().nullable().optional(),
+});
+
+/** Platform localization settings */
+export const platformLocalizationSchema = z.object({
+  defaultLocale: z.string(),
+  availableLocales: z.array(z.string()),
+  fallbackLocale: z.string(),
+  rtlLocales: z.array(z.string()),
+  dateFormat: z.string(),
+  timeFormat: z.string(),
+  timezone: z.string(),
+  weekStartsOn: z.union([z.number().int().min(0).max(6), z.string()]),
+});
+
+/** Platform feature flags */
+export const platformFeaturesSchema = z.object({
+  reviews: z.boolean(),
+  wishlists: z.boolean(),
+  giftCards: z.boolean(),
+  loyaltyProgram: z.boolean(),
+  blog: z.boolean(),
+  instantBooking: z.boolean(),
+  requestToBook: z.boolean(),
+  groupBookings: z.boolean(),
+  customPackages: z.boolean(),
+});
+
+/** Platform booking settings */
+export const platformBookingSchema = z.object({
+  holdDurationMinutes: z.number().int(),
+  holdWarningMinutes: z.number().int(),
+  defaultCurrency: z.string(),
+  enabledCurrencies: z.array(z.string()),
+  minBookingAmount: z.number(),
+  maxBookingAmount: z.number(),
+});
+
+/** Platform legal settings */
+export const platformLegalSchema = z.object({
+  termsUrl: z.string().nullable(),
+  privacyUrl: z.string().nullable(),
+  cookiePolicyUrl: z.string().nullable(),
+  refundPolicyUrl: z.string().nullable(),
+  cookieConsentEnabled: z.boolean(),
+  gdprModeEnabled: z.boolean(),
+  minimumAgeRequirement: z.number().int().nullable(),
+});
+
+/** Platform analytics settings */
+export const platformAnalyticsSchema = z.object({
+  ga4MeasurementId: z.string().nullable(),
+  gtmContainerId: z.string().nullable(),
+  facebookPixelId: z.string().nullable(),
+  hotjarSiteId: z.string().nullable(),
+  plausibleDomain: z.string().nullable(),
+});
+
+/** Public platform settings (returned by API) */
+export const platformSettingsSchema = z.object({
+  platform: platformIdentitySchema,
+  branding: platformBrandingSchema,
+  seo: platformSeoSchema,
+  contact: platformContactSchema,
+  address: platformAddressSchema,
+  social: platformSocialSchema,
+  localization: platformLocalizationSchema,
+  features: platformFeaturesSchema,
+  booking: platformBookingSchema,
+  legal: platformLegalSchema,
+  analytics: platformAnalyticsSchema,
+});
+
+/** Platform settings API response */
+export const platformSettingsResponseSchema = z.object({
+  data: platformSettingsSchema,
+  meta: z.object({
+    locale: z.string(),
+    cached_at: z.string(),
+  }),
+});
+
+/** Schema.org JSON-LD data */
+export const schemaOrgDataSchema = z.object({
+  '@context': z.literal('https://schema.org'),
+  '@type': z.string(),
+  name: z.string(),
+  description: z.string().nullable().optional(),
+  url: z.string().nullable().optional(),
+  logo: z.string().nullable().optional(),
+  foundingDate: z.string().optional(),
+  address: z
+    .object({
+      '@type': z.literal('PostalAddress'),
+      streetAddress: z.string().nullable().optional(),
+      addressLocality: z.string().nullable().optional(),
+      addressRegion: z.string().nullable().optional(),
+      postalCode: z.string().nullable().optional(),
+      addressCountry: z.string().nullable().optional(),
+    })
+    .optional(),
+  contactPoint: z
+    .object({
+      '@type': z.literal('ContactPoint'),
+      telephone: z.string().nullable().optional(),
+      email: z.string().nullable().optional(),
+      contactType: z.string().optional(),
+    })
+    .optional(),
+  sameAs: z.array(z.string()).optional(),
+});
+
+// ============================================================================
+// PASSWORDLESS AUTHENTICATION
+// ============================================================================
+
+/** Send magic link request */
+export const sendMagicLinkRequestSchema = z.object({
+  email: z.string().email(),
+});
+
+/** Verify magic link request */
+export const verifyMagicLinkRequestSchema = z.object({
+  token: z.string().length(64),
+  deviceName: z.string().optional(),
+});
+
+/** Register passwordless user request */
+export const registerPasswordlessRequestSchema = z.object({
+  email: z.string().email(),
+  firstName: z.string().min(1).max(100),
+  lastName: z.string().min(1).max(100),
+  phone: z.string().optional(),
+  preferredLocale: z.enum(['en', 'fr']).default('en'),
+});
+
+/** Magic link response */
+export const magicLinkResponseSchema = z.object({
+  message: z.string(),
+});
+
+/** Auth response with token */
+export const authResponseSchema = z.object({
+  user: userSchema,
+  token: z.string(),
+});
+
+// ============================================================================
+// PARTICIPANT MANAGEMENT
+// ============================================================================
+
+/** Booking participant */
+export const bookingParticipantSchema = z.object({
+  id: z.string().uuid(),
+  bookingId: z.string().uuid(),
+  personType: z.string().nullable().optional(),
+  firstName: z.string().nullable().optional(),
+  lastName: z.string().nullable().optional(),
+  email: z.string().email().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+/** Update participants request */
+export const updateParticipantsRequestSchema = z.object({
+  participants: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        firstName: z.string().min(1).max(100),
+        lastName: z.string().min(1).max(100),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+      })
+    )
+    .min(1),
+  sessionId: z.string().optional(),
+});
+
+/** Update participants response */
+export const updateParticipantsResponseSchema = z.object({
+  data: z.array(bookingParticipantSchema),
+  meta: z.object({
+    travelerDetailsStatus: travelerDetailsStatusSchema,
+    travelerDetailsCompletedAt: z.string().datetime().nullable().optional(),
+  }),
+});
+
+// ============================================================================
+// BOOKING LINKING
+// ============================================================================
+
+/** Link bookings request */
+export const linkBookingsRequestSchema = z.object({
+  bookingIds: z.array(z.string().uuid()).min(1),
+});
+
+/** Claim booking request */
+export const claimBookingRequestSchema = z.object({
+  bookingNumber: z.string().regex(/^GA-\d{6}-[A-Z0-9]{5}$/),
+});
+
+/** Claimable bookings response */
+export const claimableBookingsResponseSchema = z.object({
+  data: z.array(bookingSchema),
+  meta: z.object({
+    total: z.number().int().nonnegative(),
+  }),
+});
+
+/** Link bookings response */
+export const linkBookingsResponseSchema = z.object({
+  data: z.array(bookingSchema),
+  meta: z.object({
+    linked: z.number().int().nonnegative(),
+  }),
+  message: z.string(),
+});
+
+/** Claim booking response */
+export const claimBookingResponseSchema = z.object({
+  data: bookingSchema,
+  message: z.string(),
+});
+
+// Platform Settings Types
+export type PlatformIdentity = z.infer<typeof platformIdentitySchema>;
+export type PlatformBranding = z.infer<typeof platformBrandingSchema>;
+export type PlatformSeo = z.infer<typeof platformSeoSchema>;
+export type PlatformContact = z.infer<typeof platformContactSchema>;
+export type PlatformAddress = z.infer<typeof platformAddressSchema>;
+export type PlatformSocial = z.infer<typeof platformSocialSchema>;
+export type PlatformLocalization = z.infer<typeof platformLocalizationSchema>;
+export type PlatformFeatures = z.infer<typeof platformFeaturesSchema>;
+export type PlatformBooking = z.infer<typeof platformBookingSchema>;
+export type PlatformLegal = z.infer<typeof platformLegalSchema>;
+export type PlatformAnalytics = z.infer<typeof platformAnalyticsSchema>;
+export type PlatformSettings = z.infer<typeof platformSettingsSchema>;
+export type PlatformSettingsResponse = z.infer<typeof platformSettingsResponseSchema>;
+export type SchemaOrgData = z.infer<typeof schemaOrgDataSchema>;
+
+// Passwordless Auth Types
+export type SendMagicLinkRequest = z.infer<typeof sendMagicLinkRequestSchema>;
+export type VerifyMagicLinkRequest = z.infer<typeof verifyMagicLinkRequestSchema>;
+export type RegisterPasswordlessRequest = z.infer<typeof registerPasswordlessRequestSchema>;
+export type MagicLinkResponse = z.infer<typeof magicLinkResponseSchema>;
+export type AuthResponse = z.infer<typeof authResponseSchema>;
+
+// Participant Management Types
+export type BookingParticipant = z.infer<typeof bookingParticipantSchema>;
+export type UpdateParticipantsRequest = z.infer<typeof updateParticipantsRequestSchema>;
+export type UpdateParticipantsResponse = z.infer<typeof updateParticipantsResponseSchema>;
+export type TravelerDetailsStatus = z.infer<typeof travelerDetailsStatusSchema>;
+
+// Booking Linking Types
+export type LinkBookingsRequest = z.infer<typeof linkBookingsRequestSchema>;
+export type ClaimBookingRequest = z.infer<typeof claimBookingRequestSchema>;
+export type ClaimableBookingsResponse = z.infer<typeof claimableBookingsResponseSchema>;
+export type LinkBookingsResponse = z.infer<typeof linkBookingsResponseSchema>;
+export type ClaimBookingResponse = z.infer<typeof claimBookingResponseSchema>;
+export type LinkedMethod = z.infer<typeof linkedMethodSchema>;

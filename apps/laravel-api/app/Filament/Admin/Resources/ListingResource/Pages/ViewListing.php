@@ -132,7 +132,7 @@ class ViewListing extends ViewRecord
                         Infolists\Components\TextEntry::make('pricing.base')
                             ->label('Base Price')
                             ->formatStateUsing(
-                                fn ($state, $record) => number_format((float) $state / 100, 2) . ' ' . ($record->pricing['currency'] ?? 'EUR')
+                                fn ($state, $record) => number_format((float) $state / 100, 2) . ' ' . ($record->pricing['currency'] ?? 'TND')
                             ),
 
                         Infolists\Components\TextEntry::make('min_group_size')

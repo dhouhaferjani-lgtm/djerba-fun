@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\LocationResource;
 use App\Http\Resources\ListingResource;
-use App\Models\Location;
+use App\Http\Resources\LocationResource;
 use App\Models\Listing;
+use App\Models\Location;
 use Illuminate\Http\Request;
 
 class LocationController extends Controller

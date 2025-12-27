@@ -44,8 +44,8 @@ class BlogPostResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) =>
-                                $operation === 'create' ? $set('slug', Str::slug($state)) : null
+                            ->afterStateUpdated(
+                                fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null
                             ),
 
                         Forms\Components\TextInput::make('slug')

@@ -27,6 +27,7 @@ class MediaCategorySeeder extends Seeder
 
             // First image becomes hero
             $firstImage = $media->first();
+
             if ($firstImage && $firstImage->category !== MediaCategory::HERO) {
                 $firstImage->update(['category' => MediaCategory::HERO]);
                 $totalUpdated++;
@@ -34,6 +35,7 @@ class MediaCategorySeeder extends Seeder
 
             // Next 3 images become featured (if they exist)
             $featuredImages = $media->skip(1)->take(3);
+
             foreach ($featuredImages as $image) {
                 if ($image->category !== MediaCategory::FEATURED) {
                     $image->update(['category' => MediaCategory::FEATURED]);
@@ -43,6 +45,7 @@ class MediaCategorySeeder extends Seeder
 
             // Remaining images stay as gallery (which is the default)
             $galleryImages = $media->skip(4);
+
             foreach ($galleryImages as $image) {
                 if ($image->category !== MediaCategory::GALLERY) {
                     $image->update(['category' => MediaCategory::GALLERY]);

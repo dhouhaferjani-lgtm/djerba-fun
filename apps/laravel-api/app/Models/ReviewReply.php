@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ReviewReply extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'review_id',

@@ -55,7 +55,7 @@ class ApplyDataRetentionCommand extends Command
         $stats['abandoned_holds'] = $abandonedHolds;
         $this->line("   Found: {$abandonedHolds} holds");
 
-        if ($abandonedHolds > 0 && !$isDryRun) {
+        if ($abandonedHolds > 0 && ! $isDryRun) {
             if ($isForced || $this->confirm('Delete these holds?', true)) {
                 BookingHold::where('created_at', '<', now()->subDays(30))->delete();
                 $this->info("   Deleted: {$abandonedHolds} holds");
@@ -71,7 +71,7 @@ class ApplyDataRetentionCommand extends Command
         $stats['expired_sessions'] = $expiredSessions;
         $this->line("   Found: {$expiredSessions} sessions");
 
-        if ($expiredSessions > 0 && !$isDryRun) {
+        if ($expiredSessions > 0 && ! $isDryRun) {
             if ($isForced || $this->confirm('Delete these sessions?', true)) {
                 $deleted = DB::table('sessions')
                     ->where('last_activity', '<', now()->subDays(90)->timestamp)
@@ -89,7 +89,7 @@ class ApplyDataRetentionCommand extends Command
         $stats['old_consents'] = $oldConsents;
         $this->line("   Found: {$oldConsents} old revoked consents");
 
-        if ($oldConsents > 0 && !$isDryRun) {
+        if ($oldConsents > 0 && ! $isDryRun) {
             if ($isForced || $this->confirm('Delete these consents?', true)) {
                 $deleted = Consent::whereNotNull('revoked_at')
                     ->where('revoked_at', '<', now()->subYears(3))
@@ -108,7 +108,7 @@ class ApplyDataRetentionCommand extends Command
         $stats['anonymized_bookings'] = $oldCancelledBookings;
         $this->line("   Found: {$oldCancelledBookings} bookings to anonymize");
 
-        if ($oldCancelledBookings > 0 && !$isDryRun) {
+        if ($oldCancelledBookings > 0 && ! $isDryRun) {
             if ($isForced || $this->confirm('Anonymize these bookings?', true)) {
                 $bookings = Booking::where('status', 'cancelled')
                     ->where('created_at', '<', now()->subYears(2))

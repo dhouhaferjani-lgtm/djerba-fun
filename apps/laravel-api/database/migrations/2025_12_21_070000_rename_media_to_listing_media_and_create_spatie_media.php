@@ -16,7 +16,7 @@ return new class extends Migration
     public function up(): void
     {
         // Step 1: Rename the custom media table to listing_media
-        if (Schema::hasTable('media') && !Schema::hasTable('listing_media')) {
+        if (Schema::hasTable('media') && ! Schema::hasTable('listing_media')) {
             // Drop existing unique constraint on uuid before renaming
             DB::statement('ALTER TABLE media DROP CONSTRAINT IF EXISTS media_uuid_unique');
             DB::statement('DROP INDEX IF EXISTS media_order_index');
@@ -26,12 +26,12 @@ return new class extends Migration
 
             // Recreate constraints with new table name
             DB::statement('ALTER TABLE listing_media ADD CONSTRAINT listing_media_uuid_unique UNIQUE (uuid)');
-            DB::statement('CREATE INDEX IF NOT EXISTS listing_media_order_index ON listing_media (\"order\")');
+            DB::statement('CREATE INDEX IF NOT EXISTS listing_media_order_index ON listing_media ("order")');
             DB::statement('CREATE INDEX IF NOT EXISTS listing_media_mediable_type_mediable_id_index ON listing_media (mediable_type, mediable_id)');
         }
 
         // Step 2: Create Spatie Media Library table
-        if (!Schema::hasTable('media')) {
+        if (! Schema::hasTable('media')) {
             Schema::create('media', function (Blueprint $table) {
                 $table->id();
 

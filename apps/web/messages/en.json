@@ -461,7 +461,8 @@
     "hours": "Mon-Fri: 9am-6pm",
     "copyright": "Go Adventure. All rights reserved.",
     "terms": "Terms of Service",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "ppp_disclosure": "Prices may vary depending on country, currency, and billing address. We adapt pricing to ensure fair access across regions. The final price is confirmed at checkout."
   },
   "payment": {
     "select_method": "Select Payment Method",

@@ -9,6 +9,7 @@ import {
   cartApi,
   participantsApi,
   vouchersApi,
+  platformApi,
   type ProcessPaymentRequest,
   type Cart,
   type UpdateParticipantData,
@@ -88,7 +89,8 @@ export function useListings(params: ListingSearchParams) {
   return useQuery({
     queryKey: ['listings', 'search', params],
     queryFn: () => listingsApi.search(params),
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: 15 * 1000, // 15 seconds - faster updates for newly approved listings
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 }
 
@@ -100,7 +102,8 @@ export function useListing(slug: string) {
       return response.data;
     },
     enabled: !!slug,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000, // 30 seconds - faster updates for listing details
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 }
 
@@ -624,6 +627,152 @@ export function useCancelCheckout() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+}
+
+// ============================================================================
+// PLATFORM SETTINGS HOOKS
+// ============================================================================
+
+/**
+ * Fetch public platform settings (non-sensitive configuration)
+ * Used for frontend configuration, branding, feature flags, etc.
+ *
+ * @param locale - Optional locale for translated content
+ */
+export function usePlatformSettings(locale?: string) {
+  return useQuery({
+    queryKey: ['platform', 'settings', locale],
+    queryFn: async () => {
+      const response = await platformApi.getSettings(locale);
+      return response.data;
+    },
+    staleTime: 60 * 60 * 1000, // 1 hour - settings rarely change
+    gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 24 hours
+  });
+}
+
+/**
+ * Fetch schema.org JSON-LD structured data
+ * Used for SEO and search engine rich snippets
+ *
+ * @param locale - Optional locale for translated content
+ */
+export function useSchemaOrg(locale?: string) {
+  return useQuery({
+    queryKey: ['platform', 'schema', locale],
+    queryFn: () => platformApi.getSchemaOrg(locale),
+    staleTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 24 hours
+  });
+}
+
+/**
+ * Check if a specific feature is enabled
+ * Convenience hook that uses platform settings
+ *
+ * @param feature - The feature name to check (e.g., 'reviews', 'blog', 'wishlists')
+ * @param locale - Optional locale
+ */
+export function useFeatureEnabled(
+  feature: keyof import('@go-adventure/schemas').PlatformFeatures,
+  locale?: string
+) {
+  const { data: settings, isLoading } = usePlatformSettings(locale);
+
+  return {
+    enabled: settings?.features?.[feature] ?? false,
+    isLoading,
+  };
+}
+
+// ============================================================================
+// PASSWORDLESS AUTHENTICATION HOOKS
+// ============================================================================
+
+/**
+ * Send magic link to user's email
+ */
+export function useSendMagicLink() {
+  return useMutation({
+    mutationFn: (email: string) => authApi.sendMagicLink(email),
+  });
+}
+
+/**
+ * Verify magic link token and log in user
+ */
+export function useVerifyMagicLink() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ token, deviceName }: { token: string; deviceName?: string }) =>
+      authApi.verifyMagicLink(token, deviceName),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
+/**
+ * Register passwordless user account
+ */
+export function useRegisterPasswordless() {
+  return useMutation({
+    mutationFn: (data: {
+      email: string;
+      firstName: string;
+      lastName: string;
+      phone?: string;
+      preferredLocale?: 'en' | 'fr';
+    }) => authApi.registerPasswordless(data),
+  });
+}
+
+// ============================================================================
+// BOOKING LINKING HOOKS
+// ============================================================================
+
+/**
+ * Get claimable bookings for authenticated user
+ */
+export function useClaimableBookings() {
+  return useQuery({
+    queryKey: ['bookings', 'claimable'],
+    queryFn: async () => {
+      const response = await bookingsApi.getClaimable();
+      return response.data;
+    },
+  });
+}
+
+/**
+ * Link selected bookings to user account
+ */
+export function useLinkBookings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (bookingIds: string[]) => bookingsApi.link(bookingIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['bookings', 'claimable'] });
+    },
+  });
+}
+
+/**
+ * Claim booking by booking number
+ */
+export function useClaimBooking() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (bookingNumber: string) => bookingsApi.claim(bookingNumber),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['bookings', 'claimable'] });
     },
   });
 }

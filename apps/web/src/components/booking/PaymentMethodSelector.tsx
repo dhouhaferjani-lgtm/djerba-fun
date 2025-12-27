@@ -81,6 +81,7 @@ export function PaymentMethodSelector({
                   ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
+              data-testid={`payment-method-${method}`}
             >
               <div className="flex items-start gap-4">
                 <div className="text-3xl">{methodInfo.icon}</div>
@@ -105,9 +106,9 @@ export function PaymentMethodSelector({
 
       {/* Payment Method Details */}
       {selected === 'offline' && (
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h4 className="font-medium text-blue-900 mb-2">{t('bank_transfer_instructions')}</h4>
-          <div className="text-sm text-blue-800 space-y-1">
+        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <h4 className="font-medium text-green-900 mb-2">{t('bank_transfer_instructions')}</h4>
+          <div className="text-sm text-green-800 space-y-1">
             <p>{t('bank_transfer_info')}</p>
             <p className="font-mono mt-2">IBAN: FR76 1234 5678 9012 3456 7890 123</p>
             <p className="font-mono">BIC: ABCDEFGH</p>
@@ -124,9 +125,9 @@ export function PaymentMethodSelector({
       )}
 
       {selected === 'mock' && (
-        <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-          <h4 className="font-medium text-purple-900 mb-2">{t('mock_payment')}</h4>
-          <p className="text-sm text-purple-800">{t('mock_payment_info')}</p>
+        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <h4 className="font-medium text-amber-900 mb-2">{t('mock_payment')}</h4>
+          <p className="text-sm text-amber-800">{t('mock_payment_info')}</p>
         </div>
       )}
     </div>

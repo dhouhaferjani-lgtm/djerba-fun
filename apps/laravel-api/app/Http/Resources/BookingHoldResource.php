@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
+
 class BookingHoldResource extends BaseResource
 {
     /**
@@ -21,6 +22,10 @@ class BookingHoldResource extends BaseResource
             'sessionId' => $this->session_id,
             'quantity' => $this->quantity,
             'personTypeBreakdown' => is_array($this->person_type_breakdown) ? $this->toCamelCase($this->person_type_breakdown) : $this->person_type_breakdown,
+            'currency' => $this->currency,
+            'priceSnapshot' => $this->price_snapshot ? (float) $this->price_snapshot : null,
+            'pricingCountryCode' => $this->pricing_country_code,
+            'pricingSource' => $this->pricing_source,
             'expiresAt' => $this->expires_at->toIso8601String(),
             'expiresInSeconds' => max(0, $this->expires_at->getTimestamp() - now()->getTimestamp()),
             'status' => $this->status->value,

@@ -59,7 +59,7 @@ class CreateHoldRequest extends BaseFormRequest
     {
         if ($this->has('person_types') && is_array($this->person_types)) {
             // Filter out zero values for cleaner storage
-            return array_filter($this->person_types, fn($qty) => $qty > 0);
+            return array_filter($this->person_types, fn ($qty) => $qty > 0);
         }
 
         return null;

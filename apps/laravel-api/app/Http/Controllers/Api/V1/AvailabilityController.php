@@ -15,10 +15,6 @@ class AvailabilityController extends Controller
 {
     /**
      * Get availability for a listing.
-     *
-     * @param  GetAvailabilityRequest  $request
-     * @param  Listing  $listing
-     * @return AnonymousResourceCollection
      */
     public function index(GetAvailabilityRequest $request, Listing $listing): AnonymousResourceCollection
     {
@@ -52,10 +48,6 @@ class AvailabilityController extends Controller
 
     /**
      * Refresh availability for a listing.
-     *
-     * @param  GetAvailabilityRequest  $request
-     * @param  Listing  $listing
-     * @return JsonResponse
      */
     public function refresh(GetAvailabilityRequest $request, Listing $listing): JsonResponse
     {

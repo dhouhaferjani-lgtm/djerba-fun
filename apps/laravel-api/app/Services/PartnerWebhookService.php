@@ -12,11 +12,6 @@ class PartnerWebhookService
 {
     /**
      * Dispatch a webhook event to a partner.
-     *
-     * @param Partner $partner
-     * @param string $event
-     * @param array $payload
-     * @return PartnerWebhook|null
      */
     public function dispatch(Partner $partner, string $event, array $payload): ?PartnerWebhook
     {
@@ -44,10 +39,6 @@ class PartnerWebhookService
 
     /**
      * Attempt to deliver a webhook.
-     *
-     * @param PartnerWebhook $webhook
-     * @param Partner $partner
-     * @return void
      */
     protected function attemptDelivery(PartnerWebhook $webhook, Partner $partner): void
     {
@@ -81,11 +72,6 @@ class PartnerWebhookService
 
     /**
      * Handle failed webhook delivery.
-     *
-     * @param PartnerWebhook $webhook
-     * @param int $statusCode
-     * @param string|null $responseBody
-     * @return void
      */
     protected function handleFailedDelivery(PartnerWebhook $webhook, int $statusCode, ?string $responseBody): void
     {
@@ -117,10 +103,6 @@ class PartnerWebhookService
 
     /**
      * Generate HMAC signature for webhook payload.
-     *
-     * @param array $payload
-     * @param string|null $secret
-     * @return string
      */
     protected function generateSignature(array $payload, ?string $secret): string
     {
@@ -135,11 +117,6 @@ class PartnerWebhookService
 
     /**
      * Verify webhook signature.
-     *
-     * @param string $signature
-     * @param array $payload
-     * @param string $secret
-     * @return bool
      */
     public function verifySignature(string $signature, array $payload, string $secret): bool
     {
@@ -150,10 +127,6 @@ class PartnerWebhookService
 
     /**
      * Send booking created webhook.
-     *
-     * @param Booking $booking
-     * @param Partner $partner
-     * @return PartnerWebhook|null
      */
     public function sendBookingCreated(Booking $booking, Partner $partner): ?PartnerWebhook
     {
@@ -178,10 +151,6 @@ class PartnerWebhookService
 
     /**
      * Send booking confirmed webhook.
-     *
-     * @param Booking $booking
-     * @param Partner $partner
-     * @return PartnerWebhook|null
      */
     public function sendBookingConfirmed(Booking $booking, Partner $partner): ?PartnerWebhook
     {
@@ -201,10 +170,6 @@ class PartnerWebhookService
 
     /**
      * Send booking cancelled webhook.
-     *
-     * @param Booking $booking
-     * @param Partner $partner
-     * @return PartnerWebhook|null
      */
     public function sendBookingCancelled(Booking $booking, Partner $partner): ?PartnerWebhook
     {
@@ -224,13 +189,10 @@ class PartnerWebhookService
 
     /**
      * Retry a failed webhook.
-     *
-     * @param PartnerWebhook $webhook
-     * @return void
      */
     public function retry(PartnerWebhook $webhook): void
     {
-        if (!$webhook->canRetry()) {
+        if (! $webhook->canRetry()) {
             throw new \RuntimeException('Webhook cannot be retried (max attempts reached)');
         }
 

@@ -11,24 +11,33 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Consent extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     /**
      * Available consent types.
      */
     public const TYPE_TERMS = 'terms';
+
     public const TYPE_PRIVACY = 'privacy';
+
     public const TYPE_MARKETING = 'marketing';
+
     public const TYPE_COOKIES_ESSENTIAL = 'cookies_essential';
+
     public const TYPE_COOKIES_ANALYTICS = 'cookies_analytics';
+
     public const TYPE_COOKIES_MARKETING = 'cookies_marketing';
 
     /**
      * Available contexts.
      */
     public const CONTEXT_CHECKOUT = 'checkout';
+
     public const CONTEXT_REGISTRATION = 'registration';
+
     public const CONTEXT_COOKIE_BANNER = 'cookie_banner';
+
     public const CONTEXT_SETTINGS = 'settings';
 
     protected $fillable = [

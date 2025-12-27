@@ -136,6 +136,7 @@ class ConsentService
 
         if ($consent) {
             $consent->revoke();
+
             return true;
         }
 

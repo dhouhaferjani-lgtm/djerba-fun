@@ -22,7 +22,7 @@ class EditPage extends EditRecord
         $actions = [];
 
         // Add "Publish Now" action if page is a draft
-        if (!$this->record->isPublished()) {
+        if (! $this->record->isPublished()) {
             $actions[] = Actions\Action::make('publishNow')
                 ->label('Publish Now')
                 ->icon('heroicon-o-globe-alt')

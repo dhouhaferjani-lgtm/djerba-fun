@@ -39,21 +39,22 @@ class ListingExtrasController extends Controller
             ->get()
             ->filter(function ($listingExtra) use ($slotId, $personTypes) {
                 // Filter by active extra
-                if (!$listingExtra->extra || !$listingExtra->extra->is_active) {
+                if (! $listingExtra->extra || ! $listingExtra->extra->is_active) {
                     return false;
                 }
 
                 // Filter by slot availability
-                if ($slotId && !$listingExtra->isAvailableForSlot($slotId)) {
+                if ($slotId && ! $listingExtra->isAvailableForSlot($slotId)) {
                     return false;
                 }
 
                 // Filter by person types
-                if (!empty($personTypes) && $listingExtra->available_for_person_types !== null) {
+                if (! empty($personTypes) && $listingExtra->available_for_person_types !== null) {
                     $matchingTypes = array_intersect(
                         array_map('strtolower', $personTypes),
                         array_map('strtolower', $listingExtra->available_for_person_types)
                     );
+
                     if (empty($matchingTypes)) {
                         return false;
                     }
@@ -80,7 +81,7 @@ class ListingExtrasController extends Controller
             'currency' => 'sometimes|string|in:TND,EUR',
         ]);
 
-        $currency = $validated['currency'] ?? $request->header('X-Currency', 'EUR');
+        $currency = $validated['currency'] ?? $request->header('X-Currency', 'TND');
         $personTypeBreakdown = $validated['person_types'] ?? [];
 
         // Validate the selection
@@ -90,7 +91,7 @@ class ListingExtrasController extends Controller
             $personTypeBreakdown
         );
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             return [
                 'valid' => false,
                 'errors' => $errors,

@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PartnerWebhook extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'partner_id',

@@ -23,9 +23,11 @@ class GeoPricingService
         // Priority 1: Check user's billing country
         if ($user) {
             $billingCountry = $this->getUserBillingCountry($user);
+
             if ($billingCountry === 'TN') {
                 return 'TND';
             }
+
             if ($billingCountry !== null) {
                 return 'EUR'; // Any other country gets EUR
             }
@@ -33,11 +35,14 @@ class GeoPricingService
 
         // Priority 2: Check IP geolocation
         $ip = $request->ip();
-        if ($ip && $ip !== '127.0.0.1' && !$this->isPrivateIP($ip)) {
+
+        if ($ip && $ip !== '127.0.0.1' && ! $this->isPrivateIP($ip)) {
             $country = $this->getCountryFromIP($ip);
+
             if ($country === 'TN') {
                 return 'TND';
             }
+
             if ($country !== null) {
                 return 'EUR';
             }
@@ -73,6 +78,7 @@ class GeoPricingService
 
                 if ($response->successful()) {
                     $data = $response->json();
+
                     if ($data['status'] === 'success') {
                         return $data['countryCode'] ?? null;
                     }
@@ -93,13 +99,14 @@ class GeoPricingService
      */
     public function getUserBillingCountry(?User $user): ?string
     {
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
         // Check traveler profile for billing country
         if ($user->travelerProfile) {
             $preferences = $user->travelerProfile->preferences ?? [];
+
             if (isset($preferences['billing_country'])) {
                 return $preferences['billing_country'];
             }
@@ -148,24 +155,134 @@ class GeoPricingService
         // Check billing country
         if ($user) {
             $billingCountry = $this->getUserBillingCountry($user);
+
             if ($billingCountry) {
                 $currency = $billingCountry === 'TN' ? 'TND' : 'EUR';
                 $source = 'user_billing';
+
                 return compact('currency', 'source');
             }
         }
 
         // Check IP
         $ip = $request->ip();
-        if ($ip && $ip !== '127.0.0.1' && !$this->isPrivateIP($ip)) {
+
+        if ($ip && $ip !== '127.0.0.1' && ! $this->isPrivateIP($ip)) {
             $country = $this->getCountryFromIP($ip);
+
             if ($country) {
                 $currency = $country === 'TN' ? 'TND' : 'EUR';
                 $source = 'ip_geolocation';
+
                 return compact('currency', 'source', 'country', 'ip');
             }
         }
 
         return compact('currency', 'source');
+    }
+
+    /**
+     * Determine pricing country with billing address as final authority.
+     *
+     * This method implements the PPP pricing hierarchy:
+     * 1. Billing address (final authority at checkout)
+     * 2. User-selected country (if manual selection enabled)
+     * 3. IP geolocation (for browsing)
+     *
+     * @param  array|null  $billingAddress  Billing address with country_code
+     * @param  string|null  $userSelectedCountry  Manually selected country code
+     * @param  string|null  $ipAddress  IP address for geolocation
+     * @return array{country_code: string, source: string}
+     */
+    public function determinePricingCountry(
+        ?array $billingAddress = null,
+        ?string $userSelectedCountry = null,
+        ?string $ipAddress = null
+    ): array {
+        // Priority 1: Billing address (final authority)
+        if ($billingAddress && ! empty($billingAddress['country_code'])) {
+            return [
+                'country_code' => strtoupper($billingAddress['country_code']),
+                'source' => 'billing_address',
+            ];
+        }
+
+        // Priority 2: User-selected country (if manual selection enabled)
+        if ($userSelectedCountry) {
+            return [
+                'country_code' => strtoupper($userSelectedCountry),
+                'source' => 'user_selection',
+            ];
+        }
+
+        // Priority 3: IP geolocation
+        $ipAddress = $ipAddress ?? request()->ip();
+        $geoData = $this->detectCountryFromIp($ipAddress);
+
+        return [
+            'country_code' => $geoData['countryCode'] ?? 'FR',
+            'source' => 'ip_geo',
+        ];
+    }
+
+    /**
+     * Detect country from IP address and return structured geo data.
+     *
+     * @param  string  $ipAddress  IP address to geolocate
+     * @return array{countryCode: string|null, countryName: string|null}
+     */
+    public function detectCountryFromIp(string $ipAddress): array
+    {
+        // Skip private/local IPs
+        if ($ipAddress === '127.0.0.1' || $this->isPrivateIP($ipAddress)) {
+            return ['countryCode' => null, 'countryName' => null];
+        }
+
+        // Use existing getCountryFromIP method
+        $countryCode = $this->getCountryFromIP($ipAddress);
+
+        return [
+            'countryCode' => $countryCode,
+            'countryName' => $countryCode ? $this->getCountryName($countryCode) : null,
+        ];
+    }
+
+    /**
+     * Get currency for country based on PPP pricing rules.
+     *
+     * Currently: Tunisia (TN) = TND, all others = EUR
+     * This can be extended to support more currencies in the future.
+     *
+     * @param  string  $countryCode  ISO 3166-1 alpha-2 country code
+     * @return string Currency code (ISO 4217)
+     */
+    public function getCurrencyForCountry(string $countryCode): string
+    {
+        return strtoupper($countryCode) === 'TN' ? 'TND' : 'EUR';
+    }
+
+    /**
+     * Get human-readable country name from country code.
+     *
+     * @param  string  $countryCode  ISO 3166-1 alpha-2 country code
+     * @return string|null Country name or null if unknown
+     */
+    protected function getCountryName(string $countryCode): ?string
+    {
+        // Common country codes - extend as needed
+        $countries = [
+            'TN' => 'Tunisia',
+            'FR' => 'France',
+            'DE' => 'Germany',
+            'GB' => 'United Kingdom',
+            'US' => 'United States',
+            'CA' => 'Canada',
+            'ES' => 'Spain',
+            'IT' => 'Italy',
+            'BE' => 'Belgium',
+            'CH' => 'Switzerland',
+        ];
+
+        return $countries[strtoupper($countryCode)] ?? null;
     }
 }

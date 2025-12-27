@@ -14,6 +14,9 @@ import type {
   VendorPublicProfile,
   ListingSummary,
   ListingExtraForBooking,
+  PlatformSettings,
+  PlatformSettingsResponse,
+  SchemaOrgData,
 } from '@go-adventure/schemas';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
@@ -55,6 +58,15 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
     const error = await response.json().catch(() => ({
       message: response.statusText,
     }));
+
+    // Handle 401 Unauthorized - clear auth token and optionally redirect
+    if (response.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token');
+        // Dispatch custom event for auth context to handle
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+      }
+    }
 
     // Laravel returns validation errors in format: { message: "...", errors: { field: ["..."] } }
     // Custom API errors may use: { error: { message: "...", code: "...", details: {...} } }
@@ -127,6 +139,49 @@ export const authApi = {
 
   getCurrentUser: async () => {
     return fetchApi<{ data: User }>('/auth/me');
+  },
+
+  // Passwordless authentication
+  sendMagicLink: async (email: string) => {
+    return fetchApi<{ message: string }>('/auth/magic-link/send', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  verifyMagicLink: async (token: string, deviceName?: string) => {
+    const data = await fetchApi<{ user: User; token: string }>('/auth/magic-link/verify', {
+      method: 'POST',
+      body: JSON.stringify({ token, device_name: deviceName }),
+    });
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_token', data.token);
+    }
+
+    return data;
+  },
+
+  registerPasswordless: async (data: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    preferredLocale?: 'en' | 'fr';
+  }) => {
+    return fetchApi<{
+      message: string;
+      user: { email: string; first_name: string; last_name: string };
+    }>('/auth/magic-link/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: data.email,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        phone: data.phone,
+        preferred_locale: data.preferredLocale || 'en',
+      }),
+    });
   },
 };
 
@@ -316,6 +371,29 @@ export const bookingsApi = {
         payment_data: request.paymentData,
         session_id: request.sessionId,
       }),
+    });
+  },
+
+  // Booking linking
+  getClaimable: async () => {
+    return fetchApi<{ data: Booking[]; meta: { total: number } }>('/bookings/claimable');
+  },
+
+  link: async (bookingIds: string[]) => {
+    return fetchApi<{
+      data: Booking[];
+      meta: { linked: number };
+      message: string;
+    }>('/bookings/link', {
+      method: 'POST',
+      body: JSON.stringify({ booking_ids: bookingIds }),
+    });
+  },
+
+  claim: async (bookingNumber: string) => {
+    return fetchApi<{ data: Booking; message: string }>('/bookings/claim', {
+      method: 'POST',
+      body: JSON.stringify({ booking_number: bookingNumber }),
     });
   },
 };
@@ -969,6 +1047,36 @@ export const cartApi = {
       method: 'POST',
       body: JSON.stringify({ session_id: sessionId }),
     });
+  },
+};
+
+// ============================================================================
+// PLATFORM SETTINGS API
+// ============================================================================
+
+export const platformApi = {
+  /**
+   * Get public platform settings (non-sensitive configuration)
+   * Used for frontend configuration, branding, feature flags, etc.
+   */
+  getSettings: async (locale?: string) => {
+    const params = new URLSearchParams();
+    if (locale) params.append('locale', locale);
+    const queryString = params.toString();
+    return fetchApi<PlatformSettingsResponse>(
+      `/platform/settings${queryString ? `?${queryString}` : ''}`
+    );
+  },
+
+  /**
+   * Get schema.org JSON-LD structured data
+   * Used for SEO and search engine rich snippets
+   */
+  getSchemaOrg: async (locale?: string) => {
+    const params = new URLSearchParams();
+    if (locale) params.append('locale', locale);
+    const queryString = params.toString();
+    return fetchApi<SchemaOrgData>(`/platform/schema${queryString ? `?${queryString}` : ''}`);
   },
 };
 

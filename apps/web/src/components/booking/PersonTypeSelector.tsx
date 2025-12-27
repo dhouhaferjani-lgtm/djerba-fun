@@ -102,18 +102,18 @@ export function PersonTypeSelector({
     <div className="space-y-4">
       {/* Prominent capacity indicator */}
       <div
-        className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between"
+        className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center justify-between"
         data-testid="capacity-indicator"
       >
         <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-blue-600" />
-          <span className="text-sm font-medium text-blue-900">{t('available_capacity')}</span>
+          <Users className="h-5 w-5 text-green-600" />
+          <span className="text-sm font-medium text-green-900">{t('available_capacity')}</span>
         </div>
         <div className="text-right">
-          <div className="text-lg font-bold text-blue-900">
+          <div className="text-lg font-bold text-green-900">
             {maxCapacity - totals.totalGuests} / {maxCapacity}
           </div>
-          <div className="text-xs text-blue-700">{t('spots_remaining')}</div>
+          <div className="text-xs text-green-700">{t('spots_remaining')}</div>
         </div>
       </div>
 
@@ -157,6 +157,7 @@ export function PersonTypeSelector({
                   disabled={!canDecrement(type)}
                   className="p-2 rounded-full border border-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50 transition-colors"
                   aria-label={`Decrease ${label}`}
+                  data-testid={`person-type-${type.key}-decrement`}
                 >
                   <Minus className="h-4 w-4" />
                 </button>
@@ -172,6 +173,7 @@ export function PersonTypeSelector({
                   disabled={!canIncrement(type)}
                   className="p-2 rounded-full border border-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50 transition-colors"
                   aria-label={`Increase ${label}`}
+                  data-testid={`person-type-${type.key}-increment`}
                 >
                   <Plus className="h-4 w-4" />
                 </button>

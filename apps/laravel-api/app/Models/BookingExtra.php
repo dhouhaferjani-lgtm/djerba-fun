@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BookingExtra extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'booking_id',
@@ -157,6 +158,7 @@ class BookingExtra extends Model
             $summary['notes'] = "{$this->quantity} items for all guests";
         } elseif ($this->pricing_type === ExtraPricingType::PER_PERSON_TYPE && $this->person_type_breakdown) {
             $breakdown = [];
+
             foreach ($this->person_type_breakdown as $type => $data) {
                 if (isset($data['count']) && $data['count'] > 0) {
                     $breakdown[] = "{$data['count']} {$type}";

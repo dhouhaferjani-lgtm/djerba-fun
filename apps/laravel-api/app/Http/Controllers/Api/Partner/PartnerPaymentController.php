@@ -13,7 +13,6 @@ class PartnerPaymentController extends Controller
     /**
      * Initiate a payment to settle partner balance.
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function initiate(Request $request)
@@ -21,7 +20,7 @@ class PartnerPaymentController extends Controller
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('payments:create') && !$partner->hasPermission('*')) {
+        if (! $partner->hasPermission('payments:create') && ! $partner->hasPermission('*')) {
             abort(403, 'Partner does not have permission to initiate payments');
         }
 
@@ -88,7 +87,6 @@ class PartnerPaymentController extends Controller
     /**
      * Get payment history.
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function history(Request $request)
@@ -96,7 +94,7 @@ class PartnerPaymentController extends Controller
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('payments:read') && !$partner->hasPermission('*')) {
+        if (! $partner->hasPermission('payments:read') && ! $partner->hasPermission('*')) {
             abort(403, 'Partner does not have permission to view payment history');
         }
 

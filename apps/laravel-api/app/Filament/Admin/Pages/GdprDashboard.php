@@ -5,7 +5,6 @@ namespace App\Filament\Admin\Pages;
 use App\Models\Consent;
 use App\Models\DataDeletionRequest;
 use Filament\Pages\Page;
-use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
 
 class GdprDashboard extends Page

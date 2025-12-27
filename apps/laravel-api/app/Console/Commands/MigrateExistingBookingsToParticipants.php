@@ -39,7 +39,7 @@ class MigrateExistingBookingsToParticipants extends Command
 
         foreach ($bookings as $booking) {
             try {
-                if (!$dryRun) {
+                if (! $dryRun) {
                     DB::transaction(function () use ($booking) {
                         $this->migrateBooking($booking);
                     });
@@ -62,12 +62,13 @@ class MigrateExistingBookingsToParticipants extends Command
     {
         // Get travelers from either travelers array or traveler_info
         $travelers = $booking->travelers ?? [];
-        if (empty($travelers) && !empty($booking->traveler_info)) {
+
+        if (empty($travelers) && ! empty($booking->traveler_info)) {
             $travelers = [$booking->traveler_info];
         }
 
         // Set billing contact from first traveler
-        if (!empty($travelers[0])) {
+        if (! empty($travelers[0])) {
             $firstTraveler = $travelers[0];
             $booking->update([
                 'billing_contact' => [
@@ -83,7 +84,7 @@ class MigrateExistingBookingsToParticipants extends Command
         $breakdown = $booking->person_type_breakdown ?? [];
         $participantIndex = 0;
 
-        if (!empty($breakdown)) {
+        if (! empty($breakdown)) {
             // Create based on person type breakdown
             foreach ($breakdown as $personType => $count) {
                 for ($i = 0; $i < $count; $i++) {

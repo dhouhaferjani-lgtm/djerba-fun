@@ -37,7 +37,7 @@ class CreatePage extends CreateRecord
         $data = $this->form->getState();
 
         // Generate a slug if missing
-        if (empty($data['slug']['en']) && !empty($data['title']['en'])) {
+        if (empty($data['slug']['en']) && ! empty($data['title']['en'])) {
             $data['slug'] = ['en' => Str::slug($data['title']['en'])];
         } elseif (empty($data['slug']['en'])) {
             $data['slug'] = ['en' => 'draft-' . Str::random(8)];

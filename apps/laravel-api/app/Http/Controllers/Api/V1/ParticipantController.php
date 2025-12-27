@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateBookingParticipantsRequest;
 use App\Http\Resources\BookingParticipantResource;
 use App\Http\Resources\BookingResource;
 use App\Models\Booking;
@@ -12,7 +13,6 @@ use App\Models\BookingParticipant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\ValidationException;
 
 class ParticipantController extends Controller
 {
@@ -39,60 +39,69 @@ class ParticipantController extends Controller
      * Update all participants for a booking.
      * Expects an array of participant updates matching the quantity.
      */
-    public function update(Request $request, Booking $booking): JsonResponse
+    public function update(UpdateBookingParticipantsRequest $request, Booking $booking): JsonResponse
     {
         Gate::authorize('update', $booking);
 
-        $validated = $request->validate([
-            'participants' => 'required|array',
-            'participants.*.id' => 'required|uuid',
-            'participants.*.first_name' => 'nullable|string|max:255',
-            'participants.*.last_name' => 'nullable|string|max:255',
-            'participants.*.email' => 'nullable|email|max:255',
-            'participants.*.phone' => 'nullable|string|max:50',
-            'participants.*.person_type' => 'nullable|string|max:50',
-            'participants.*.special_requests' => 'nullable|string|max:1000',
-        ]);
+        // Only allow updates on CONFIRMED bookings
+        if (! $booking->isConfirmed()) {
+            return response()->json([
+                'message' => 'Participant details can only be updated for confirmed bookings.',
+            ], 422);
+        }
+
+        $validated = $request->validated();
+        $participants = $validated['participants'];
+
+        // Load all participants at once to avoid N+1 queries
+        $participantIds = collect($participants)->pluck('id');
+        $bookingParticipants = $booking->participants()
+            ->whereIn('id', $participantIds)
+            ->get()
+            ->keyBy('id');
 
         $updated = 0;
         $errors = [];
 
-        foreach ($validated['participants'] as $index => $participantData) {
-            $participant = $booking->participants()
-                ->where('id', $participantData['id'])
-                ->first();
+        foreach ($participants as $index => $participantData) {
+            $participant = $bookingParticipants->get($participantData['id']);
 
-            if (!$participant) {
+            if (! $participant) {
                 $errors[] = [
                     'index' => $index,
                     'id' => $participantData['id'],
-                    'message' => 'Participant not found',
+                    'message' => 'Participant not found for this booking',
                 ];
                 continue;
             }
 
             $participant->update([
-                'first_name' => $participantData['first_name'] ?? $participant->first_name,
-                'last_name' => $participantData['last_name'] ?? $participant->last_name,
-                'email' => $participantData['email'] ?? $participant->email,
-                'phone' => $participantData['phone'] ?? $participant->phone,
-                'person_type' => $participantData['person_type'] ?? $participant->person_type,
-                'special_requests' => $participantData['special_requests'] ?? $participant->special_requests,
+                'first_name' => $participantData['first_name'],
+                'last_name' => $participantData['last_name'],
+                'email' => $participantData['email'] ?? null,
+                'phone' => $participantData['phone'] ?? null,
             ]);
 
             $updated++;
         }
 
-        // Reload the booking with participants
-        $booking->load('participants');
+        // Reload the booking to get updated traveler_details_status
+        // (The observer on BookingParticipant will have updated the status)
+        $booking->refresh();
 
         $response = [
-            'data' => new BookingResource($booking),
+            'data' => BookingParticipantResource::collection($bookingParticipants->values()),
+            'meta' => [
+                'booking_id' => $booking->id,
+                'booking_number' => $booking->booking_number,
+                'traveler_details_status' => $booking->traveler_details_status,
+                'traveler_details_completed_at' => $booking->traveler_details_completed_at?->toIso8601String(),
+                'updated' => $updated,
+            ],
             'message' => $updated > 0 ? 'Participants updated successfully' : 'No participants were updated',
-            'updated' => $updated,
         ];
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $response['errors'] = $errors;
         }
 
@@ -106,7 +115,7 @@ class ParticipantController extends Controller
     {
         $sessionId = $request->header('X-Session-ID') ?? $request->query('session_id');
 
-        if (!$sessionId || $booking->session_id !== $sessionId) {
+        if (! $sessionId || $booking->session_id !== $sessionId) {
             return response()->json([
                 'message' => 'Unauthorized. Invalid session.',
             ], 403);
@@ -127,66 +136,75 @@ class ParticipantController extends Controller
     /**
      * Update all participants for a booking (guest access via session_id).
      */
-    public function updateGuest(Request $request, Booking $booking): JsonResponse
+    public function updateGuest(UpdateBookingParticipantsRequest $request, Booking $booking): JsonResponse
     {
-        $sessionId = $request->header('X-Session-ID') ?? $request->query('session_id');
+        $sessionId = $request->header('X-Session-ID') ?? $request->input('session_id');
 
-        if (!$sessionId || $booking->session_id !== $sessionId) {
+        if (! $sessionId || $booking->session_id !== $sessionId) {
             return response()->json([
                 'message' => 'Unauthorized. Invalid session.',
             ], 403);
         }
 
-        $validated = $request->validate([
-            'participants' => 'required|array',
-            'participants.*.id' => 'required|uuid',
-            'participants.*.first_name' => 'nullable|string|max:255',
-            'participants.*.last_name' => 'nullable|string|max:255',
-            'participants.*.email' => 'nullable|email|max:255',
-            'participants.*.phone' => 'nullable|string|max:50',
-            'participants.*.person_type' => 'nullable|string|max:50',
-            'participants.*.special_requests' => 'nullable|string|max:1000',
-        ]);
+        // Only allow updates on CONFIRMED bookings
+        if (! $booking->isConfirmed()) {
+            return response()->json([
+                'message' => 'Participant details can only be updated for confirmed bookings.',
+            ], 422);
+        }
+
+        $validated = $request->validated();
+        $participants = $validated['participants'];
+
+        // Load all participants at once to avoid N+1 queries
+        $participantIds = collect($participants)->pluck('id');
+        $bookingParticipants = $booking->participants()
+            ->whereIn('id', $participantIds)
+            ->get()
+            ->keyBy('id');
 
         $updated = 0;
         $errors = [];
 
-        foreach ($validated['participants'] as $index => $participantData) {
-            $participant = $booking->participants()
-                ->where('id', $participantData['id'])
-                ->first();
+        foreach ($participants as $index => $participantData) {
+            $participant = $bookingParticipants->get($participantData['id']);
 
-            if (!$participant) {
+            if (! $participant) {
                 $errors[] = [
                     'index' => $index,
                     'id' => $participantData['id'],
-                    'message' => 'Participant not found',
+                    'message' => 'Participant not found for this booking',
                 ];
                 continue;
             }
 
             $participant->update([
-                'first_name' => $participantData['first_name'] ?? $participant->first_name,
-                'last_name' => $participantData['last_name'] ?? $participant->last_name,
-                'email' => $participantData['email'] ?? $participant->email,
-                'phone' => $participantData['phone'] ?? $participant->phone,
-                'person_type' => $participantData['person_type'] ?? $participant->person_type,
-                'special_requests' => $participantData['special_requests'] ?? $participant->special_requests,
+                'first_name' => $participantData['first_name'],
+                'last_name' => $participantData['last_name'],
+                'email' => $participantData['email'] ?? null,
+                'phone' => $participantData['phone'] ?? null,
             ]);
 
             $updated++;
         }
 
-        // Reload the booking with participants
-        $booking->load('participants');
+        // Reload the booking to get updated traveler_details_status
+        // (The observer on BookingParticipant will have updated the status)
+        $booking->refresh();
 
         $response = [
-            'data' => new BookingResource($booking),
+            'data' => BookingParticipantResource::collection($bookingParticipants->values()),
+            'meta' => [
+                'booking_id' => $booking->id,
+                'booking_number' => $booking->booking_number,
+                'traveler_details_status' => $booking->traveler_details_status,
+                'traveler_details_completed_at' => $booking->traveler_details_completed_at?->toIso8601String(),
+                'updated' => $updated,
+            ],
             'message' => $updated > 0 ? 'Participants updated successfully' : 'No participants were updated',
-            'updated' => $updated,
         ];
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $response['errors'] = $errors;
         }
 
@@ -202,7 +220,7 @@ class ParticipantController extends Controller
             ->with(['booking.listing', 'booking.availabilitySlot'])
             ->first();
 
-        if (!$participant) {
+        if (! $participant) {
             return response()->json([
                 'message' => 'Voucher not found',
             ], 404);

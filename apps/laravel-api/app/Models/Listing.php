@@ -73,6 +73,7 @@ class Listing extends Model
         'published_at',
         // Booking settings
         'require_traveler_names',
+        'traveler_names_timing',
         // Safety & Accessibility
         'safety_info',
         'accessibility_info',
@@ -115,6 +116,7 @@ class Listing extends Model
             'agenda' => 'array',
             'has_elevation_profile' => 'boolean',
             'require_traveler_names' => 'boolean',
+            'traveler_names_timing' => 'string',
             'start_date' => 'datetime',
             'end_date' => 'datetime',
             'published_at' => 'datetime',
@@ -358,5 +360,22 @@ class Listing extends Model
     public function featuredImages()
     {
         return $this->media()->featured()->limit(3)->get();
+    }
+
+    /**
+     * Check if this listing requires traveler names.
+     */
+    public function requiresTravelerNames(): bool
+    {
+        return $this->require_traveler_names ?? false;
+    }
+
+    /**
+     * Check if traveler names should be prompted immediately after payment.
+     */
+    public function promptForNamesImmediately(): bool
+    {
+        return $this->requiresTravelerNames()
+            && $this->traveler_names_timing === 'immediate';
     }
 }

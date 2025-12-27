@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
+
 class ReviewResource extends BaseResource
 {
     /**

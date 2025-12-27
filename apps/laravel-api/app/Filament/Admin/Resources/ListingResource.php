@@ -160,7 +160,7 @@ class ListingResource extends Resource
                 Tables\Columns\TextColumn::make('pricing.base')
                     ->label('Price')
                     ->formatStateUsing(
-                        fn ($state, $record) => $state ? number_format((float) $state / 100, 2) . ' ' . ($record->pricing['currency'] ?? 'EUR') : '-'
+                        fn ($state, $record) => $state ? number_format((float) $state / 100, 2) . ' ' . ($record->pricing['currency'] ?? 'TND') : '-'
                     )
                     ->alignEnd(),
 

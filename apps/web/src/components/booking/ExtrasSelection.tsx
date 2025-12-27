@@ -354,6 +354,7 @@ export function ExtrasSelection({
           type="button"
           onClick={handleSubmit}
           className="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+          data-testid="continue-to-billing"
         >
           {t('continue')}
         </button>

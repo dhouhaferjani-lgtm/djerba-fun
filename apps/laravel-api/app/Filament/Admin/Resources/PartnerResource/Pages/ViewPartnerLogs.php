@@ -20,7 +20,7 @@ class ViewPartnerLogs extends Page implements HasTable
 
     public Partner $record;
 
-    public function mount(int | string $record): void
+    public function mount(int|string $record): void
     {
         $this->record = Partner::findOrFail($record);
     }

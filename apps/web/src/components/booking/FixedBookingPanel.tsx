@@ -149,7 +149,7 @@ export function FixedBookingPanel({
       case 'success':
         return 'bg-green-50 border-green-200 text-green-900';
       case 'info':
-        return 'bg-blue-50 border-blue-200 text-blue-900';
+        return 'bg-green-50 border-green-200 text-green-900';
       default:
         return 'bg-yellow-50 border-yellow-200 text-yellow-900';
     }
@@ -160,7 +160,7 @@ export function FixedBookingPanel({
       <div className="bg-[#fafaf9] rounded-2xl p-4 shadow-lg border border-neutral-200">
         <div>
           {/* Price Display */}
-          <div className="mb-4">
+          <div className="mb-4" data-testid="listing-price">
             <PriceDisplay amount={basePrice} currency={currency} size="lg" showFrom />
           </div>
 
@@ -185,6 +185,7 @@ export function FixedBookingPanel({
                 size="lg"
                 className="w-full py-4 font-bold text-base"
                 onClick={() => setShowBookingFlow(true)}
+                data-testid="book-now-button"
               >
                 <Calendar className="h-5 w-5 mr-2" />
                 {t('check_availability')}

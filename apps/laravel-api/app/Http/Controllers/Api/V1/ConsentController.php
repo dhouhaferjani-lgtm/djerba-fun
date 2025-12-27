@@ -38,7 +38,7 @@ class ConsentController extends Controller
         $validTypes = array_keys(Consent::getTypes());
         $invalidTypes = array_diff(array_keys($validated['consents']), $validTypes);
 
-        if (!empty($invalidTypes)) {
+        if (! empty($invalidTypes)) {
             return response()->json([
                 'message' => 'Invalid consent types: ' . implode(', ', $invalidTypes),
             ], 422);
@@ -91,7 +91,8 @@ class ConsentController extends Controller
         ]);
 
         $validTypes = array_keys(Consent::getTypes());
-        if (!in_array($validated['type'], $validTypes)) {
+
+        if (! in_array($validated['type'], $validTypes)) {
             return response()->json([
                 'message' => 'Invalid consent type.',
             ], 422);
@@ -108,7 +109,7 @@ class ConsentController extends Controller
             $email
         );
 
-        if (!$revoked) {
+        if (! $revoked) {
             return response()->json([
                 'message' => 'No consent found to revoke.',
             ], 404);
@@ -126,7 +127,7 @@ class ConsentController extends Controller
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'message' => 'Authentication required to view consent history.',
             ], 401);

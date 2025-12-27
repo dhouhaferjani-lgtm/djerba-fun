@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
+
 class PageResource extends BaseResource
 {
     /**
@@ -62,7 +63,7 @@ class PageResource extends BaseResource
      */
     protected function transformContentBlocks(string $locale): array
     {
-        if (!$this->content_blocks) {
+        if (! $this->content_blocks) {
             return [];
         }
 

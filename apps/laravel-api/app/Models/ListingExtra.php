@@ -7,13 +7,13 @@ namespace App\Models;
 use App\Enums\ExtraPricingType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class ListingExtra extends Pivot
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $table = 'listing_extras';
 
@@ -185,7 +185,7 @@ class ListingExtra extends Pivot
             $operator = $condition['operator'] ?? '==';
             $value = $condition['value'] ?? null;
 
-            if ($field === null || !isset($context[$field])) {
+            if ($field === null || ! isset($context[$field])) {
                 continue;
             }
 
@@ -201,7 +201,7 @@ class ListingExtra extends Pivot
                 default => false,
             };
 
-            if (!$conditionMet) {
+            if (! $conditionMet) {
                 return $action === 'hide'; // Condition not met, invert action
             }
         }

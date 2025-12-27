@@ -21,6 +21,7 @@ class LogoutResponse implements LogoutResponseContract
 
         // Determine redirect URL based on the current panel path
         $path = $request->path();
+
         if (str_starts_with($path, 'vendor')) {
             return redirect()->to('/vendor/login');
         } elseif (str_starts_with($path, 'admin')) {

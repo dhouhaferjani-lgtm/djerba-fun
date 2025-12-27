@@ -11,7 +11,9 @@ use Spatie\Translatable\HasTranslations;
 
 class BlogPost extends Model
 {
-    use HasFactory, HasTranslations, SoftDeletes;
+    use HasFactory;
+    use HasTranslations;
+    use SoftDeletes;
 
     /**
      * The attributes that are translatable.

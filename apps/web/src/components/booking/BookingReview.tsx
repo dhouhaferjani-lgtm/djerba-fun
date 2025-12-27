@@ -293,8 +293,8 @@ export function BookingReview({
               )}
             </div>
             {quantity > 1 && (
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
+              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-800">
                   {t('participant_entry_note') ||
                     `You'll be able to enter names for all ${quantity} participants after completing the booking.`}
                 </p>
@@ -447,7 +447,7 @@ export function BookingReview({
           <div className="border-t pt-3">
             <div className="flex justify-between">
               <span className="font-bold text-gray-900">{t('total')}</span>
-              <span className="text-xl font-bold text-primary">
+              <span className="text-xl font-bold text-primary" data-testid="review-total-price">
                 {formatPrice(calculateTotal())}
               </span>
             </div>
@@ -462,6 +462,7 @@ export function BookingReview({
             type="button"
             onClick={onBack}
             disabled={isProcessing}
+            data-testid="back-to-billing"
             className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t('back')}
@@ -471,6 +472,7 @@ export function BookingReview({
           type="button"
           onClick={onConfirm}
           disabled={isProcessing}
+          data-testid="create-hold-button"
           className="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isProcessing ? t('processing') : t('confirm_and_pay')}

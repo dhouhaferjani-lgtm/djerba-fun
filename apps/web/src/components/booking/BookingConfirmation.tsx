@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import type { Booking } from '@go-adventure/schemas';
 
 interface BookingConfirmationProps {
@@ -10,6 +11,7 @@ interface BookingConfirmationProps {
 
 export function BookingConfirmation({ booking }: BookingConfirmationProps) {
   const t = useTranslations('booking.confirmation');
+  const { user } = useAuth();
 
   // Get booking number (bookingNumber is primary, code is alias)
   const bookingNumber = booking.bookingNumber || booking.code || booking.id;
@@ -22,7 +24,21 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
     booking.startsAt || booking.availabilitySlot?.start || booking.confirmedAt || booking.createdAt;
 
   // Get traveler email (travelerInfo is API format, travelers is schema format)
-  const travelerEmail = booking.travelerInfo?.email || booking.travelers?.[0]?.email;
+  const travelerEmail =
+    booking.billingContact?.email || booking.travelerInfo?.email || booking.travelers?.[0]?.email;
+
+  // Determine participant names requirement
+  const needsParticipantNames =
+    booking.travelerDetailsStatus === 'pending' || booking.travelerDetailsStatus === 'partial';
+  const participantNamesComplete = booking.travelerDetailsStatus === 'complete';
+
+  // Check if immediate vs. flexible timing (from listing configuration)
+  // In real app, this would come from booking.listing.travelerNamesTiming
+  // For now, show urgent prompt if status is 'pending' (assumed immediate)
+  const promptImmediately = booking.travelerDetailsStatus === 'pending';
+
+  // Check if user has an account (for guest checkout CTA)
+  const isGuestBooking = !booking.userId && !user;
 
   const formatDateTime = (datetime: string | undefined) => {
     if (!datetime) return 'Not available';
@@ -47,7 +63,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto" data-testid="booking-confirmation">
       <div className="text-center space-y-6">
         {/* Success Animation */}
         <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full">
@@ -91,7 +107,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
             </div>
             <div className="pt-3 border-t">
               <span className="text-gray-600">{t('total_paid')}:</span>
-              <p className="text-xl font-bold text-gray-900">
+              <p className="text-xl font-bold text-gray-900" data-testid="confirmation-total">
                 {formatPrice(booking.totalAmount, booking.currency)}
               </p>
             </div>
@@ -100,20 +116,71 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
 
         {/* Email Confirmation Notice */}
         {travelerEmail && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="text-sm text-green-800">
               {t('email_sent')} <strong>{travelerEmail}</strong>
             </p>
           </div>
         )}
 
-        {/* Participant Names Prompt - show if multiple guests */}
-        {guestCount > 1 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-left">
+        {/* URGENT Participant Names Prompt - immediate requirement */}
+        {needsParticipantNames && promptImmediately && (
+          <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-6 text-left shadow-md">
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+              <div className="flex-shrink-0 w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-amber-600"
+                  className="w-6 h-6 text-amber-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-amber-900 mb-2 text-lg">
+                  {t('names_required_title') || '⚠️ Participant Names Required'}
+                </h3>
+                <p className="text-sm text-amber-800 mb-4">
+                  {t('names_required_message') ||
+                    'This activity requires participant names before departure. Please provide names now to ensure a smooth check-in process.'}
+                </p>
+                <Link
+                  href={`/dashboard/bookings/${booking.id}/participants`}
+                  className="inline-flex items-center px-5 py-3 bg-amber-600 text-white rounded-lg font-semibold text-sm hover:bg-amber-700 transition-colors shadow-sm"
+                >
+                  {t('provide_names_now') || 'Provide Names Now'}
+                  <svg
+                    className="w-5 h-5 ml-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* FLEXIBLE Participant Names Prompt - optional/before activity */}
+        {needsParticipantNames && !promptImmediately && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-left">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-green-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -127,32 +194,92 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-amber-900 mb-1">
-                  {t('complete_participant_names') || 'Complete Participant Names'}
+                <h3 className="font-semibold text-green-900 mb-1">
+                  {t('names_optional_title') || 'Participant Names (Optional)'}
                 </h3>
-                <p className="text-sm text-amber-800 mb-3">
-                  {t('participant_names_prompt') ||
-                    `You have ${guestCount} participants in this booking. Enter their names to receive individual vouchers with QR codes for check-in.`}
+                <p className="text-sm text-green-800 mb-3">
+                  {t('names_optional_message') ||
+                    'You can provide participant names now or later before your activity date.'}
                 </p>
                 <Link
                   href={`/dashboard/bookings/${booking.id}/participants`}
-                  className="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg font-medium text-sm hover:bg-amber-700 transition-colors"
+                  className="inline-flex items-center text-green-700 hover:text-green-800 font-medium text-sm hover:underline"
                 >
-                  {t('enter_participant_names') || 'Enter Participant Names'}
-                  <svg
-                    className="w-4 h-4 ml-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                  {t('add_names') || 'Add Names'} →
                 </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Account Creation CTA - for guest bookings only */}
+        {isGuestBooking && (
+          <div className="bg-gradient-to-r from-primary/10 to-primary-light/10 border border-primary/30 rounded-lg p-6 text-left">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-primary"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 mb-2 text-lg">
+                  {t('create_account_title') || '✨ Create Your Account'}
+                </h3>
+                <p className="text-sm text-gray-700 mb-3">
+                  {t('create_account_subtitle') ||
+                    'Track all your bookings, get faster checkout, and receive exclusive offers. No password needed!'}
+                </p>
+                <ul className="space-y-2 mb-4 text-sm text-gray-700">
+                  <li className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span>View all bookings anytime</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span>One-click future checkouts</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span>Save favorite activities</span>
+                  </li>
+                </ul>
+                <Link
+                  href={`/auth/register-quick?email=${encodeURIComponent(travelerEmail || '')}&bookingId=${booking.id}`}
+                  className="inline-flex items-center px-5 py-3 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm"
+                >
+                  {t('create_free_account') || 'Create Free Account'} →
+                </Link>
+                <p className="text-xs text-gray-600 mt-3">
+                  {t('passwordless_note') || 'No password needed - magic link verification'}
+                </p>
               </div>
             </div>
           </div>

@@ -42,6 +42,7 @@ class IncomePricingConfig extends Model
     public static function getActiveRatio(string $fromCurrency, string $toCurrency): ?float
     {
         $config = self::getActiveConfig($fromCurrency, $toCurrency);
+
         return $config ? (float) $config->ratio : null;
     }
 }

@@ -8,7 +8,6 @@ use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BookingExtraResource;
 use App\Http\Resources\BookingParticipantResource;
-use App\Http\Resources\BookingResource;
 use App\Models\BookingParticipant;
 use App\Services\ExtrasService;
 use Illuminate\Http\JsonResponse;
@@ -30,7 +29,7 @@ class CheckInController extends Controller
             ->with(['booking.listing.vendor', 'booking.availabilitySlot'])
             ->first();
 
-        if (!$participant) {
+        if (! $participant) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid voucher code',
@@ -41,7 +40,7 @@ class CheckInController extends Controller
         $user = $request->user();
 
         // Check if the authenticated user is the vendor for this listing
-        if (!$user || $booking->listing?->vendor_id !== $user->id) {
+        if (! $user || $booking->listing?->vendor_id !== $user->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'You are not authorized to check in participants for this listing',
@@ -100,7 +99,7 @@ class CheckInController extends Controller
             ->with(['booking.listing.vendor'])
             ->first();
 
-        if (!$participant) {
+        if (! $participant) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid voucher code',
@@ -111,14 +110,14 @@ class CheckInController extends Controller
         $user = $request->user();
 
         // Check if the authenticated user is the vendor for this listing
-        if (!$user || $booking->listing?->vendor_id !== $user->id) {
+        if (! $user || $booking->listing?->vendor_id !== $user->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'You are not authorized to manage check-ins for this listing',
             ], 403);
         }
 
-        if (!$participant->checked_in) {
+        if (! $participant->checked_in) {
             return response()->json([
                 'success' => false,
                 'message' => 'This participant is not checked in',
@@ -144,7 +143,7 @@ class CheckInController extends Controller
             ->with(['booking.listing.vendor', 'booking.availabilitySlot', 'booking.user', 'booking.bookingExtras.extra'])
             ->first();
 
-        if (!$participant) {
+        if (! $participant) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid voucher code',
@@ -156,7 +155,7 @@ class CheckInController extends Controller
         $locale = app()->getLocale();
 
         // Check if the authenticated user is the vendor for this listing
-        if (!$user || $booking->listing?->vendor_id !== $user->id) {
+        if (! $user || $booking->listing?->vendor_id !== $user->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'You are not authorized to view this voucher',
@@ -184,6 +183,168 @@ class CheckInController extends Controller
             'checkInStats' => [
                 'checkedIn' => $booking->participants()->checkedIn()->count(),
                 'total' => $booking->participants()->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * Bulk check-in multiple participants by voucher codes.
+     * Useful for batch operations and offline sync.
+     */
+    public function bulkCheckIn(Request $request): JsonResponse
+    {
+        $request->validate([
+            'voucher_codes' => 'required|array|min:1|max:100',
+            'voucher_codes.*' => 'required|string',
+        ]);
+
+        $voucherCodes = $request->input('voucher_codes');
+        $user = $request->user();
+
+        $successResults = [];
+        $failedResults = [];
+
+        foreach ($voucherCodes as $voucherCode) {
+            try {
+                $participant = BookingParticipant::byVoucherCode($voucherCode)
+                    ->with(['booking.listing.vendor'])
+                    ->first();
+
+                if (! $participant) {
+                    $failedResults[] = [
+                        'voucherCode' => $voucherCode,
+                        'error' => 'Invalid voucher code',
+                    ];
+                    continue;
+                }
+
+                // Verify vendor ownership
+                if ($participant->booking->listing?->vendor_id !== $user->id) {
+                    $failedResults[] = [
+                        'voucherCode' => $voucherCode,
+                        'error' => 'Not authorized',
+                    ];
+                    continue;
+                }
+
+                // Check booking status
+                if ($participant->booking->status !== BookingStatus::CONFIRMED) {
+                    $failedResults[] = [
+                        'voucherCode' => $voucherCode,
+                        'error' => 'Booking not confirmed',
+                    ];
+                    continue;
+                }
+
+                // Check if already checked in
+                if ($participant->checked_in) {
+                    $failedResults[] = [
+                        'voucherCode' => $voucherCode,
+                        'error' => 'Already checked in',
+                        'checkedInAt' => $participant->checked_in_at?->toIso8601String(),
+                    ];
+                    continue;
+                }
+
+                // Perform check-in
+                $participant->checkIn();
+
+                $successResults[] = [
+                    'voucherCode' => $voucherCode,
+                    'participantName' => $participant->full_name,
+                    'badgeNumber' => $participant->badge_number,
+                    'checkedInAt' => $participant->checked_in_at?->toIso8601String(),
+                ];
+            } catch (\Exception $e) {
+                $failedResults[] = [
+                    'voucherCode' => $voucherCode,
+                    'error' => 'Check-in failed: ' . $e->getMessage(),
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'successCount' => count($successResults),
+            'failedCount' => count($failedResults),
+            'results' => [
+                'success' => $successResults,
+                'failed' => $failedResults,
+            ],
+        ]);
+    }
+
+    /**
+     * Bulk undo check-ins.
+     * Useful for correcting mistakes in batch.
+     */
+    public function bulkUndoCheckIn(Request $request): JsonResponse
+    {
+        $request->validate([
+            'voucher_codes' => 'required|array|min:1|max:100',
+            'voucher_codes.*' => 'required|string',
+        ]);
+
+        $voucherCodes = $request->input('voucher_codes');
+        $user = $request->user();
+
+        $successResults = [];
+        $failedResults = [];
+
+        foreach ($voucherCodes as $voucherCode) {
+            try {
+                $participant = BookingParticipant::byVoucherCode($voucherCode)
+                    ->with(['booking.listing.vendor'])
+                    ->first();
+
+                if (! $participant) {
+                    $failedResults[] = [
+                        'voucherCode' => $voucherCode,
+                        'error' => 'Invalid voucher code',
+                    ];
+                    continue;
+                }
+
+                // Verify vendor ownership
+                if ($participant->booking->listing?->vendor_id !== $user->id) {
+                    $failedResults[] = [
+                        'voucherCode' => $voucherCode,
+                        'error' => 'Not authorized',
+                    ];
+                    continue;
+                }
+
+                // Check if not checked in
+                if (! $participant->checked_in) {
+                    $failedResults[] = [
+                        'voucherCode' => $voucherCode,
+                        'error' => 'Not checked in',
+                    ];
+                    continue;
+                }
+
+                // Undo check-in
+                $participant->undoCheckIn();
+
+                $successResults[] = [
+                    'voucherCode' => $voucherCode,
+                    'participantName' => $participant->full_name,
+                ];
+            } catch (\Exception $e) {
+                $failedResults[] = [
+                    'voucherCode' => $voucherCode,
+                    'error' => 'Undo failed: ' . $e->getMessage(),
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'successCount' => count($successResults),
+            'failedCount' => count($failedResults),
+            'results' => [
+                'success' => $successResults,
+                'failed' => $failedResults,
             ],
         ]);
     }

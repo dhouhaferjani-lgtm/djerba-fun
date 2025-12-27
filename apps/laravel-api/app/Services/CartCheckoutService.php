@@ -12,7 +12,6 @@ use App\Models\Booking;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\CartPayment;
-use App\Models\User;
 use App\Services\Payment\PaymentGatewayManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -31,9 +30,9 @@ class CartCheckoutService
      * Initiate checkout for a cart.
      * Creates CartPayment and prepares for payment processing.
      *
-     * @param Cart $cart The cart to checkout
-     * @param PaymentMethod $paymentMethod The payment method to use
-     * @param array $metadata Additional metadata
+     * @param  Cart  $cart  The cart to checkout
+     * @param  PaymentMethod  $paymentMethod  The payment method to use
+     * @param  array  $metadata  Additional metadata
      * @return array{payment: CartPayment, valid: bool, errors: array}
      */
     public function initiateCheckout(
@@ -44,7 +43,7 @@ class CartCheckoutService
         // Validate cart
         $validation = $this->cartService->validateForCheckout($cart);
 
-        if (!$validation['valid']) {
+        if (! $validation['valid']) {
             return [
                 'payment' => null,
                 'valid' => false,
@@ -79,8 +78,8 @@ class CartCheckoutService
     /**
      * Process payment and create bookings.
      *
-     * @param CartPayment $payment The cart payment to process
-     * @param array $paymentData Payment-specific data (card details, etc.)
+     * @param  CartPayment  $payment  The cart payment to process
+     * @param  array  $paymentData  Payment-specific data (card details, etc.)
      * @return array{success: bool, bookings: array, message: string}
      */
     public function processPayment(CartPayment $payment, array $paymentData = []): array
@@ -190,9 +189,9 @@ class CartCheckoutService
     /**
      * Create bookings from cart items.
      *
-     * @param Cart $cart The cart
-     * @param CartPayment $payment The cart payment
-     * @param BookingStatus $status Initial booking status
+     * @param  Cart  $cart  The cart
+     * @param  CartPayment  $payment  The cart payment
+     * @param  BookingStatus  $status  Initial booking status
      * @return array<Booking>
      */
     protected function createBookingsFromCart(
@@ -238,7 +237,7 @@ class CartCheckoutService
         ];
 
         // Add guest names if present
-        if (!empty($item->guest_names)) {
+        if (! empty($item->guest_names)) {
             foreach ($item->guest_names as $guest) {
                 $travelers[] = [
                     'first_name' => $guest['first_name'] ?? '',

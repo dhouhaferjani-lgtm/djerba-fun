@@ -9,7 +9,7 @@ interface PageProps {
 }
 
 export const metadata = {
-  title: 'Blog | Go Adventure',
+  title: 'Blog',
   description: 'Guides, stories, and inspiration from the dunes of Tunisia',
 };
 

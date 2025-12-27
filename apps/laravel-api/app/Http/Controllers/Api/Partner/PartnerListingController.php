@@ -5,24 +5,21 @@ namespace App\Http\Controllers\Api\Partner;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Partner\PartnerListingResource;
 use App\Models\Listing;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\JsonResponse;
 
 class PartnerListingController extends Controller
 {
     /**
      * Search listings (optimized for API partners).
-     *
-     * @param Request $request
-     * @return AnonymousResourceCollection
      */
     public function index(Request $request): AnonymousResourceCollection
     {
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('listings:read')) {
+        if (! $partner->hasPermission('listings:read')) {
             abort(403, 'Partner does not have permission to read listings');
         }
 
@@ -68,6 +65,7 @@ class PartnerListingController extends Controller
         if ($request->has('min_price')) {
             $query->whereRaw("(pricing->>'base')::integer >= ?", [$request->min_price]);
         }
+
         if ($request->has('max_price')) {
             $query->whereRaw("(pricing->>'base')::integer <= ?", [$request->max_price]);
         }
@@ -107,21 +105,17 @@ class PartnerListingController extends Controller
 
     /**
      * Get a specific listing by ID.
-     *
-     * @param Request $request
-     * @param Listing $listing
-     * @return PartnerListingResource
      */
     public function show(Request $request, Listing $listing): PartnerListingResource
     {
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('listings:read')) {
+        if (! $partner->hasPermission('listings:read')) {
             abort(403, 'Partner does not have permission to read listings');
         }
 
-        if (!$listing->isPublished()) {
+        if (! $listing->isPublished()) {
             abort(404, 'Listing not found');
         }
 
@@ -132,21 +126,17 @@ class PartnerListingController extends Controller
 
     /**
      * Get availability for a listing.
-     *
-     * @param Request $request
-     * @param Listing $listing
-     * @return JsonResponse
      */
     public function availability(Request $request, Listing $listing): JsonResponse
     {
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('listings:read')) {
+        if (! $partner->hasPermission('listings:read')) {
             abort(403, 'Partner does not have permission to read listings');
         }
 
-        if (!$listing->isPublished()) {
+        if (! $listing->isPublished()) {
             abort(404, 'Listing not found');
         }
 

@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             VendorSeeder::class,
             LocationSeeder::class,
             ListingSeeder::class,
+            HikingTourWithMapSeeder::class,
         ]);
     }
 }

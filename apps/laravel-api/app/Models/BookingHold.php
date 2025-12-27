@@ -33,6 +33,10 @@ class BookingHold extends Model
         'cart_id',
         'quantity',
         'person_type_breakdown',
+        'currency',
+        'price_snapshot',
+        'pricing_country_code',
+        'pricing_source',
         'expires_at',
         'status',
     ];
@@ -48,6 +52,7 @@ class BookingHold extends Model
             'expires_at' => 'datetime',
             'status' => HoldStatus::class,
             'person_type_breakdown' => 'array',
+            'price_snapshot' => 'decimal:2',
         ];
     }
 
@@ -218,6 +223,21 @@ class BookingHold extends Model
     }
 
     /**
+     * Get pricing context for this hold.
+     *
+     * @return array{currency: string, price: float, country_code: string|null, source: string}
+     */
+    public function getPricingContext(): array
+    {
+        return [
+            'currency' => $this->currency,
+            'price' => $this->price_snapshot ?? 0,
+            'country_code' => $this->pricing_country_code,
+            'source' => $this->pricing_source,
+        ];
+    }
+
+    /**
      * Get a hold from Redis by ID.
      */
     public static function getFromRedis(string $holdId): ?array
@@ -237,16 +257,24 @@ class BookingHold extends Model
      * @param  int  $quantity  The total number of guests
      * @param  string|null  $sessionId  The guest session ID
      * @param  array|null  $personTypeBreakdown  Optional breakdown by person type: ["adult" => 2, "child" => 1]
+     * @param  string|null  $currency  Currency code (TND, EUR, etc.)
+     * @param  float|null  $priceSnapshot  Price at time of hold creation
+     * @param  string|null  $pricingCountryCode  Country code used for pricing
+     * @param  string|null  $pricingSource  Source of pricing determination (ip_geo, user_billing, etc.)
      */
     public static function createForSlot(
         AvailabilitySlot $slot,
         ?User $user,
         int $quantity,
         ?string $sessionId = null,
-        ?array $personTypeBreakdown = null
+        ?array $personTypeBreakdown = null,
+        ?string $currency = null,
+        ?float $priceSnapshot = null,
+        ?string $pricingCountryCode = null,
+        ?string $pricingSource = null
     ): ?self {
         // Wrap in transaction with row-level locking to prevent race conditions
-        return DB::transaction(function () use ($slot, $user, $quantity, $sessionId, $personTypeBreakdown) {
+        return DB::transaction(function () use ($slot, $user, $quantity, $sessionId, $personTypeBreakdown, $currency, $priceSnapshot, $pricingCountryCode, $pricingSource) {
             // Lock the slot row for this transaction to prevent concurrent bookings
             $lockedSlot = AvailabilitySlot::lockForUpdate()->find($slot->id);
 
@@ -267,6 +295,10 @@ class BookingHold extends Model
                 'session_id' => $sessionId,
                 'quantity' => $quantity,
                 'person_type_breakdown' => $personTypeBreakdown,
+                'currency' => $currency,
+                'price_snapshot' => $priceSnapshot,
+                'pricing_country_code' => $pricingCountryCode,
+                'pricing_source' => $pricingSource,
                 'expires_at' => now()->addMinutes(self::HOLD_DURATION_MINUTES),
                 'status' => HoldStatus::ACTIVE,
             ]);

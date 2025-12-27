@@ -24,12 +24,12 @@ class PartnerAuthService
                 ->first();
         });
 
-        if (!$partner) {
+        if (! $partner) {
             return null;
         }
 
         // Verify the secret
-        if (!$partner->verifySecret($apiSecret)) {
+        if (! $partner->verifySecret($apiSecret)) {
             return null;
         }
 

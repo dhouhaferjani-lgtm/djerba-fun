@@ -52,7 +52,7 @@ class ListingExtraResource extends JsonResource
             // Inventory
             'trackInventory' => $extra->track_inventory,
             'inventoryCount' => $extra->inventory_count,
-            'hasAvailableInventory' => !$extra->track_inventory || ($extra->inventory_count ?? 0) > 0,
+            'hasAvailableInventory' => ! $extra->track_inventory || ($extra->inventory_count ?? 0) > 0,
         ];
     }
 }

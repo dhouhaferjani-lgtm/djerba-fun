@@ -86,6 +86,7 @@ class PartnerAuditMiddleware
         // Limit size of body data
         if (isset($data['body']) && is_array($data['body'])) {
             $json = json_encode($data['body']);
+
             if (strlen($json) > 10000) {
                 $data['body'] = ['_truncated' => 'Body too large for logging'];
             }

@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api\Partner;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Partner\PartnerBookingResource;
+use App\Models\AvailabilitySlot;
 use App\Models\Booking;
 use App\Models\Listing;
-use App\Models\AvailabilitySlot;
 use App\Models\User;
 use App\Services\PartnerFinancialService;
 use App\Services\PartnerWebhookService;
@@ -19,20 +19,17 @@ class PartnerBookingController extends Controller
     public function __construct(
         protected PartnerFinancialService $financialService,
         protected PartnerWebhookService $webhookService
-    ) {
-    }
+    ) {}
+
     /**
      * Create a booking on behalf of a traveler.
-     *
-     * @param Request $request
-     * @return PartnerBookingResource
      */
     public function store(Request $request): PartnerBookingResource
     {
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('bookings:create')) {
+        if (! $partner->hasPermission('bookings:create')) {
             abort(403, 'Partner does not have permission to create bookings');
         }
 
@@ -62,7 +59,7 @@ class PartnerBookingController extends Controller
         // Find or create user
         $user = User::where('email', $validated['traveler_info']['email'])->first();
 
-        if (!$user) {
+        if (! $user) {
             // Create a traveler account
             $user = DB::transaction(function () use ($validated) {
                 $user = User::create([
@@ -154,7 +151,6 @@ class PartnerBookingController extends Controller
     /**
      * List all bookings created by this partner.
      *
-     * @param Request $request
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(Request $request)
@@ -162,7 +158,7 @@ class PartnerBookingController extends Controller
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('bookings:read')) {
+        if (! $partner->hasPermission('bookings:read')) {
             abort(403, 'Partner does not have permission to read bookings');
         }
 
@@ -195,17 +191,13 @@ class PartnerBookingController extends Controller
 
     /**
      * Get booking details.
-     *
-     * @param Request $request
-     * @param Booking $booking
-     * @return PartnerBookingResource
      */
     public function show(Request $request, Booking $booking): PartnerBookingResource
     {
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('bookings:read')) {
+        if (! $partner->hasPermission('bookings:read')) {
             abort(403, 'Partner does not have permission to read bookings');
         }
 
@@ -221,17 +213,13 @@ class PartnerBookingController extends Controller
 
     /**
      * Confirm a booking as paid (partner collected payment offline).
-     *
-     * @param Request $request
-     * @param Booking $booking
-     * @return PartnerBookingResource
      */
     public function confirm(Request $request, Booking $booking): PartnerBookingResource
     {
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('bookings:confirm')) {
+        if (! $partner->hasPermission('bookings:confirm')) {
             abort(403, 'Partner does not have permission to confirm bookings');
         }
 
@@ -252,7 +240,7 @@ class PartnerBookingController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        DB::transaction(function () use ($booking, $validated, $partner) {
+        DB::transaction(function () use ($booking, $validated) {
             // Update booking status
             $booking->update([
                 'status' => 'confirmed',
@@ -283,17 +271,13 @@ class PartnerBookingController extends Controller
 
     /**
      * Cancel a booking.
-     *
-     * @param Request $request
-     * @param Booking $booking
-     * @return PartnerBookingResource
      */
     public function cancel(Request $request, Booking $booking): PartnerBookingResource
     {
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('bookings:cancel')) {
+        if (! $partner->hasPermission('bookings:cancel')) {
             abort(403, 'Partner does not have permission to cancel bookings');
         }
 
@@ -302,7 +286,7 @@ class PartnerBookingController extends Controller
             abort(404, 'Booking not found');
         }
 
-        if (!$booking->canBeCancelled()) {
+        if (! $booking->canBeCancelled()) {
             throw ValidationException::withMessages([
                 'booking' => ['This booking cannot be cancelled.'],
             ]);

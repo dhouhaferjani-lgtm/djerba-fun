@@ -11,9 +11,9 @@ class PriceCalculationService
     /**
      * Calculate the total price for a booking based on person type breakdown.
      *
-     * @param Listing $listing The listing being booked
-     * @param array $breakdown Person type breakdown: ["adult" => 2, "child" => 1, "infant" => 0]
-     * @param string|null $currency Currency to use (TND or EUR). If null, defaults to EUR
+     * @param  Listing  $listing  The listing being booked
+     * @param  array  $breakdown  Person type breakdown: ["adult" => 2, "child" => 1, "infant" => 0]
+     * @param  string|null  $currency  Currency to use (TND or EUR). If null, defaults to EUR
      * @return array{breakdown: array, subtotal: int|float, discount: int|float, total: int|float, currency: string}
      */
     public function calculateTotal(Listing $listing, array $breakdown, ?string $currency = null): array
@@ -22,7 +22,7 @@ class PriceCalculationService
         $personTypes = $pricing['personTypes'] ?? $pricing['person_types'] ?? [];
 
         // Determine currency - prioritize parameter, then check for dual pricing
-        if (!$currency) {
+        if (! $currency) {
             $currency = $pricing['currency'] ?? 'EUR';
         }
 
@@ -39,13 +39,14 @@ class PriceCalculationService
         $totalGuests = 0;
 
         // If personTypes is defined, use per-type pricing
-        if (!empty($personTypes)) {
+        if (! empty($personTypes)) {
             foreach ($breakdown as $typeKey => $quantity) {
                 if ($quantity <= 0) {
                     continue;
                 }
 
                 $typeConfig = collect($personTypes)->firstWhere('key', $typeKey);
+
                 if ($typeConfig) {
                     // Get price for the selected currency
                     $price = $this->getPersonTypePriceForCurrency($typeConfig, $currency);
@@ -99,9 +100,9 @@ class PriceCalculationService
     /**
      * Calculate simple total without breakdown (backward compatible).
      *
-     * @param Listing $listing The listing being booked
-     * @param int $quantity Total number of guests
-     * @param string|null $currency Currency to use (TND or EUR). If null, defaults to EUR
+     * @param  Listing  $listing  The listing being booked
+     * @param  int  $quantity  Total number of guests
+     * @param  string|null  $currency  Currency to use (TND or EUR). If null, defaults to EUR
      * @return array{subtotal: int|float, discount: int|float, total: int|float, currency: string}
      */
     public function calculateSimpleTotal(Listing $listing, int $quantity, ?string $currency = null): array
@@ -109,7 +110,7 @@ class PriceCalculationService
         $pricing = $listing->pricing;
 
         // Determine currency
-        if (!$currency) {
+        if (! $currency) {
             $currency = $pricing['currency'] ?? 'EUR';
         }
 
@@ -135,9 +136,9 @@ class PriceCalculationService
     /**
      * Calculate group discount based on listing configuration.
      *
-     * @param Listing $listing The listing
-     * @param int $totalGuests Total number of guests
-     * @param float $subtotal Subtotal before discount
+     * @param  Listing  $listing  The listing
+     * @param  int  $totalGuests  Total number of guests
+     * @param  float  $subtotal  Subtotal before discount
      * @return float Discount amount
      */
     protected function calculateGroupDiscount(Listing $listing, int $totalGuests, float $subtotal): float
@@ -145,7 +146,7 @@ class PriceCalculationService
         $pricing = $listing->pricing;
         $groupDiscount = $pricing['groupDiscount'] ?? $pricing['group_discount'] ?? null;
 
-        if (!$groupDiscount) {
+        if (! $groupDiscount) {
             return 0;
         }
 
@@ -163,8 +164,8 @@ class PriceCalculationService
      * Get default person types for a listing.
      * Returns standard adult/child/infant types if not defined.
      *
-     * @param Listing $listing The listing
-     * @param string|null $currency Currency to use for default prices
+     * @param  Listing  $listing  The listing
+     * @param  string|null  $currency  Currency to use for default prices
      * @return array Default person types
      */
     public function getPersonTypes(Listing $listing, ?string $currency = null): array
@@ -172,17 +173,18 @@ class PriceCalculationService
         $pricing = $listing->pricing;
         $personTypes = $pricing['personTypes'] ?? $pricing['person_types'] ?? [];
 
-        if (!empty($personTypes)) {
+        if (! empty($personTypes)) {
             return $personTypes;
         }
 
         // Determine currency
-        if (!$currency) {
+        if (! $currency) {
             $currency = $pricing['currency'] ?? 'EUR';
         }
 
         // Return default person types based on base price for the selected currency
         $basePrice = $this->getPriceForCurrency($pricing, $currency);
+
         if (is_string($basePrice)) {
             $basePrice = (float) $basePrice;
         }

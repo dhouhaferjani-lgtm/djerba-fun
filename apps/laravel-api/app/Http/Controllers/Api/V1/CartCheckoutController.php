@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Api\V1;
 use App\Enums\PaymentMethod;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BookingResource;
-use App\Http\Resources\CartResource;
 use App\Models\Cart;
 use App\Models\CartPayment;
 use App\Services\CartCheckoutService;
@@ -33,7 +32,7 @@ class CartCheckoutController extends Controller
         // Get cart
         $cart = $this->cartService->getActiveCart($user, $sessionId);
 
-        if (!$cart) {
+        if (! $cart) {
             return response()->json([
                 'message' => 'No active cart found',
             ], 404);
@@ -43,7 +42,7 @@ class CartCheckoutController extends Controller
         $isOwner = ($user && $cart->user_id === $user->id) ||
                    ($sessionId && $cart->session_id === $sessionId);
 
-        if (!$isOwner) {
+        if (! $isOwner) {
             return response()->json([
                 'message' => 'This cart does not belong to you',
             ], 403);
@@ -51,7 +50,8 @@ class CartCheckoutController extends Controller
 
         // Validate payment method
         $paymentMethodValue = $request->input('payment_method', 'card');
-        if (!PaymentMethod::tryFrom($paymentMethodValue)) {
+
+        if (! PaymentMethod::tryFrom($paymentMethodValue)) {
             return response()->json([
                 'message' => 'Invalid payment method',
             ], 422);
@@ -65,7 +65,7 @@ class CartCheckoutController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
-        if (!$result['valid']) {
+        if (! $result['valid']) {
             return response()->json([
                 'message' => 'Cart validation failed',
                 'errors' => $result['errors'],
@@ -93,7 +93,7 @@ class CartCheckoutController extends Controller
         $isOwner = ($user && $cart->user_id === $user->id) ||
                    ($sessionId && $cart->session_id === $sessionId);
 
-        if (!$isOwner) {
+        if (! $isOwner) {
             return response()->json([
                 'message' => 'This payment does not belong to you',
             ], 403);
@@ -117,7 +117,7 @@ class CartCheckoutController extends Controller
         $paymentData = $request->input('payment_data', []);
         $result = $this->checkoutService->processPayment($payment, $paymentData);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json([
                 'message' => $result['message'],
                 'success' => false,
@@ -147,10 +147,10 @@ class CartCheckoutController extends Controller
                 $q->where('session_id', $sessionId);
             }
         })
-        ->where('status', Cart::STATUS_CHECKING_OUT)
-        ->first();
+            ->where('status', Cart::STATUS_CHECKING_OUT)
+            ->first();
 
-        if (!$cart) {
+        if (! $cart) {
             return response()->json([
                 'message' => 'No checkout in progress',
             ], 404);
@@ -177,7 +177,7 @@ class CartCheckoutController extends Controller
         $isOwner = ($user && $cart->user_id === $user->id) ||
                    ($sessionId && $cart->session_id === $sessionId);
 
-        if (!$isOwner) {
+        if (! $isOwner) {
             return response()->json([
                 'message' => 'Unauthorized',
             ], 403);

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Vendor\Resources\ListingResource\Pages;
 
 use App\Enums\ListingStatus;
-use App\Filament\Vendor\Resources\ListingResource;
 use App\Filament\Vendor\Resources\AvailabilityRuleResource;
+use App\Filament\Vendor\Resources\ListingResource;
 use App\Models\AvailabilityRule;
 use Filament\Actions;
 use Filament\Notifications\Actions\Action as NotificationAction;
@@ -47,11 +47,12 @@ class CreateListing extends CreateRecord
                 ->body('Please select Tour or Event before saving.')
                 ->danger()
                 ->send();
+
             return;
         }
 
         // Generate slug if missing
-        if (empty($data['slug']) && !empty($data['title']['en'])) {
+        if (empty($data['slug']) && ! empty($data['title']['en'])) {
             $data['slug'] = Str::slug($data['title']['en']) . '-' . Str::random(6);
         } elseif (empty($data['slug'])) {
             $data['slug'] = 'draft-' . Str::random(10);
@@ -135,7 +136,7 @@ class CreateListing extends CreateRecord
         $quickRules = $data['_quick_availability_rules'] ?? [];
         $skipAvailability = $data['_skip_availability'] ?? false;
 
-        if (!empty($quickRules)) {
+        if (! empty($quickRules)) {
             $createdCount = 0;
 
             foreach ($quickRules as $ruleData) {
@@ -154,7 +155,7 @@ class CreateListing extends CreateRecord
             Notification::make()
                 ->success()
                 ->title('Availability Rules Created')
-                ->body("Created {$createdCount} availability " . ($createdCount === 1 ? 'rule' : 'rules') . " for your listing.")
+                ->body("Created {$createdCount} availability " . ($createdCount === 1 ? 'rule' : 'rules') . ' for your listing.')
                 ->send();
         } elseif ($skipAvailability) {
             Notification::make()

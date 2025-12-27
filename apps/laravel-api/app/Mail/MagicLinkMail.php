@@ -14,7 +14,8 @@ use Illuminate\Queue\SerializesModels;
 
 class MagicLinkMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     public function __construct(
         public readonly Booking $booking

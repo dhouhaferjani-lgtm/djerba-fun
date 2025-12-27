@@ -32,6 +32,7 @@ class TravelerProfile extends Model
         'phone',
         'default_currency',
         'preferred_locale',
+        'preferences',
         'documents',
     ];
 
@@ -44,6 +45,7 @@ class TravelerProfile extends Model
     {
         return [
             'documents' => 'array',
+            'preferences' => 'array',
         ];
     }
 

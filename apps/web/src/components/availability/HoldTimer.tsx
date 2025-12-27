@@ -68,7 +68,10 @@ export default function HoldTimer({ expiresAt, onExpire, className = '' }: HoldT
 
   if (timeRemaining === 0) {
     return (
-      <div className={`rounded-lg border-2 border-red-300 bg-red-50 p-4 ${className}`}>
+      <div
+        className={`rounded-lg border-2 border-red-300 bg-red-50 p-4 ${className}`}
+        data-testid="hold-timer"
+      >
         <div className="flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-red-600" />
           <div>
@@ -81,7 +84,10 @@ export default function HoldTimer({ expiresAt, onExpire, className = '' }: HoldT
   }
 
   return (
-    <div className={`rounded-lg border-2 ${getBackgroundColor()} p-4 ${className}`}>
+    <div
+      className={`rounded-lg border-2 ${getBackgroundColor()} p-4 ${className}`}
+      data-testid="hold-timer"
+    >
       <div className="flex items-center gap-3">
         <div className={`${shouldPulse ? 'animate-pulse' : ''}`}>
           <Clock className={`h-5 w-5 ${getTextColor()}`} />

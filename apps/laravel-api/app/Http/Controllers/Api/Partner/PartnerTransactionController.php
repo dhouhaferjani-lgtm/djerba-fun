@@ -11,7 +11,6 @@ class PartnerTransactionController extends Controller
     /**
      * List all transactions for this partner.
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
@@ -19,7 +18,7 @@ class PartnerTransactionController extends Controller
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('transactions:read') && !$partner->hasPermission('*')) {
+        if (! $partner->hasPermission('transactions:read') && ! $partner->hasPermission('*')) {
             abort(403, 'Partner does not have permission to view transactions');
         }
 
@@ -66,8 +65,6 @@ class PartnerTransactionController extends Controller
     /**
      * Get a specific transaction.
      *
-     * @param Request $request
-     * @param PartnerTransaction $transaction
      * @return \Illuminate\Http\JsonResponse
      */
     public function show(Request $request, PartnerTransaction $transaction)
@@ -75,7 +72,7 @@ class PartnerTransactionController extends Controller
         $partner = $request->attributes->get('partner');
 
         // Check permission
-        if (!$partner->hasPermission('transactions:read') && !$partner->hasPermission('*')) {
+        if (! $partner->hasPermission('transactions:read') && ! $partner->hasPermission('*')) {
             abort(403, 'Partner does not have permission to view transactions');
         }
 

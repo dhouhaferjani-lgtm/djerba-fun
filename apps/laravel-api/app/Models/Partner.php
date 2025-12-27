@@ -12,7 +12,8 @@ use Illuminate\Support\Str;
 
 class Partner extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'name',
@@ -136,6 +137,7 @@ class Partner extends Model
     {
         try {
             $decrypted = Crypt::decryptString($this->api_secret);
+
             return hash_equals($decrypted, $secret);
         } catch (\Exception $e) {
             return false;
@@ -147,7 +149,7 @@ class Partner extends Model
      */
     public function hasPermission(string $permission): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 
@@ -169,6 +171,7 @@ class Partner extends Model
         foreach ($this->permissions as $perm) {
             if (str_ends_with($perm, ':*')) {
                 $prefix = substr($perm, 0, -2);
+
                 if (str_starts_with($permission, $prefix . ':')) {
                     return true;
                 }
@@ -196,7 +199,7 @@ class Partner extends Model
      */
     public function hasExpiredApiKey(): bool
     {
-        if (!$this->api_key_expires_at) {
+        if (! $this->api_key_expires_at) {
             return false; // No expiration set
         }
 

@@ -2,11 +2,16 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { getTranslations } from 'next-intl/server';
+import dynamic from 'next/dynamic';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { ListingCard } from '@/components/molecules/ListingCard';
-import SearchMap from '@/components/maps/SearchMap';
 import type { Locale } from '@/i18n/routing';
 import type { ListingSummary } from '@go-adventure/schemas';
+
+const SearchMap = dynamic(() => import('@/components/maps/SearchMap'), {
+  ssr: false,
+  loading: () => <div className="h-[500px] bg-neutral-100 animate-pulse rounded-lg" />,
+});
 
 interface Location {
   id: string;
@@ -68,7 +73,7 @@ export async function generateMetadata({ params }: DestinationPageProps): Promis
   const { location } = data;
 
   return {
-    title: `${location.name} - Tours & Activities | Go Adventure`,
+    title: `${location.name} - Tours & Activities`,
     description:
       location.description ||
       `Discover amazing tours and activities in ${location.name}. Book authentic experiences with local guides.`,

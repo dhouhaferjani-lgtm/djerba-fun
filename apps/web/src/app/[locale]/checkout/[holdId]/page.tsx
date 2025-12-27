@@ -6,7 +6,7 @@ import { useRouter, Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { BookingWizard } from '@/components/booking/BookingWizard';
-import { useHold } from '@/lib/api/hooks';
+import { useHold, useListingExtras } from '@/lib/api/hooks';
 import { Button } from '@go-adventure/ui';
 import { AlertTriangle, ArrowLeft, Clock } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
@@ -25,6 +25,29 @@ export default function CheckoutPage() {
 
   const { data: holdData, isLoading, error, isError } = useHold(holdId);
 
+  // Fetch available extras for the listing (only when we have hold data)
+  const {
+    data: extrasData,
+    isLoading: isLoadingExtras,
+    isError: isExtrasError,
+  } = useListingExtras(
+    holdData?.listing?.slug || '',
+    {
+      slotId: holdData?.slot?.id,
+      personTypes: holdData?.personTypeBreakdown
+        ? Object.keys(holdData.personTypeBreakdown)
+        : undefined,
+    },
+    !!holdData?.listing?.slug && !!holdData?.slot?.id
+  );
+
+  // Log error if extras fail to load (non-critical)
+  useEffect(() => {
+    if (isExtrasError) {
+      console.warn('Failed to load extras for listing:', holdData?.listing?.slug);
+    }
+  }, [isExtrasError, holdData?.listing?.slug]);
+
   // Handle expired hold - check for 410 status
   useEffect(() => {
     if (isError && error && 'status' in error && error.status === 410) {
@@ -32,7 +55,7 @@ export default function CheckoutPage() {
     }
   }, [isError, error]);
 
-  if (isLoading) {
+  if (isLoading || isLoadingExtras) {
     return (
       <MainLayout locale={locale}>
         <div className="min-h-[60vh] flex items-center justify-center">
@@ -177,7 +200,7 @@ export default function CheckoutPage() {
             hold={holdData as any}
             listing={listing as any}
             slot={slot as any}
-            availableExtras={[]}
+            availableExtras={extrasData || []}
             onExpired={handleHoldExpired}
           />
         </div>

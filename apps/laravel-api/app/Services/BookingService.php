@@ -71,6 +71,16 @@ class BookingService
                 ? 'pending'
                 : 'not_required';
 
+            // Extract billing address if provided in travelers data
+            $billingAddress = null;
+
+            if (isset($primaryTraveler['billing_address'])) {
+                $billingAddress = $primaryTraveler['billing_address'];
+            }
+
+            // Calculate final pricing with billing address context
+            $pricing = $this->calculateTotalAmount($hold, $extras);
+
             // Create the booking (copy session_id from hold for guest checkout)
             $booking = Booking::create([
                 'booking_number' => $this->generateBookingNumber(),
@@ -82,13 +92,21 @@ class BookingService
                 'availability_slot_id' => $hold->slot_id,
                 'quantity' => $hold->quantity,
                 'person_type_breakdown' => $hold->person_type_breakdown,
-                'total_amount' => $this->calculateTotalAmount($hold, $extras),
-                'currency' => $hold->slot?->listing?->pricing['currency'] ?? 'TND',
+                'total_amount' => is_array($pricing) ? $pricing['total'] : $pricing,
+                'currency' => $hold->currency ?? request()->attributes->get('user_currency', 'USD'),
                 'status' => BookingStatus::PENDING_PAYMENT,
                 'traveler_info' => $primaryTraveler, // Backward compatibility
                 'travelers' => $normalizedTravelers, // Full travelers array
                 'extras' => $extras,
                 'billing_contact' => $billingContact,
+                'billing_country_code' => $billingAddress['country_code'] ?? null,
+                'billing_city' => $billingAddress['city'] ?? null,
+                'billing_postal_code' => $billingAddress['postal_code'] ?? null,
+                'billing_address_line1' => $billingAddress['address_line1'] ?? null,
+                'billing_address_line2' => $billingAddress['address_line2'] ?? null,
+                'pricing_snapshot' => is_array($pricing)
+                    ? $this->capturePricingSnapshot($hold, $billingAddress, $pricing)
+                    : null,
                 'traveler_details_status' => $travelerDetailsStatus,
             ]);
 
@@ -273,8 +291,10 @@ class BookingService
 
     /**
      * Calculate total amount including extras.
+     *
+     * @return array{total: float, currency: string}
      */
-    private function calculateTotalAmount(BookingHold $hold, array $extras): float
+    private function calculateTotalAmount(BookingHold $hold, array $extras): array
     {
         $baseAmount = 0;
         $listing = $hold->slot?->listing;
@@ -353,7 +373,12 @@ class BookingService
             }
         }
 
-        return $baseAmount + $extrasAmount;
+        $total = $baseAmount + $extrasAmount;
+
+        return [
+            'total' => $total,
+            'currency' => $hold->currency ?? 'USD',
+        ];
     }
 
     /**
@@ -433,5 +458,73 @@ class BookingService
         return Booking::where('booking_number', $bookingNumber)
             ->whereJsonContains('billing_contact->email', $email)
             ->first();
+    }
+
+    /**
+     * Determine currency from country code.
+     * Simple mapping for PPP pricing support.
+     *
+     * @param  string  $countryCode  ISO 3166-1 alpha-2 country code
+     * @return string Currency code (TND, EUR, or USD)
+     */
+    private function determineCurrencyFromCountry(string $countryCode): string
+    {
+        // Tunisia uses TND
+        if ($countryCode === 'TN') {
+            return 'TND';
+        }
+
+        // EU countries use EUR
+        $eurCountries = ['FR', 'DE', 'IT', 'ES', 'BE', 'NL', 'PT', 'AT', 'GR', 'IE', 'FI', 'SE', 'DK'];
+        if (in_array($countryCode, $eurCountries, true)) {
+            return 'EUR';
+        }
+
+        // Default to EUR for other countries
+        return 'EUR';
+    }
+
+    /**
+     * Capture a snapshot of pricing information for transparency and audit purposes.
+     *
+     * This method records the complete pricing journey from browsing to final purchase,
+     * including any price changes that may have occurred due to billing address differences.
+     *
+     * @param  BookingHold  $hold  The booking hold containing browse-time pricing
+     * @param  array|null  $billingAddress  The billing address provided at checkout
+     * @param  array  $finalPricing  The final calculated pricing
+     * @return array Comprehensive pricing snapshot
+     */
+    private function capturePricingSnapshot(
+        BookingHold $hold,
+        ?array $billingAddress,
+        array $finalPricing
+    ): array {
+        $browseCountry = $hold->pricing_country_code;
+        $billingCountry = $billingAddress['country_code'] ?? null;
+
+        $browseCurrency = $hold->currency;
+
+        // Determine final currency from billing country (if provided)
+        $finalCurrency = $billingCountry
+            ? $this->determineCurrencyFromCountry($billingCountry)
+            : $browseCurrency;
+
+        // Price changed if currency changed (PPP pricing transparency)
+        // We only care about currency changes, not minor amount differences
+        $currencyChanged = $browseCurrency !== $finalCurrency;
+        $priceChanged = $currencyChanged;
+
+        return [
+            'browse_currency' => $browseCurrency,
+            'browse_price' => $hold->price_snapshot,
+            'browse_country' => $browseCountry,
+            'browse_source' => $hold->pricing_source,
+            'final_currency' => $finalCurrency,
+            'final_price' => $finalPricing['total'],
+            'final_country' => $billingCountry ?? $browseCountry,
+            'price_changed' => $priceChanged,
+            'timestamp' => now()->toIso8601String(),
+        ];
     }
 }

@@ -27,7 +27,7 @@ class MagicLinkController extends Controller
     {
         $booking = $this->bookingService->validateMagicToken($token);
 
-        if (!$booking) {
+        if (! $booking) {
             // Check if token exists but is expired
             $expiredBooking = $this->bookingService->findByMagicToken($token);
 
@@ -114,7 +114,7 @@ class MagicLinkController extends Controller
     {
         $booking = $this->bookingService->validateMagicToken($token);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json([
                 'message' => 'Invalid or expired link.',
             ], 404);
@@ -149,7 +149,7 @@ class MagicLinkController extends Controller
     {
         $booking = $this->bookingService->validateMagicToken($token);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json([
                 'message' => 'Invalid or expired link.',
             ], 404);
@@ -166,6 +166,7 @@ class MagicLinkController extends Controller
 
         foreach ($validated['participants'] as $participantData) {
             $participant = $booking->participants()->find($participantData['id']);
+
             if ($participant) {
                 $participant->update([
                     'first_name' => $participantData['first_name'],
@@ -196,7 +197,7 @@ class MagicLinkController extends Controller
     {
         $booking = $this->bookingService->validateMagicToken($token);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json([
                 'message' => 'Invalid or expired link.',
             ], 404);
@@ -206,9 +207,9 @@ class MagicLinkController extends Controller
 
         $requiresNames = $booking->listing?->require_traveler_names ?? false;
         $allNamesEntered = $booking->participants->every(fn ($p) => $p->first_name && $p->last_name);
-        $canGenerate = !$requiresNames || $allNamesEntered;
+        $canGenerate = ! $requiresNames || $allNamesEntered;
 
-        if (!$canGenerate) {
+        if (! $canGenerate) {
             return response()->json([
                 'canGenerate' => false,
                 'message' => 'Please enter all participant names before downloading vouchers.',

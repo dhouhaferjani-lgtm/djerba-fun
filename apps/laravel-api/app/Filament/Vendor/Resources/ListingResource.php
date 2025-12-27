@@ -8,22 +8,22 @@ use App\Enums\DifficultyLevel;
 use App\Enums\ListingStatus;
 use App\Enums\ServiceType;
 use App\Filament\Vendor\Resources\ListingResource\Pages;
+use App\Filament\Vendor\Resources\ListingResource\RelationManagers;
 use App\Models\Listing;
 use App\Models\Location;
+use App\Services\GpxParserService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Filament\Resources\Resource;
+use Filament\Notifications\Notification;
 use Filament\Resources\Concerns\Translatable;
+use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Services\GpxParserService;
-use Filament\Notifications\Notification;
-use App\Filament\Vendor\Resources\ListingResource\RelationManagers;
 
 class ListingResource extends Resource
 {
@@ -436,12 +436,14 @@ class ListingResource extends Resource
                                             ->color('primary')
                                             ->action(function (Get $get, Set $set) {
                                                 $gpxPath = $get('gpx_upload');
-                                                if (!$gpxPath) {
+
+                                                if (! $gpxPath) {
                                                     Notification::make()
                                                         ->title('No GPX file uploaded')
                                                         ->body('Please upload a GPX file first.')
                                                         ->danger()
                                                         ->send();
+
                                                     return;
                                                 }
 
@@ -456,18 +458,19 @@ class ListingResource extends Resource
                                                             ->body('The GPX file does not contain any track data.')
                                                             ->danger()
                                                             ->send();
+
                                                         return;
                                                     }
 
                                                     $elevationProfile = $parser->generateElevationProfile($parsed['trackPoints']);
-                                                    $itinerary = !empty($parsed['waypoints'])
+                                                    $itinerary = ! empty($parsed['waypoints'])
                                                         ? $parser->waypointsToItinerary($parsed['waypoints'])
                                                         : $parser->createStopsFromTrack($parsed['trackPoints'], 5);
 
                                                     $set('elevation_profile', $elevationProfile);
                                                     $set('itinerary', $itinerary);
-                                                    $set('has_elevation_profile', !empty($elevationProfile));
-                                                    $set('show_elevation_profile', !empty($elevationProfile));
+                                                    $set('has_elevation_profile', ! empty($elevationProfile));
+                                                    $set('show_elevation_profile', ! empty($elevationProfile));
                                                     $set('gpx_file_path', $gpxPath);
 
                                                     Notification::make()
@@ -507,8 +510,10 @@ class ListingResource extends Resource
                                         ->label('')
                                         ->content(function (Get $get) {
                                             $profile = $get('elevation_profile');
+
                                             if (empty($profile)) {
                                                 $mode = $get('itinerary_input_mode');
+
                                                 if ($mode === 'manual') {
                                                     return new \Illuminate\Support\HtmlString(
                                                         '<div class="text-sm text-gray-500">
@@ -516,6 +521,7 @@ class ListingResource extends Resource
                                                         </div>'
                                                     );
                                                 }
+
                                                 return 'No elevation data yet. Parse a GPX file to generate.';
                                             }
 
@@ -595,12 +601,14 @@ class ListingResource extends Resource
                                             ->visible(fn (Get $get) => $get('itinerary_input_mode') === 'manual')
                                             ->action(function (Get $get, Set $set) {
                                                 $itinerary = $get('itinerary') ?? [];
+
                                                 if (empty($itinerary)) {
                                                     Notification::make()
                                                         ->title('No checkpoints')
                                                         ->body('Add some checkpoints first.')
                                                         ->warning()
                                                         ->send();
+
                                                     return;
                                                 }
 
@@ -611,7 +619,7 @@ class ListingResource extends Resource
                                                 $prevPoint = null;
 
                                                 foreach ($itinerary as $stop) {
-                                                    if (!isset($stop['lat'], $stop['lng'])) {
+                                                    if (! isset($stop['lat'], $stop['lng'])) {
                                                         continue;
                                                     }
 
@@ -645,6 +653,7 @@ class ListingResource extends Resource
                                                         ->body('Add elevation values to your checkpoints to generate a profile.')
                                                         ->warning()
                                                         ->send();
+
                                                     return;
                                                 }
 
@@ -653,6 +662,7 @@ class ListingResource extends Resource
                                                 $totalDescent = 0;
                                                 for ($i = 1; $i < count($elevations); $i++) {
                                                     $diff = $elevations[$i] - $elevations[$i - 1];
+
                                                     if ($diff > 0) {
                                                         $totalAscent += $diff;
                                                     } else {
@@ -808,8 +818,8 @@ class ListingResource extends Resource
                                         ->reorderableWithButtons()
                                         ->collapsible()
                                         ->cloneable()
-                                        ->itemLabel(fn (array $state): ?string =>
-                                            isset($state['title']['en'])
+                                        ->itemLabel(
+                                            fn (array $state): ?string => isset($state['title']['en'])
                                                 ? ($state['title']['en'] ?: 'Unnamed checkpoint')
                                                 : 'New checkpoint'
                                         )
@@ -891,7 +901,7 @@ class ListingResource extends Resource
                                                     ->required()
                                                     ->live(onBlur: true)
                                                     ->afterStateUpdated(function ($state, $set, $get) {
-                                                        if ($state && !$get('eur_price')) {
+                                                        if ($state && ! $get('eur_price')) {
                                                             $service = app(\App\Services\IncomePricingService::class);
                                                             $set('eur_price', $service->calculateExpectedPrice((float) $state));
                                                         }
@@ -911,6 +921,7 @@ class ListingResource extends Resource
                                                             ->tooltip('Auto-calculate from TND price')
                                                             ->action(function ($set, $get) {
                                                                 $tnd = $get('tnd_price');
+
                                                                 if ($tnd) {
                                                                     $service = app(\App\Services\IncomePricingService::class);
                                                                     $suggested = $service->calculateExpectedPrice((float) $tnd);
@@ -963,7 +974,7 @@ class ListingResource extends Resource
                                                     $tnd = $get('tnd_price');
                                                     $eur = $get('eur_price');
 
-                                                    if (!$tnd || !$eur) {
+                                                    if (! $tnd || ! $eur) {
                                                         return new \Illuminate\Support\HtmlString(
                                                             '<div class="text-xs text-gray-500">Enter both prices to see parity analysis</div>'
                                                         );
@@ -1123,11 +1134,11 @@ class ListingResource extends Resource
                                         ->default(fn ($get) => $get('../../max_group_size') ?? 10),
                                 ])
                                 ->maxItems(3)
-                                ->visible(fn ($get) => !$get('_skip_availability'))
+                                ->visible(fn ($get) => ! $get('_skip_availability'))
                                 ->dehydrated(false)
                                 ->collapsible()
-                                ->itemLabel(fn (array $state): ?string =>
-                                    isset($state['rule_type'])
+                                ->itemLabel(
+                                    fn (array $state): ?string => isset($state['rule_type'])
                                         ? ($state['rule_type'] === 'weekly' ? 'Weekly Schedule' : 'Daily Schedule')
                                         : 'New Rule'
                                 )
@@ -1143,7 +1154,7 @@ class ListingResource extends Resource
                                         dedicated Availability menu after creating your listing.
                                     </div>'
                                 ))
-                                ->visible(fn ($get) => !$get('_skip_availability'))
+                                ->visible(fn ($get) => ! $get('_skip_availability'))
                                 ->dehydrated(false),
                         ])
                         ->skippable(),
@@ -1237,15 +1248,18 @@ class ListingResource extends Resource
                         $errors = [];
 
                         // Basic info
-                        if (!$record->location_id) {
+                        if (! $record->location_id) {
                             $errors[] = 'Location is required';
                         }
+
                         if (empty($record->getTranslation('title', 'en'))) {
                             $errors[] = 'English title is required';
                         }
+
                         if (empty($record->getTranslation('summary', 'en'))) {
                             $errors[] = 'English summary is required';
                         }
+
                         if (empty($record->getTranslation('description', 'en'))) {
                             $errors[] = 'English description is required';
                         }
@@ -1259,9 +1273,11 @@ class ListingResource extends Resource
                             if (empty($record->event_type)) {
                                 $errors[] = 'Event type is required';
                             }
+
                             if (empty($record->start_date)) {
                                 $errors[] = 'Start date is required for events';
                             }
+
                             if (empty($record->venue['name'])) {
                                 $errors[] = 'Venue name is required for events';
                             }
@@ -1278,13 +1294,15 @@ class ListingResource extends Resource
                         } else {
                             // Validate each person type has prices
                             $hasValidPricing = false;
+
                             foreach ($record->pricing['person_types'] as $personType) {
-                                if (!empty($personType['tnd_price']) && !empty($personType['eur_price'])) {
+                                if (! empty($personType['tnd_price']) && ! empty($personType['eur_price'])) {
                                     $hasValidPricing = true;
                                     break;
                                 }
                             }
-                            if (!$hasValidPricing) {
+
+                            if (! $hasValidPricing) {
                                 $errors[] = 'At least one person type must have both TND and EUR prices';
                             }
                         }
@@ -1299,13 +1317,14 @@ class ListingResource extends Resource
                             $errors[] = 'Cancellation policy is required';
                         }
 
-                        if (!empty($errors)) {
+                        if (! empty($errors)) {
                             Notification::make()
                                 ->title('Cannot Submit for Review')
                                 ->body('Please fix the following issues:' . "\n• " . implode("\n• ", $errors))
                                 ->danger()
                                 ->persistent()
                                 ->send();
+
                             return;
                         }
 
@@ -1343,6 +1362,30 @@ class ListingResource extends Resource
                         $newListing->rating = null;
                         $newListing->save();
                     }),
+
+                Tables\Actions\Action::make('manage_event')
+                    ->label('Manage Event')
+                    ->icon('heroicon-o-calendar-days')
+                    ->color('primary')
+                    ->url(function (Listing $record) {
+                        $slot = $record->availabilitySlots()
+                            ->where('start_time', '>=', now())
+                            ->orderBy('start_time')
+                            ->first();
+
+                        if (! $slot) {
+                            Notification::make()
+                                ->title('No Upcoming Events')
+                                ->body('There are no upcoming events scheduled for this listing.')
+                                ->warning()
+                                ->send();
+
+                            return null;
+                        }
+
+                        return BookingResource::getUrl('manage-event', ['slot' => $slot->id]);
+                    })
+                    ->visible(fn (Listing $record) => $record->isEvent()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

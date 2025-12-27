@@ -48,7 +48,7 @@ class MigrateListingPersonTypes extends Command
                 $pricing = $listing->pricing ?? [];
 
                 // Check if already has person_types
-                if (!empty($pricing['person_types'])) {
+                if (! empty($pricing['person_types'])) {
                     $this->line("  [SKIP] {$listing->slug} - Already has person types");
                     $skipped++;
                     continue;
@@ -81,7 +81,7 @@ class MigrateListingPersonTypes extends Command
                 // Keep old prices for backward compatibility
                 // (in case any legacy code still references them)
 
-                if (!$isDryRun) {
+                if (! $isDryRun) {
                     $listing->pricing = $pricing;
                     $listing->save();
                 }

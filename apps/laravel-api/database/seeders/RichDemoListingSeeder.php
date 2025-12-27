@@ -5,17 +5,16 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Enums\DifficultyLevel;
+use App\Enums\ListingStatus;
 use App\Enums\MediaCategory;
 use App\Enums\ServiceType;
-use App\Enums\ListingStatus;
 use App\Enums\UserRole;
 use App\Models\Listing;
 use App\Models\ListingFaq;
 use App\Models\Location;
-use App\Models\User;
 use App\Models\Media;
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class RichDemoListingSeeder extends Seeder
 {
@@ -25,14 +24,18 @@ class RichDemoListingSeeder extends Seeder
     public function run(): void
     {
         $vendor = User::where('role', UserRole::VENDOR)->first();
-        if (!$vendor) {
+
+        if (! $vendor) {
             $this->command->error('No vendor user found. Please seed users first.');
+
             return;
         }
 
         $location = Location::first();
-        if (!$location) {
+
+        if (! $location) {
             $this->command->error('No location found. Please seed locations first.');
+
             return;
         }
 

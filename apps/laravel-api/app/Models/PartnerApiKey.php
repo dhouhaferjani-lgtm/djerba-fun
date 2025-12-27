@@ -11,7 +11,8 @@ use Illuminate\Support\Str;
 
 class PartnerApiKey extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'partner_id',
@@ -76,6 +77,7 @@ class PartnerApiKey extends Model
     {
         try {
             $decrypted = Crypt::decryptString($this->key_encrypted);
+
             return '****' . substr($decrypted, -8);
         } catch (\Exception $e) {
             return '****';
@@ -95,7 +97,7 @@ class PartnerApiKey extends Model
      */
     public function hasExpired(): bool
     {
-        if (!$this->expires_at) {
+        if (! $this->expires_at) {
             return false;
         }
 
@@ -115,7 +117,7 @@ class PartnerApiKey extends Model
      */
     public function isUsable(): bool
     {
-        return $this->isActive() && !$this->hasExpired() && !$this->isRevoked();
+        return $this->isActive() && ! $this->hasExpired() && ! $this->isRevoked();
     }
 
     /**
@@ -170,7 +172,7 @@ class PartnerApiKey extends Model
         return $query->where('status', 'active')
             ->where(function ($q) {
                 $q->whereNull('expires_at')
-                  ->orWhere('expires_at', '>', now());
+                    ->orWhere('expires_at', '>', now());
             });
     }
 

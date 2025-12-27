@@ -33,7 +33,7 @@ class IncomePricingService
     ): array {
         $config = IncomePricingConfig::getActiveConfig($fromCurrency, $toCurrency);
 
-        if (!$config) {
+        if (! $config) {
             return [
                 'is_valid' => true,
                 'message' => 'No income parity configuration found',
@@ -49,7 +49,7 @@ class IncomePricingService
 
         $isValid = $eurPrice >= $lowerBound && $eurPrice <= $upperBound;
 
-        if (!$isValid) {
+        if (! $isValid) {
             $percentageDiff = abs((($eurPrice - $expectedEur) / $expectedEur) * 100);
             $message = sprintf(
                 'EUR price is %.1f%% %s the income parity suggestion (€%.2f). Consider adjusting to improve accessibility.',
@@ -94,6 +94,7 @@ class IncomePricingService
         string $toCurrency = 'EUR'
     ): bool {
         $validation = $this->validatePricing($tndPrice, $eurPrice, $fromCurrency, $toCurrency);
+
         return $validation['is_valid'];
     }
 

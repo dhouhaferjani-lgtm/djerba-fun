@@ -12,7 +12,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 const fetchListing = cache(async (slug: string) => {
   try {
     const response = await fetch(`${API_URL}/listings/${slug}`, {
-      next: { revalidate: 3600 }, // Revalidate every hour
+      next: { revalidate: 60 }, // Revalidate every minute for faster updates
     });
 
     if (!response.ok) {
@@ -51,7 +51,7 @@ export async function generateMetadata({
     description.length > 160 ? `${description.substring(0, 157)}...` : description;
 
   return {
-    title: `${title} | Go Adventure`,
+    title: title,
     description: metaDescription,
     openGraph: {
       title: title,

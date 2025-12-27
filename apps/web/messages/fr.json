@@ -421,7 +421,8 @@
     "hours": "Lun-Ven: 9h-18h",
     "copyright": "Go Adventure. Tous droits réservés.",
     "terms": "Conditions d'Utilisation",
-    "privacy": "Politique de Confidentialité"
+    "privacy": "Politique de Confidentialité",
+    "ppp_disclosure": "Les prix peuvent varier selon le pays, la devise et l'adresse de facturation. Nous adaptons les prix pour garantir un accès équitable dans toutes les régions. Le prix final est confirmé lors du paiement."
   },
   "payment": {
     "select_method": "Sélectionnez le Mode de Paiement",

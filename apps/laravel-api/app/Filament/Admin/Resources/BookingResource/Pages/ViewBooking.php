@@ -189,7 +189,7 @@ class ViewBooking extends ViewRecord
                                     ->badge(),
 
                                 Infolists\Components\TextEntry::make('amount')
-                                    ->money(fn ($record) => $record?->currency ?? 'USD'),
+                                    ->money(fn ($record) => $record?->currency ?? 'TND'),
 
                                 Infolists\Components\TextEntry::make('gateway')
                                     ->label('Gateway'),

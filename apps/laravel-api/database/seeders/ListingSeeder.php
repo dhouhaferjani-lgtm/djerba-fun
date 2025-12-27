@@ -204,7 +204,7 @@ class ListingSeeder extends Seeder
                 ],
                 'pricing' => [
                     'base_price' => $tourData['price'],
-                    'currency' => 'EUR',
+                    'currency' => 'TND',
                     'per_person' => true,
                 ],
                 'cancellation_policy' => [
@@ -385,7 +385,7 @@ class ListingSeeder extends Seeder
                 ],
                 'pricing' => [
                     'base_price' => $eventData['price'],
-                    'currency' => 'EUR',
+                    'currency' => 'TND',
                     'per_person' => true,
                 ],
                 'cancellation_policy' => [

@@ -20,35 +20,35 @@ class CouponService
     ): array {
         $coupon = Coupon::byCode($code)->first();
 
-        if (!$coupon) {
+        if (! $coupon) {
             return [
                 'valid' => false,
                 'message' => 'Coupon code not found.',
             ];
         }
 
-        if (!$coupon->isValid()) {
+        if (! $coupon->isValid()) {
             return [
                 'valid' => false,
                 'message' => 'This coupon is no longer valid or has reached its usage limit.',
             ];
         }
 
-        if (!$coupon->isValidForListing($listingId)) {
+        if (! $coupon->isValidForListing($listingId)) {
             return [
                 'valid' => false,
                 'message' => 'This coupon is not valid for the selected listing.',
             ];
         }
 
-        if ($userId && !$coupon->isValidForUser($userId)) {
+        if ($userId && ! $coupon->isValidForUser($userId)) {
             return [
                 'valid' => false,
                 'message' => 'This coupon is not available for your account.',
             ];
         }
 
-        if (!$coupon->meetsMinimumOrder($amount)) {
+        if (! $coupon->meetsMinimumOrder($amount)) {
             return [
                 'valid' => false,
                 'message' => sprintf(

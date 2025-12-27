@@ -137,6 +137,62 @@
         </div>
         @endif
 
+        @if($booking->travelerDetailsPending() && $listing->promptForNamesImmediately())
+        <div class="booking-details" style="background-color: #fff8e1; border-left-color: #ffc107;">
+            <h3 style="margin-top: 0; color: #f57c00;">⚠️ Action Required: Participant Names</h3>
+            <p><strong>This activity requires participant names before departure.</strong></p>
+            <p>Please provide the names of all participants as soon as possible to ensure a smooth check-in experience.</p>
+
+            @if($participantsLink)
+            <div style="margin: 20px 0; text-align: center;">
+                <a href="{{ $participantsLink }}" style="display: inline-block; padding: 14px 30px; background-color: #f57c00; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                    Provide Names Now
+                </a>
+            </div>
+            @endif
+        </div>
+        @elseif($booking->travelerDetailsPending() && !$listing->promptForNamesImmediately())
+        <div class="booking-details" style="background-color: #e3f2fd; border-left-color: #2196F3;">
+            <h3 style="margin-top: 0; color: #1976D2;">📝 Participant Names (Optional)</h3>
+            <p>You can provide participant names now or later before your activity date.</p>
+            <p>Adding names early helps us prepare better for your arrival!</p>
+
+            @if($participantsLink)
+            <div style="margin: 20px 0; text-align: center;">
+                <a href="{{ $participantsLink }}" style="display: inline-block; padding: 12px 24px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 5px;">
+                    Add Names
+                </a>
+            </div>
+            @endif
+        </div>
+        @endif
+
+        @if(!$booking->user_id)
+        <div class="booking-details" style="background: linear-gradient(135deg, rgba(139, 195, 74, 0.1) 0%, rgba(13, 100, 46, 0.1) 100%); border-left-color: #8BC34A;">
+            <h3 style="margin-top: 0; color: #0D642E;">✨ Create Your Account</h3>
+            <p><strong>Track all your bookings in one place!</strong></p>
+
+            <ul style="margin: 15px 0; padding-left: 20px;">
+                <li>📊 View all bookings anytime</li>
+                <li>⚡ One-click future checkouts</li>
+                <li>⭐ Save favorite activities</li>
+                <li>🎁 Get exclusive offers</li>
+            </ul>
+
+            <p style="margin-bottom: 20px;">No password needed – we'll send you a magic link!</p>
+
+            <div style="text-align: center;">
+                <a href="{{ config('app.frontend_url') }}/auth/register-quick?email={{ urlencode($booking->billing_contact['email'] ?? '') }}&bookingId={{ $booking->id }}" style="display: inline-block; padding: 14px 30px; background: linear-gradient(135deg, #8BC34A 0%, #0D642E 100%); color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                    Create Free Account →
+                </a>
+            </div>
+
+            <p style="font-size: 0.85em; color: #666; margin-top: 15px; text-align: center;">
+                Takes less than 30 seconds • No credit card required
+            </p>
+        </div>
+        @endif
+
         <p><strong>What's next?</strong></p>
         <ul>
             <li>Enter participant names to receive personalized vouchers</li>

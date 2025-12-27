@@ -45,11 +45,11 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register PaymentGatewayManager as singleton
         $this->app->singleton(PaymentGatewayManager::class, function ($app) {
-            $manager = new PaymentGatewayManager();
+            $manager = new PaymentGatewayManager;
 
             // Register payment gateways
-            $manager->register('mock', new MockPaymentGateway());
-            $manager->register('offline', new OfflinePaymentGateway());
+            $manager->register('mock', new MockPaymentGateway);
+            $manager->register('offline', new OfflinePaymentGateway);
 
             return $manager;
         });

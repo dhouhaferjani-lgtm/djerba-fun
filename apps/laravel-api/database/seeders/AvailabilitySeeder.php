@@ -37,7 +37,13 @@ class AvailabilitySeeder extends Seeder
             $startDate = Carbon::today();
             $endDate = Carbon::today()->addMonths(3);
 
+            // Extract pricing - use base_price from listing pricing
+            $pricing = is_array($listing->pricing) ? $listing->pricing : json_decode(json_encode($listing->pricing), true);
+            $basePrice = $pricing['base_price'] ?? 50;
+            $currency = $pricing['currency'] ?? 'TND';
+
             $currentDate = $startDate->copy();
+
             while ($currentDate <= $endDate) {
                 // Skip Sundays (day 0)
                 if ($currentDate->dayOfWeek !== 0) {
@@ -50,7 +56,8 @@ class AvailabilitySeeder extends Seeder
                         'end_time' => $currentDate->copy()->setTime(12, 0),
                         'capacity' => $listing->max_group_size ?? 10,
                         'remaining_capacity' => $listing->max_group_size ?? 10,
-                        'base_price' => $listing->pricing->base_price ?? $listing->pricing['base_price'] ?? 50,
+                        'base_price' => $basePrice,
+                        'currency' => $currency,
                         'status' => SlotStatus::AVAILABLE,
                     ]);
 
@@ -63,7 +70,8 @@ class AvailabilitySeeder extends Seeder
                         'end_time' => $currentDate->copy()->setTime(17, 0),
                         'capacity' => $listing->max_group_size ?? 10,
                         'remaining_capacity' => $listing->max_group_size ?? 10,
-                        'base_price' => $listing->pricing->base_price ?? $listing->pricing['base_price'] ?? 50,
+                        'base_price' => $basePrice,
+                        'currency' => $currency,
                         'status' => SlotStatus::AVAILABLE,
                     ]);
                 }

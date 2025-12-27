@@ -3,9 +3,10 @@
 import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import { useCurrentUser, useMyBookings } from '@/lib/api/hooks';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { getListingsIndexUrl } from '@/lib/utils/urls';
+import { ClaimBookingModal } from '@/components/booking/ClaimBookingModal';
 import type { Locale } from '@/i18n/routing';
 
 export default function DashboardPage() {
@@ -13,7 +14,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const locale = useLocale();
   const { data: user, isLoading: isLoadingUser } = useCurrentUser();
-  const { data: bookingsData, isLoading: isLoadingBookings } = useMyBookings();
+  const { data: bookingsData, isLoading: isLoadingBookings, refetch } = useMyBookings();
+  const [showClaimModal, setShowClaimModal] = useState(false);
 
   useEffect(() => {
     if (!isLoadingUser && !user) {
@@ -47,6 +49,44 @@ export default function DashboardPage() {
             <p className="text-gray-600">
               {t('welcome')}, {user?.displayName}
             </p>
+          </div>
+
+          {/* Claim Booking Banner */}
+          <div className="bg-gradient-to-r from-green-50 to-primary/5 border border-green-200 rounded-lg p-6 mb-8">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-900 mb-1">
+                    {t('claim_booking_title') || 'Have past bookings?'}
+                  </h3>
+                  <p className="text-sm text-gray-700">
+                    {t('claim_booking_subtitle') ||
+                      'Link them to your account by entering your booking number!'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowClaimModal(true)}
+                className="flex-shrink-0 px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+              >
+                {t('claim_booking_button') || 'Claim Booking'}
+              </button>
+            </div>
           </div>
 
           {/* Stats Grid */}
@@ -105,9 +145,9 @@ export default function DashboardPage() {
                   <p className="text-sm text-gray-600 mb-1">{t('past')}</p>
                   <p className="text-3xl font-bold text-gray-900">{pastBookings.length}</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
                   <svg
-                    className="w-6 h-6 text-blue-600"
+                    className="w-6 h-6 text-gray-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -247,6 +287,16 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Claim Booking Modal */}
+      {showClaimModal && (
+        <ClaimBookingModal
+          onClose={() => setShowClaimModal(false)}
+          onSuccess={() => {
+            refetch();
+          }}
+        />
+      )}
     </div>
   );
 }

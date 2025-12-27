@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- typed routes for footer pages not yet defined */
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { FooterPricingDisclosure } from '@/components/pricing/FooterPricingDisclosure';
 
 interface FooterProps {
   locale: string;
@@ -223,6 +224,9 @@ export function Footer({ locale }: FooterProps) {
           </div>
         </div>
       </div>
+
+      {/* PPP Pricing Disclosure */}
+      <FooterPricingDisclosure />
 
       {/* Bottom bar */}
       <div className="border-t border-white/10">
