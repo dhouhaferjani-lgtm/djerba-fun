@@ -78,7 +78,7 @@ export default function CheckoutPage() {
         <div className="min-h-[60vh] flex items-center justify-center">
           <div className="text-center max-w-md mx-auto px-4">
             <div className="mb-6">
-              <Clock className="h-16 w-16 text-yellow-500 mx-auto" />
+              <Clock className="h-16 w-16 text-warning mx-auto" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-3">
               {tCheckout('hold_expired_title') || 'Reservation Expired'}
@@ -108,7 +108,7 @@ export default function CheckoutPage() {
         <div className="min-h-[60vh] flex items-center justify-center">
           <div className="text-center max-w-md mx-auto px-4">
             <div className="mb-6">
-              <AlertTriangle className="h-16 w-16 text-red-500 mx-auto" />
+              <AlertTriangle className="h-16 w-16 text-error mx-auto" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-3">
               {tCheckout('hold_not_found_title') || 'Reservation Not Found'}
@@ -138,7 +138,7 @@ export default function CheckoutPage() {
         <div className="min-h-[60vh] flex items-center justify-center">
           <div className="text-center max-w-md mx-auto px-4">
             <div className="mb-6">
-              <AlertTriangle className="h-16 w-16 text-yellow-500 mx-auto" />
+              <AlertTriangle className="h-16 w-16 text-warning mx-auto" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-3">{t('error')}</h1>
             <p className="text-gray-600 mb-6">

@@ -52,12 +52,12 @@ export default function DashboardPage() {
           </div>
 
           {/* Claim Booking Banner */}
-          <div className="bg-gradient-to-r from-green-50 to-primary/5 border border-green-200 rounded-lg p-6 mb-8">
+          <div className="bg-gradient-to-r from-success-light to-primary/5 border border-success/20 rounded-lg p-6 mb-8">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <div className="flex-shrink-0 w-12 h-12 bg-success-light rounded-lg flex items-center justify-center">
                   <svg
-                    className="w-6 h-6 text-green-600"
+                    className="w-6 h-6 text-success"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -121,9 +121,9 @@ export default function DashboardPage() {
                   <p className="text-sm text-gray-600 mb-1">{t('upcoming')}</p>
                   <p className="text-3xl font-bold text-gray-900">{upcomingBookings.length}</p>
                 </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-success-light rounded-lg flex items-center justify-center">
                   <svg
-                    className="w-6 h-6 text-green-600"
+                    className="w-6 h-6 text-success"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -241,7 +241,7 @@ export default function DashboardPage() {
                           {booking.startsAt ? new Date(booking.startsAt).toLocaleDateString() : '-'}
                         </p>
                       </div>
-                      <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                      <span className="px-3 py-1 bg-success-light text-success-dark text-xs font-medium rounded-full">
                         {booking.status}
                       </span>
                     </div>

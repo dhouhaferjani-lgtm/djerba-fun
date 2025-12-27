@@ -72,12 +72,12 @@ export default function BookingDetailPage() {
   const getStatusBadgeColor = (status: BookingStatus) => {
     const colors: Record<BookingStatus, string> = {
       draft: 'bg-gray-100 text-gray-800',
-      payment_pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-green-100 text-green-800',
-      completed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
+      payment_pending: 'bg-warning-light text-warning-dark',
+      confirmed: 'bg-success-light text-success-dark',
+      completed: 'bg-success-light text-success-dark',
+      cancelled: 'bg-error-light text-error-dark',
       refunded: 'bg-gray-100 text-gray-800',
-      no_show: 'bg-orange-100 text-orange-800',
+      no_show: 'bg-warning-light text-warning-dark',
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
@@ -212,7 +212,7 @@ export default function BookingDetailPage() {
                   </>
                 )}
                 {booking.discountAmount > 0 && (
-                  <div className="flex justify-between text-sm text-green-600">
+                  <div className="flex justify-between text-sm text-success">
                     <span>{t('discount')}</span>
                     <span>-{formatPrice(booking.discountAmount, booking.currency)}</span>
                   </div>
@@ -281,7 +281,7 @@ export default function BookingDetailPage() {
               {canCancelBooking() && (
                 <button
                   onClick={() => setShowCancelDialog(true)}
-                  className="px-6 py-3 border border-red-600 text-red-600 rounded-lg font-medium hover:bg-red-50 transition-colors"
+                  className="px-6 py-3 border border-error text-error rounded-lg font-medium hover:bg-error-light transition-colors"
                 >
                   {t('cancel_booking')}
                 </button>
@@ -326,7 +326,7 @@ export default function BookingDetailPage() {
               <button
                 onClick={handleCancelBooking}
                 disabled={cancelBookingMutation.isPending}
-                className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="flex-1 px-6 py-3 bg-error text-white rounded-lg font-medium hover:bg-error-dark transition-colors disabled:opacity-50"
               >
                 {cancelBookingMutation.isPending ? t('cancelling') : t('confirm_cancel')}
               </button>

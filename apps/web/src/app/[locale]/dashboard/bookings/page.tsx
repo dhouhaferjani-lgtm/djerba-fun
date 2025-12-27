@@ -53,12 +53,12 @@ export default function BookingsListPage() {
   const getStatusBadgeColor = (status: BookingStatus) => {
     const colors: Record<BookingStatus, string> = {
       draft: 'bg-gray-100 text-gray-800',
-      payment_pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-green-100 text-green-800',
-      completed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
+      payment_pending: 'bg-warning-light text-warning-dark',
+      confirmed: 'bg-success-light text-success-dark',
+      completed: 'bg-success-light text-success-dark',
+      cancelled: 'bg-error-light text-error-dark',
       refunded: 'bg-gray-100 text-gray-800',
-      no_show: 'bg-orange-100 text-orange-800',
+      no_show: 'bg-warning-light text-warning-dark',
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
