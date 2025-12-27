@@ -65,7 +65,7 @@ export function CartPage({ locale }: CartPageProps) {
           variant="ghost"
           onClick={() => clearCart()}
           disabled={isClearingCart}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="text-error hover:text-error-dark hover:bg-error-light"
         >
           {t('clear_cart')}
         </Button>

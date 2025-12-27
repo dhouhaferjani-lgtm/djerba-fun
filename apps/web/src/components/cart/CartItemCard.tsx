@@ -49,7 +49,7 @@ export function CartItemCard({ item, locale }: CartItemCardProps) {
               size="sm"
               onClick={() => removeItem(item.id)}
               disabled={isRemovingItem}
-              className="text-gray-400 hover:text-red-600 flex-shrink-0"
+              className="text-gray-400 hover:text-error flex-shrink-0"
             >
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -80,7 +80,7 @@ export function CartItemCard({ item, locale }: CartItemCardProps) {
 
           {/* Hold validity warning */}
           {!item.holdValid && (
-            <div className="mt-2 flex items-center gap-2 text-amber-600 text-sm">
+            <div className="mt-2 flex items-center gap-2 text-warning text-sm">
               <AlertTriangle className="w-4 h-4" />
               <span>{t('hold_expired')}</span>
             </div>

@@ -69,7 +69,7 @@ export function CartSummary({ cart, locale }: CartSummaryProps) {
         </div>
         <div className="flex items-center gap-2">
           <span
-            className={`font-mono font-bold ${timeLeft < 120 ? 'text-red-600' : 'text-gray-900'}`}
+            className={`font-mono font-bold ${timeLeft < 120 ? 'text-error' : 'text-gray-900'}`}
           >
             {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
           </span>
@@ -92,10 +92,10 @@ export function CartSummary({ cart, locale }: CartSummaryProps) {
         <div
           className={`flex items-center gap-2 p-3 rounded-lg mb-4 text-sm ${
             extendFeedback.type === 'success'
-              ? 'bg-green-50 text-green-700'
+              ? 'bg-success-light text-success-dark'
               : extendFeedback.type === 'warning'
-                ? 'bg-amber-50 text-amber-700'
-                : 'bg-red-50 text-red-700'
+                ? 'bg-warning-light text-warning-dark'
+                : 'bg-error-light text-error-dark'
           }`}
         >
           {extendFeedback.type === 'success' ? (
@@ -135,13 +135,13 @@ export function CartSummary({ cart, locale }: CartSummaryProps) {
       </Link>
 
       {!allHoldsValid && (
-        <p className="text-amber-600 text-sm mt-3 text-center">{t('some_holds_expired')}</p>
+        <p className="text-warning text-sm mt-3 text-center">{t('some_holds_expired')}</p>
       )}
 
       {/* Trust badges */}
       <div className="mt-6 pt-4 border-t border-gray-200">
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <ShieldCheck className="w-4 h-4 text-green-600" />
+          <ShieldCheck className="w-4 h-4 text-success" />
           <span>{t('secure_checkout')}</span>
         </div>
       </div>

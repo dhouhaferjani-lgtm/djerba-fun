@@ -55,8 +55,8 @@ export function CartConfirmation({
     <div className="max-w-2xl mx-auto">
       <div className="text-center space-y-6">
         {/* Success Animation */}
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full animate-in zoom-in duration-300">
-          <CheckCircle className="w-12 h-12 text-green-600" />
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-success-light rounded-full animate-in zoom-in duration-300">
+          <CheckCircle className="w-12 h-12 text-success" />
         </div>
 
         {/* Title */}
@@ -99,7 +99,7 @@ export function CartConfirmation({
                       </p>
                       <p className="text-sm text-primary font-mono">#{bookingNumber}</p>
                     </div>
-                    <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                    <span className="px-2 py-1 text-xs font-medium bg-success-light text-success-dark rounded-full">
                       {t('status_confirmed')}
                     </span>
                   </div>
@@ -129,9 +129,9 @@ export function CartConfirmation({
 
         {/* Email Notice */}
         {primaryEmail && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <Mail className="w-5 h-5 text-green-600 flex-shrink-0" />
-            <p className="text-sm text-green-800 text-left">
+          <div className="bg-success-light border border-success/20 rounded-lg p-4 flex items-center gap-3">
+            <Mail className="w-5 h-5 text-success flex-shrink-0" />
+            <p className="text-sm text-success-dark text-left">
               {t('email_confirmation_sent', { email: primaryEmail })}
             </p>
           </div>

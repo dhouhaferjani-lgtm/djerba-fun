@@ -186,8 +186,8 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
     return (
       <div className="max-w-2xl mx-auto py-12">
         <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-            <AlertCircle className="w-8 h-8 text-red-500" />
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-error-light flex items-center justify-center">
+            <AlertCircle className="w-8 h-8 text-error" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">{t('reservation_expired')}</h2>
           <p className="text-gray-600 mb-6">{t('reservation_expired_message')}</p>
@@ -273,7 +273,7 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
         <div className="flex items-center gap-3">
           <span
             className={`font-mono font-bold text-lg ${
-              timeLeft < 120 ? 'text-red-600' : 'text-gray-900'
+              timeLeft < 120 ? 'text-error' : 'text-gray-900'
             }`}
           >
             {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
@@ -302,7 +302,7 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
                         isActive
                           ? 'bg-primary text-white'
                           : isCompleted
-                            ? 'bg-green-500 text-white'
+                            ? 'bg-success text-white'
                             : 'bg-gray-200 text-gray-600'
                       }`}
                     >
@@ -320,7 +320,7 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
                     </div>
                     <span
                       className={`mt-2 text-sm font-medium ${
-                        isActive ? 'text-primary' : isCompleted ? 'text-green-600' : 'text-gray-500'
+                        isActive ? 'text-primary' : isCompleted ? 'text-success' : 'text-gray-500'
                       }`}
                     >
                       {step.label}
@@ -328,7 +328,7 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
                   </div>
                   {index < steps.length - 1 && (
                     <div
-                      className={`w-20 h-1 mx-4 ${isCompleted ? 'bg-green-500' : 'bg-gray-200'}`}
+                      className={`w-20 h-1 mx-4 ${isCompleted ? 'bg-success' : 'bg-gray-200'}`}
                     />
                   )}
                 </div>
@@ -345,8 +345,8 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
 
       {/* Error Display */}
       {error && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="mt-4 p-4 bg-error-light border border-error/20 rounded-lg">
+          <p className="text-sm text-error-dark">{error}</p>
         </div>
       )}
     </div>

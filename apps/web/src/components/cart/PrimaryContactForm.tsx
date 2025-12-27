@@ -82,12 +82,12 @@ export function PrimaryContactForm({
             type="text"
             id="firstName"
             className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary ${
-              errors.firstName ? 'border-red-500' : 'border-gray-300'
+              errors.firstName ? 'border-error' : 'border-gray-300'
             }`}
             placeholder={tBooking('first_name')}
           />
           {errors.firstName && (
-            <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
+            <p className="mt-1 text-sm text-error">{errors.firstName.message}</p>
           )}
         </div>
 
@@ -100,13 +100,11 @@ export function PrimaryContactForm({
             type="text"
             id="lastName"
             className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary ${
-              errors.lastName ? 'border-red-500' : 'border-gray-300'
+              errors.lastName ? 'border-error' : 'border-gray-300'
             }`}
             placeholder={tBooking('last_name')}
           />
-          {errors.lastName && (
-            <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
-          )}
+          {errors.lastName && <p className="mt-1 text-sm text-error">{errors.lastName.message}</p>}
         </div>
       </div>
 
@@ -119,11 +117,11 @@ export function PrimaryContactForm({
           type="email"
           id="email"
           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary ${
-            errors.email ? 'border-red-500' : 'border-gray-300'
+            errors.email ? 'border-error' : 'border-gray-300'
           }`}
           placeholder={tBooking('email')}
         />
-        {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
+        {errors.email && <p className="mt-1 text-sm text-error">{errors.email.message}</p>}
       </div>
 
       <div>

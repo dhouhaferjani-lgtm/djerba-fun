@@ -115,7 +115,7 @@ export function CartPaymentStep({
 
       {/* Security Badge */}
       <div className="flex items-center gap-2 text-sm text-gray-500">
-        <ShieldCheck className="w-4 h-4 text-green-600" />
+        <ShieldCheck className="w-4 h-4 text-success" />
         <span>{tCart('secure_checkout')}</span>
       </div>
 
