@@ -135,10 +135,10 @@ export function BookingSummary({
           {/* Base price */}
           <div className="flex justify-between text-sm">
             <span className="text-neutral-600">
-              {currency} {(basePrice / 100).toFixed(2)} × {quantity}
+              {currency} {basePrice.toFixed(2)} × {quantity}
             </span>
             <span className="font-medium text-neutral-900">
-              {currency} {(subtotal / 100).toFixed(2)}
+              {currency} {subtotal.toFixed(2)}
             </span>
           </div>
 
@@ -149,7 +149,7 @@ export function BookingSummary({
                 {extra.name} × {extra.quantity}
               </span>
               <span className="font-medium text-neutral-900">
-                {currency} {((extra.price * extra.quantity) / 100).toFixed(2)}
+                {currency} {(extra.price * extra.quantity).toFixed(2)}
               </span>
             </div>
           ))}
@@ -158,7 +158,7 @@ export function BookingSummary({
           <div className="flex justify-between text-base font-bold text-neutral-900 border-t border-neutral-200 pt-3">
             <span>{t('total')}</span>
             <span>
-              {currency} {(total / 100).toFixed(2)}
+              {currency} {total.toFixed(2)}
             </span>
           </div>
         </div>
