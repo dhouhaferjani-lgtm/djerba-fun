@@ -3,10 +3,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- next-intl Link requires typed routes */
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useCartContext } from '@/lib/contexts/CartContext';
 import { useInitiateCheckout, useProcessCartPayment, useUpdateCartItem } from '@/lib/api/hooks';
-import { CheckoutAuth } from '@/components/booking/CheckoutAuth';
+import { CheckoutAuthModal } from '@/components/booking/CheckoutAuthModal';
 import { PrimaryContactForm, type PrimaryContactData } from './PrimaryContactForm';
 import { CartPaymentStep } from './CartPaymentStep';
 import { CartConfirmation } from './CartConfirmation';
@@ -16,23 +17,28 @@ import { Clock, ShoppingCart, AlertCircle } from 'lucide-react';
 import { Button } from '@go-adventure/ui';
 import Link from 'next/link';
 
-type Step = 'auth' | 'contact' | 'payment' | 'confirmation';
+type Step = 'contact' | 'payment' | 'confirmation';
 
 interface CartCheckoutWizardProps {
   locale: string;
 }
 
 export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
+  const router = useRouter();
   const t = useTranslations('cart.checkout');
   const tCart = useTranslations('cart');
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { cart, isLoading: isCartLoading, extendHolds } = useCartContext();
 
-  const [currentStep, setCurrentStep] = useState<Step>('auth');
+  const [currentStep, setCurrentStep] = useState<Step>('contact');
   const [primaryContact, setPrimaryContact] = useState<PrimaryContactData | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [completedBookings, setCompletedBookings] = useState<Booking[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  // Auth modal state
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [hasChosenAuthMethod, setHasChosenAuthMethod] = useState(false);
 
   const initiateCheckout = useInitiateCheckout();
   const processPayment = useProcessCartPayment();
@@ -57,12 +63,12 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
 
-  // Skip auth step if already authenticated
+  // Show auth modal if user is not logged in and hasn't chosen a method yet
   useEffect(() => {
-    if (!isAuthLoading && isAuthenticated && currentStep === 'auth') {
-      setCurrentStep('contact');
+    if (!isAuthLoading && !isAuthenticated && !hasChosenAuthMethod && cart && !cart.isExpired) {
+      setShowAuthModal(true);
     }
-  }, [isAuthenticated, isAuthLoading, currentStep]);
+  }, [isAuthLoading, isAuthenticated, hasChosenAuthMethod, cart]);
 
   // Pre-fill contact from authenticated user
   useEffect(() => {
@@ -81,8 +87,20 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
     }
   }, [isAuthenticated, user, primaryContact]);
 
-  const handleAuthComplete = () => {
-    setCurrentStep('contact');
+  // Auth modal handlers
+  const handleGuestCheckout = () => {
+    setHasChosenAuthMethod(true);
+    setShowAuthModal(false);
+  };
+
+  const handleEmailLogin = () => {
+    // Redirect to login page with return URL
+    router.push(`/${locale}/auth/login?returnUrl=/${locale}/cart/checkout`);
+  };
+
+  const handleCreateAccount = () => {
+    // Redirect to register page with return URL
+    router.push(`/${locale}/auth/register?returnUrl=/${locale}/cart/checkout`);
   };
 
   const handleContactSubmit = async (data: PrimaryContactData) => {
@@ -208,14 +226,6 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 'auth':
-        return (
-          <CheckoutAuth
-            onContinueAsGuest={handleAuthComplete}
-            onLoginSuccess={handleAuthComplete}
-          />
-        );
-
       case 'contact':
         return (
           <PrimaryContactForm
@@ -286,57 +296,53 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
         </div>
       </div>
 
-      {/* Progress Indicator (not for auth step) */}
-      {currentStep !== 'auth' && (
-        <div className="mb-8">
-          <div className="flex items-center justify-center">
-            {steps.map((step, index) => {
-              const isActive = currentStep === step.key;
-              const isCompleted = index < currentStepIndex;
+      {/* Progress Indicator */}
+      <div className="mb-8">
+        <div className="flex items-center justify-center">
+          {steps.map((step, index) => {
+            const isActive = currentStep === step.key;
+            const isCompleted = index < currentStepIndex;
 
-              return (
-                <div key={step.key} className="flex items-center">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                        isActive
-                          ? 'bg-primary text-white'
-                          : isCompleted
-                            ? 'bg-success text-white'
-                            : 'bg-gray-200 text-gray-600'
-                      }`}
-                    >
-                      {isCompleted ? (
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      ) : (
-                        index + 1
-                      )}
-                    </div>
-                    <span
-                      className={`mt-2 text-sm font-medium ${
-                        isActive ? 'text-primary' : isCompleted ? 'text-success' : 'text-gray-500'
-                      }`}
-                    >
-                      {step.label}
-                    </span>
+            return (
+              <div key={step.key} className="flex items-center">
+                <div className="flex flex-col items-center">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                      isActive
+                        ? 'bg-primary text-white'
+                        : isCompleted
+                          ? 'bg-success text-white'
+                          : 'bg-gray-200 text-gray-600'
+                    }`}
+                  >
+                    {isCompleted ? (
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    ) : (
+                      index + 1
+                    )}
                   </div>
-                  {index < steps.length - 1 && (
-                    <div
-                      className={`w-20 h-1 mx-4 ${isCompleted ? 'bg-success' : 'bg-gray-200'}`}
-                    />
-                  )}
+                  <span
+                    className={`mt-2 text-sm font-medium ${
+                      isActive ? 'text-primary' : isCompleted ? 'text-success' : 'text-gray-500'
+                    }`}
+                  >
+                    {step.label}
+                  </span>
                 </div>
-              );
-            })}
-          </div>
+                {index < steps.length - 1 && (
+                  <div className={`w-20 h-1 mx-4 ${isCompleted ? 'bg-success' : 'bg-gray-200'}`} />
+                )}
+              </div>
+            );
+          })}
         </div>
-      )}
+      </div>
 
       {/* Step Content */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -349,6 +355,15 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
           <p className="text-sm text-error-dark">{error}</p>
         </div>
       )}
+
+      {/* Auth Modal */}
+      <CheckoutAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onGuestCheckout={handleGuestCheckout}
+        onEmailLogin={handleEmailLogin}
+        onCreateAccount={handleCreateAccount}
+      />
     </div>
   );
 }
