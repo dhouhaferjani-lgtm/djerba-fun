@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { MainLayout } from '@/components/templates/MainLayout';
-import { CartCheckoutWizard } from '@/components/cart';
+import { CartCheckoutClient } from '@/components/cart/CartCheckoutClient';
 
 interface CheckoutPageProps {
   params: Promise<{ locale: string }>;
@@ -22,9 +22,7 @@ export default async function CartCheckoutPage({ params }: CheckoutPageProps) {
 
   return (
     <MainLayout locale={locale}>
-      <div className="container mx-auto px-4 py-8">
-        <CartCheckoutWizard locale={locale} />
-      </div>
+      <CartCheckoutClient locale={locale} />
     </MainLayout>
   );
 }

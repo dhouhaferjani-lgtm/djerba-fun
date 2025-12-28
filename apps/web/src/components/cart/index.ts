@@ -3,6 +3,8 @@ export { CartPage } from './CartPage';
 export { CartItemCard } from './CartItemCard';
 export { CartSummary } from './CartSummary';
 export { CartCheckoutWizard } from './CartCheckoutWizard';
+export { CartCheckoutClient } from './CartCheckoutClient';
+export { CartCheckoutSummary } from './CartCheckoutSummary';
 export { PrimaryContactForm } from './PrimaryContactForm';
 export { CartPaymentStep } from './CartPaymentStep';
 export { CartConfirmation } from './CartConfirmation';

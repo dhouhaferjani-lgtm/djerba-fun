@@ -269,13 +269,13 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
 
   // Confirmation step has its own layout
   if (currentStep === 'confirmation') {
-    return <div className="py-8">{renderStepContent()}</div>;
+    return <div>{renderStepContent()}</div>;
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="space-y-6">
       {/* Timer */}
-      <div className="mb-6 flex items-center justify-between bg-white rounded-lg border border-gray-200 p-4">
+      <div className="flex items-center justify-between bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex items-center gap-2 text-gray-600">
           <Clock className="w-5 h-5" />
           <span className="text-sm">{tCart('reservation_expires')}</span>
@@ -297,7 +297,7 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
       </div>
 
       {/* Progress Indicator */}
-      <div className="mb-8">
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex items-center justify-center">
           {steps.map((step, index) => {
             const isActive = currentStep === step.key;
