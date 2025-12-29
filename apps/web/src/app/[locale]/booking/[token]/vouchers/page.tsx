@@ -10,6 +10,8 @@ import {
   type MagicLinkVoucher,
 } from '@/lib/api/client';
 import { QRCodeSVG } from 'qrcode.react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export default function MagicLinkVouchersPage() {
   const params = useParams();
@@ -43,6 +45,41 @@ export default function MagicLinkVouchersPage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadVoucher = async (voucherCode: string, participantName: string) => {
+    const element = document.getElementById(`voucher-${voucherCode}`);
+    if (!element) return;
+
+    try {
+      // Create canvas from the voucher element
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+
+      // Calculate PDF dimensions (A4 size)
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: imgHeight > imgWidth ? 'portrait' : 'landscape',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+      // Download with participant name in filename
+      const fileName = `voucher-${participantName.replace(/\s+/g, '-')}-${voucherCode}.pdf`;
+      pdf.save(fileName);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
   };
 
   if (isLoading) {
@@ -220,102 +257,127 @@ export default function MagicLinkVouchersPage() {
       {/* Vouchers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:grid-cols-1 print:gap-0">
         {vouchers.map((voucher: MagicLinkVoucher, index: number) => (
-          <div
-            key={voucher.voucherCode}
-            className="bg-white border border-gray-200 rounded-lg overflow-hidden print:border-2 print:border-dashed print:mb-8 print:break-inside-avoid"
-          >
-            {/* Voucher Header */}
-            <div className="bg-primary text-white p-4 print:bg-gray-100 print:text-gray-900">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-80 print:opacity-100">
-                    {t('voucher') || 'Voucher'}
-                  </p>
-                  <p className="font-bold text-lg">{voucher.voucherCode}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm opacity-80 print:opacity-100">#{index + 1}</p>
-                </div>
-              </div>
-            </div>
+          <div key={voucher.voucherCode} className="space-y-2">
+            {/* Download Button - hidden when printing */}
+            <button
+              onClick={() =>
+                handleDownloadVoucher(
+                  voucher.voucherCode,
+                  voucher.participant.fullName || `Participant-${index + 1}`
+                )
+              }
+              className="w-full px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 print:hidden"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              Download Voucher
+            </button>
 
-            {/* Voucher Body */}
-            <div className="p-6">
-              <div className="flex gap-6">
-                {/* QR Code */}
-                <div className="flex-shrink-0">
-                  <div className="bg-white p-2 border border-gray-200 rounded-lg">
-                    <QRCodeSVG value={voucher.qrCodeData} size={120} level="M" />
+            <div
+              id={`voucher-${voucher.voucherCode}`}
+              className="bg-white border border-gray-200 rounded-lg overflow-hidden print:border-2 print:border-dashed print:mb-8 print:break-inside-avoid"
+            >
+              {/* Voucher Header */}
+              <div className="bg-primary text-white p-4 print:bg-gray-100 print:text-gray-900">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm opacity-80 print:opacity-100">
+                      {t('voucher') || 'Voucher'}
+                    </p>
+                    <p className="font-bold text-lg">{voucher.voucherCode}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm opacity-80 print:opacity-100">#{index + 1}</p>
                   </div>
                 </div>
+              </div>
 
-                {/* Details */}
-                <div className="flex-1 space-y-3">
-                  <div>
-                    <p className="text-sm text-gray-600">{t('participant') || 'Participant'}</p>
-                    <p className="font-semibold text-gray-900 text-lg">
-                      {voucher.participant.fullName || t('name_not_entered') || 'Name not entered'}
-                    </p>
-                    {voucher.participant.personType && (
-                      <span className="inline-block mt-1 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                        {voucher.participant.personType}
-                      </span>
+              {/* Voucher Body */}
+              <div className="p-6">
+                <div className="flex gap-6">
+                  {/* QR Code */}
+                  <div className="flex-shrink-0">
+                    <div className="bg-white p-2 border border-gray-200 rounded-lg">
+                      <QRCodeSVG value={voucher.qrCodeData} size={120} level="M" />
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-600">{t('participant') || 'Participant'}</p>
+                      <p className="font-semibold text-gray-900 text-lg">
+                        {voucher.participant.fullName ||
+                          t('name_not_entered') ||
+                          'Name not entered'}
+                      </p>
+                      {voucher.participant.personType && (
+                        <span className="inline-block mt-1 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                          {voucher.participant.personType}
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">{t('event') || 'Event'}</p>
+                      <p className="font-medium text-gray-900">{voucher.event.title}</p>
+                    </div>
+
+                    <div className="flex gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-600">{t('date') || 'Date'}</p>
+                        <p className="font-medium text-gray-900">{voucher.event.date}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">{t('time') || 'Time'}</p>
+                        <p className="font-medium text-gray-900">{voucher.event.time}</p>
+                      </div>
+                    </div>
+
+                    {voucher.event.location && (
+                      <div className="text-sm">
+                        <p className="text-gray-600">{t('location') || 'Location'}</p>
+                        <p className="font-medium text-gray-900">{voucher.event.location}</p>
+                      </div>
                     )}
                   </div>
-
-                  <div>
-                    <p className="text-sm text-gray-600">{t('event') || 'Event'}</p>
-                    <p className="font-medium text-gray-900">{voucher.event.title}</p>
-                  </div>
-
-                  <div className="flex gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-600">{t('date') || 'Date'}</p>
-                      <p className="font-medium text-gray-900">{voucher.event.date}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">{t('time') || 'Time'}</p>
-                      <p className="font-medium text-gray-900">{voucher.event.time}</p>
-                    </div>
-                  </div>
-
-                  {voucher.event.location && (
-                    <div className="text-sm">
-                      <p className="text-gray-600">{t('location') || 'Location'}</p>
-                      <p className="font-medium text-gray-900">{voucher.event.location}</p>
-                    </div>
-                  )}
                 </div>
+
+                {/* Check-in Status */}
+                {voucher.participant.checkedIn && (
+                  <div className="mt-4 p-3 bg-success-light border border-success rounded-lg flex items-center gap-2">
+                    <svg
+                      className="w-5 h-5 text-success-dark"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span className="text-sm font-medium text-success-dark">
+                      {t('checked_in') || 'Checked In'}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* Check-in Status */}
-              {voucher.participant.checkedIn && (
-                <div className="mt-4 p-3 bg-success-light border border-success rounded-lg flex items-center gap-2">
-                  <svg
-                    className="w-5 h-5 text-success-dark"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <span className="text-sm font-medium text-success-dark">
-                    {t('checked_in') || 'Checked In'}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Voucher Footer */}
-            <div className="px-6 py-3 bg-gray-50 border-t text-center">
-              <p className="text-xs text-gray-500">
-                {t('scan_instruction') || 'Present this QR code at check-in'}
-              </p>
+              {/* Voucher Footer */}
+              <div className="px-6 py-3 bg-gray-50 border-t text-center">
+                <p className="text-xs text-gray-500">
+                  {t('scan_instruction') || 'Present this QR code at check-in'}
+                </p>
+              </div>
             </div>
           </div>
         ))}
