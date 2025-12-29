@@ -28,10 +28,10 @@ const buttonVariants = cva(
           'bg-error text-white hover:bg-error-dark active:bg-error-dark active:scale-[0.98] shadow-sm hover:shadow-md focus-visible:ring-error',
       },
       size: {
-        sm: 'h-9 px-4 py-2 text-sm gap-1.5 min-h-[44px] sm:min-h-0', // Touch-friendly on mobile, consistent padding
-        md: 'h-10 px-5 py-2.5 text-sm gap-2', // Consistent height and padding
-        lg: 'h-11 px-6 py-3 text-base font-semibold gap-2', // Larger with proper padding
-        icon: 'h-10 w-10 p-2 min-h-[44px] min-w-[44px]', // WCAG touch target, consistent size
+        sm: 'h-8 px-3 py-1.5 text-sm gap-1.5 min-h-[44px] sm:min-h-0', // Touch-friendly on mobile, compact
+        md: 'h-9 px-4 py-2 text-sm gap-2', // Compact default size
+        lg: 'h-10 px-5 py-2.5 text-base font-semibold gap-2', // Larger but still compact
+        icon: 'h-9 w-9 p-1.5 min-h-[44px] min-w-[44px]', // WCAG touch target, compact
       },
     },
     defaultVariants: {

@@ -146,7 +146,7 @@ export default function QuickRegisterPage() {
           {/* Action */}
           <Link
             href="/"
-            className="block w-full px-5 py-2.5 text-center text-gray-700 border-2 border-gray-300 rounded-full hover:bg-gray-50 transition-colors font-medium"
+            className="block w-full px-4 py-2 text-sm text-center text-gray-700 border-2 border-gray-300 rounded-full hover:bg-gray-50 transition-colors font-medium"
           >
             {t('back_home') || 'Back to home'}
           </Link>
