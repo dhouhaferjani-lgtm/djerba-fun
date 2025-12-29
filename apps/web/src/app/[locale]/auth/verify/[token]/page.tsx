@@ -159,7 +159,7 @@ export default function VerifyMagicLinkPage() {
               {errorMessage?.includes('already used') ? (
                 <Link
                   href="/auth/login"
-                  className="block w-full px-4 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="block w-full px-5 py-2.5 border-2 border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors text-center"
                 >
                   {t('login') || 'Go to login'}
                 </Link>

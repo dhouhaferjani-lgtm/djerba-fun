@@ -67,13 +67,13 @@ export default function PasswordlessLoginPage() {
           <div className="space-y-3">
             <button
               onClick={() => setSubmitted(false)}
-              className="w-full px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="w-full px-5 py-2.5 text-sm text-gray-700 border-2 border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
             >
               {t('use_different_email') || 'Use a different email'}
             </button>
             <Link
               href="/auth/login"
-              className="block w-full px-4 py-2 text-sm text-center text-primary border border-primary rounded-lg hover:bg-primary/5 transition-colors"
+              className="block w-full px-5 py-2.5 text-sm text-center text-primary border-2 border-primary rounded-full hover:bg-primary/5 transition-colors"
             >
               {t('use_password_instead') || 'Use password instead'}
             </Link>
@@ -165,7 +165,7 @@ export default function PasswordlessLoginPage() {
         {/* Alternative Login Link */}
         <Link
           href="/auth/login"
-          className="block w-full px-4 py-3 text-center text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          className="block w-full px-5 py-2.5 text-center text-gray-700 border-2 border-gray-300 rounded-full hover:bg-gray-50 transition-colors font-medium"
         >
           {t('login_with_password') || 'Login with password'}
         </Link>

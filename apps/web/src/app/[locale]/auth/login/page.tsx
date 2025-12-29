@@ -102,7 +102,7 @@ export default function LoginPage() {
               {/* Passwordless Login Link */}
               <Link
                 href={`/${locale}/auth/passwordless` as any}
-                className="block w-full text-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                className="block w-full text-center px-5 py-2.5 border-2 border-gray-300 rounded-full text-gray-700 font-medium hover:bg-gray-50 transition-colors"
               >
                 {t('login_without_password') || 'Login without password'} →
               </Link>

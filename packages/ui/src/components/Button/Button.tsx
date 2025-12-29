@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../utils/cn';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed',
+  'inline-flex items-center justify-center rounded-full font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed',
   {
     variants: {
       variant: {
@@ -28,10 +28,10 @@ const buttonVariants = cva(
           'bg-error text-white hover:bg-error-dark active:bg-error-dark active:scale-[0.98] shadow-sm hover:shadow-md focus-visible:ring-error',
       },
       size: {
-        sm: 'h-8 px-3 text-sm gap-1.5 min-h-[44px] sm:min-h-0', // Touch-friendly on mobile, more compact on desktop
-        md: 'h-10 px-4 text-sm gap-2', // More compact, consistent sizing
-        lg: 'h-11 px-6 text-base font-semibold gap-2', // Slightly smaller
-        icon: 'h-9 w-9 min-h-[44px] min-w-[44px]', // WCAG touch target, more compact on desktop
+        sm: 'h-9 px-4 py-2 text-sm gap-1.5 min-h-[44px] sm:min-h-0', // Touch-friendly on mobile, consistent padding
+        md: 'h-10 px-5 py-2.5 text-sm gap-2', // Consistent height and padding
+        lg: 'h-11 px-6 py-3 text-base font-semibold gap-2', // Larger with proper padding
+        icon: 'h-10 w-10 p-2 min-h-[44px] min-w-[44px]', // WCAG touch target, consistent size
       },
     },
     defaultVariants: {
