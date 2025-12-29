@@ -34,11 +34,15 @@ export function CheckoutContactForm({
 
   const [errors, setErrors] = useState<Partial<Record<keyof ContactInfo, string>>>({});
 
+  // Only update form if default values change AND the field is currently empty
+  // This prevents overwriting user input when component re-renders
   useEffect(() => {
     if (defaultValues) {
       setFormData((prev) => ({
-        ...prev,
-        ...defaultValues,
+        email: prev.email || defaultValues.email || '',
+        phone: prev.phone || defaultValues.phone || '',
+        firstName: prev.firstName || defaultValues.firstName || '',
+        lastName: prev.lastName || defaultValues.lastName || '',
       }));
     }
   }, [defaultValues]);
@@ -121,7 +125,9 @@ export function CheckoutContactForm({
             <input
               type="text"
               id="firstName"
+              name="firstName"
               data-testid="checkout-first-name"
+              autoComplete="given-name"
               value={formData.firstName}
               onChange={(e) => handleChange('firstName', e.target.value)}
               placeholder={t('first_name_placeholder') || 'John'}
@@ -129,8 +135,14 @@ export function CheckoutContactForm({
                 errors.firstName ? 'border-error bg-error-light' : 'border-neutral-300'
               }`}
               disabled={isProcessing}
+              aria-invalid={!!errors.firstName}
+              aria-describedby={errors.firstName ? 'firstName-error' : undefined}
             />
-            {errors.firstName && <p className="mt-1 text-sm text-error">{errors.firstName}</p>}
+            {errors.firstName && (
+              <p id="firstName-error" className="mt-1 text-sm text-error">
+                {errors.firstName}
+              </p>
+            )}
           </div>
 
           {/* Last Name */}
@@ -146,7 +158,9 @@ export function CheckoutContactForm({
             <input
               type="text"
               id="lastName"
+              name="lastName"
               data-testid="checkout-last-name"
+              autoComplete="family-name"
               value={formData.lastName}
               onChange={(e) => handleChange('lastName', e.target.value)}
               placeholder={t('last_name_placeholder') || 'Doe'}
@@ -154,8 +168,14 @@ export function CheckoutContactForm({
                 errors.lastName ? 'border-error bg-error-light' : 'border-neutral-300'
               }`}
               disabled={isProcessing}
+              aria-invalid={!!errors.lastName}
+              aria-describedby={errors.lastName ? 'lastName-error' : undefined}
             />
-            {errors.lastName && <p className="mt-1 text-sm text-error">{errors.lastName}</p>}
+            {errors.lastName && (
+              <p id="lastName-error" className="mt-1 text-sm text-error">
+                {errors.lastName}
+              </p>
+            )}
           </div>
         </div>
 
@@ -172,7 +192,9 @@ export function CheckoutContactForm({
           <input
             type="email"
             id="email"
+            name="email"
             data-testid="checkout-email"
+            autoComplete="email"
             value={formData.email}
             onChange={(e) => handleChange('email', e.target.value)}
             placeholder={t('email_placeholder') || 'john.doe@example.com'}
@@ -180,8 +202,14 @@ export function CheckoutContactForm({
               errors.email ? 'border-error bg-error-light' : 'border-neutral-300'
             }`}
             disabled={isProcessing}
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? 'email-error' : undefined}
           />
-          {errors.email && <p className="mt-1 text-sm text-error">{errors.email}</p>}
+          {errors.email && (
+            <p id="email-error" className="mt-1 text-sm text-error">
+              {errors.email}
+            </p>
+          )}
           <p className="mt-1 text-sm text-neutral-500">
             {t('email_helper') || 'Booking confirmation will be sent to this email'}
           </p>
@@ -200,7 +228,9 @@ export function CheckoutContactForm({
           <input
             type="tel"
             id="phone"
+            name="phone"
             data-testid="checkout-phone"
+            autoComplete="tel"
             value={formData.phone}
             onChange={(e) => handleChange('phone', e.target.value)}
             placeholder={t('phone_placeholder') || '+216 XX XXX XXX'}
@@ -208,8 +238,14 @@ export function CheckoutContactForm({
               errors.phone ? 'border-error bg-error-light' : 'border-neutral-300'
             }`}
             disabled={isProcessing}
+            aria-invalid={!!errors.phone}
+            aria-describedby={errors.phone ? 'phone-error' : undefined}
           />
-          {errors.phone && <p className="mt-1 text-sm text-error">{errors.phone}</p>}
+          {errors.phone && (
+            <p id="phone-error" className="mt-1 text-sm text-error">
+              {errors.phone}
+            </p>
+          )}
           <p className="mt-1 text-sm text-neutral-500">
             {t('phone_helper') || 'We may need to contact you about your booking'}
           </p>

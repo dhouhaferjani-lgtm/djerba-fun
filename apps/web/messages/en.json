@@ -248,6 +248,7 @@
     "guest_checkout_note": "You'll be able to create an account after completing your booking",
     "terms_required": "You must accept the terms and conditions to continue.",
     "billing_contact_info": "Enter the billing contact details. You'll be able to add participant names after completing the booking.",
+    "billing_contact": "Billing Contact",
     "participants": {
       "title": "Participant Information",
       "subtitle": "Enter the names of all participants for this booking.",
@@ -435,6 +436,8 @@
     "invalid_token": "Invalid verification link",
     "token_expired": "This link has expired. Magic links are valid for 15 minutes. Please request a new one.",
     "token_already_used": "This link has already been used. Please log in or request a new magic link.",
+    "or_sign_in": "or sign in",
+    "sign_in_email": "Sign in with Email",
     "token_invalid": "This verification link is invalid. Please check your email or request a new link.",
     "verification_failed": "Verification failed. Please try again or contact support if the problem persists.",
     "please_wait": "Please wait while we verify your identity",

@@ -197,13 +197,13 @@ main {
 }
 
 /* Typography defaults with brand-aligned colors */
+/* Note: Color is NOT set globally to allow context-specific colors (e.g., text-white on dark backgrounds) */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  color: var(--heading-color);
   font-family: var(--font-display, sans-serif);
   font-weight: 700;
 }

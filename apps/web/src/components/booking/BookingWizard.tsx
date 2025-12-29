@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { ExtrasSelection } from './ExtrasSelection';
 import { BookingReview } from './BookingReview';
@@ -60,6 +60,17 @@ export function BookingWizard({
 
   const createBookingMutation = useCreateBooking();
   const processPaymentMutation = useProcessPayment();
+
+  // Memoize contact form default values to prevent unnecessary re-renders
+  const contactFormDefaultValues = useMemo(
+    () => ({
+      email: user?.email || contactInfo?.email || '',
+      phone: user?.phone || contactInfo?.phone || '',
+      firstName: user?.firstName || contactInfo?.firstName || '',
+      lastName: user?.lastName || contactInfo?.lastName || '',
+    }),
+    [user?.email, user?.phone, user?.firstName, user?.lastName, contactInfo]
+  );
 
   // Progress steps - Show ALL steps for clarity
   const steps: { key: Step; label: string }[] = [
@@ -187,12 +198,7 @@ export function BookingWizard({
         return (
           <CheckoutContactForm
             onSubmit={handleContactSubmit}
-            defaultValues={{
-              email: user?.email || contactInfo?.email || '',
-              phone: user?.phone || contactInfo?.phone || '',
-              firstName: user?.firstName || contactInfo?.firstName || '',
-              lastName: user?.lastName || contactInfo?.lastName || '',
-            }}
+            defaultValues={contactFormDefaultValues}
           />
         );
 
