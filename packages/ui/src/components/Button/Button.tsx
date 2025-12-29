@@ -28,10 +28,10 @@ const buttonVariants = cva(
           'bg-error text-white hover:bg-error-dark active:bg-error-dark active:scale-[0.98] shadow-sm hover:shadow-md focus-visible:ring-error',
       },
       size: {
-        sm: 'h-9 px-3 text-sm gap-1.5 min-h-[44px] sm:min-h-0', // Touch-friendly on mobile
-        md: 'h-11 px-5 text-base gap-2',
-        lg: 'h-13 px-7 text-base font-semibold gap-2',
-        icon: 'h-10 w-10 min-h-[44px] min-w-[44px]', // WCAG touch target
+        sm: 'h-8 px-3 text-sm gap-1.5 min-h-[44px] sm:min-h-0', // Touch-friendly on mobile, more compact on desktop
+        md: 'h-10 px-4 text-sm gap-2', // More compact, consistent sizing
+        lg: 'h-11 px-6 text-base font-semibold gap-2', // Slightly smaller
+        icon: 'h-9 w-9 min-h-[44px] min-w-[44px]', // WCAG touch target, more compact on desktop
       },
     },
     defaultVariants: {

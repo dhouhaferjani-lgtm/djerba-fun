@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link } from '@/i18n/navigation';
-import { Button } from '@go-adventure/ui';
+import { FloatingInput, Button } from '@go-adventure/ui';
 import { User, Mail, Phone, Check, Sparkles } from 'lucide-react';
 import { useRegisterPasswordless } from '@/lib/api/hooks';
 
@@ -44,6 +44,7 @@ export default function QuickRegisterPage() {
     handleSubmit,
     formState: { errors },
     setValue,
+    control,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -191,86 +192,68 @@ export default function QuickRegisterPage() {
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Email */}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('email') || 'Email'} <span className="text-error">*</span>
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
+          <Controller
+            name="email"
+            control={control}
+            render={({ field }) => (
+              <FloatingInput
+                {...field}
                 id="email"
                 type="email"
-                {...register('email')}
-                className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
-                  errors.email ? 'border-error/30 bg-error-light' : 'border-gray-300'
-                }`}
-                placeholder="your@email.com"
-                readOnly={!!emailParam}
+                label={`${t('email') || 'Email'} *`}
+                error={errors.email?.message}
+                disabled={!!emailParam}
+                icon={<Mail className="h-4 w-4" />}
               />
-            </div>
-            {errors.email && <p className="text-sm text-error mt-1">{errors.email.message}</p>}
-          </div>
+            )}
+          />
 
           {/* First Name */}
-          <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('first_name') || 'First Name'} <span className="text-error">*</span>
-            </label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
+          <Controller
+            name="firstName"
+            control={control}
+            render={({ field }) => (
+              <FloatingInput
+                {...field}
                 id="firstName"
                 type="text"
-                {...register('firstName')}
-                className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
-                  errors.firstName ? 'border-error/30 bg-error-light' : 'border-gray-300'
-                }`}
-                placeholder="John"
+                label={`${t('first_name') || 'First Name'} *`}
+                error={errors.firstName?.message}
+                icon={<User className="h-4 w-4" />}
               />
-            </div>
-            {errors.firstName && (
-              <p className="text-sm text-error mt-1">{errors.firstName.message}</p>
             )}
-          </div>
+          />
 
           {/* Last Name */}
-          <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('last_name') || 'Last Name'} <span className="text-error">*</span>
-            </label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
+          <Controller
+            name="lastName"
+            control={control}
+            render={({ field }) => (
+              <FloatingInput
+                {...field}
                 id="lastName"
                 type="text"
-                {...register('lastName')}
-                className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
-                  errors.lastName ? 'border-error/30 bg-error-light' : 'border-gray-300'
-                }`}
-                placeholder="Doe"
+                label={`${t('last_name') || 'Last Name'} *`}
+                error={errors.lastName?.message}
+                icon={<User className="h-4 w-4" />}
               />
-            </div>
-            {errors.lastName && (
-              <p className="text-sm text-error mt-1">{errors.lastName.message}</p>
             )}
-          </div>
+          />
 
           {/* Phone (optional) */}
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('phone') || 'Phone'} <span className="text-gray-400 text-xs">(optional)</span>
-            </label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
+          <Controller
+            name="phone"
+            control={control}
+            render={({ field }) => (
+              <FloatingInput
+                {...field}
                 id="phone"
                 type="tel"
-                {...register('phone')}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="+1 (555) 123-4567"
+                label={t('phone') || 'Phone (optional)'}
+                icon={<Phone className="h-4 w-4" />}
               />
-            </div>
-          </div>
+            )}
+          />
 
           {/* Preferred Language */}
           <div>

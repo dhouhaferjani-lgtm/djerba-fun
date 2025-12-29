@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button } from '@go-adventure/ui';
+import { Button, FloatingInput } from '@go-adventure/ui';
 import { Mail, Phone, User } from 'lucide-react';
 
 export interface ContactInfo {
@@ -112,144 +112,66 @@ export function CheckoutContactForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* First Name and Last Name Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* First Name */}
-          <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-neutral-700 mb-1">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-neutral-500" />
-                <span>
-                  {t('first_name') || 'First Name'} <span className="text-error">*</span>
-                </span>
-              </div>
-            </label>
-            <input
-              type="text"
-              id="firstName"
-              name="firstName"
-              data-testid="checkout-first-name"
-              autoComplete="given-name"
-              value={formData.firstName}
-              onChange={(e) => handleChange('firstName', e.target.value)}
-              placeholder={t('first_name_placeholder') || 'John'}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-                errors.firstName ? 'border-error bg-error-light' : 'border-neutral-300'
-              }`}
-              disabled={isProcessing}
-              aria-invalid={!!errors.firstName}
-              aria-describedby={errors.firstName ? 'firstName-error' : undefined}
-            />
-            {errors.firstName && (
-              <p id="firstName-error" className="mt-1 text-sm text-error">
-                {errors.firstName}
-              </p>
-            )}
-          </div>
+          <FloatingInput
+            id="firstName"
+            name="firstName"
+            type="text"
+            data-testid="checkout-first-name"
+            autoComplete="given-name"
+            label={`${t('first_name') || 'First Name'} *`}
+            value={formData.firstName}
+            onChange={(e) => handleChange('firstName', e.target.value)}
+            error={errors.firstName}
+            disabled={isProcessing}
+            icon={<User className="h-4 w-4" />}
+          />
 
-          {/* Last Name */}
-          <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-neutral-700 mb-1">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-neutral-500" />
-                <span>
-                  {t('last_name') || 'Last Name'} <span className="text-error">*</span>
-                </span>
-              </div>
-            </label>
-            <input
-              type="text"
-              id="lastName"
-              name="lastName"
-              data-testid="checkout-last-name"
-              autoComplete="family-name"
-              value={formData.lastName}
-              onChange={(e) => handleChange('lastName', e.target.value)}
-              placeholder={t('last_name_placeholder') || 'Doe'}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-                errors.lastName ? 'border-error bg-error-light' : 'border-neutral-300'
-              }`}
-              disabled={isProcessing}
-              aria-invalid={!!errors.lastName}
-              aria-describedby={errors.lastName ? 'lastName-error' : undefined}
-            />
-            {errors.lastName && (
-              <p id="lastName-error" className="mt-1 text-sm text-error">
-                {errors.lastName}
-              </p>
-            )}
-          </div>
+          <FloatingInput
+            id="lastName"
+            name="lastName"
+            type="text"
+            data-testid="checkout-last-name"
+            autoComplete="family-name"
+            label={`${t('last_name') || 'Last Name'} *`}
+            value={formData.lastName}
+            onChange={(e) => handleChange('lastName', e.target.value)}
+            error={errors.lastName}
+            disabled={isProcessing}
+            icon={<User className="h-4 w-4" />}
+          />
         </div>
 
         {/* Email */}
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-1">
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-neutral-500" />
-              <span>
-                {t('email') || 'Email Address'} <span className="text-error">*</span>
-              </span>
-            </div>
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            data-testid="checkout-email"
-            autoComplete="email"
-            value={formData.email}
-            onChange={(e) => handleChange('email', e.target.value)}
-            placeholder={t('email_placeholder') || 'john.doe@example.com'}
-            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-              errors.email ? 'border-error bg-error-light' : 'border-neutral-300'
-            }`}
-            disabled={isProcessing}
-            aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? 'email-error' : undefined}
-          />
-          {errors.email && (
-            <p id="email-error" className="mt-1 text-sm text-error">
-              {errors.email}
-            </p>
-          )}
-          <p className="mt-1 text-sm text-neutral-500">
-            {t('email_helper') || 'Booking confirmation will be sent to this email'}
-          </p>
-        </div>
+        <FloatingInput
+          id="email"
+          name="email"
+          type="email"
+          data-testid="checkout-email"
+          autoComplete="email"
+          label={`${t('email') || 'Email Address'} *`}
+          value={formData.email}
+          onChange={(e) => handleChange('email', e.target.value)}
+          error={errors.email}
+          helperText={t('email_helper') || 'Booking confirmation will be sent to this email'}
+          disabled={isProcessing}
+          icon={<Mail className="h-4 w-4" />}
+        />
 
         {/* Phone */}
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-neutral-700 mb-1">
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-neutral-500" />
-              <span>
-                {t('phone') || 'Phone Number'} <span className="text-error">*</span>
-              </span>
-            </div>
-          </label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            data-testid="checkout-phone"
-            autoComplete="tel"
-            value={formData.phone}
-            onChange={(e) => handleChange('phone', e.target.value)}
-            placeholder={t('phone_placeholder') || '+216 XX XXX XXX'}
-            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-              errors.phone ? 'border-error bg-error-light' : 'border-neutral-300'
-            }`}
-            disabled={isProcessing}
-            aria-invalid={!!errors.phone}
-            aria-describedby={errors.phone ? 'phone-error' : undefined}
-          />
-          {errors.phone && (
-            <p id="phone-error" className="mt-1 text-sm text-error">
-              {errors.phone}
-            </p>
-          )}
-          <p className="mt-1 text-sm text-neutral-500">
-            {t('phone_helper') || 'We may need to contact you about your booking'}
-          </p>
-        </div>
+        <FloatingInput
+          id="phone"
+          name="phone"
+          type="tel"
+          data-testid="checkout-phone"
+          autoComplete="tel"
+          label={`${t('phone') || 'Phone Number'} *`}
+          value={formData.phone}
+          onChange={(e) => handleChange('phone', e.target.value)}
+          error={errors.phone}
+          helperText={t('phone_helper') || 'We may need to contact you about your booking'}
+          disabled={isProcessing}
+          icon={<Phone className="h-4 w-4" />}
+        />
 
         {/* Submit Button */}
         <div className="pt-4">

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { Button } from '@go-adventure/ui';
+import { FloatingInput, Button } from '@go-adventure/ui';
 import { Mail, ArrowLeft, Check } from 'lucide-react';
 import { useSendMagicLink } from '@/lib/api/hooks';
 
@@ -119,24 +119,16 @@ export default function PasswordlessLoginPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              {t('email') || 'Email address'}
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="your@email.com"
-                required
-                autoFocus
-              />
-            </div>
-          </div>
+          <FloatingInput
+            id="email"
+            type="email"
+            label={t('email') || 'Email address'}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoFocus
+            icon={<Mail className="h-4 w-4" />}
+          />
 
           <Button
             type="submit"

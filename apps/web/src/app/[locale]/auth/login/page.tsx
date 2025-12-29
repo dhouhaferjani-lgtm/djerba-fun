@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
-import { Input, Button, Card } from '@go-adventure/ui';
+import { FloatingInput, Button, Card } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { Mail, Lock } from 'lucide-react';
 
 export default function LoginPage() {
   const params = useParams();
@@ -51,22 +52,24 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                <Input
+                <FloatingInput
                   label={t('email')}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
+                  icon={<Mail className="h-4 w-4" />}
                 />
 
-                <Input
+                <FloatingInput
                   label={t('password')}
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
+                  icon={<Lock className="h-4 w-4" />}
                 />
 
                 <div className="flex items-center justify-between text-sm">

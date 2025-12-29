@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
-import { Input, Button, Card } from '@go-adventure/ui';
+import { FloatingInput, Button, Card } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { Mail, Lock, User } from 'lucide-react';
 
 export default function RegisterPage() {
   const params = useParams();
@@ -76,35 +77,38 @@ export default function RegisterPage() {
                 )}
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Input
+                  <FloatingInput
                     label="First Name"
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     required
                     autoComplete="given-name"
+                    icon={<User className="h-4 w-4" />}
                   />
 
-                  <Input
+                  <FloatingInput
                     label="Last Name"
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     required
                     autoComplete="family-name"
+                    icon={<User className="h-4 w-4" />}
                   />
                 </div>
 
-                <Input
+                <FloatingInput
                   label={t('email')}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
+                  icon={<Mail className="h-4 w-4" />}
                 />
 
-                <Input
+                <FloatingInput
                   label={t('password')}
                   type="password"
                   value={password}
@@ -112,15 +116,17 @@ export default function RegisterPage() {
                   required
                   autoComplete="new-password"
                   helperText="Minimum 8 characters"
+                  icon={<Lock className="h-4 w-4" />}
                 />
 
-                <Input
+                <FloatingInput
                   label="Confirm Password"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   autoComplete="new-password"
+                  icon={<Lock className="h-4 w-4" />}
                 />
 
                 <Button
