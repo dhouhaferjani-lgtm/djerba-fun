@@ -17,17 +17,31 @@ return new class extends Migration
     {
         // Step 1: Rename the custom media table to listing_media
         if (Schema::hasTable('media') && ! Schema::hasTable('listing_media')) {
-            // Drop existing unique constraint on uuid before renaming
-            DB::statement('ALTER TABLE media DROP CONSTRAINT IF EXISTS media_uuid_unique');
-            DB::statement('DROP INDEX IF EXISTS media_order_index');
-            DB::statement('DROP INDEX IF EXISTS media_mediable_type_mediable_id_index');
+            // SQLite compatibility: Drop indexes and constraints differently
+            $driver = DB::getDriverName();
+
+            if ($driver === 'sqlite') {
+                // For SQLite, we need to recreate the table
+                Schema::table('media', function (Blueprint $table) {
+                    $table->dropUnique('media_uuid_unique');
+                    $table->dropIndex('media_order_index');
+                    $table->dropIndex('media_mediable_type_mediable_id_index');
+                });
+            } else {
+                // For other databases
+                DB::statement('ALTER TABLE media DROP CONSTRAINT IF EXISTS media_uuid_unique');
+                DB::statement('DROP INDEX IF EXISTS media_order_index');
+                DB::statement('DROP INDEX IF EXISTS media_mediable_type_mediable_id_index');
+            }
 
             Schema::rename('media', 'listing_media');
 
             // Recreate constraints with new table name
-            DB::statement('ALTER TABLE listing_media ADD CONSTRAINT listing_media_uuid_unique UNIQUE (uuid)');
-            DB::statement('CREATE INDEX IF NOT EXISTS listing_media_order_index ON listing_media ("order")');
-            DB::statement('CREATE INDEX IF NOT EXISTS listing_media_mediable_type_mediable_id_index ON listing_media (mediable_type, mediable_id)');
+            Schema::table('listing_media', function (Blueprint $table) {
+                $table->unique('uuid', 'listing_media_uuid_unique');
+                $table->index('order', 'listing_media_order_index');
+                $table->index(['mediable_type', 'mediable_id'], 'listing_media_mediable_type_mediable_id_index');
+            });
         }
 
         // Step 2: Create Spatie Media Library table
@@ -66,16 +80,28 @@ return new class extends Migration
         // Rename listing_media back to media
         if (Schema::hasTable('listing_media')) {
             // Drop constraints
-            DB::statement('ALTER TABLE listing_media DROP CONSTRAINT IF EXISTS listing_media_uuid_unique');
-            DB::statement('DROP INDEX IF EXISTS listing_media_order_index');
-            DB::statement('DROP INDEX IF EXISTS listing_media_mediable_type_mediable_id_index');
+            $driver = DB::getDriverName();
+
+            if ($driver === 'sqlite') {
+                Schema::table('listing_media', function (Blueprint $table) {
+                    $table->dropUnique('listing_media_uuid_unique');
+                    $table->dropIndex('listing_media_order_index');
+                    $table->dropIndex('listing_media_mediable_type_mediable_id_index');
+                });
+            } else {
+                DB::statement('ALTER TABLE listing_media DROP CONSTRAINT IF EXISTS listing_media_uuid_unique');
+                DB::statement('DROP INDEX IF EXISTS listing_media_order_index');
+                DB::statement('DROP INDEX IF EXISTS listing_media_mediable_type_mediable_id_index');
+            }
 
             Schema::rename('listing_media', 'media');
 
             // Recreate constraints with original table name
-            DB::statement('ALTER TABLE media ADD CONSTRAINT media_uuid_unique UNIQUE (uuid)');
-            DB::statement('CREATE INDEX IF NOT EXISTS media_order_index ON media (\"order\")');
-            DB::statement('CREATE INDEX IF NOT EXISTS media_mediable_type_mediable_id_index ON media (mediable_type, mediable_id)');
+            Schema::table('media', function (Blueprint $table) {
+                $table->unique('uuid', 'media_uuid_unique');
+                $table->index('order', 'media_order_index');
+                $table->index(['mediable_type', 'mediable_id'], 'media_mediable_type_mediable_id_index');
+            });
         }
     }
 };

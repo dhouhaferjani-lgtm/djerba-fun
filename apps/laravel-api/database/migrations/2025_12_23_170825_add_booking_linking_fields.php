@@ -28,7 +28,11 @@ return new class extends Migration
 
         // Add JSON index for email lookups (PostgreSQL syntax)
         // This dramatically improves performance when finding claimable bookings by email
-        DB::statement('CREATE INDEX bookings_billing_contact_email_idx ON bookings ((billing_contact->>\'email\'))');
+        // Skip for SQLite as it doesn't support JSON operators in the same way
+        $driver = DB::getDriverName();
+        if ($driver === 'pgsql') {
+            DB::statement('CREATE INDEX bookings_billing_contact_email_idx ON bookings ((billing_contact->>\'email\'))');
+        }
     }
 
     /**
@@ -37,7 +41,10 @@ return new class extends Migration
     public function down(): void
     {
         // Drop JSON index first
-        DB::statement('DROP INDEX IF EXISTS bookings_billing_contact_email_idx');
+        $driver = DB::getDriverName();
+        if ($driver === 'pgsql') {
+            DB::statement('DROP INDEX IF EXISTS bookings_billing_contact_email_idx');
+        }
 
         Schema::table('bookings', function (Blueprint $table) {
             $table->dropIndex(['user_id', 'session_id']);

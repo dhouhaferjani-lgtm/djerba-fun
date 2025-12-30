@@ -21,8 +21,12 @@ return new class extends Migration
         });
 
         // Ensure either user_id or session_id exists
-        DB::statement('ALTER TABLE booking_holds ADD CONSTRAINT booking_holds_user_or_session_check
-                       CHECK (user_id IS NOT NULL OR session_id IS NOT NULL)');
+        // SQLite doesn't support adding CHECK constraints with ALTER TABLE, so we skip it for testing
+        $driver = DB::getDriverName();
+        if ($driver !== 'sqlite') {
+            DB::statement('ALTER TABLE booking_holds ADD CONSTRAINT booking_holds_user_or_session_check
+                           CHECK (user_id IS NOT NULL OR session_id IS NOT NULL)');
+        }
     }
 
     /**
@@ -30,7 +34,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement('ALTER TABLE booking_holds DROP CONSTRAINT IF EXISTS booking_holds_user_or_session_check');
+        $driver = DB::getDriverName();
+        if ($driver !== 'sqlite') {
+            DB::statement('ALTER TABLE booking_holds DROP CONSTRAINT IF EXISTS booking_holds_user_or_session_check');
+        }
 
         Schema::table('booking_holds', function (Blueprint $table) {
             $table->dropIndex(['session_id', 'status']);
