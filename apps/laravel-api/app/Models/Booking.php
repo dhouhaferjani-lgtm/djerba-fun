@@ -53,6 +53,9 @@ class Booking extends Model
         'traveler_details_completed_at',
         'linked_at',
         'linked_method',
+        'payment_notes',
+        'manual_payment_confirmed_by',
+        'manual_payment_confirmed_at',
     ];
 
     protected function casts(): array
@@ -76,6 +79,7 @@ class Booking extends Model
             'traveler_details_completed_at' => 'datetime',
             'linked_at' => 'datetime',
             'linked_method' => 'string',
+            'manual_payment_confirmed_at' => 'datetime',
         ];
     }
 
@@ -221,6 +225,14 @@ class Booking extends Model
     public function participants(): HasMany
     {
         return $this->hasMany(BookingParticipant::class);
+    }
+
+    /**
+     * Get the user who manually confirmed payment.
+     */
+    public function manualPaymentConfirmedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'manual_payment_confirmed_by');
     }
 
     /**
