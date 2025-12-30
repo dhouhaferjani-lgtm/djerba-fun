@@ -15,33 +15,53 @@ class AvailabilityController extends Controller
 {
     /**
      * Get availability for a listing.
+     *
+     * Performance optimizations:
+     * - Cache availability slots for 2 minutes (balance between freshness and performance)
+     * - Select only needed columns from slots table
      */
     public function index(GetAvailabilityRequest $request, Listing $listing): AnonymousResourceCollection
     {
         $startDate = Carbon::parse($request->validated('start_date'));
         $endDate = Carbon::parse($request->validated('end_date'));
 
-        // Dispatch job to calculate availability if needed
-        // This ensures slots are generated for the requested date range
-        CalculateAvailabilityJob::dispatch($listing, $startDate, $endDate);
+        // Build cache key from listing and date range
+        $cacheKey = sprintf(
+            'availability:listing:%s:%s:%s',
+            $listing->id,
+            $startDate->format('Y-m-d'),
+            $endDate->format('Y-m-d')
+        );
+        $cacheTtl = 120; // 2 minutes - short TTL for availability
 
-        // Fetch available slots for the date range
-        $query = $listing->availabilitySlots()
-            ->betweenDates($startDate, $endDate);
+        $slots = cache()->remember($cacheKey, $cacheTtl, function () use ($listing, $startDate, $endDate) {
+            // Dispatch job to calculate availability if needed
+            // This ensures slots are generated for the requested date range
+            CalculateAvailabilityJob::dispatch($listing, $startDate, $endDate);
 
-        // Apply minimum advance booking time filter
-        if ($listing->min_advance_booking_hours > 0) {
-            $cutoffTime = Carbon::now()->addHours($listing->min_advance_booking_hours);
+            // Performance: Fetch available slots with only needed columns
+            $query = $listing->availabilitySlots()
+                ->select([
+                    'id', 'listing_id', 'date', 'start_time', 'end_time',
+                    'capacity', 'available_capacity', 'price', 'currency',
+                    'is_available', 'created_at', 'updated_at'
+                ])
+                ->betweenDates($startDate, $endDate);
 
-            // Filter out slots that start before the cutoff time
-            $query->where(function ($q) use ($cutoffTime) {
-                $q->whereRaw("CONCAT(date, ' ', start_time) >= ?", [$cutoffTime->format('Y-m-d H:i:s')]);
-            });
-        }
+            // Apply minimum advance booking time filter
+            if ($listing->min_advance_booking_hours > 0) {
+                $cutoffTime = Carbon::now()->addHours($listing->min_advance_booking_hours);
 
-        $slots = $query->orderBy('date')
-            ->orderBy('start_time')
-            ->get();
+                // Filter out slots that start before the cutoff time
+                $query->where(function ($q) use ($cutoffTime) {
+                    $q->whereRaw("CONCAT(date, ' ', start_time) >= ?", [$cutoffTime->format('Y-m-d H:i:s')]);
+                });
+            }
+
+            return $query->orderBy('date')
+                ->orderBy('start_time')
+                ->get();
+        });
 
         return AvailabilitySlotResource::collection($slots);
     }

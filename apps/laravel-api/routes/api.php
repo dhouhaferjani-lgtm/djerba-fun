@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\V1\ParticipantController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PlatformSettingsController;
 use App\Http\Controllers\Api\V1\ReviewController;
+use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\VoucherController;
 use App\Http\Controllers\Api\Vendor\VendorVoucherController;
 use Illuminate\Support\Facades\Route;
@@ -121,6 +122,9 @@ Route::prefix('v1')->group(function () {
         Route::post('/verify-billing', [CheckoutController::class, 'verifyBilling']);
     });
 
+    // Payment methods (public)
+    Route::get('/payment/methods', [PaymentController::class, 'availableMethods']);
+
     // Guest booking flow (public - allows guest checkout with session_id)
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::post('/bookings/{booking}/pay', [PaymentController::class, 'processPayment']);
@@ -151,6 +155,17 @@ Route::prefix('v1')->group(function () {
         // Auth routes (authenticated)
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
+
+        // User profile management
+        Route::get('/me', [UserController::class, 'show']);
+        Route::put('/me', [UserController::class, 'update']);
+        Route::put('/me/password', [UserController::class, 'updatePassword']);
+        Route::post('/me/avatar', [UserController::class, 'uploadAvatar']);
+        Route::delete('/me/avatar', [UserController::class, 'deleteAvatar']);
+        Route::get('/me/preferences', [UserController::class, 'getPreferences']);
+        Route::put('/me/preferences', [UserController::class, 'updatePreferences']);
+        Route::get('/me/export', [UserController::class, 'export']);
+        Route::delete('/me', [UserController::class, 'destroy']);
 
         // Booking management (authenticated users only)
         Route::get('/bookings', [BookingController::class, 'index']);

@@ -165,7 +165,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Link
               href="/dashboard/bookings"
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
@@ -189,6 +189,33 @@ export default function DashboardPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900">{t('my_bookings')}</h3>
                   <p className="text-sm text-gray-600">{t('view_all_bookings')}</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href="/dashboard/profile"
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-primary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">{t('my_profile')}</h3>
+                  <p className="text-sm text-gray-600">{t('manage_your_profile')}</p>
                 </div>
               </div>
             </Link>

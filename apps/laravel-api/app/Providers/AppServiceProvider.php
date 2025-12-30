@@ -15,6 +15,7 @@ use App\Policies\ListingPolicy;
 use App\Policies\PayoutPolicy;
 use App\Policies\ReviewPolicy;
 use App\Policies\UserPolicy;
+use App\Services\Payment\ClickToPayPaymentGateway;
 use App\Services\Payment\MockPaymentGateway;
 use App\Services\Payment\OfflinePaymentGateway;
 use App\Services\Payment\PaymentGatewayManager;
@@ -50,6 +51,8 @@ class AppServiceProvider extends ServiceProvider
             // Register payment gateways
             $manager->register('mock', new MockPaymentGateway);
             $manager->register('offline', new OfflinePaymentGateway);
+            $manager->register('clicktopay', new ClickToPayPaymentGateway);
+            // Note: Stripe gateway will be added when Stripe integration is implemented
 
             return $manager;
         });

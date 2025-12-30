@@ -43,6 +43,10 @@ class PlatformSettings extends Model implements HasMedia
         'google_maps_api_key',
         'sentry_dsn',
         'exchange_rate_api_key',
+        'stripe_secret_key',
+        'stripe_webhook_secret',
+        'clicktopay_api_key',
+        'clicktopay_secret_key',
     ];
 
     protected $fillable = [
@@ -106,6 +110,23 @@ class PlatformSettings extends Model implements HasMedia
         'max_booking_amount',
         'default_payment_gateway',
         'enabled_payment_methods',
+
+        // Payment Gateway Settings
+        'mock_gateway_enabled',
+        'stripe_publishable_key',
+        'stripe_secret_key',
+        'stripe_webhook_secret',
+        'clicktopay_merchant_id',
+        'clicktopay_api_key',
+        'clicktopay_secret_key',
+        'clicktopay_test_mode',
+        'bank_transfer_bank_name',
+        'bank_transfer_account_holder',
+        'bank_transfer_account_number',
+        'bank_transfer_iban',
+        'bank_transfer_swift_bic',
+        'bank_transfer_instructions',
+        'offline_payments_enabled',
 
         // Exchange Rates & PPP
         'exchange_rate_api_key',
@@ -201,6 +222,9 @@ class PlatformSettings extends Model implements HasMedia
             'gdpr_mode_enabled' => 'boolean',
             'vendor_auto_approve' => 'boolean',
             'vendor_require_kyc' => 'boolean',
+            'mock_gateway_enabled' => 'boolean',
+            'clicktopay_test_mode' => 'boolean',
+            'offline_payments_enabled' => 'boolean',
 
             // Decimals
             'platform_commission_percent' => 'decimal:2',

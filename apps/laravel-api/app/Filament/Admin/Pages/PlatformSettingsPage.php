@@ -547,24 +547,221 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->columns(1)
                     ->collapsible(),
 
-                Forms\Components\Section::make('Payment Gateway')
+                Forms\Components\Section::make('Payment Gateway Configuration')
+                    ->description('Select and configure payment gateways available to customers')
                     ->schema([
                         Forms\Components\Select::make('default_payment_gateway')
-                            ->label('Default Gateway')
+                            ->label('Default Payment Gateway')
                             ->options([
                                 'mock' => 'Mock (Development)',
                                 'stripe' => 'Stripe',
-                                'offline' => 'Offline/Bank Transfer',
+                                'clicktopay' => 'Click to Pay (Tunisia)',
+                                'bank_transfer' => 'Bank Transfer',
+                                'offline' => 'Offline/Manual',
                             ])
-                            ->default('mock'),
+                            ->default('mock')
+                            ->live()
+                            ->helperText('The primary payment gateway used for transactions'),
                         Forms\Components\CheckboxList::make('enabled_payment_methods')
                             ->label('Enabled Payment Methods')
                             ->options([
                                 'card' => 'Credit/Debit Card',
                                 'bank_transfer' => 'Bank Transfer',
                                 'cash' => 'Cash on Delivery',
+                                'wallet' => 'Digital Wallet',
                             ])
-                            ->columns(3),
+                            ->columns(4)
+                            ->helperText('Payment methods available to customers at checkout'),
+                    ])
+                    ->columns(1),
+
+                // Mock Gateway (Development)
+                Forms\Components\Section::make('Mock Gateway (Development Only)')
+                    ->description('Test payment gateway for development - always succeeds after 2 seconds')
+                    ->schema([
+                        Forms\Components\Placeholder::make('mock_info')
+                            ->label('')
+                            ->content('Mock gateway is for testing only. All payments automatically succeed after a 2-second delay. Do not use in production.')
+                            ->columnSpanFull(),
+                        Forms\Components\Toggle::make('mock_gateway_enabled')
+                            ->label('Enable Mock Gateway')
+                            ->helperText('Only enable in development/staging environments')
+                            ->default(app()->environment('local')),
+                    ])
+                    ->collapsed()
+                    ->collapsible(),
+
+                // Stripe Gateway
+                Forms\Components\Section::make('Stripe Payment Gateway')
+                    ->description('Configure Stripe for card payments')
+                    ->schema([
+                        Forms\Components\Placeholder::make('stripe_info')
+                            ->label('')
+                            ->content(new \Illuminate\Support\HtmlString(
+                                '<div class="text-sm text-gray-600 dark:text-gray-400">' .
+                                'Stripe is a leading payment processor supporting cards, wallets, and local payment methods. ' .
+                                '<a href="https://dashboard.stripe.com" target="_blank" class="text-primary-600 hover:underline">Get your API keys from Stripe Dashboard</a>' .
+                                '</div>'
+                            ))
+                            ->columnSpanFull(),
+
+                        Forms\Components\TextInput::make('stripe_publishable_key')
+                            ->label('Publishable Key')
+                            ->placeholder('pk_live_...')
+                            ->helperText('Public key used in frontend (starts with pk_)'),
+
+                        Forms\Components\TextInput::make('stripe_secret_key')
+                            ->label('Secret Key')
+                            ->placeholder('sk_live_...')
+                            ->password()
+                            ->revealable()
+                            ->helperText('Secret key for backend API calls (starts with sk_)'),
+
+                        Forms\Components\TextInput::make('stripe_webhook_secret')
+                            ->label('Webhook Signing Secret')
+                            ->placeholder('whsec_...')
+                            ->password()
+                            ->revealable()
+                            ->helperText('Used to verify webhook authenticity (starts with whsec_)'),
+
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('test_stripe')
+                                ->label('Test Connection')
+                                ->icon('heroicon-o-bolt')
+                                ->color('primary')
+                                ->action(function () {
+                                    // TODO: Implement Stripe connection test
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Test not yet implemented')
+                                        ->body('Stripe connection testing will be available once the Stripe gateway is fully integrated.')
+                                        ->warning()
+                                        ->send();
+                                }),
+                        ])
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2)
+                    ->collapsed()
+                    ->collapsible(),
+
+                // Click to Pay Gateway
+                Forms\Components\Section::make('Click to Pay (Tunisia)')
+                    ->description('Configure Click to Pay for Tunisian payment processing')
+                    ->schema([
+                        Forms\Components\Placeholder::make('clicktopay_info')
+                            ->label('')
+                            ->content(new \Illuminate\Support\HtmlString(
+                                '<div class="text-sm text-gray-600 dark:text-gray-400">' .
+                                'Click to Pay is Tunisia\'s local payment processor supporting cards and mobile payments. ' .
+                                'Contact your Click to Pay account manager for API credentials.' .
+                                '</div>'
+                            ))
+                            ->columnSpanFull(),
+
+                        Forms\Components\TextInput::make('clicktopay_merchant_id')
+                            ->label('Merchant ID')
+                            ->placeholder('MERCHANT123')
+                            ->helperText('Your Click to Pay merchant identifier'),
+
+                        Forms\Components\TextInput::make('clicktopay_api_key')
+                            ->label('API Key')
+                            ->placeholder('ctp_api_...')
+                            ->password()
+                            ->revealable()
+                            ->helperText('API key for authentication'),
+
+                        Forms\Components\TextInput::make('clicktopay_secret_key')
+                            ->label('Secret Key')
+                            ->placeholder('ctp_secret_...')
+                            ->password()
+                            ->revealable()
+                            ->helperText('Secret key for signing requests'),
+
+                        Forms\Components\Toggle::make('clicktopay_test_mode')
+                            ->label('Test Mode')
+                            ->helperText('Use Click to Pay test environment')
+                            ->default(true)
+                            ->inline(false),
+
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('test_clicktopay')
+                                ->label('Test Connection')
+                                ->icon('heroicon-o-bolt')
+                                ->color('primary')
+                                ->action(function () {
+                                    // TODO: Implement Click to Pay connection test
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Test not yet implemented')
+                                        ->body('Click to Pay connection testing will be available once API credentials are configured.')
+                                        ->warning()
+                                        ->send();
+                                }),
+                        ])
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2)
+                    ->collapsed()
+                    ->collapsible(),
+
+                // Bank Transfer Gateway
+                Forms\Components\Section::make('Bank Transfer')
+                    ->description('Configure bank transfer details for manual payments')
+                    ->schema([
+                        Forms\Components\Placeholder::make('bank_transfer_info')
+                            ->label('')
+                            ->content('Customers will see these bank details at checkout and must transfer funds manually. Vendors must confirm payment receipt.')
+                            ->columnSpanFull(),
+
+                        Forms\Components\TextInput::make('bank_transfer_bank_name')
+                            ->label('Bank Name')
+                            ->placeholder('Banque de Tunisie')
+                            ->helperText('Name of your bank'),
+
+                        Forms\Components\TextInput::make('bank_transfer_account_holder')
+                            ->label('Account Holder Name')
+                            ->placeholder('Go Adventure SARL')
+                            ->helperText('Legal name on the bank account'),
+
+                        Forms\Components\TextInput::make('bank_transfer_account_number')
+                            ->label('Account Number')
+                            ->placeholder('1234567890')
+                            ->helperText('Local account number'),
+
+                        Forms\Components\TextInput::make('bank_transfer_iban')
+                            ->label('IBAN')
+                            ->placeholder('TN59 1000 1234 5678 9012 3456')
+                            ->helperText('International Bank Account Number'),
+
+                        Forms\Components\TextInput::make('bank_transfer_swift_bic')
+                            ->label('SWIFT/BIC Code')
+                            ->placeholder('BCTNTNTT')
+                            ->helperText('Bank identifier code for international transfers'),
+
+                        Forms\Components\Textarea::make('bank_transfer_instructions')
+                            ->label('Payment Instructions')
+                            ->rows(4)
+                            ->placeholder('Please include your booking number in the transfer reference.')
+                            ->helperText('Additional instructions shown to customers')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2)
+                    ->collapsed()
+                    ->collapsible(),
+
+                // Offline/Manual Payments
+                Forms\Components\Section::make('Offline/Manual Payments')
+                    ->description('Allow vendors to manually confirm payments (cash, check, etc.)')
+                    ->schema([
+                        Forms\Components\Placeholder::make('offline_info')
+                            ->label('')
+                            ->content('When enabled, bookings can be created with pending payment status and vendors can manually mark them as paid. Use for cash payments, checks, or other offline methods.')
+                            ->columnSpanFull(),
+
+                        Forms\Components\Toggle::make('offline_payments_enabled')
+                            ->label('Enable Offline Payments')
+                            ->helperText('Allow vendors to accept and manually confirm payments')
+                            ->default(true)
+                            ->inline(false),
                     ]),
 
                 Forms\Components\Section::make('Fees & Limits')

@@ -1,6 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+/**
+ * Performance Optimization: React.memo and useCallback applied
+ *
+ * ReviewCard appears in lists and benefits from memoization to prevent
+ * unnecessary re-renders when parent state changes.
+ *
+ * Benefits:
+ * - Reduces render cycles in review lists
+ * - Better performance on pages with many reviews
+ * - Optimized image loading with error handling
+ */
+
+import { useState, memo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import type { Review } from '@go-adventure/schemas';
 import { formatDistanceToNow } from 'date-fns';
@@ -13,7 +25,8 @@ interface ReviewCardProps {
   isMarkingHelpful?: boolean;
 }
 
-const StarRating = ({ rating }: { rating: number }) => {
+// Memoized StarRating component
+const StarRating = memo(({ rating }: { rating: number }) => {
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => (
@@ -29,9 +42,11 @@ const StarRating = ({ rating }: { rating: number }) => {
       ))}
     </div>
   );
-};
+});
 
-export default function ReviewCard({ review, onMarkHelpful, isMarkingHelpful }: ReviewCardProps) {
+StarRating.displayName = 'StarRating';
+
+function ReviewCardComponent({ review, onMarkHelpful, isMarkingHelpful }: ReviewCardProps) {
   const t = useTranslations('reviews');
   const locale = useLocale();
   const [imageError, setImageError] = useState(false);
@@ -43,6 +58,18 @@ export default function ReviewCard({ review, onMarkHelpful, isMarkingHelpful }: 
   });
 
   const avatarFallback = review.user?.displayName?.charAt(0).toUpperCase() || '?';
+
+  // Memoize the image error handler
+  const handleImageError = useCallback(() => {
+    setImageError(true);
+  }, []);
+
+  // Memoize the helpful button click handler
+  const handleMarkHelpful = useCallback(() => {
+    if (onMarkHelpful) {
+      onMarkHelpful(review.id);
+    }
+  }, [onMarkHelpful, review.id]);
 
   return (
     <div className="border border-gray-200 rounded-lg p-6 bg-white">
@@ -56,7 +83,8 @@ export default function ReviewCard({ review, onMarkHelpful, isMarkingHelpful }: 
                 src={review.user.avatarUrl}
                 alt={review.user.displayName}
                 className="w-full h-full object-cover"
-                onError={() => setImageError(true)}
+                onError={handleImageError}
+                loading="lazy"
               />
             ) : (
               avatarFallback
@@ -188,7 +216,7 @@ export default function ReviewCard({ review, onMarkHelpful, isMarkingHelpful }: 
       {/* Helpful Button */}
       <div className="mt-4 pt-4 border-t border-gray-200">
         <button
-          onClick={() => onMarkHelpful?.(review.id)}
+          onClick={handleMarkHelpful}
           disabled={isMarkingHelpful}
           className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors disabled:opacity-50"
         >
@@ -206,3 +234,7 @@ export default function ReviewCard({ review, onMarkHelpful, isMarkingHelpful }: 
     </div>
   );
 }
+
+// Memoize to prevent unnecessary re-renders
+const ReviewCard = memo(ReviewCardComponent);
+export default ReviewCard;

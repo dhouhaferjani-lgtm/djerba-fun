@@ -96,6 +96,19 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => 'prefer',
+            // Performance optimizations
+            'options' => [
+                // Enable prepared statement caching for better performance
+                \PDO::ATTR_PERSISTENT => env('DB_PERSISTENT', false),
+                \PDO::ATTR_EMULATE_PREPARES => false,
+                // Set statement timeout to prevent long-running queries (30 seconds)
+                \PDO::ATTR_TIMEOUT => env('DB_TIMEOUT', 30),
+            ],
+            // Connection pooling settings for Octane
+            'pool' => [
+                'min' => env('DB_POOL_MIN', 1),
+                'max' => env('DB_POOL_MAX', 10),
+            ],
         ],
 
         'sqlsrv' => [

@@ -29,12 +29,31 @@ class BookingController extends Controller
 
     /**
      * List user's bookings.
+     *
+     * Performance optimizations:
+     * - Eager loading relationships with specific column selection
+     * - Select only required columns from bookings table
      */
     public function index(Request $request): JsonResponse
     {
         $bookings = Booking::query()
             ->forUser($request->user()->id)
-            ->with(['listing', 'availabilitySlot', 'paymentIntents'])
+            // Performance: Select only needed columns
+            ->select([
+                'id', 'booking_number', 'user_id', 'listing_id', 'availability_slot_id',
+                'quantity', 'total_amount', 'discount_amount', 'currency', 'status',
+                'traveler_info', 'travelers', 'extras', 'billing_contact',
+                'confirmed_at', 'cancelled_at', 'cancellation_reason',
+                'created_at', 'updated_at', 'session_id', 'partner_id'
+            ])
+            // Performance: Eager load relationships with column selection to prevent N+1 queries
+            ->with([
+                'listing:id,uuid,vendor_id,title,slug,service_type,pricing,duration,require_traveler_names',
+                'listing.location:id,uuid,name,slug,city',
+                'listing.vendor:id,uuid,name,slug',
+                'availabilitySlot:id,listing_id,date,start_time,end_time,available_capacity',
+                'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at'
+            ])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
@@ -52,10 +71,16 @@ class BookingController extends Controller
     /**
      * Create a booking from a hold.
      * Supports both authenticated users and guest checkout via session_id.
+     *
+     * Performance: Eager load with specific columns
      */
     public function store(CreateBookingRequest $request): JsonResponse
     {
-        $hold = BookingHold::with('slot', 'listing')->findOrFail($request->input('hold_id'));
+        // Performance: Eager load with specific columns
+        $hold = BookingHold::with([
+            'slot:id,listing_id,date,start_time,end_time,available_capacity,capacity',
+            'listing:id,uuid,vendor_id,title,slug,pricing,service_type,require_traveler_names'
+        ])->findOrFail($request->input('hold_id'));
 
         // Verify hold ownership: either authenticated user owns it, or guest has matching session_id
         $userId = $request->user()?->id;
@@ -86,8 +111,12 @@ class BookingController extends Controller
             authenticatedUserId: $request->user()?->id
         );
 
-        // Load relationships
-        $booking->load(['listing', 'availabilitySlot', 'user']);
+        // Performance: Load relationships with specific columns
+        $booking->load([
+            'listing:id,uuid,vendor_id,title,slug,service_type,pricing,duration',
+            'availabilitySlot:id,listing_id,date,start_time,end_time,available_capacity',
+            'user:id,name,email'
+        ]);
 
         return response()->json([
             'data' => new BookingResource($booking),
@@ -97,13 +126,23 @@ class BookingController extends Controller
 
     /**
      * Get booking details.
+     *
+     * Performance: Eager load relationships with specific columns
      */
     public function show(Request $request, Booking $booking): JsonResponse
     {
         // Ensure the booking belongs to the authenticated user
         Gate::authorize('view', $booking);
 
-        $booking->load(['listing', 'availabilitySlot', 'user', 'paymentIntents']);
+        // Performance: Load relationships with specific columns
+        $booking->load([
+            'listing:id,uuid,vendor_id,title,slug,service_type,pricing,duration,require_traveler_names',
+            'listing.location:id,uuid,name,slug,city',
+            'listing.vendor:id,uuid,name,slug',
+            'availabilitySlot:id,listing_id,date,start_time,end_time,available_capacity',
+            'user:id,uuid,name,email',
+            'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at'
+        ]);
 
         return response()->json([
             'data' => new BookingResource($booking),
@@ -112,6 +151,8 @@ class BookingController extends Controller
 
     /**
      * Get booking details for guest users via session_id.
+     *
+     * Performance: Eager load relationships with specific columns
      */
     public function showGuest(Request $request, Booking $booking): JsonResponse
     {
@@ -123,7 +164,15 @@ class BookingController extends Controller
             ], 403);
         }
 
-        $booking->load(['listing', 'availabilitySlot', 'paymentIntents', 'participants', 'bookingExtras.extra']);
+        // Performance: Load relationships with specific columns
+        $booking->load([
+            'listing:id,uuid,vendor_id,title,slug,service_type,pricing,duration,require_traveler_names',
+            'listing.location:id,uuid,name,slug,city',
+            'availabilitySlot:id,listing_id,date,start_time,end_time,available_capacity',
+            'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at',
+            'participants:id,booking_id,first_name,last_name,email,phone,age,badge_number',
+            'bookingExtras.extra:id,listing_id,name,description,price,currency'
+        ]);
 
         return response()->json([
             'data' => new BookingResource($booking),

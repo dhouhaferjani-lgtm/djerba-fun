@@ -19,20 +19,53 @@ class ReviewController extends Controller
 {
     /**
      * Get reviews for a listing.
+     *
+     * Performance optimizations:
+     * - Eager load relationships with specific columns
+     * - Select only needed columns from reviews table
+     * - Cache reviews for 5 minutes
      */
     public function index(Request $request, Listing $listing): AnonymousResourceCollection
     {
-        $reviews = Review::query()
-            ->forListing($listing->id)
-            ->published()
-            ->with(['user', 'reply.vendor'])
-            ->when($request->input('rating'), fn ($q, $rating) => $q->withRating((int) $rating))
-            ->when(
-                $request->input('sort') === 'helpful',
-                fn ($q) => $q->mostHelpful(),
-                fn ($q) => $q->latest()
-            )
-            ->paginate($request->input('per_page', 15));
+        $rating = $request->input('rating');
+        $sort = $request->input('sort', 'latest');
+        $perPage = min($request->input('per_page', 15), 50);
+
+        // Build cache key from parameters
+        $cacheKey = sprintf(
+            'reviews:listing:%s:rating:%s:sort:%s:page:%s',
+            $listing->id,
+            $rating ?? 'all',
+            $sort,
+            $request->input('page', 1)
+        );
+        $cacheTtl = 300; // 5 minutes
+
+        $reviews = cache()->remember($cacheKey, $cacheTtl, function () use ($listing, $rating, $sort, $perPage) {
+            return Review::query()
+                ->forListing($listing->id)
+                ->published()
+                // Performance: Select only needed columns
+                ->select([
+                    'id', 'booking_id', 'listing_id', 'user_id', 'rating',
+                    'title', 'content', 'pros', 'cons', 'photos',
+                    'is_verified_booking', 'helpful_count', 'status',
+                    'created_at', 'updated_at'
+                ])
+                // Performance: Eager load with specific columns
+                ->with([
+                    'user:id,uuid,first_name,last_name,display_name,avatar_url',
+                    'reply:id,review_id,vendor_id,content,created_at',
+                    'reply.vendor:id,uuid,name,slug'
+                ])
+                ->when($rating, fn ($q, $r) => $q->withRating((int) $r))
+                ->when(
+                    $sort === 'helpful',
+                    fn ($q) => $q->mostHelpful(),
+                    fn ($q) => $q->latest()
+                )
+                ->paginate($perPage);
+        });
 
         return ReviewResource::collection($reviews);
     }
@@ -101,6 +134,8 @@ class ReviewController extends Controller
 
     /**
      * Update listing rating based on published reviews.
+     *
+     * Performance: Clear review cache for this listing after update
      */
     private function updateListingRating(Listing $listing): void
     {
@@ -114,5 +149,8 @@ class ReviewController extends Controller
             'rating' => $stats->avg_rating ? round($stats->avg_rating, 2) : null,
             'reviews_count' => $stats->total_reviews,
         ]);
+
+        // Performance: Clear cache for this listing's reviews
+        cache()->tags(['reviews', 'listing:' . $listing->id])->flush();
     }
 }

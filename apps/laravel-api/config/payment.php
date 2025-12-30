@@ -39,6 +39,24 @@ return [
             'secret_key' => env('STRIPE_SECRET_KEY'),
             'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
         ],
+
+        'clicktopay' => [
+            'enabled' => env('PAYMENT_CLICKTOPAY_ENABLED', false),
+            'merchant_id' => env('CLICKTOPAY_MERCHANT_ID'),
+            'api_key' => env('CLICKTOPAY_API_KEY'),
+            'secret_key' => env('CLICKTOPAY_SECRET_KEY'),
+            'test_mode' => env('CLICKTOPAY_TEST_MODE', true),
+        ],
+
+        'bank_transfer' => [
+            'enabled' => env('PAYMENT_BANK_TRANSFER_ENABLED', false),
+            'bank_name' => env('BANK_TRANSFER_BANK_NAME'),
+            'account_number' => env('BANK_TRANSFER_ACCOUNT_NUMBER'),
+            'iban' => env('BANK_TRANSFER_IBAN'),
+            'swift_bic' => env('BANK_TRANSFER_SWIFT_BIC'),
+            'account_holder' => env('BANK_TRANSFER_ACCOUNT_HOLDER'),
+            'instructions' => env('BANK_TRANSFER_INSTRUCTIONS'),
+        ],
     ],
 
     /*

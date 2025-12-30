@@ -3,8 +3,22 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
+/**
+ * Performance-optimized Next.js configuration
+ *
+ * Key optimizations:
+ * - AVIF/WebP image formats for smaller file sizes
+ * - Optimized image sizing breakpoints
+ * - Compression enabled
+ * - Bundle analyzer for development
+ * - React compiler and strict mode
+ * - Optimized font loading
+ */
+
 const nextConfig: NextConfig = {
   output: 'standalone',
+
+  // Image optimization configuration
   images: {
     // Allow localhost/private IPs for local development with MinIO
     dangerouslyAllowSVG: true,
@@ -51,19 +65,73 @@ const nextConfig: NextConfig = {
         hostname: 'images.unsplash.com',
       },
     ],
+    // Use modern formats: AVIF first (best compression), WebP fallback
     formats: ['image/avif', 'image/webp'],
+    // Optimized device sizes for responsive images
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Minimize layout shift with proper sizing
+    minimumCacheTTL: 60,
+    // Lazy load images by default
+    unoptimized: false,
   },
+
+  // Typed routes for better DX and smaller bundles
   typedRoutes: true,
-  // Enable compression
+
+  // Enable compression (gzip/brotli)
   compress: true,
-  // Optimize production builds
+
+  // Production optimizations
   productionBrowserSourceMaps: false,
-  // Performance optimizations
+
+  // Security and performance headers
   poweredByHeader: false,
+
+  // Enable React strict mode for better error detection
+  reactStrictMode: true,
+
+  // Compiler optimizations
+  compiler: {
+    // Remove console logs in production
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
+  },
+
+  // Experimental features for better performance
+  experimental: {
+    // Optimize package imports to reduce bundle size
+    optimizePackageImports: [
+      'lucide-react',
+      'date-fns',
+      '@go-adventure/ui',
+      'react-hook-form',
+      'framer-motion',
+    ],
+  },
+
+  // Webpack optimizations
+  webpack: (config, { dev, isServer }) => {
+    // Production optimizations
+    if (!dev && !isServer) {
+      // Tree shaking optimization
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true,
+        sideEffects: false,
+      };
+    }
+
+    return config;
+  },
 };
 
-// Bundle analyzer (enabled with ANALYZE=true)
-// Note: Bundle analyzer import is done dynamically to avoid issues
-export default withNextIntl(nextConfig);
+// Bundle analyzer - enabled with ANALYZE=true environment variable
+const withBundleAnalyzer =
+  process.env.ANALYZE === 'true'
+    ? require('@next/bundle-analyzer')({
+        enabled: true,
+        openAnalyzer: true,
+      })
+    : (config: NextConfig) => config;
+
+export default withBundleAnalyzer(withNextIntl(nextConfig));

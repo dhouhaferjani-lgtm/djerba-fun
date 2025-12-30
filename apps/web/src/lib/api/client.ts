@@ -1080,4 +1080,143 @@ export const platformApi = {
   },
 };
 
+// ============================================================================
+// USER PROFILE API
+// ============================================================================
+
+export interface UserPreferences {
+  locale: string;
+  currency: string;
+  notifications: {
+    emailNotifications: boolean;
+    marketingEmails: boolean;
+    bookingReminders: boolean;
+    reviewReminders: boolean;
+  };
+}
+
+export interface UpdateProfileData {
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  email?: string;
+  phone?: string;
+  preferredLocale?: string;
+}
+
+export interface UpdatePasswordData {
+  currentPassword: string;
+  newPassword: string;
+  newPasswordConfirmation: string;
+}
+
+export interface UpdatePreferencesData {
+  locale?: string;
+  currency?: string;
+  notifications?: {
+    emailNotifications?: boolean;
+    marketingEmails?: boolean;
+    bookingReminders?: boolean;
+    reviewReminders?: boolean;
+  };
+}
+
+export const userApi = {
+  /**
+   * Get current user profile
+   */
+  getProfile: async () => {
+    return fetchApi<{ data: User }>('/me');
+  },
+
+  /**
+   * Update user profile
+   */
+  updateProfile: async (data: UpdateProfileData) => {
+    return fetchApi<{ message: string; data: User }>('/me', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Update user password
+   */
+  updatePassword: async (data: UpdatePasswordData) => {
+    return fetchApi<{ message: string }>('/me/password', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Upload user avatar
+   */
+  uploadAvatar: async (file: File) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_URL}/me/avatar`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: response.statusText }));
+      throw new ApiError(error.message || 'Failed to upload avatar', response.status);
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Delete user avatar
+   */
+  deleteAvatar: async () => {
+    return fetchApi<{ message: string }>('/me/avatar', {
+      method: 'DELETE',
+    });
+  },
+
+  /**
+   * Get user preferences
+   */
+  getPreferences: async () => {
+    return fetchApi<{ data: UserPreferences }>('/me/preferences');
+  },
+
+  /**
+   * Update user preferences
+   */
+  updatePreferences: async (data: UpdatePreferencesData) => {
+    return fetchApi<{ message: string }>('/me/preferences', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Export user data (GDPR)
+   */
+  exportData: async () => {
+    return fetchApi<{ data: Record<string, unknown> }>('/me/export');
+  },
+
+  /**
+   * Delete user account (GDPR)
+   */
+  deleteAccount: async () => {
+    return fetchApi<{ message: string }>('/me', {
+      method: 'DELETE',
+    });
+  },
+};
+
 export { ApiError };

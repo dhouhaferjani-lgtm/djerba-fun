@@ -118,4 +118,16 @@ class PaymentController extends Controller
             'data' => new PaymentIntentResource($latestIntent),
         ]);
     }
+
+    /**
+     * Get available payment methods based on enabled gateways.
+     */
+    public function availableMethods(): JsonResponse
+    {
+        $methods = $this->gatewayManager->getAvailablePaymentMethods();
+
+        return response()->json([
+            'data' => $methods,
+        ]);
+    }
 }

@@ -24,6 +24,8 @@ class CartController extends Controller
 
     /**
      * Get the current cart for the user or session.
+     *
+     * Performance: Eager load relationships with specific columns
      */
     public function show(Request $request): CartResource|JsonResponse
     {
@@ -39,13 +41,20 @@ class CartController extends Controller
             ], 200);
         }
 
-        $cart->load(['items.hold', 'items.listing']);
+        // Performance: Eager load with specific columns to prevent N+1 queries
+        $cart->load([
+            'items.hold:id,listing_id,availability_slot_id,quantity,total_amount,currency,expires_at,cart_id',
+            'items.listing:id,uuid,title,slug,pricing,service_type,duration,require_traveler_names',
+            'items.listing.location:id,uuid,name,slug,city'
+        ]);
 
         return new CartResource($cart);
     }
 
     /**
      * Add an item to the cart from a booking hold.
+     *
+     * Performance: Eager load hold relationships with specific columns
      */
     public function addItem(AddToCartRequest $request): CartResource|JsonResponse
     {
@@ -53,8 +62,11 @@ class CartController extends Controller
         $user = $request->user();
         $sessionId = $request->getSessionId();
 
-        // Find the hold
-        $hold = BookingHold::with(['slot', 'listing'])->findOrFail($validated['hold_id']);
+        // Performance: Find the hold with specific column selection
+        $hold = BookingHold::with([
+            'slot:id,listing_id,date,start_time,end_time,available_capacity',
+            'listing:id,uuid,title,slug,pricing,service_type'
+        ])->findOrFail($validated['hold_id']);
 
         // Verify hold ownership
         $isOwner = ($user && $hold->user_id === $user->id) ||
@@ -86,7 +98,12 @@ class CartController extends Controller
         // Add item to cart
         $this->cartService->addItem($cart, $hold, $hold->listing);
 
-        $cart->load(['items.hold', 'items.listing']);
+        // Performance: Load cart relationships with specific columns
+        $cart->load([
+            'items.hold:id,listing_id,availability_slot_id,quantity,total_amount,currency,expires_at,cart_id',
+            'items.listing:id,uuid,title,slug,pricing,service_type,duration',
+            'items.listing.location:id,uuid,name,slug,city'
+        ]);
 
         return new CartResource($cart);
     }
@@ -158,7 +175,11 @@ class CartController extends Controller
             $this->cartService->updateExtras($item, $extras);
         }
 
-        $item->load(['hold', 'listing']);
+        // Performance: Load relationships with specific columns
+        $item->load([
+            'hold:id,listing_id,availability_slot_id,quantity,total_amount,currency,expires_at',
+            'listing:id,uuid,title,slug,pricing,service_type'
+        ]);
 
         return new CartItemResource($item->fresh());
     }
@@ -231,11 +252,15 @@ class CartController extends Controller
         $user = $request->user();
         $sessionId = $request->query('session_id') ?? $request->input('session_id');
 
-        // Find cart by owner, allowing recently expired carts to be extended
+        // Performance: Find cart by owner with eager loading
         $cart = Cart::where('status', Cart::STATUS_ACTIVE)
             ->where('expires_at', '>', now()->subMinutes(5)) // Allow up to 5 min past expiration
             ->forOwner($user?->id, $sessionId)
-            ->with(['items.hold', 'items.listing'])
+            // Performance: Eager load with specific columns
+            ->with([
+                'items.hold:id,listing_id,availability_slot_id,quantity,total_amount,currency,expires_at,cart_id',
+                'items.listing:id,uuid,title,slug,pricing,service_type'
+            ])
             ->first();
 
         if (! $cart) {
@@ -315,12 +340,20 @@ class CartController extends Controller
                 ], 200);
             }
 
-            $cart->load(['items.hold', 'items.listing']);
+            // Performance: Load with specific columns
+            $cart->load([
+                'items.hold:id,listing_id,availability_slot_id,quantity,total_amount,currency,expires_at,cart_id',
+                'items.listing:id,uuid,title,slug,pricing,service_type'
+            ]);
 
             return new CartResource($cart);
         }
 
-        $mergedCart->load(['items.hold', 'items.listing']);
+        // Performance: Load with specific columns
+        $mergedCart->load([
+            'items.hold:id,listing_id,availability_slot_id,quantity,total_amount,currency,expires_at,cart_id',
+            'items.listing:id,uuid,title,slug,pricing,service_type'
+        ]);
 
         return new CartResource($mergedCart);
     }

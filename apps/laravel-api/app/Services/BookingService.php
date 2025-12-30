@@ -382,6 +382,37 @@ class BookingService
     }
 
     /**
+     * Mark booking as paid (for offline/manual payment confirmation).
+     * Creates a successful payment intent and confirms the booking.
+     */
+    public function markAsPaid(Booking $booking): Booking
+    {
+        if ($booking->status !== BookingStatus::PENDING_PAYMENT) {
+            throw new \RuntimeException('Only pending payment bookings can be marked as paid.');
+        }
+
+        return DB::transaction(function () use ($booking) {
+            // Create a payment intent for the manual payment
+            $paymentIntent = $booking->paymentIntents()->create([
+                'amount' => $booking->total_amount,
+                'currency' => $booking->currency ?? 'USD',
+                'payment_method' => PaymentMethod::OFFLINE,
+                'status' => PaymentStatus::SUCCEEDED,
+                'gateway' => 'offline',
+                'metadata' => [
+                    'type' => 'manual_confirmation',
+                    'confirmed_by' => auth()->id(),
+                    'confirmed_at' => now()->toDateTimeString(),
+                ],
+                'paid_at' => now(),
+            ]);
+
+            // Confirm the booking
+            return $this->confirmPayment($booking, $paymentIntent);
+        });
+    }
+
+    /**
      * Mark booking as completed.
      */
     public function complete(Booking $booking): Booking

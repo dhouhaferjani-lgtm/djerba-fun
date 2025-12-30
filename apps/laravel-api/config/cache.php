@@ -13,9 +13,11 @@ return [
     | framework. This connection is utilized if another isn't explicitly
     | specified when running a cache operation inside the application.
     |
+    | Performance: Using Redis as default for better performance than database
+    |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    'default' => env('CACHE_STORE', 'redis'),
 
     /*
     |--------------------------------------------------------------------------
@@ -76,6 +78,13 @@ return [
             'driver' => 'redis',
             'connection' => env('REDIS_CACHE_CONNECTION', 'cache'),
             'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
+            // Performance optimizations
+            'options' => [
+                // Serialize cache data for better performance
+                'serializer' => env('REDIS_CACHE_SERIALIZER', 'php'),
+                // Compression for large cached values
+                'compression' => env('REDIS_CACHE_COMPRESSION', 'lz4'),
+            ],
         ],
 
         'dynamodb' => [

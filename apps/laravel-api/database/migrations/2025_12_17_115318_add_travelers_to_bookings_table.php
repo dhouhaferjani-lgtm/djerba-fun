@@ -19,11 +19,20 @@ return new class extends Migration
         });
 
         // Migrate existing bookings: copy traveler_info to travelers array
-        DB::statement('
-            UPDATE bookings
-            SET travelers = JSON_BUILD_ARRAY(traveler_info)
-            WHERE traveler_info IS NOT NULL AND travelers IS NULL
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('
+                UPDATE bookings
+                SET travelers = JSON_BUILD_ARRAY(traveler_info)
+                WHERE traveler_info IS NOT NULL AND travelers IS NULL
+            ');
+        } else {
+            // For SQLite, use json_array function
+            DB::statement('
+                UPDATE bookings
+                SET travelers = json_array(traveler_info)
+                WHERE traveler_info IS NOT NULL AND travelers IS NULL
+            ');
+        }
     }
 
     /**

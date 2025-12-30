@@ -1,4 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- next-intl Link requires typed routes, using any for dynamic hrefs */
+/**
+ * Performance Optimization: React.memo applied
+ *
+ * ListingCard is frequently rendered in grids/lists and benefits from memoization.
+ * This prevents unnecessary re-renders when parent components update but props stay the same.
+ *
+ * Benefits:
+ * - Reduces render cycles in listing grids
+ * - Improves scrolling performance
+ * - Better response when filtering/sorting listings
+ */
+import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card } from '@go-adventure/ui';
@@ -15,7 +27,7 @@ interface ListingCardProps {
   locale: string;
 }
 
-export function ListingCard({ listing, locale }: ListingCardProps) {
+function ListingCardComponent({ listing, locale }: ListingCardProps) {
   const mainImage = listing.media[0];
   const href = getListingUrl(listing.slug, listing.location, locale as Locale) as any;
   const t = (field: any) => resolveTranslation(field, locale);
@@ -32,6 +44,7 @@ export function ListingCard({ listing, locale }: ListingCardProps) {
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              loading="lazy"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-neutral-400">
@@ -85,3 +98,6 @@ export function ListingCard({ listing, locale }: ListingCardProps) {
     </Link>
   );
 }
+
+// Memoize to prevent unnecessary re-renders
+export const ListingCard = memo(ListingCardComponent);

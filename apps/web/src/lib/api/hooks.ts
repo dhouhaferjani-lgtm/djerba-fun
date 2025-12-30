@@ -10,9 +10,13 @@ import {
   participantsApi,
   vouchersApi,
   platformApi,
+  userApi,
   type ProcessPaymentRequest,
   type Cart,
   type UpdateParticipantData,
+  type UpdateProfileData,
+  type UpdatePasswordData,
+  type UpdatePreferencesData,
 } from './client';
 import { getGuestSessionId } from '@/lib/utils/session';
 import type {
@@ -773,6 +777,129 @@ export function useClaimBooking() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['bookings', 'claimable'] });
+    },
+  });
+}
+
+// ============================================================================
+// USER PROFILE HOOKS
+// ============================================================================
+
+/**
+ * Get user profile (alternative to useCurrentUser for profile pages)
+ */
+export function useProfile() {
+  return useQuery({
+    queryKey: ['user', 'profile'],
+    queryFn: async () => {
+      const response = await userApi.getProfile();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Update user profile
+ */
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateProfileData) => userApi.updateProfile(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
+/**
+ * Update user password
+ */
+export function useUpdatePassword() {
+  return useMutation({
+    mutationFn: (data: UpdatePasswordData) => userApi.updatePassword(data),
+  });
+}
+
+/**
+ * Upload user avatar
+ */
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => userApi.uploadAvatar(file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
+/**
+ * Delete user avatar
+ */
+export function useDeleteAvatar() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => userApi.deleteAvatar(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
+/**
+ * Get user preferences
+ */
+export function usePreferences() {
+  return useQuery({
+    queryKey: ['user', 'preferences'],
+    queryFn: async () => {
+      const response = await userApi.getPreferences();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Update user preferences
+ */
+export function useUpdatePreferences() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdatePreferencesData) => userApi.updatePreferences(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
+/**
+ * Export user data (GDPR)
+ */
+export function useExportData() {
+  return useMutation({
+    mutationFn: () => userApi.exportData(),
+  });
+}
+
+/**
+ * Delete user account (GDPR)
+ */
+export function useDeleteAccount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => userApi.deleteAccount(),
+    onSuccess: () => {
+      queryClient.clear();
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token');
+      }
     },
   });
 }

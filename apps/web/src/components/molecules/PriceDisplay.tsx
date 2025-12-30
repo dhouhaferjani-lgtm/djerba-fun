@@ -1,3 +1,16 @@
+/**
+ * Performance Optimization: React.memo and useMemo applied
+ *
+ * PriceDisplay is frequently rendered in listing grids, cards, and checkout flows.
+ * Memoization prevents recalculation of formatted prices on parent re-renders.
+ *
+ * Benefits:
+ * - Reduces unnecessary price formatting calculations
+ * - Better performance in listing grids
+ * - Optimized for frequently updating components
+ */
+
+import { memo, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 
 interface PriceDisplayProps {
@@ -23,7 +36,7 @@ const sizeClasses = {
   lg: 'text-3xl',
 };
 
-export function PriceDisplay({
+function PriceDisplayComponent({
   amount,
   currency,
   size = 'md',
@@ -32,9 +45,10 @@ export function PriceDisplay({
   className = '',
 }: PriceDisplayProps) {
   const t = useTranslations('common');
-  const symbol = currencySymbols[currency] || currency;
-  // Prices are stored as whole amounts (e.g., 85 = €85), not cents
-  const formattedAmount = Number(amount).toFixed(2);
+
+  // Memoize expensive calculations
+  const symbol = useMemo(() => currencySymbols[currency] || currency, [currency]);
+  const formattedAmount = useMemo(() => Number(amount).toFixed(2), [amount]);
 
   return (
     <div className={`flex flex-col ${className}`}>
@@ -49,3 +63,6 @@ export function PriceDisplay({
     </div>
   );
 }
+
+// Memoize to prevent unnecessary re-renders
+export const PriceDisplay = memo(PriceDisplayComponent);
