@@ -93,4 +93,17 @@ class Location extends Model
     {
         $this->decrement('listings_count');
     }
+
+    /**
+     * Scope to select only columns needed for API responses.
+     * Prevents column mismatch issues by centralizing column selection.
+     */
+    public function scopeSelectApi($query)
+    {
+        return $query->select([
+            'id', 'uuid', 'name', 'slug', 'city', 'region', 'country',
+            'latitude', 'longitude', 'description', 'image_url',
+            'listings_count', 'created_at', 'updated_at'
+        ]);
+    }
 }

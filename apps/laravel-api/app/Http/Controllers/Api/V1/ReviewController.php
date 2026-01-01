@@ -45,18 +45,12 @@ class ReviewController extends Controller
             return Review::query()
                 ->forListing($listing->id)
                 ->published()
-                // Performance: Select only needed columns
-                ->select([
-                    'id', 'booking_id', 'listing_id', 'user_id', 'rating',
-                    'title', 'content', 'pros', 'cons', 'photos',
-                    'is_verified_booking', 'helpful_count', 'status',
-                    'created_at', 'updated_at'
-                ])
+                ->selectApi() // Use model scope to prevent column mismatch issues
                 // Performance: Eager load with specific columns
                 ->with([
                     'user:id,uuid,first_name,last_name,display_name,avatar_url',
                     'reply:id,review_id,vendor_id,content,created_at',
-                    'reply.vendor:id,uuid,name,slug'
+                    'reply.vendor:id,uuid'
                 ])
                 ->when($rating, fn ($q, $r) => $q->withRating((int) $r))
                 ->when(

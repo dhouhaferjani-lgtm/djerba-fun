@@ -94,7 +94,7 @@ class CalculateAvailabilityJob implements ShouldQueue
                 'availability_rule_id' => $rule->id,
                 'end_time' => $endTime->format('H:i:s'),
                 'capacity' => $rule->capacity,
-                // remaining_capacity is now computed via accessor, not stored
+                'remaining_capacity' => $rule->capacity, // Initialize with full capacity
                 'base_price' => $basePrice,
                 'status' => SlotStatus::AVAILABLE,
             ]
@@ -116,7 +116,7 @@ class CalculateAvailabilityJob implements ShouldQueue
                 'availability_rule_id' => $rule->id,
                 'end_time' => ($rule->end_time ?: now()->endOfDay())->format('H:i:s'),
                 'capacity' => 0,
-                // remaining_capacity is computed via accessor (will be 0 since capacity is 0)
+                'remaining_capacity' => 0, // Blocked slots have 0 capacity
                 'base_price' => 0,
                 'status' => SlotStatus::BLOCKED,
             ]
@@ -125,14 +125,40 @@ class CalculateAvailabilityJob implements ShouldQueue
 
     /**
      * Get the base price from the listing.
+     * Supports both old and new pricing formats.
      */
     protected function getListingBasePrice(): float
     {
         $pricing = $this->listing->pricing;
 
-        // Extract base price from pricing array
-        // Assuming pricing structure: ['adult' => ['amount' => 100, ...], ...]
-        if (is_array($pricing) && isset($pricing['adult']['amount'])) {
+        if (! is_array($pricing)) {
+            return 0.0;
+        }
+
+        // New dual-currency format: prioritize EUR price, fallback to TND
+        if (isset($pricing['eur_price'])) {
+            return (float) $pricing['eur_price'];
+        }
+
+        if (isset($pricing['tnd_price'])) {
+            return (float) $pricing['tnd_price'];
+        }
+
+        // Old single-currency format
+        if (isset($pricing['base_price'])) {
+            return (float) $pricing['base_price'];
+        }
+
+        if (isset($pricing['basePrice'])) {
+            return (float) $pricing['basePrice'];
+        }
+
+        if (isset($pricing['base'])) {
+            return (float) $pricing['base'];
+        }
+
+        // Legacy format with adult pricing
+        if (isset($pricing['adult']['amount'])) {
             return (float) $pricing['adult']['amount'];
         }
 

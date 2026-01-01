@@ -51,9 +51,9 @@ class ListingController extends Controller
             ])
             // Performance: Eager load relationships to prevent N+1 queries
             ->with([
-                'vendor:id,uuid,name,slug',
+                'vendor:id,uuid',
                 'location:id,uuid,name,slug,city,latitude,longitude',
-                'media:id,model_id,file_name,mime_type,size,url',
+                'media:id,uuid,url,thumbnail_url,alt,type,order,category',
                 'faqs:id,listing_id,question,answer,order'
             ]);
 
@@ -172,9 +172,9 @@ class ListingController extends Controller
 
         $cachedListing = cache()->remember($cacheKey, $cacheTtl, function () use ($listing) {
             return $listing->load([
-                'vendor:id,uuid,name,slug,logo_url,description,rating,reviews_count',
+                'vendor:id,uuid',
                 'location:id,uuid,name,slug,city,state,country,latitude,longitude',
-                'media:id,model_id,file_name,mime_type,size,url',
+                'media:id,uuid,url,thumbnail_url,alt,type,order,category',
                 'faqs:id,listing_id,question,answer,order'
             ]);
         });

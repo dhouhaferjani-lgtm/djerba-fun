@@ -41,11 +41,7 @@ class AvailabilityController extends Controller
 
             // Performance: Fetch available slots with only needed columns
             $query = $listing->availabilitySlots()
-                ->select([
-                    'id', 'listing_id', 'date', 'start_time', 'end_time',
-                    'capacity', 'available_capacity', 'price', 'currency',
-                    'is_available', 'created_at', 'updated_at'
-                ])
+                ->selectApi() // Use model scope to prevent column mismatch issues
                 ->betweenDates($startDate, $endDate);
 
             // Apply minimum advance booking time filter

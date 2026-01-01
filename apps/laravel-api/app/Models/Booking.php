@@ -376,6 +376,21 @@ class Booking extends Model
     }
 
     /**
+     * Scope to select only columns needed for API responses.
+     * Prevents column mismatch issues by centralizing column selection.
+     */
+    public function scopeSelectApi($query)
+    {
+        return $query->select([
+            'id', 'booking_number', 'user_id', 'listing_id', 'availability_slot_id',
+            'quantity', 'total_amount', 'discount_amount', 'currency', 'status',
+            'traveler_info', 'travelers', 'extras', 'billing_contact',
+            'confirmed_at', 'cancelled_at', 'cancellation_reason',
+            'created_at', 'updated_at', 'session_id', 'partner_id'
+        ]);
+    }
+
+    /**
      * Check if this booking requires traveler details.
      */
     public function requiresTravelerDetails(): bool

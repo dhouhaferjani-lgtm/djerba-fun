@@ -19,7 +19,6 @@ class PriceCalculationService
     public function calculateTotal(Listing $listing, array $breakdown, ?string $currency = null): array
     {
         $pricing = $listing->pricing;
-        $personTypes = $pricing['personTypes'] ?? $pricing['person_types'] ?? [];
 
         // Determine currency - prioritize parameter, then check for dual pricing
         if (! $currency) {
@@ -38,48 +37,45 @@ class PriceCalculationService
         $details = [];
         $totalGuests = 0;
 
-        // If personTypes is defined, use per-type pricing
-        if (! empty($personTypes)) {
-            foreach ($breakdown as $typeKey => $quantity) {
-                if ($quantity <= 0) {
-                    continue;
-                }
+        // Get person types - only those explicitly defined by vendor
+        $personTypes = $this->getPersonTypes($listing, $currency);
+        $allowedKeys = collect($personTypes)->pluck('key')->toArray();
 
-                $typeConfig = collect($personTypes)->firstWhere('key', $typeKey);
-
-                if ($typeConfig) {
-                    // Get price for the selected currency
-                    $price = $this->getPersonTypePriceForCurrency($typeConfig, $currency);
-                    $label = $typeConfig['label'] ?? ['en' => ucfirst($typeKey), 'fr' => ucfirst($typeKey)];
-                    $lineTotal = $price * $quantity;
-                    $subtotal += $lineTotal;
-                    $totalGuests += $quantity;
-
-                    $details[] = [
-                        'type' => $typeKey,
-                        'label' => $label,
-                        'unitPrice' => $price,
-                        'quantity' => $quantity,
-                        'total' => $lineTotal,
-                    ];
-                }
+        // Validate and calculate pricing for each person type in the breakdown
+        foreach ($breakdown as $typeKey => $quantity) {
+            if ($quantity <= 0) {
+                continue;
             }
-        } else {
-            // Fallback: use base price for all guests
-            $totalGuests = array_sum($breakdown);
-            $subtotal = $basePrice * $totalGuests;
 
-            foreach ($breakdown as $typeKey => $quantity) {
-                if ($quantity <= 0) {
-                    continue;
-                }
+            // Check if this person type is allowed for this listing
+            if (! in_array($typeKey, $allowedKeys)) {
+                // Person type not defined by vendor - skip it and log warning
+                \Log::warning('Booking attempted with undefined person type', [
+                    'listing_id' => $listing->id,
+                    'listing_slug' => $listing->slug,
+                    'attempted_type' => $typeKey,
+                    'allowed_types' => $allowedKeys,
+                    'quantity' => $quantity,
+                ]);
+                continue; // Skip undefined person types (vendor didn't configure them)
+            }
+
+            $typeConfig = collect($personTypes)->firstWhere('key', $typeKey);
+
+            if ($typeConfig) {
+                // Get price for the selected currency
+                $price = $this->getPersonTypePriceForCurrency($typeConfig, $currency);
+                $label = $typeConfig['label'] ?? ['en' => ucfirst($typeKey), 'fr' => ucfirst($typeKey)];
+                $lineTotal = $price * $quantity;
+                $subtotal += $lineTotal;
+                $totalGuests += $quantity;
 
                 $details[] = [
                     'type' => $typeKey,
-                    'label' => ['en' => ucfirst($typeKey), 'fr' => ucfirst($typeKey)],
-                    'unitPrice' => $basePrice,
+                    'label' => $label,
+                    'unitPrice' => $price,
                     'quantity' => $quantity,
-                    'total' => $basePrice * $quantity,
+                    'total' => $lineTotal,
                 ];
             }
         }
@@ -161,28 +157,30 @@ class PriceCalculationService
     }
 
     /**
-     * Get default person types for a listing.
-     * Returns standard adult/child/infant types if not defined.
+     * Get person types for a listing.
+     * Returns only the person types explicitly defined by the vendor.
+     * If none defined, returns ONLY adult as default (vendor must explicitly add child/infant).
      *
      * @param  Listing  $listing  The listing
      * @param  string|null  $currency  Currency to use for default prices
-     * @return array Default person types
+     * @return array Person types defined for this listing
      */
     public function getPersonTypes(Listing $listing, ?string $currency = null): array
     {
         $pricing = $listing->pricing;
         $personTypes = $pricing['personTypes'] ?? $pricing['person_types'] ?? [];
 
+        // If vendor has defined custom person types, return those
         if (! empty($personTypes)) {
             return $personTypes;
         }
 
-        // Determine currency
+        // Fallback: If no person types defined (legacy data), return ONLY adult
+        // Vendors must explicitly define child/infant if they want to accept them
         if (! $currency) {
             $currency = $pricing['currency'] ?? 'EUR';
         }
 
-        // Return default person types based on base price for the selected currency
         $basePrice = $this->getPriceForCurrency($pricing, $currency);
 
         if (is_string($basePrice)) {
@@ -199,28 +197,6 @@ class PriceCalculationService
                 'minAge' => 18,
                 'maxAge' => null,
                 'minQuantity' => 1,
-                'maxQuantity' => null,
-            ],
-            [
-                'key' => 'child',
-                'label' => ['en' => 'Child (4-17)', 'fr' => 'Enfant (4-17)'],
-                'price' => round($basePrice * 0.5), // 50% of adult price
-                'tnd_price' => $currency === 'TND' ? round($basePrice * 0.5) : null,
-                'eur_price' => $currency === 'EUR' ? round($basePrice * 0.5) : null,
-                'minAge' => 4,
-                'maxAge' => 17,
-                'minQuantity' => 0,
-                'maxQuantity' => null,
-            ],
-            [
-                'key' => 'infant',
-                'label' => ['en' => 'Infant (0-3)', 'fr' => 'Bébé (0-3)'],
-                'price' => 0, // Free
-                'tnd_price' => 0,
-                'eur_price' => 0,
-                'minAge' => 0,
-                'maxAge' => 3,
-                'minQuantity' => 0,
                 'maxQuantity' => null,
             ],
         ];

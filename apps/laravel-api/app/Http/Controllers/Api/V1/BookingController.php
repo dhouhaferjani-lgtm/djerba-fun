@@ -38,20 +38,13 @@ class BookingController extends Controller
     {
         $bookings = Booking::query()
             ->forUser($request->user()->id)
-            // Performance: Select only needed columns
-            ->select([
-                'id', 'booking_number', 'user_id', 'listing_id', 'availability_slot_id',
-                'quantity', 'total_amount', 'discount_amount', 'currency', 'status',
-                'traveler_info', 'travelers', 'extras', 'billing_contact',
-                'confirmed_at', 'cancelled_at', 'cancellation_reason',
-                'created_at', 'updated_at', 'session_id', 'partner_id'
-            ])
+            ->selectApi() // Use model scope to prevent column mismatch issues
             // Performance: Eager load relationships with column selection to prevent N+1 queries
             ->with([
                 'listing:id,uuid,vendor_id,title,slug,service_type,pricing,duration,require_traveler_names',
                 'listing.location:id,uuid,name,slug,city',
-                'listing.vendor:id,uuid,name,slug',
-                'availabilitySlot:id,listing_id,date,start_time,end_time,available_capacity',
+                'listing.vendor:id,uuid',
+                'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
                 'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at'
             ])
             ->orderBy('created_at', 'desc')
@@ -114,8 +107,10 @@ class BookingController extends Controller
         // Performance: Load relationships with specific columns
         $booking->load([
             'listing:id,uuid,vendor_id,title,slug,service_type,pricing,duration',
-            'availabilitySlot:id,listing_id,date,start_time,end_time,available_capacity',
-            'user:id,name,email'
+            'listing.location:id,uuid,name,slug,city',
+            'listing.vendor:id,uuid',
+            'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
+            'user:id,uuid,first_name,last_name,email'
         ]);
 
         return response()->json([
@@ -138,9 +133,9 @@ class BookingController extends Controller
         $booking->load([
             'listing:id,uuid,vendor_id,title,slug,service_type,pricing,duration,require_traveler_names',
             'listing.location:id,uuid,name,slug,city',
-            'listing.vendor:id,uuid,name,slug',
-            'availabilitySlot:id,listing_id,date,start_time,end_time,available_capacity',
-            'user:id,uuid,name,email',
+            'listing.vendor:id,uuid',
+            'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
+            'user:id,uuid,first_name,last_name,email',
             'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at'
         ]);
 
@@ -168,7 +163,7 @@ class BookingController extends Controller
         $booking->load([
             'listing:id,uuid,vendor_id,title,slug,service_type,pricing,duration,require_traveler_names',
             'listing.location:id,uuid,name,slug,city',
-            'availabilitySlot:id,listing_id,date,start_time,end_time,available_capacity',
+            'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
             'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at',
             'participants:id,booking_id,first_name,last_name,email,phone,age,badge_number',
             'bookingExtras.extra:id,listing_id,name,description,price,currency'

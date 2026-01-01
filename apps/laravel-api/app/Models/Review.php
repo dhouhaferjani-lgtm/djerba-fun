@@ -138,4 +138,18 @@ class Review extends Model
     {
         return $query->orderBy('helpful_count', 'desc');
     }
+
+    /**
+     * Scope to select only columns needed for API responses.
+     * Prevents column mismatch issues by centralizing column selection.
+     */
+    public function scopeSelectApi($query)
+    {
+        return $query->select([
+            'id', 'booking_id', 'listing_id', 'user_id', 'rating',
+            'title', 'content', 'pros', 'cons', 'photos',
+            'is_verified_booking', 'is_published', 'helpful_count',
+            'created_at', 'updated_at'
+        ]);
+    }
 }

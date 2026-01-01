@@ -25,12 +25,7 @@ class LocationController extends Controller
 
         $locations = cache()->remember($cacheKey, $cacheTtl, function () {
             return Location::query()
-                // Performance: Select only needed columns
-                ->select([
-                    'id', 'uuid', 'name', 'slug', 'city', 'state', 'country',
-                    'latitude', 'longitude', 'description', 'image_url',
-                    'listings_count', 'created_at', 'updated_at'
-                ])
+                ->selectApi() // Use model scope to prevent column mismatch issues
                 ->where('listings_count', '>', 0)
                 ->orderByDesc('listings_count')
                 ->limit(20)
@@ -70,8 +65,8 @@ class LocationController extends Controller
                 // Performance: Eager load with specific columns
                 ->with([
                     'location:id,uuid,name,slug,city,latitude,longitude',
-                    'media:id,model_id,file_name,mime_type,size,url',
-                    'vendor:id,uuid,name,slug'
+                    'media:id,uuid,url,thumbnail_url,alt,type,order,category',
+                    'vendor:id,uuid'
                 ])
                 ->orderByDesc('created_at')
                 ->get();

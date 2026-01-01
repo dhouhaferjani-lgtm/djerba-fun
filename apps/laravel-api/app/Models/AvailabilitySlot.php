@@ -119,6 +119,19 @@ class AvailabilitySlot extends Model
     }
 
     /**
+     * Scope to select only columns needed for API responses.
+     * Prevents column mismatch issues by centralizing column selection.
+     */
+    public function scopeSelectApi($query)
+    {
+        return $query->select([
+            'id', 'listing_id', 'availability_rule_id', 'date', 'start_time', 'end_time',
+            'capacity', 'remaining_capacity', 'base_price', 'status', 'currency',
+            'created_at', 'updated_at'
+        ]);
+    }
+
+    /**
      * Update the slot status based on remaining capacity.
      * Uses the computed remainingCapacity accessor.
      */
