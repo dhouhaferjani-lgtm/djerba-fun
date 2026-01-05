@@ -109,20 +109,8 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Webpack optimizations
-  webpack: (config, { dev, isServer }) => {
-    // Production optimizations
-    if (!dev && !isServer) {
-      // Tree shaking optimization
-      config.optimization = {
-        ...config.optimization,
-        usedExports: true,
-        sideEffects: false,
-      };
-    }
-
-    return config;
-  },
+  // Turbopack for faster builds (Next.js 16+)
+  turbopack: {},
 };
 
 // Bundle analyzer - enabled with ANALYZE=true environment variable
