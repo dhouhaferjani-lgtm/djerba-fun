@@ -613,3 +613,141 @@ e85c4a2 feat(web): implement Phase 1 - Identity & Catalog frontend
 - Real payment gateway integration (Stripe)
 - Email templates styling (basic HTML only)
 - Admin panel listing CRUD (scaffolding only)
+
+---
+
+## 🚨 Critical Learnings & Configuration Management
+
+### TypeScript Configuration Files - NEVER Mix .js and .ts
+
+**CRITICAL RULE**: This project is **100% TypeScript**. Never create JavaScript config files.
+
+#### Next.js Configuration
+
+- ✅ **ONLY** use `apps/web/next.config.ts` (TypeScript)
+- ❌ **NEVER** create `apps/web/next.config.js` (JavaScript)
+- Next.js prefers `.js` over `.ts` - if both exist, `.js` will be used and `.ts` ignored
+- This breaks next-intl plugin configuration and causes runtime errors
+
+#### Before Editing Any Config File
+
+```bash
+# 1. Check which config files exist
+ls apps/web/next.config.*
+
+# 2. If both .js and .ts exist, DELETE .js immediately
+rm apps/web/next.config.js
+
+# 3. ONLY edit the .ts file
+code apps/web/next.config.ts
+```
+
+#### Required Configuration in next.config.ts
+
+```typescript
+import createNextIntlPlugin from 'next-intl/plugin';
+
+// CRITICAL: This plugin MUST be present
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+
+const nextConfig: NextConfig = {
+  // ... config
+};
+
+// CRITICAL: Config must be wrapped with next-intl plugin
+export default withNextIntl(nextConfig);
+```
+
+### CORS Configuration - Port Awareness
+
+**Issue**: Frontend may start on different ports if default is occupied.
+
+#### Laravel CORS Setup
+
+`apps/laravel-api/config/cors.php` must allow **all development ports**:
+
+```php
+'allowed_origins' => [
+    'http://localhost:3000',
+    'http://localhost:3001',  // Frontend alternate port
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',  // Frontend alternate port
+],
+```
+
+#### After CORS Changes
+
+```bash
+# Always clear and cache Laravel config after changes
+cd apps/laravel-api
+php artisan config:clear
+php artisan config:cache
+```
+
+### Next.js Error Boundaries - No Nested HTML
+
+**Rule**: Error boundaries (`error.tsx`) must NOT render `<html>` or `<body>` tags.
+
+```typescript
+// ❌ WRONG - Causes hydration errors
+export default function Error({ error, reset }) {
+  return (
+    <html>
+      <body>
+        <div>Error content</div>
+      </body>
+    </html>
+  );
+}
+
+// ✅ CORRECT - Root layout provides HTML structure
+export default function Error({ error, reset }) {
+  return <div>Error content</div>;
+}
+```
+
+### Debugging Checklist
+
+When encountering runtime errors after startup:
+
+1. **Check for duplicate config files**
+
+   ```bash
+   find . -name "*.config.js" -o -name "*.config.ts" | grep -v node_modules
+   ```
+
+2. **Verify next-intl plugin is active**
+
+   ```bash
+   grep -n "withNextIntl" apps/web/next.config.ts
+   ```
+
+3. **Check CORS allowed origins**
+
+   ```bash
+   grep -A 5 "allowed_origins" apps/laravel-api/config/cors.php
+   ```
+
+4. **Verify frontend port**
+
+   ```bash
+   # Check what port Next.js started on
+   lsof -i :3000
+   lsof -i :3001
+   ```
+
+5. **Test API connectivity**
+   ```bash
+   curl http://localhost:8000/api/health
+   ```
+
+### Regression Tests Required
+
+Create these tests to prevent configuration errors:
+
+- `apps/web/__tests__/config.test.ts` - Verify single config file exists
+- `apps/web/__tests__/next-intl.test.ts` - Verify next-intl plugin configured
+- `apps/laravel-api/tests/Feature/CorsTest.php` - Verify CORS origins
+- `apps/web/__tests__/error-boundary.test.tsx` - Verify no nested HTML
+
+---
