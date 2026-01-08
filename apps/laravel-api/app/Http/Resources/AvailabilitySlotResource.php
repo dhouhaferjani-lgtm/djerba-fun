@@ -38,11 +38,11 @@ class AvailabilitySlotResource extends JsonResource
             'currency' => $currency, // Legacy field for frontend compatibility
             'displayPrice' => $this->getDisplayPrice($request, $listing),
             'basePrice' => (int) ($this->getDisplayPrice($request, $listing)), // Legacy field
-            'status' => $this->status->value,
-            'statusLabel' => $this->status->label(),
-            'isBookable' => $this->isBookable(),
-            'createdAt' => $this->created_at->toIso8601String(),
-            'updatedAt' => $this->updated_at->toIso8601String(),
+            'status' => $this->status?->value,
+            'statusLabel' => $this->status?->label(),
+            'isBookable' => $this->status ? $this->isBookable() : null,
+            'createdAt' => $this->created_at?->toIso8601String(),
+            'updatedAt' => $this->updated_at?->toIso8601String(),
         ];
     }
 
