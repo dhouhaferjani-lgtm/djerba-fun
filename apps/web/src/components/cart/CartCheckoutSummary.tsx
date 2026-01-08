@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
-import { Calendar, Clock, Users, MapPin } from 'lucide-react';
+import { Calendar, Clock, Users } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
 import { resolveTranslation } from '@/lib/utils/translate';
@@ -40,29 +40,28 @@ export function CartCheckoutSummary({ cart, currency }: CartCheckoutSummaryProps
         {/* Cart Items */}
         <div className="space-y-4 border-t border-neutral-200 pt-4">
           {cart.items.map((item, index) => {
-            const listing = item.hold?.listing;
-            const slot = item.hold?.slot;
-
-            if (!listing || !slot) return null;
-
-            const listingTitle = tr(listing.title);
-            const listingLocation =
-              typeof listing.location === 'string' ? listing.location : tr(listing.location);
+            // CartItem has flattened data (not nested hold/listing/slot)
+            const listingTitle = tr(item.listingTitle);
 
             // Format date and time
-            const startDate = parseISO(slot.start);
-            const endTime = parseISO(slot.end);
-            const formattedDate = format(startDate, 'MMM d, yyyy', { locale: dateLocale });
-            const formattedTime = `${format(startDate, 'HH:mm')} - ${format(endTime, 'HH:mm')}`;
+            const startDate = item.slotStart ? parseISO(item.slotStart) : null;
+            const endTime = item.slotEnd ? parseISO(item.slotEnd) : null;
+            const formattedDate = startDate
+              ? format(startDate, 'MMM d, yyyy', { locale: dateLocale })
+              : '';
+            const formattedTime =
+              startDate && endTime
+                ? `${format(startDate, 'HH:mm')} - ${format(endTime, 'HH:mm')}`
+                : '';
 
-            // Get quantity from person type breakdown
+            // Get quantity from person type breakdown or item.quantity
             const quantity =
-              item.hold?.personTypeBreakdown && typeof item.hold.personTypeBreakdown === 'object'
-                ? Object.values(item.hold.personTypeBreakdown).reduce(
+              item.personTypeBreakdown && typeof item.personTypeBreakdown === 'object'
+                ? Object.values(item.personTypeBreakdown).reduce(
                     (sum: number, qty) => sum + (Number(qty) || 0),
                     0
                   )
-                : 1;
+                : item.quantity || 1;
 
             return (
               <div
@@ -74,13 +73,6 @@ export function CartCheckoutSummary({ cart, currency }: CartCheckoutSummaryProps
 
                 {/* Listing Details */}
                 <div className="space-y-2 text-sm">
-                  {listingLocation && (
-                    <div className="flex items-center gap-2 text-neutral-600">
-                      <MapPin className="h-4 w-4" />
-                      <span>{listingLocation}</span>
-                    </div>
-                  )}
-
                   <div className="flex items-center gap-2 text-neutral-600">
                     <Calendar className="h-4 w-4" />
                     <span>{formattedDate}</span>
