@@ -24,8 +24,8 @@ export function getDateFnsLocale(locale: string): DateFnsLocale {
  */
 export function getLocalizedWeekdays(locale: string, weekStartsOn: 0 | 1 = 1): string[] {
   const dateFnsLocale = getDateFnsLocale(locale);
-  const weekdays = dateFnsLocale.localize?.day
-    ? Array.from({ length: 7 }, (_, i) => dateFnsLocale.localize!.day(i, { width: 'abbreviated' }))
+  const weekdays = dateFnsLocale.localize
+    ? Array.from({ length: 7 }, (_, i) => dateFnsLocale.localize.day(i, { width: 'abbreviated' }))
     : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   // Rotate array if week starts on Monday

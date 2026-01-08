@@ -173,18 +173,16 @@ export function BookingWizard({
         // Continue with booking even if consent recording fails
       }
 
-      const extrasForBooking = getExtrasWithDetails();
       const bookingResponse = await createBookingMutation.mutateAsync({
         holdId: hold.id,
-        travelers: [{ email }],
-        billingAddress,
-        extras: extrasForBooking.map((e) => ({
-          name: e.name,
-          price: e.price,
-          quantity: e.quantity,
-        })),
+        travelers: [
+          {
+            email: email || '',
+            firstName: 'Guest',
+            lastName: 'Traveler',
+          },
+        ],
         sessionId,
-        currency: currentCurrency, // Include locked currency
       });
 
       const booking = bookingResponse.data;

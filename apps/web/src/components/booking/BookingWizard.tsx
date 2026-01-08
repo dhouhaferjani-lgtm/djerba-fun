@@ -132,7 +132,6 @@ export function BookingWizard({
       }
 
       // Send full contact information in travelers array
-      const extrasForBooking = getExtrasWithDetails();
       const bookingResponse = await createBookingMutation.mutateAsync({
         holdId: hold.id,
         travelers: [
@@ -143,11 +142,6 @@ export function BookingWizard({
             phone: contactInfo.phone,
           },
         ],
-        extras: extrasForBooking.map((e) => ({
-          name: e.name,
-          price: e.price,
-          quantity: e.quantity,
-        })),
         sessionId,
       });
 

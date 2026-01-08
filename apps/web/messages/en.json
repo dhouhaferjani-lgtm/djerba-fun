@@ -103,6 +103,7 @@
     "difficulty": "Difficulty",
     "group_size": "Group Size",
     "check_availability": "Check Availability",
+    "pricing_not_configured": "Pricing not yet configured",
     "trust_signals": {
       "instant_confirmation": "Instant confirmation",
       "mobile_ticket": "Mobile ticket accepted",

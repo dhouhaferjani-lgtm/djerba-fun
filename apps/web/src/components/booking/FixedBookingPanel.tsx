@@ -136,6 +136,7 @@ export function FixedBookingPanel({
 
   const basePrice = listing.pricing?.displayPrice || listing.pricing?.tndPrice || 0;
   const currency = listing.pricing?.displayCurrency || 'TND';
+  const isPriceNotSet = basePrice === 0;
 
   // Get dynamic message keys
   const cancellationMessageKey = getCancellationMessageKey(listing);
@@ -162,6 +163,12 @@ export function FixedBookingPanel({
           {/* Price Display */}
           <div className="mb-4" data-testid="listing-price">
             <PriceDisplay amount={basePrice} currency={currency} size="lg" showFrom />
+            {isPriceNotSet && (
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-warning-dark">
+                <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                <span>{t('pricing_not_configured')}</span>
+              </div>
+            )}
           </div>
 
           {!showBookingFlow ? (

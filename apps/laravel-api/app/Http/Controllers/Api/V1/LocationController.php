@@ -48,7 +48,9 @@ class LocationController extends Controller
         $cacheTtl = 900; // 15 minutes
 
         $data = cache()->remember($cacheKey, $cacheTtl, function () use ($slug) {
-            $location = Location::where('slug', $slug)->firstOrFail();
+            $location = Location::where('slug', $slug)
+                ->withCount(['listings' => fn ($q) => $q->where('status', 'published')])
+                ->firstOrFail();
 
             // Performance: Get listings with eager loading and specific columns
             $listings = Listing::query()

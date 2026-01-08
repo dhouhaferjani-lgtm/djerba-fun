@@ -39,8 +39,14 @@ export function ParticipantsForm({ booking, onSubmit, isLoading = false }: Parti
   const t = useTranslations('booking.participants');
   const [submitting, setSubmitting] = useState(false);
 
-  // Get participants from booking
-  const participants = booking.participants || [];
+  // Get participants from booking (typed as unknown[] in schema, so we cast)
+  const participants = (booking.participants || []) as Array<{
+    id?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+  }>;
   const quantity = booking.quantity || participants.length || 1;
 
   // Initialize form with existing participant data

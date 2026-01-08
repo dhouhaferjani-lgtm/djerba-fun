@@ -41,7 +41,7 @@ class BookingController extends Controller
             ->selectApi() // Use model scope to prevent column mismatch issues
             // Performance: Eager load relationships with column selection to prevent N+1 queries
             ->with([
-                'listing:id,uuid,vendor_id,title,slug,service_type,pricing,duration,require_traveler_names',
+                'listing:id,uuid,vendor_id,location_id,title,slug,service_type,status,pricing,duration,require_traveler_names',
                 'listing.location:id,uuid,name,slug,city',
                 'listing.vendor:id,uuid',
                 'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
@@ -71,8 +71,8 @@ class BookingController extends Controller
     {
         // Performance: Eager load with specific columns
         $hold = BookingHold::with([
-            'slot:id,listing_id,date,start_time,end_time,available_capacity,capacity',
-            'listing:id,uuid,vendor_id,title,slug,pricing,service_type,require_traveler_names'
+            'slot:id,listing_id,date,start_time,end_time,capacity,remaining_capacity',
+            'listing:id,uuid,vendor_id,location_id,title,slug,pricing,service_type,status,require_traveler_names'
         ])->findOrFail($request->input('hold_id'));
 
         // Verify hold ownership: either authenticated user owns it, or guest has matching session_id
@@ -106,7 +106,7 @@ class BookingController extends Controller
 
         // Performance: Load relationships with specific columns
         $booking->load([
-            'listing:id,uuid,vendor_id,title,slug,service_type,pricing,duration',
+            'listing:id,uuid,vendor_id,location_id,title,slug,service_type,status,pricing,duration',
             'listing.location:id,uuid,name,slug,city',
             'listing.vendor:id,uuid',
             'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
@@ -131,7 +131,7 @@ class BookingController extends Controller
 
         // Performance: Load relationships with specific columns
         $booking->load([
-            'listing:id,uuid,vendor_id,title,slug,service_type,pricing,duration,require_traveler_names',
+            'listing:id,uuid,vendor_id,location_id,title,slug,service_type,status,pricing,duration,require_traveler_names',
             'listing.location:id,uuid,name,slug,city',
             'listing.vendor:id,uuid',
             'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
@@ -161,7 +161,7 @@ class BookingController extends Controller
 
         // Performance: Load relationships with specific columns
         $booking->load([
-            'listing:id,uuid,vendor_id,title,slug,service_type,pricing,duration,require_traveler_names',
+            'listing:id,uuid,vendor_id,location_id,title,slug,service_type,status,pricing,duration,require_traveler_names',
             'listing.location:id,uuid,name,slug,city',
             'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
             'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at',

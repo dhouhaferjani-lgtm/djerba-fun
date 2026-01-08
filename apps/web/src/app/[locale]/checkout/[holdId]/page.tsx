@@ -47,7 +47,7 @@ export default function CheckoutPage() {
   } = useListingExtras(
     holdData?.listing?.slug || '',
     {
-      slotId: holdData?.slot?.id,
+      slotId: holdData?.slot?.id?.toString(),
       personTypes: holdData?.personTypeBreakdown
         ? Object.keys(holdData.personTypeBreakdown)
         : undefined,

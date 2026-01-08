@@ -17,7 +17,7 @@ const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(100),
   lastName: z.string().min(1, 'Last name is required').max(100),
   phone: z.string().optional(),
-  preferredLocale: z.enum(['en', 'fr']).default('en'),
+  preferredLocale: z.enum(['en', 'fr']),
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;

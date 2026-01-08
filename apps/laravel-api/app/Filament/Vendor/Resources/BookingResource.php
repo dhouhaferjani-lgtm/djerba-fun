@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Vendor\Resources;
 
 use App\Enums\BookingStatus;
+use App\Filament\Concerns\SafeTranslation;
 use App\Filament\Vendor\Resources\BookingResource\Pages;
 use App\Models\Booking;
 use App\Models\Listing;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class BookingResource extends Resource
 {
+    use SafeTranslation;
     protected static ?string $model = Booking::class;
 
     protected static ?string $navigationIcon = null;
@@ -62,7 +64,7 @@ class BookingResource extends Resource
 
                         Forms\Components\TextInput::make('listing.title')
                             ->label('Listing')
-                            ->formatStateUsing(fn ($record) => $record->listing?->getTranslation('title', app()->getLocale()))
+                            ->formatStateUsing(fn ($record) => self::extractTranslation($record->listing?->getTranslation('title', app()->getLocale()), 'Untitled'))
                             ->disabled(),
                     ])
                     ->columns(2),
@@ -130,9 +132,9 @@ class BookingResource extends Resource
 
                 Tables\Columns\TextColumn::make('listing.title')
                     ->label('Listing')
-                    ->formatStateUsing(fn ($record) => $record->listing?->getTranslation('title', app()->getLocale()))
+                    ->formatStateUsing(fn ($record) => self::extractTranslation($record->listing?->getTranslation('title', app()->getLocale()), 'Untitled'))
                     ->limit(25)
-                    ->tooltip(fn ($record) => $record->listing?->getTranslation('title', app()->getLocale())),
+                    ->tooltip(fn ($record) => self::extractTranslation($record->listing?->getTranslation('title', app()->getLocale()), 'Untitled')),
 
                 Tables\Columns\TextColumn::make('user.display_name')
                     ->label('Traveler')
@@ -185,7 +187,7 @@ class BookingResource extends Resource
                             ->where('vendor_id', auth()->id())
                             ->orderBy('slug')
                             ->get()
-                            ->mapWithKeys(fn ($listing) => [$listing->id => $listing->getTranslation('title', app()->getLocale())])
+                            ->mapWithKeys(fn ($listing) => [$listing->id => self::extractTranslation($listing->getTranslation('title', app()->getLocale()), 'Untitled')])
                     )
                     ->searchable(),
 

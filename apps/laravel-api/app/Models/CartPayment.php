@@ -54,6 +54,7 @@ class CartPayment extends Model
     public function bookings(): BelongsToMany
     {
         return $this->belongsToMany(Booking::class, 'cart_payment_bookings')
+            ->using(CartPaymentBooking::class)
             ->withPivot('amount')
             ->withTimestamps();
     }

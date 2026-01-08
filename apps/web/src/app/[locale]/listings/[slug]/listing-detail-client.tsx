@@ -780,15 +780,17 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
               {/* Main Content Sections */}
               <div className="border-t border-neutral-200 pt-12 mt-8">
                 <div className="space-y-16">
-                  {/* Description Section */}
-                  <section>
-                    <h2 className="font-display text-4xl font-bold text-heading mb-6 tracking-tight">
-                      About This Experience
-                    </h2>
-                    <p className="font-sans text-lg text-neutral-700 leading-relaxed whitespace-pre-line">
-                      {description}
-                    </p>
-                  </section>
+                  {/* Description Section - only show if description exists */}
+                  {description && description.trim() !== '' && (
+                    <section>
+                      <h2 className="font-display text-4xl font-bold text-heading mb-6 tracking-tight">
+                        About This Experience
+                      </h2>
+                      <p className="font-sans text-lg text-neutral-700 leading-relaxed whitespace-pre-line">
+                        {description}
+                      </p>
+                    </section>
+                  )}
 
                   {/* Highlights */}
                   {listing.highlights && listing.highlights.length > 0 && (
@@ -812,7 +814,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   )}
 
                   {/* Itinerary & Map Section */}
-                  {listing.itinerary && listing.itinerary.length > 0 && (
+                  {'itinerary' in listing && listing.itinerary && listing.itinerary.length > 0 && (
                     <section>
                       <h2 className="font-display text-3xl font-bold text-heading mb-6 tracking-tight">
                         Route & Itinerary
@@ -820,82 +822,101 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
 
                       {/* Tabs */}
                       <RouteItineraryTabs
-                        itinerary={listing.itinerary.map((stop: any, index: number) => ({
-                          id: stop.id || index.toString(),
-                          listingId: listing.id,
-                          order: index,
-                          title: stop.title,
-                          description: stop.description,
-                          durationMinutes: stop.durationMinutes || stop.duration || null,
-                          stopType:
-                            index === 0
-                              ? 'start'
-                              : index === listing.itinerary.length - 1
-                                ? 'end'
-                                : 'stop',
-                          lat: stop.lat || stop.coordinates?.lat || 0,
-                          lng: stop.lng || stop.coordinates?.lng || 0,
-                          elevationMeters:
-                            stop.elevationMeters || stop.coordinates?.elevation || null,
-                          photos: stop.photos || [],
-                        }))}
-                        center={[
-                          listing.itinerary[0]?.lat ||
-                            listing.itinerary[0]?.coordinates?.lat ||
-                            36.8,
-                          listing.itinerary[0]?.lng ||
-                            listing.itinerary[0]?.coordinates?.lng ||
-                            10.2,
-                        ]}
+                        itinerary={(listing.itinerary as any[]).map((stop: any, index: number) => {
+                          // GeoJSON coordinates are [lng, lat]
+                          const coords = stop.coordinates?.coordinates;
+                          const lat = stop.lat || (coords ? coords[1] : 0);
+                          const lng = stop.lng || (coords ? coords[0] : 0);
+                          return {
+                            id: stop.id || index.toString(),
+                            listingId: listing.id,
+                            order: index,
+                            title: stop.title,
+                            description: stop.description,
+                            durationMinutes: stop.durationMinutes || stop.duration || null,
+                            stopType:
+                              index === 0
+                                ? 'start'
+                                : index === (listing.itinerary as any[]).length - 1
+                                  ? 'end'
+                                  : 'waypoint',
+                            lat,
+                            lng,
+                            elevationMeters: stop.elevationMeters || null,
+                            photos: stop.photos || [],
+                          };
+                        })}
+                        center={(() => {
+                          const firstStop = (listing.itinerary as any[])[0];
+                          const coords = firstStop?.coordinates?.coordinates;
+                          return [
+                            firstStop?.lat || (coords ? coords[1] : 36.8),
+                            firstStop?.lng || (coords ? coords[0] : 10.2),
+                          ] as [number, number];
+                        })()}
                         title={title}
                         imageUrl={listing.media?.[0]?.url}
                         locale={locale}
                       />
 
                       {/* Elevation Profile */}
-                      {listing.hasElevationProfile &&
-                        listing.itinerary.some((stop: any) => stop.coordinates?.elevation) && (
+                      {'hasElevationProfile' in listing &&
+                        listing.hasElevationProfile &&
+                        (listing.itinerary as any[]).some((stop: any) => stop.elevationMeters) && (
                           <div className="mt-8">
                             <ElevationProfile
-                              checkpoints={listing.itinerary.map((stop: any) => ({
-                                id: stop.order.toString(),
-                                listingId: listing.id,
-                                order: stop.order,
-                                title: stop.title,
-                                description: stop.description,
-                                durationMinutes: stop.duration,
-                                stopType:
-                                  stop.order === 0
-                                    ? 'start'
-                                    : stop.order === listing.itinerary.length - 1
-                                      ? 'end'
-                                      : 'stop',
-                                lat: stop.coordinates?.lat || 0,
-                                lng: stop.coordinates?.lng || 0,
-                                elevationMeters: stop.coordinates?.elevation || null,
-                                photos: [],
-                              }))}
+                              checkpoints={(listing.itinerary as any[]).map(
+                                (stop: any, index: number) => {
+                                  const coords = stop.coordinates?.coordinates;
+                                  const lat = stop.lat || (coords ? coords[1] : 0);
+                                  const lng = stop.lng || (coords ? coords[0] : 0);
+                                  return {
+                                    id: (stop.order ?? index).toString(),
+                                    listingId: listing.id,
+                                    order: stop.order ?? index,
+                                    title: stop.title,
+                                    description: stop.description,
+                                    durationMinutes: stop.duration,
+                                    stopType:
+                                      (stop.order ?? index) === 0
+                                        ? 'start'
+                                        : (stop.order ?? index) ===
+                                            (listing.itinerary as any[]).length - 1
+                                          ? 'end'
+                                          : 'waypoint',
+                                    lat,
+                                    lng,
+                                    elevationMeters: stop.elevationMeters || null,
+                                    photos: [],
+                                  };
+                                }
+                              )}
                               locale={locale}
                               profile={(() => {
+                                const itineraryArr = listing.itinerary as any[];
+                                // Helper to get lat/lng from GeoJSON or direct props
+                                const getCoords = (stop: any) => {
+                                  const coords = stop.coordinates?.coordinates;
+                                  return {
+                                    lat: stop.lat || (coords ? coords[1] : 0),
+                                    lng: stop.lng || (coords ? coords[0] : 0),
+                                  };
+                                };
                                 // Calculate elevation profile from itinerary
-                                const points = listing.itinerary.map((stop: any, index: number) => {
+                                const points = itineraryArr.map((stop: any, index: number) => {
                                   let distance = 0;
                                   if (index > 0) {
                                     // Calculate cumulative distance using Haversine formula
                                     for (let i = 1; i <= index; i++) {
-                                      const prev = listing.itinerary[i - 1];
-                                      const curr = listing.itinerary[i];
+                                      const prev = getCoords(itineraryArr[i - 1]);
+                                      const curr = getCoords(itineraryArr[i]);
                                       const R = 6371000; // Earth's radius in meters
-                                      const dLat =
-                                        ((curr.coordinates.lat - prev.coordinates.lat) * Math.PI) /
-                                        180;
-                                      const dLon =
-                                        ((curr.coordinates.lng - prev.coordinates.lng) * Math.PI) /
-                                        180;
+                                      const dLat = ((curr.lat - prev.lat) * Math.PI) / 180;
+                                      const dLon = ((curr.lng - prev.lng) * Math.PI) / 180;
                                       const a =
                                         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                                        Math.cos((prev.coordinates.lat * Math.PI) / 180) *
-                                          Math.cos((curr.coordinates.lat * Math.PI) / 180) *
+                                        Math.cos((prev.lat * Math.PI) / 180) *
+                                          Math.cos((curr.lat * Math.PI) / 180) *
                                           Math.sin(dLon / 2) *
                                           Math.sin(dLon / 2);
                                       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
@@ -904,7 +925,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                                   }
                                   return {
                                     distance,
-                                    elevation: stop.coordinates?.elevation || 0,
+                                    elevation: stop.elevationMeters || 0,
                                   };
                                 });
 
@@ -925,7 +946,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                                   totalDescent,
                                   maxElevation: Math.max(...elevations),
                                   minElevation: Math.min(...elevations),
-                                  totalDistance: points[points.length - 1].distance,
+                                  totalDistance: points[points.length - 1]?.distance || 0,
                                 };
                               })()}
                             />

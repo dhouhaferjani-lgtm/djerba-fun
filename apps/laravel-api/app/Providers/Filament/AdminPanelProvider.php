@@ -60,6 +60,8 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
             ])
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->plugins([
                 FlexibleContentBlockPagesPlugin::make(),
                 SpatieLaravelTranslatablePlugin::make()

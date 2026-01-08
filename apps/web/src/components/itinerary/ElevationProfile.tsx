@@ -71,18 +71,28 @@ export default function ElevationProfile({
   };
 
   // Get checkpoint info
-  const getCheckpointInfo = (index: number) => {
+  const getCheckpointInfo = (
+    index: number
+  ): { title: string; description: string | null; checkpoint: ItineraryStop } | null => {
     const checkpoint = checkpoints[index];
     if (!checkpoint) return null;
 
     const title =
       typeof checkpoint.title === 'string'
         ? checkpoint.title
-        : checkpoint.title[locale] || checkpoint.title.en;
+        : String(
+            (checkpoint.title as Record<string, string>)[locale] ||
+              (checkpoint.title as Record<string, string>).en ||
+              ''
+          );
     const description = checkpoint.description
       ? typeof checkpoint.description === 'string'
         ? checkpoint.description
-        : checkpoint.description[locale] || checkpoint.description.en
+        : String(
+            (checkpoint.description as Record<string, string>)[locale] ||
+              (checkpoint.description as Record<string, string>).en ||
+              ''
+          )
       : null;
 
     return { title, description, checkpoint };

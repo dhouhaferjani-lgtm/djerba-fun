@@ -130,8 +130,8 @@ class ListingController extends Controller
         // Sorting
         $sortBy = $request->get('sort', 'popularity');
         match ($sortBy) {
-            'price_asc' => $query->orderByRaw("(pricing->>'base')::integer ASC"),
-            'price_desc' => $query->orderByRaw("(pricing->>'base')::integer DESC"),
+            'price_asc' => $query->orderByRaw("(pricing->>'tnd_price')::numeric ASC NULLS LAST"),
+            'price_desc' => $query->orderByRaw("(pricing->>'tnd_price')::numeric DESC NULLS LAST"),
             'rating' => $query->orderBy('rating', 'desc'),
             'newest' => $query->orderBy('published_at', 'desc'),
             default => $query->orderBy('bookings_count', 'desc'),
@@ -173,7 +173,7 @@ class ListingController extends Controller
         $cachedListing = cache()->remember($cacheKey, $cacheTtl, function () use ($listing) {
             return $listing->load([
                 'vendor:id,uuid',
-                'location:id,uuid,name,slug,city,state,country,latitude,longitude',
+                'location:id,uuid,name,slug,city,country,latitude,longitude',
                 'media:id,uuid,url,thumbnail_url,alt,type,order,category',
                 'faqs:id,listing_id,question,answer,order'
             ]);

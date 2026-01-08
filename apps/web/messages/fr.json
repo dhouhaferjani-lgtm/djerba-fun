@@ -103,6 +103,7 @@
     "difficulty": "Difficulté",
     "group_size": "Taille du Groupe",
     "check_availability": "Vérifier la Disponibilité",
+    "pricing_not_configured": "Tarification pas encore configurée",
     "trust_signals": {
       "instant_confirmation": "Confirmation instantanée",
       "mobile_ticket": "Billet mobile accepté",

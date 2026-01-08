@@ -2,16 +2,11 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { getTranslations } from 'next-intl/server';
-import dynamic from 'next/dynamic';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { ListingCard } from '@/components/molecules/ListingCard';
+import { DestinationMapSection } from '@/components/maps/DestinationMapSection';
 import type { Locale } from '@/i18n/routing';
 import type { ListingSummary } from '@go-adventure/schemas';
-
-const SearchMap = dynamic(() => import('@/components/maps/SearchMap'), {
-  ssr: false,
-  loading: () => <div className="h-[500px] bg-neutral-100 animate-pulse rounded-lg" />,
-});
 
 interface Location {
   id: string;
@@ -158,20 +153,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
 
       {/* Map Section */}
       {listings.length > 0 && center && (
-        <section className="py-8 bg-neutral-light">
-          <div className="container mx-auto px-4">
-            <h2 className="text-2xl font-bold mb-6">Explore on Map</h2>
-            <div className="h-[500px] rounded-lg overflow-hidden shadow-lg">
-              <SearchMap
-                listings={listings}
-                locale={locale as Locale}
-                center={center}
-                zoom={11}
-                className="h-full"
-              />
-            </div>
-          </div>
-        </section>
+        <DestinationMapSection listings={listings} locale={locale as Locale} center={center} />
       )}
 
       {/* Listings Section */}

@@ -29,7 +29,7 @@ export default function EmailVerifiedPage() {
   const { data: claimableData, isLoading: bookingsLoading } = useClaimableBookings();
   const linkBookingsMutation = useLinkBookings();
 
-  const claimableBookings = claimableData?.data || [];
+  const claimableBookings = claimableData || [];
   const hasClaimableBookings = claimableBookings.length > 0;
 
   // Auto-select all bookings by default

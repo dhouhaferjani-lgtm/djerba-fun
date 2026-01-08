@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources\BookingResource\Pages;
 
 use App\Filament\Admin\Resources\BookingResource;
+use App\Filament\Concerns\SafeTranslation;
 use Filament\Actions;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
@@ -12,6 +13,8 @@ use Filament\Resources\Pages\ViewRecord;
 
 class ViewBooking extends ViewRecord
 {
+    use SafeTranslation;
+
     protected static string $resource = BookingResource::class;
 
     protected function getHeaderActions(): array
@@ -45,7 +48,7 @@ class ViewBooking extends ViewRecord
 
                         Infolists\Components\TextEntry::make('listing.title')
                             ->label('Listing')
-                            ->formatStateUsing(fn ($record) => $record->listing?->getTranslation('title', app()->getLocale())),
+                            ->formatStateUsing(fn ($record) => $this->safeTranslation($record->listing?->getTranslation('title', app()->getLocale()), 'Untitled')),
 
                         Infolists\Components\TextEntry::make('availabilitySlot.start_time')
                             ->label('Date & Time')

@@ -18,6 +18,11 @@ export function resolveTranslation(
     return field;
   }
 
+  // Handle empty arrays (from corrupted data)
+  if (Array.isArray(field) && field.length === 0) {
+    return '';
+  }
+
   // If it's an object, try to get the translation for the current locale
   if (typeof field === 'object') {
     return field[locale] || field[fallbackLocale] || Object.values(field)[0] || '';
