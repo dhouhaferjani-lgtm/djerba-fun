@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\AvailabilityRuleType;
+use App\Jobs\CalculateAvailabilityJob;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +13,27 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class AvailabilityRule extends Model
 {
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        // Generate availability slots when a rule is created or updated
+        static::saved(function (AvailabilityRule $rule) {
+            if ($rule->is_active && $rule->listing) {
+                // Generate slots for the next 90 days
+                $startDate = Carbon::today();
+                $endDate = Carbon::today()->addDays(90);
+
+                // Run the job synchronously so slots are available immediately
+                CalculateAvailabilityJob::dispatchSync($rule->listing, $startDate, $endDate);
+            }
+        });
+
+        // Clean up slots when a rule is deleted
+        static::deleted(function (AvailabilityRule $rule) {
+            // Delete slots associated with this rule
+            $rule->slots()->delete();
+        });
+    }
 
     /**
      * The attributes that are mass assignable.

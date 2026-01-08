@@ -51,41 +51,37 @@ class CreateListing extends CreateRecord
             return;
         }
 
-        // Generate slug if missing
-        if (empty($data['slug']) && ! empty($data['title']['en'])) {
-            $data['slug'] = Str::slug($data['title']['en']) . '-' . Str::random(6);
-        } elseif (empty($data['slug'])) {
-            $data['slug'] = 'draft-' . Str::random(10);
-        }
-
-        // Set defaults for required fields if empty
-        $data['title'] = $data['title'] ?? ['en' => 'Untitled Draft'];
-        $data['summary'] = $data['summary'] ?? ['en' => ''];
-        $data['description'] = $data['description'] ?? ['en' => ''];
-        $data['vendor_id'] = auth()->id();
-        $data['status'] = ListingStatus::DRAFT->value;
-
         // Ensure location_id is null if not set (not 0 or empty string)
         if (empty($data['location_id'])) {
             $data['location_id'] = null;
         }
 
-        // Set default pricing if empty
-        if (empty($data['pricing']['base']) && empty($data['pricing']['tnd_price'])) {
-            $data['pricing'] = [
-                'base' => 0,
-                'currency' => 'TND',
-                'tnd_price' => null,
-                'eur_price' => null,
-            ];
+        // Use the same mutation logic as normal create
+        $data = $this->mutateFormDataBeforeCreate($data);
+
+        // Set default title if still empty after mutation
+        if (empty($data['title']) || $data['title'] === []) {
+            // Get active locale for the default title
+            $activeLocale = $this->getActiveFormsLocale() ?? 'en';
+            $data['title'] = [$activeLocale => 'Untitled Draft'];
         }
 
-        // Set default group sizes if empty
-        $data['min_group_size'] = $data['min_group_size'] ?? 1;
-        $data['max_group_size'] = $data['max_group_size'] ?? 10;
-
-        // Clean up the data
-        $data = $this->mutateFormDataBeforeCreate($data);
+        // Ensure title is properly formatted (not double-nested)
+        if (is_array($data['title'])) {
+            $cleaned = [];
+            foreach (['en', 'fr'] as $locale) {
+                if (isset($data['title'][$locale])) {
+                    $val = $data['title'][$locale];
+                    while (is_array($val)) {
+                        $val = $val[$locale] ?? $val['en'] ?? reset($val) ?: '';
+                    }
+                    if (is_string($val) && $val !== '') {
+                        $cleaned[$locale] = $val;
+                    }
+                }
+            }
+            $data['title'] = $cleaned ?: [$activeLocale => 'Untitled Draft'];
+        }
 
         // Create the listing
         $record = $this->getModel()::create($data);
@@ -104,17 +100,91 @@ class CreateListing extends CreateRecord
         $data['vendor_id'] = auth()->id();
         $data['status'] = ListingStatus::DRAFT->value;
 
-        // Ensure translations are properly formatted
-        if (isset($data['title']) && is_array($data['title'])) {
-            $data['title'] = array_filter($data['title']);
+        // Get the active locale for proper data handling
+        $activeLocale = $this->getActiveFormsLocale() ?? 'en';
+
+        // Fix double-nesting issue: Filament's Translatable concern wraps translatable
+        // fields in locale keys. If the data is ALREADY wrapped (from LocaleSwitcher state),
+        // we need to unwrap it to prevent double-nesting like {"en":{"en":"value"}}.
+        foreach (['title', 'summary', 'description'] as $field) {
+            if (! isset($data[$field])) {
+                $data[$field] = [];
+
+                continue;
+            }
+
+            $value = $data[$field];
+
+            // If empty string or empty array, set to empty array and continue
+            if ($value === '' || $value === []) {
+                $data[$field] = [];
+
+                continue;
+            }
+
+            // If it's a plain string, Filament will wrap it correctly - leave it alone
+            if (is_string($value)) {
+                continue;
+            }
+
+            // If it's an array, we need to check for double-nesting
+            if (is_array($value)) {
+                // Check if this looks like locale-wrapped data: ['en' => ..., 'fr' => ...]
+                $locales = ['en', 'fr'];
+                $hasLocaleKeys = ! empty(array_intersect(array_keys($value), $locales));
+
+                if ($hasLocaleKeys) {
+                    // It's already locale-wrapped. Check each locale value for double-nesting.
+                    foreach ($locales as $locale) {
+                        if (isset($value[$locale])) {
+                            $localeValue = $value[$locale];
+                            // Unwrap if the locale value is ALSO an array with locale keys
+                            // This handles {"en": {"en": "actual value"}}
+                            while (is_array($localeValue)) {
+                                // Get the first value from the nested array
+                                $extracted = $localeValue[$locale] ?? $localeValue['en'] ?? reset($localeValue);
+                                if ($extracted === false || $extracted === $localeValue) {
+                                    break; // Can't extract further
+                                }
+                                $localeValue = $extracted;
+                            }
+                            $value[$locale] = is_string($localeValue) ? $localeValue : '';
+                        }
+                    }
+                    // Filter out empty locale values
+                    $data[$field] = array_filter($value, fn ($v) => is_string($v) && $v !== '');
+                } else {
+                    // Not locale-wrapped, might be malformed - try to extract any string
+                    $extracted = $this->extractStringFromNested($value);
+                    $data[$field] = $extracted !== '' ? [$activeLocale => $extracted] : [];
+                }
+            }
         }
 
-        if (isset($data['summary']) && is_array($data['summary'])) {
-            $data['summary'] = array_filter($data['summary']);
-        }
+        // Set defaults for NOT NULL JSON columns that might be empty
+        $data['highlights'] = $data['highlights'] ?? [];
+        $data['included'] = $data['included'] ?? [];
+        $data['not_included'] = $data['not_included'] ?? [];
+        $data['requirements'] = $data['requirements'] ?? [];
+        $data['meeting_point'] = $data['meeting_point'] ?? [];
+        $data['cancellation_policy'] = $data['cancellation_policy'] ?? [];
+        $data['pricing'] = $data['pricing'] ?? [];
 
-        if (isset($data['description']) && is_array($data['description'])) {
-            $data['description'] = array_filter($data['description']);
+        // Set defaults for required numeric fields
+        $data['min_group_size'] = $data['min_group_size'] ?? 1;
+        $data['max_group_size'] = $data['max_group_size'] ?? 10;
+        $data['min_advance_booking_hours'] = $data['min_advance_booking_hours'] ?? 0;
+
+        // Generate slug if missing
+        if (empty($data['slug'])) {
+            $titleForSlug = is_array($data['title'])
+                ? ($data['title']['en'] ?? $data['title']['fr'] ?? reset($data['title']) ?: null)
+                : ($data['title'] ?: null);
+            if ($titleForSlug) {
+                $data['slug'] = Str::slug($titleForSlug) . '-' . Str::random(6);
+            } else {
+                $data['slug'] = 'draft-' . Str::random(10);
+            }
         }
 
         return $data;
@@ -128,6 +198,35 @@ class CreateListing extends CreateRecord
     protected function getCreatedNotificationTitle(): ?string
     {
         return 'Listing created successfully! It is now in Draft status.';
+    }
+
+    /**
+     * Extract a string value from potentially deeply nested arrays.
+     */
+    protected function extractStringFromNested(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_array($value)) {
+            // Try locale keys first
+            foreach (['en', 'fr'] as $locale) {
+                if (isset($value[$locale])) {
+                    $extracted = $this->extractStringFromNested($value[$locale]);
+                    if ($extracted !== '') {
+                        return $extracted;
+                    }
+                }
+            }
+            // Try first value
+            $first = reset($value);
+            if ($first !== false) {
+                return $this->extractStringFromNested($first);
+            }
+        }
+
+        return '';
     }
 
     protected function afterCreate(): void
@@ -167,6 +266,32 @@ class CreateListing extends CreateRecord
                     NotificationAction::make('add_availability')
                         ->label('Add Availability Now')
                         ->url(AvailabilityRuleResource::getUrl('create', ['listing_id' => $this->record->id]))
+                        ->button(),
+                ])
+                ->send();
+        } else {
+            // AUTO-CREATE DEFAULT AVAILABILITY: When no rules provided and not skipping,
+            // create a sensible default rule so the listing has availability immediately.
+            // This ensures new listings always have at least basic availability.
+            AvailabilityRule::create([
+                'listing_id' => $this->record->id,
+                'rule_type' => 'daily',
+                'days_of_week' => null, // daily applies to all days
+                'start_time' => now()->setTime(9, 0, 0),
+                'end_time' => now()->setTime(17, 0, 0),
+                'capacity' => $this->record->max_group_size ?? 10,
+                'is_active' => true,
+            ]);
+
+            Notification::make()
+                ->info()
+                ->title('Default Availability Created')
+                ->body('A default daily schedule (9 AM - 5 PM) has been created. You can customize this in the Availability section.')
+                ->persistent()
+                ->actions([
+                    NotificationAction::make('customize_availability')
+                        ->label('Customize Availability')
+                        ->url(AvailabilityRuleResource::getUrl('index') . '?tableFilters[listing_id][value]=' . $this->record->id)
                         ->button(),
                 ])
                 ->send();
