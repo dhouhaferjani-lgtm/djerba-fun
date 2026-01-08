@@ -126,9 +126,28 @@ class ListingResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->label('Title')
-                    ->formatStateUsing(fn ($record) => $record->getTranslation('title', app()->getLocale()))
+                    ->formatStateUsing(function ($record) {
+                        $title = $record->getTranslation('title', app()->getLocale());
+                        // Handle malformed nested arrays from earlier bug
+                        if (is_array($title)) {
+                            $title = $title[app()->getLocale()] ?? $title['en'] ?? reset($title) ?: 'Untitled';
+                            while (is_array($title)) {
+                                $title = reset($title) ?: 'Untitled';
+                            }
+                        }
+                        return $title ?: 'Untitled';
+                    })
                     ->limit(30)
-                    ->tooltip(fn ($record) => $record->getTranslation('title', app()->getLocale()))
+                    ->tooltip(function ($record) {
+                        $title = $record->getTranslation('title', app()->getLocale());
+                        if (is_array($title)) {
+                            $title = $title[app()->getLocale()] ?? $title['en'] ?? reset($title) ?: 'Untitled';
+                            while (is_array($title)) {
+                                $title = reset($title) ?: 'Untitled';
+                            }
+                        }
+                        return $title ?: 'Untitled';
+                    })
                     ->searchable(false),
 
                 Tables\Columns\TextColumn::make('slug')
@@ -154,7 +173,16 @@ class ListingResource extends Resource
 
                 Tables\Columns\TextColumn::make('location.name')
                     ->label('Location')
-                    ->formatStateUsing(fn ($record) => $record->location?->getTranslation('name', app()->getLocale()))
+                    ->formatStateUsing(function ($record) {
+                        $name = $record->location?->getTranslation('name', app()->getLocale());
+                        if (is_array($name)) {
+                            $name = $name[app()->getLocale()] ?? $name['en'] ?? reset($name) ?: '-';
+                            while (is_array($name)) {
+                                $name = reset($name) ?: '-';
+                            }
+                        }
+                        return $name ?: '-';
+                    })
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('pricing.base')
@@ -223,6 +251,45 @@ class ListingResource extends Resource
                         ->modalHeading('Approve Listing')
                         ->modalDescription('This will publish the listing and make it visible to travelers.')
                         ->action(function (Listing $record) {
+                            // Validate required fields before publishing
+                            $errors = [];
+
+                            // Check title
+                            $title = $record->getTranslation('title', 'en');
+                            if (empty($title) || (is_array($title) && empty(array_filter($title)))) {
+                                $errors[] = 'English title is required';
+                            }
+
+                            // Check summary
+                            $summary = $record->getTranslation('summary', 'en');
+                            if (empty($summary) || (is_array($summary) && empty(array_filter($summary)))) {
+                                $errors[] = 'English summary is required';
+                            }
+
+                            // Check pricing - accept new or old format
+                            $pricing = $record->pricing;
+                            $hasNewFormatPricing = !empty($pricing['person_types']) || !empty($pricing['personTypes']);
+                            $hasOldFormatPricing = !empty($pricing['base_price']) || !empty($pricing['tnd_price']) || !empty($pricing['eur_price']);
+                            if (!$hasNewFormatPricing && !$hasOldFormatPricing) {
+                                $errors[] = 'Pricing information is required';
+                            }
+
+                            // Check location
+                            if (empty($record->location_id)) {
+                                $errors[] = 'Location is required';
+                            }
+
+                            if (!empty($errors)) {
+                                Notification::make()
+                                    ->title('Cannot Publish Listing')
+                                    ->body('Missing required fields: ' . implode(', ', $errors))
+                                    ->danger()
+                                    ->persistent()
+                                    ->send();
+
+                                return;
+                            }
+
                             $record->update([
                                 'status' => ListingStatus::PUBLISHED,
                                 'published_at' => now(),
@@ -312,17 +379,39 @@ class ListingResource extends Resource
                         ->color('success')
                         ->requiresConfirmation()
                         ->action(function ($records) {
-                            $count = 0;
+                            $approved = 0;
+                            $skipped = 0;
 
                             foreach ($records as $record) {
-                                if ($record->status === ListingStatus::PENDING_REVIEW) {
+                                if ($record->status !== ListingStatus::PENDING_REVIEW) {
+                                    continue;
+                                }
+
+                                // Validate required fields
+                                $title = $record->getTranslation('title', 'en');
+                                $summary = $record->getTranslation('summary', 'en');
+                                $hasTitle = !empty($title) && !(is_array($title) && empty(array_filter($title)));
+                                $hasSummary = !empty($summary) && !(is_array($summary) && empty(array_filter($summary)));
+                                $pricing = $record->pricing;
+                                $hasPricing = !empty($pricing['person_types']) || !empty($pricing['personTypes']) ||
+                                              !empty($pricing['base_price']) || !empty($pricing['tnd_price']) || !empty($pricing['eur_price']);
+                                $hasLocation = !empty($record->location_id);
+
+                                if ($hasTitle && $hasSummary && $hasPricing && $hasLocation) {
                                     $record->publish();
-                                    $count++;
+                                    $approved++;
+                                } else {
+                                    $skipped++;
                                 }
                             }
 
+                            $message = "$approved listings approved";
+                            if ($skipped > 0) {
+                                $message .= ", $skipped skipped (incomplete data)";
+                            }
+
                             Notification::make()
-                                ->title("$count listings approved")
+                                ->title($message)
                                 ->success()
                                 ->send();
                         }),

@@ -848,6 +848,8 @@ class ListingResource extends Resource
                                                 ->label('Maximum Group Size')
                                                 ->numeric()
                                                 ->minValue(1)
+                                                ->required()
+                                                ->default(10)
                                                 ->helperText('Required for publishing'),
                                         ]),
 
@@ -1156,11 +1158,9 @@ class ListingResource extends Resource
                                 ))
                                 ->visible(fn ($get) => ! $get('_skip_availability'))
                                 ->dehydrated(false),
-                        ])
-                        ->skippable(),
+                        ]),
                 ])
-                    ->columnSpanFull()
-                    ->skippable(),
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -1170,7 +1170,19 @@ class ListingResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->label('Title')
-                    ->formatStateUsing(fn ($record) => $record->getTranslation('title', app()->getLocale()))
+                    ->formatStateUsing(function ($record) {
+                        $title = $record->getTranslation('title', app()->getLocale());
+                        // Handle malformed nested arrays from earlier bug
+                        if (is_array($title)) {
+                            // Try to extract the string value from nested arrays
+                            $title = $title[app()->getLocale()] ?? $title['en'] ?? reset($title) ?: 'Untitled';
+                            // If still an array, keep drilling down
+                            while (is_array($title)) {
+                                $title = reset($title) ?: 'Untitled';
+                            }
+                        }
+                        return $title ?: 'Untitled';
+                    })
                     ->limit(40)
                     ->searchable(false),
 
@@ -1190,7 +1202,16 @@ class ListingResource extends Resource
 
                 Tables\Columns\TextColumn::make('location.name')
                     ->label('Location')
-                    ->formatStateUsing(fn ($record) => $record->location?->getTranslation('name', app()->getLocale()))
+                    ->formatStateUsing(function ($record) {
+                        $name = $record->location?->getTranslation('name', app()->getLocale());
+                        if (is_array($name)) {
+                            $name = $name[app()->getLocale()] ?? $name['en'] ?? reset($name) ?: '-';
+                            while (is_array($name)) {
+                                $name = reset($name) ?: '-';
+                            }
+                        }
+                        return $name ?: '-';
+                    })
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('pricing.base')

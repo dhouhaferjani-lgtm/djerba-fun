@@ -5,6 +5,9 @@ namespace App\Models;
 use App\Enums\DifficultyLevel;
 use App\Enums\ListingStatus;
 use App\Enums\ServiceType;
+use App\Enums\UserRole;
+use Filament\Notifications\Actions\Action as NotificationAction;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,7 +31,126 @@ class Listing extends Model
                 $listing->uuid = (string) Str::uuid();
             }
         });
+
+        // Validate and set published_at when status changes to PUBLISHED
+        static::updating(function (Listing $listing) {
+            if ($listing->isDirty('status') && $listing->status === ListingStatus::PUBLISHED) {
+                // CRITICAL: Validate required fields before allowing publish
+                $errors = [];
+
+                // Check title - must have at least English translation
+                $title = $listing->getTranslation('title', 'en');
+                if (empty($title) || (is_array($title) && empty(array_filter($title)))) {
+                    $errors[] = 'English title is required';
+                }
+
+                // Check summary
+                $summary = $listing->getTranslation('summary', 'en');
+                if (empty($summary) || (is_array($summary) && empty(array_filter($summary)))) {
+                    $errors[] = 'English summary is required';
+                }
+
+                // Check pricing - must have pricing data (new or old format)
+                $pricing = $listing->pricing;
+                $hasNewFormatPricing = !empty($pricing['person_types']) || !empty($pricing['personTypes']);
+                $hasOldFormatPricing = !empty($pricing['base_price']) || !empty($pricing['tnd_price']) || !empty($pricing['eur_price']);
+                if (!$hasNewFormatPricing && !$hasOldFormatPricing) {
+                    $errors[] = 'Pricing information is required';
+                }
+
+                // Check location
+                if (empty($listing->location_id)) {
+                    $errors[] = 'Location is required';
+                }
+
+                if (!empty($errors)) {
+                    // Try to show Filament notification if in admin context
+                    try {
+                        Notification::make()
+                            ->title('Cannot Publish Listing')
+                            ->body('Missing required fields: ' . implode(', ', $errors))
+                            ->danger()
+                            ->persistent()
+                            ->send();
+                    } catch (\Throwable $e) {
+                        // Not in Filament context, that's OK
+                    }
+
+                    // Also throw exception to prevent save
+                    $validator = \Illuminate\Support\Facades\Validator::make(
+                        ['status' => 'published'],
+                        ['status' => 'in:draft'],
+                        ['status.in' => 'Cannot publish: ' . implode(', ', $errors)]
+                    );
+                    $validator->validate(); // This will throw ValidationException
+                }
+
+                // Set published_at if not already set
+                if (empty($listing->published_at)) {
+                    $listing->published_at = now();
+                }
+            }
+        });
+
+        // Notify admins when a new listing is created
+        static::created(function (Listing $listing) {
+            try {
+                $admins = User::where('role', UserRole::ADMIN)->get();
+                $vendorName = $listing->vendor?->display_name ?? 'Unknown Vendor';
+
+                // Safely get title - handle potential nested arrays from form submission
+                $titleValue = $listing->getTranslation('title', 'en');
+                if (is_array($titleValue)) {
+                    $listingTitle = $titleValue['en'] ?? reset($titleValue) ?: 'Untitled';
+                } else {
+                    $listingTitle = $titleValue ?: 'Untitled';
+                }
+
+                foreach ($admins as $admin) {
+                    Notification::make()
+                        ->title('New Listing Created')
+                        ->icon('heroicon-o-document-plus')
+                        ->body("Vendor \"{$vendorName}\" created a new listing: \"{$listingTitle}\"")
+                        ->actions([
+                            NotificationAction::make('view')
+                                ->label('View Listing')
+                                ->url("/admin/listings/{$listing->id}")
+                                ->button(),
+                        ])
+                        ->sendToDatabase($admin);
+                }
+            } catch (\Throwable $e) {
+                // Don't let notification errors break listing creation
+                \Log::warning('Failed to send new listing notification', ['error' => $e->getMessage()]);
+            }
+        });
     }
+
+    /**
+     * The model's default values for attributes.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'title' => '[]',
+        'summary' => '[]',
+        'description' => '[]',
+        'highlights' => '[]',
+        'included' => '[]',
+        'not_included' => '[]',
+        'requirements' => '[]',
+        'meeting_point' => '[]',
+        'pricing' => '[]',
+        'cancellation_policy' => '[]',
+        'min_group_size' => 1,
+        'max_group_size' => 10,
+        'min_advance_booking_hours' => 0,
+        'bookings_count' => 0,
+        'reviews_count' => 0,
+        'has_elevation_profile' => false,
+        'require_traveler_names' => false,
+        'traveler_names_timing' => 'before_activity',
+    ];
 
     /**
      * The attributes that are mass assignable.

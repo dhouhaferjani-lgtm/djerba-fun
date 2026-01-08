@@ -133,26 +133,125 @@ class EditListing extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        // Ensure nested JSON data is properly structured for the form
+        // Fix any double-nested translations that might exist in the database
+        // This cleans up malformed data before it goes into the form
+        foreach (['title', 'summary', 'description'] as $field) {
+            if (! isset($data[$field]) || ! is_array($data[$field])) {
+                continue;
+            }
+
+            $value = $data[$field];
+            $locales = ['en', 'fr'];
+            $hasLocaleKeys = ! empty(array_intersect(array_keys($value), $locales));
+
+            if ($hasLocaleKeys) {
+                // Check each locale value for nested arrays and flatten them
+                foreach ($locales as $locale) {
+                    if (isset($value[$locale])) {
+                        $localeValue = $value[$locale];
+                        // Unwrap nested arrays
+                        while (is_array($localeValue)) {
+                            $extracted = $localeValue[$locale] ?? $localeValue['en'] ?? reset($localeValue);
+                            if ($extracted === false || $extracted === $localeValue) {
+                                break;
+                            }
+                            $localeValue = $extracted;
+                        }
+                        $data[$field][$locale] = is_string($localeValue) ? $localeValue : '';
+                    }
+                }
+            }
+        }
+
         return $data;
     }
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Ensure translations are properly formatted
-        if (isset($data['title']) && is_array($data['title'])) {
-            $data['title'] = array_filter($data['title']);
-        }
+        // Get the active locale for proper data handling
+        $activeLocale = $this->getActiveFormsLocale() ?? 'en';
 
-        if (isset($data['summary']) && is_array($data['summary'])) {
-            $data['summary'] = array_filter($data['summary']);
-        }
+        // Fix double-nesting issue: Filament's Translatable concern wraps translatable
+        // fields in locale keys. If the data is ALREADY wrapped (from LocaleSwitcher state),
+        // we need to unwrap it to prevent double-nesting like {"en":{"en":"value"}}.
+        foreach (['title', 'summary', 'description'] as $field) {
+            if (! isset($data[$field])) {
+                continue;
+            }
 
-        if (isset($data['description']) && is_array($data['description'])) {
-            $data['description'] = array_filter($data['description']);
+            $value = $data[$field];
+
+            // If empty string or empty array, continue
+            if ($value === '' || $value === []) {
+                continue;
+            }
+
+            // If it's a plain string, leave it alone
+            if (is_string($value)) {
+                continue;
+            }
+
+            // If it's an array, check for double-nesting
+            if (is_array($value)) {
+                $locales = ['en', 'fr'];
+                $hasLocaleKeys = ! empty(array_intersect(array_keys($value), $locales));
+
+                if ($hasLocaleKeys) {
+                    // Check each locale value for double-nesting
+                    foreach ($locales as $locale) {
+                        if (isset($value[$locale])) {
+                            $localeValue = $value[$locale];
+                            // Unwrap if the locale value is ALSO an array
+                            while (is_array($localeValue)) {
+                                $extracted = $localeValue[$locale] ?? $localeValue['en'] ?? reset($localeValue);
+                                if ($extracted === false || $extracted === $localeValue) {
+                                    break;
+                                }
+                                $localeValue = $extracted;
+                            }
+                            $value[$locale] = is_string($localeValue) ? $localeValue : '';
+                        }
+                    }
+                    // Filter out empty locale values
+                    $data[$field] = array_filter($value, fn ($v) => is_string($v) && $v !== '');
+                } else {
+                    // Not locale-wrapped, might be malformed - try to extract any string
+                    $extracted = $this->extractStringFromNested($value);
+                    $data[$field] = $extracted !== '' ? [$activeLocale => $extracted] : [];
+                }
+            }
         }
 
         return $data;
+    }
+
+    /**
+     * Extract a string value from potentially deeply nested arrays.
+     */
+    protected function extractStringFromNested(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_array($value)) {
+            // Try locale keys first
+            foreach (['en', 'fr'] as $locale) {
+                if (isset($value[$locale])) {
+                    $extracted = $this->extractStringFromNested($value[$locale]);
+                    if ($extracted !== '') {
+                        return $extracted;
+                    }
+                }
+            }
+            // Try first value
+            $first = reset($value);
+            if ($first !== false) {
+                return $this->extractStringFromNested($first);
+            }
+        }
+
+        return '';
     }
 
     protected function getRedirectUrl(): string

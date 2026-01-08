@@ -8,6 +8,7 @@ use App\Enums\DifficultyLevel;
 use App\Enums\ListingStatus;
 use App\Enums\ServiceType;
 use App\Filament\Admin\Resources\ListingResource;
+use App\Filament\Concerns\SafeTranslation;
 use Filament\Actions;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
@@ -16,6 +17,8 @@ use Filament\Resources\Pages\ViewRecord;
 
 class ViewListing extends ViewRecord
 {
+    use SafeTranslation;
+
     protected static string $resource = ListingResource::class;
 
     protected function getHeaderActions(): array
@@ -79,7 +82,7 @@ class ViewListing extends ViewRecord
                     ->schema([
                         Infolists\Components\TextEntry::make('title')
                             ->label('Title')
-                            ->formatStateUsing(fn ($record) => $record->getTranslation('title', app()->getLocale())),
+                            ->formatStateUsing(fn ($record) => $this->safeTranslation($record->getTranslation('title', app()->getLocale()), 'Untitled')),
 
                         Infolists\Components\TextEntry::make('service_type')
                             ->label('Type')
@@ -109,7 +112,7 @@ class ViewListing extends ViewRecord
 
                         Infolists\Components\TextEntry::make('location.name')
                             ->label('Location')
-                            ->formatStateUsing(fn ($record) => $record->location?->getTranslation('name', app()->getLocale())),
+                            ->formatStateUsing(fn ($record) => $this->safeTranslation($record->location?->getTranslation('name', app()->getLocale()))),
                     ])
                     ->columns(3),
 
@@ -117,13 +120,13 @@ class ViewListing extends ViewRecord
                     ->schema([
                         Infolists\Components\TextEntry::make('summary')
                             ->label('Summary')
-                            ->formatStateUsing(fn ($record) => $record->getTranslation('summary', app()->getLocale()))
+                            ->formatStateUsing(fn ($record) => $this->safeTranslation($record->getTranslation('summary', app()->getLocale())))
                             ->columnSpanFull(),
 
                         Infolists\Components\TextEntry::make('description')
                             ->label('Description')
                             ->html()
-                            ->formatStateUsing(fn ($record) => $record->getTranslation('description', app()->getLocale()))
+                            ->formatStateUsing(fn ($record) => $this->safeTranslation($record->getTranslation('description', app()->getLocale())))
                             ->columnSpanFull(),
                     ]),
 
