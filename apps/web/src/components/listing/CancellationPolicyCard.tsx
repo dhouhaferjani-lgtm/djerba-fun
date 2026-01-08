@@ -16,6 +16,10 @@ export function CancellationPolicyCard({ policy }: CancellationPolicyCardProps) 
     return null;
   }
 
+  // Handle missing or invalid policy type
+  const validTypes = ['flexible', 'moderate', 'strict', 'non_refundable'];
+  const hasValidType = policy.type && validTypes.includes(policy.type);
+
   // Get variant color based on policy type
   const getPolicyVariant = (type: string) => {
     switch (type) {
@@ -54,12 +58,14 @@ export function CancellationPolicyCard({ policy }: CancellationPolicyCardProps) 
       </div>
 
       <div className="space-y-4">
-        {/* Policy type badge */}
-        <div>
-          <Badge variant={getPolicyVariant(policy.type)} className="text-sm font-semibold">
-            {t(`type.${policy.type}`)}
-          </Badge>
-        </div>
+        {/* Policy type badge - only show if valid type exists */}
+        {hasValidType && (
+          <div>
+            <Badge variant={getPolicyVariant(policy.type!)} className="text-sm font-semibold">
+              {t(`type.${policy.type}`)}
+            </Badge>
+          </div>
+        )}
 
         {/* Description */}
         {policy.description && (

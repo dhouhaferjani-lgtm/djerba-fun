@@ -86,12 +86,16 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
 
           {/* Price */}
           <div className="mt-auto pt-3 border-t border-neutral-100">
-            <PriceDisplay
-              amount={listing.pricing.displayPrice || listing.pricing.tndPrice || 0}
-              currency={listing.pricing.displayCurrency || 'TND'}
-              size="sm"
-              showFrom
-            />
+            {listing.pricing.displayPrice || listing.pricing.tndPrice ? (
+              <PriceDisplay
+                amount={listing.pricing.displayPrice || listing.pricing.tndPrice || 0}
+                currency={listing.pricing.displayCurrency || 'TND'}
+                size="sm"
+                showFrom
+              />
+            ) : (
+              <span className="text-sm text-neutral-500">Price on request</span>
+            )}
           </div>
         </div>
       </Card>

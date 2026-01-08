@@ -124,11 +124,11 @@ export default function AvailabilityCalendar({
   };
 
   const handlePreviousMonth = () => {
-    setCurrentMonth((prev) => subMonths(prev, 1));
+    setCurrentMonth((prev) => (prev ? subMonths(prev, 1) : new Date()));
   };
 
   const handleNextMonth = () => {
-    setCurrentMonth((prev) => addMonths(prev, 1));
+    setCurrentMonth((prev) => (prev ? addMonths(prev, 1) : new Date()));
   };
 
   const handleDayClick = (date: Date) => {
