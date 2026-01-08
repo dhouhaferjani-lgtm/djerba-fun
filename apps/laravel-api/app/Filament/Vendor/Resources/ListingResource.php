@@ -1388,7 +1388,8 @@ class ListingResource extends Resource
                     ->label('Manage Event')
                     ->icon('heroicon-o-calendar-days')
                     ->color('primary')
-                    ->url(function (Listing $record) {
+                    ->action(function (Listing $record) {
+                        // Only check for slots when user clicks, not during table render
                         $slot = $record->availabilitySlots()
                             ->where('start_time', '>=', now())
                             ->orderBy('start_time')
@@ -1401,10 +1402,10 @@ class ListingResource extends Resource
                                 ->warning()
                                 ->send();
 
-                            return null;
+                            return;
                         }
 
-                        return BookingResource::getUrl('manage-event', ['slot' => $slot->id]);
+                        return redirect(BookingResource::getUrl('manage-event', ['slot' => $slot->id]));
                     })
                     ->visible(fn (Listing $record) => $record->isEvent()),
             ])
