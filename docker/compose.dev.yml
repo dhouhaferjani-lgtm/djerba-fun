@@ -117,6 +117,8 @@ services:
       AWS_SECRET_ACCESS_KEY: minio123
       AWS_BUCKET: go-adventure
       AWS_USE_PATH_STYLE_ENDPOINT: 'true'
+      MEDIA_DISK: minio
+      MINIO_PUBLIC_URL: http://localhost:9002/go-adventure
       MAIL_MAILER: smtp
       MAIL_HOST: mailpit
       MAIL_PORT: 1025

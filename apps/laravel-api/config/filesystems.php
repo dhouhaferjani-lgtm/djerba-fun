@@ -60,6 +60,22 @@ return [
             'report' => false,
         ],
 
+        'minio' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+            'bucket' => env('AWS_BUCKET', 'go-adventure'),
+            // URL for public access (browser-accessible)
+            'url' => env('MINIO_PUBLIC_URL', 'http://localhost:9002/go-adventure'),
+            // Endpoint for internal API access (Docker network)
+            'endpoint' => env('AWS_ENDPOINT', 'http://minio:9000'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

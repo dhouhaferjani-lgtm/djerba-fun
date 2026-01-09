@@ -6,6 +6,9 @@ RUN apk add --no-cache \
     git \
     curl \
     libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    libwebp-dev \
     libxml2-dev \
     zip \
     unzip \
@@ -17,7 +20,8 @@ RUN apk add --no-cache \
     $PHPIZE_DEPS
 
 # Install PHP extensions
-RUN docker-php-ext-configure intl \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-configure intl \
     && docker-php-ext-install \
         pdo_pgsql \
         pgsql \
@@ -27,7 +31,9 @@ RUN docker-php-ext-configure intl \
         sockets \
         mbstring \
         zip \
-        bcmath
+        bcmath \
+        gd \
+        exif
 
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
@@ -41,4 +47,9 @@ COPY . .
 
 RUN if [ -f composer.json ]; then composer install --no-scripts; fi
 
+# Copy entrypoint script
+COPY docker/laravel-entrypoint.sh /usr/local/bin/laravel-entrypoint.sh
+RUN chmod +x /usr/local/bin/laravel-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/laravel-entrypoint.sh"]
 CMD ["php", "artisan", "queue:work", "--sleep=3", "--tries=3"]

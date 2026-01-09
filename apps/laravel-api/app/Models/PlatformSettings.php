@@ -272,6 +272,10 @@ class PlatformSettings extends Model implements HasMedia
         $this->addMediaCollection('apple_touch_icon')
             ->singleFile()
             ->acceptsMimeTypes(['image/png']);
+
+        $this->addMediaCollection('hero_banner')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp']);
     }
 
     /**
@@ -377,6 +381,11 @@ class PlatformSettings extends Model implements HasMedia
     public function getAppleTouchIconUrlAttribute(): ?string
     {
         return $this->getFirstMediaUrl('apple_touch_icon') ?: null;
+    }
+
+    public function getHeroBannerUrlAttribute(): ?string
+    {
+        return $this->getFirstMediaUrl('hero_banner') ?: null;
     }
 
     /**

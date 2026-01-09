@@ -49,6 +49,8 @@ class VendorPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
             ])
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->plugins([
                 \Filament\SpatieLaravelTranslatablePlugin::make()
                     ->defaultLocales(['en', 'fr']),

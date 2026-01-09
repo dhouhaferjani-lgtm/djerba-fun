@@ -9,11 +9,15 @@ use App\Enums\ListingStatus;
 use App\Enums\ServiceType;
 use App\Filament\Admin\Resources\ListingResource;
 use App\Filament\Concerns\SafeTranslation;
+use App\Filament\Vendor\Resources\ListingResource as VendorListingResource;
+use App\Mail\ListingPublishFailedMail;
 use Filament\Actions;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
 
 class ViewListing extends ViewRecord
 {
@@ -34,6 +38,23 @@ class ViewListing extends ViewRecord
                 ->modalHeading('Approve Listing')
                 ->modalDescription('This will publish the listing and make it visible to travelers.')
                 ->action(function () {
+                    // Validate required fields before publishing
+                    $errors = $this->validateForPublish();
+
+                    if (! empty($errors)) {
+                        Notification::make()
+                            ->title('Cannot Publish Listing')
+                            ->body('Missing required fields: ' . implode(', ', $errors))
+                            ->danger()
+                            ->persistent()
+                            ->send();
+
+                        // Notify vendor of publish failure
+                        $this->notifyVendorOfPublishFailure($errors);
+
+                        return;
+                    }
+
                     $this->record->update([
                         'status' => ListingStatus::PUBLISHED,
                         'published_at' => now(),
@@ -207,5 +228,94 @@ class ViewListing extends ViewRecord
                     ])
                     ->columns(5),
             ]);
+    }
+
+    /**
+     * Validate listing has all required fields for publishing.
+     *
+     * @return array<string> List of validation errors
+     */
+    protected function validateForPublish(): array
+    {
+        $errors = [];
+
+        // Check English title
+        $title = $this->record->getTranslation('title', 'en');
+        if (empty($title) || (is_array($title) && empty(array_filter($title)))) {
+            $errors[] = 'English title is required';
+        }
+
+        // Check English summary
+        $summary = $this->record->getTranslation('summary', 'en');
+        if (empty($summary) || (is_array($summary) && empty(array_filter($summary)))) {
+            $errors[] = 'English summary is required';
+        }
+
+        // Check pricing
+        $pricing = $this->record->pricing;
+        $hasNewFormatPricing = ! empty($pricing['person_types']) || ! empty($pricing['personTypes']);
+        $hasOldFormatPricing = ! empty($pricing['base_price']) || ! empty($pricing['tnd_price']) || ! empty($pricing['eur_price']);
+        if (! $hasNewFormatPricing && ! $hasOldFormatPricing) {
+            $errors[] = 'Pricing information is required';
+        }
+
+        // Check location
+        if (empty($this->record->location_id)) {
+            $errors[] = 'Location is required';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Notify vendor when their listing cannot be published due to missing fields.
+     * Uses rate limiting to prevent notification spam (max 1 per 5 minutes per listing).
+     *
+     * @param  array<string>  $errors  List of validation errors
+     */
+    protected function notifyVendorOfPublishFailure(array $errors): void
+    {
+        $vendor = $this->record->vendor;
+        if (! $vendor) {
+            return;
+        }
+
+        // Rate limit: max 1 notification per listing per 5 minutes
+        $cacheKey = "listing_publish_failed_notification:{$this->record->id}";
+        if (Cache::has($cacheKey)) {
+            return;
+        }
+
+        // Set cache to prevent spam (5 minutes TTL)
+        Cache::put($cacheKey, true, now()->addMinutes(5));
+
+        $listingTitle = $this->record->getTranslation('title', 'en') ?: 'Untitled Listing';
+        if (is_array($listingTitle)) {
+            $listingTitle = $listingTitle['en'] ?? reset($listingTitle) ?: 'Untitled Listing';
+        }
+
+        // Generate correct vendor panel URL using Filament's URL generator
+        $editUrl = VendorListingResource::getUrl('edit', ['record' => $this->record], panel: 'vendor');
+
+        // Send database notification (appears in vendor panel)
+        Notification::make()
+            ->title('Action Required: Listing Cannot Be Published')
+            ->body("Your listing \"{$listingTitle}\" cannot be published. Missing: " . implode(', ', $errors))
+            ->warning()
+            ->actions([
+                \Filament\Notifications\Actions\Action::make('edit')
+                    ->label('Edit Listing')
+                    ->url($editUrl)
+                    ->button(),
+            ])
+            ->sendToDatabase($vendor);
+
+        // Send email notification as backup (pass edit URL for consistency)
+        Mail::to($vendor->email)->queue(new ListingPublishFailedMail(
+            $this->record,
+            $vendor,
+            $errors,
+            $editUrl
+        ));
     }
 }

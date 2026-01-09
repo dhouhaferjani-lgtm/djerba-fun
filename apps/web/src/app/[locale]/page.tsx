@@ -10,24 +10,22 @@ import { CTASectionWithBlobs } from '@/components/home/CTASectionWithBlobs';
 import { BlogSection } from '@/components/home';
 import { BlockRenderer } from '@/components/cms';
 import { getPageByCode } from '@/lib/api/cms';
+import { getBrandingUrls } from '@/lib/api/server';
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // Try to fetch CMS content for middle sections
-  let cmsPage = null;
-  try {
-    cmsPage = await getPageByCode({ code: 'HOME', locale });
-  } catch (error) {
-    // CMS page doesn't exist yet, will use hardcoded sections
-    console.log('No HOME page in CMS, using hardcoded sections');
-  }
+  // Fetch branding (includes hero banner) and CMS content in parallel
+  const [branding, cmsPage] = await Promise.all([
+    getBrandingUrls(locale),
+    getPageByCode({ code: 'HOME', locale }).catch(() => null),
+  ]);
 
   return (
     <MainLayout locale={locale}>
       {/* Always show hardcoded Hero and Marketing Mosaic */}
-      <HeroSection locale={locale} />
+      <HeroSection locale={locale} heroBannerUrl={branding.heroBanner} />
       <MarketingMosaicSection />
 
       {/* CMS-managed middle sections OR hardcoded fallback */}

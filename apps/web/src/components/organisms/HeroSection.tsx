@@ -5,23 +5,29 @@ import Image from 'next/image';
 import { Sparkles } from 'lucide-react';
 import { HeroSearchForm } from '../molecules/HeroSearchForm';
 
+// Default hero image (Unsplash) - used when no custom banner is set
+const DEFAULT_HERO_IMAGE = 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=1920';
+
 interface HeroSectionProps {
   locale: string;
+  heroBannerUrl?: string | null;
 }
 
-export function HeroSection({ locale }: HeroSectionProps) {
+export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
   const t = useTranslations('home');
+  const backgroundImage = heroBannerUrl || DEFAULT_HERO_IMAGE;
 
   return (
     <section className="relative h-[85vh] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=1920"
-          alt="Sahara Desert Adventure"
+          src={backgroundImage}
+          alt="Hero Banner"
           fill
           className="object-cover"
           priority
+          unoptimized={backgroundImage.startsWith('http://localhost')}
         />
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-transparent opacity-90" />

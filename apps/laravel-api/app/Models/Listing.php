@@ -260,6 +260,22 @@ class Listing extends Model
     }
 
     /**
+     * Resolve the route binding, accepting both slug and ID for backward compatibility.
+     */
+    public function resolveRouteBinding($value, $field = null): ?self
+    {
+        // First try by slug (preferred)
+        $listing = $this->where('slug', $value)->first();
+
+        // If not found by slug, try by ID (for backward compatibility)
+        if (! $listing && is_numeric($value)) {
+            $listing = $this->find($value);
+        }
+
+        return $listing;
+    }
+
+    /**
      * Get the vendor that owns the listing.
      */
     public function vendor(): BelongsTo

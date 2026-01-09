@@ -6,6 +6,9 @@ RUN apk add --no-cache \
     git \
     curl \
     libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    libwebp-dev \
     libxml2-dev \
     zip \
     unzip \
@@ -17,7 +20,8 @@ RUN apk add --no-cache \
     $PHPIZE_DEPS
 
 # Install PHP extensions
-RUN docker-php-ext-configure intl \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-configure intl \
     && docker-php-ext-install \
         pdo_pgsql \
         pgsql \
@@ -27,7 +31,9 @@ RUN docker-php-ext-configure intl \
         sockets \
         mbstring \
         zip \
-        bcmath
+        bcmath \
+        gd \
+        exif
 
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
@@ -49,10 +55,20 @@ RUN echo "xdebug.mode=develop,debug" >> /usr/local/etc/php/conf.d/docker-php-ext
 
 COPY . .
 
+# Configure PHP upload limits
+RUN echo "upload_max_filesize = 20M" >> /usr/local/etc/php/conf.d/99-uploads.ini \
+    && echo "post_max_size = 25M" >> /usr/local/etc/php/conf.d/99-uploads.ini \
+    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/99-uploads.ini
+
 RUN if [ -f composer.json ]; then composer install --no-scripts; fi
+
+# Copy entrypoint script
+COPY docker/laravel-entrypoint.sh /usr/local/bin/laravel-entrypoint.sh
+RUN chmod +x /usr/local/bin/laravel-entrypoint.sh
 
 EXPOSE 8000
 
+ENTRYPOINT ["/usr/local/bin/laravel-entrypoint.sh"]
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
 
 # Production stage
@@ -62,10 +78,15 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
+# Copy entrypoint script
+COPY docker/laravel-entrypoint.sh /usr/local/bin/laravel-entrypoint.sh
+RUN chmod +x /usr/local/bin/laravel-entrypoint.sh
+
 RUN php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache
 
 EXPOSE 8000
 
+ENTRYPOINT ["/usr/local/bin/laravel-entrypoint.sh"]
 CMD ["php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=8000"]

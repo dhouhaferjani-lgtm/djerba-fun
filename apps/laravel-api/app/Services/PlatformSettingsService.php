@@ -70,6 +70,7 @@ class PlatformSettingsService
                 'favicon' => $s->favicon_url,
                 'ogImage' => $s->og_image_url,
                 'appleTouchIcon' => $s->apple_touch_icon_url,
+                'heroBanner' => $s->hero_banner_url,
             ],
             'seo' => [
                 'metaTitle' => $s->getTranslation('meta_title', $locale),

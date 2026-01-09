@@ -33,10 +33,17 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public ?array $data = [];
 
+    protected ?PlatformSettings $record = null;
+
     public function mount(): void
     {
-        $settings = PlatformSettings::instance();
-        $this->form->fill($settings->toArray());
+        $this->record = PlatformSettings::instance();
+        $this->form->fill($this->record->toArray());
+    }
+
+    public function getRecord(): PlatformSettings
+    {
+        return $this->record ??= PlatformSettings::instance();
     }
 
     public function form(Form $form): Form
@@ -150,12 +157,14 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('logo_light')
                             ->collection('logo_light')
+                            ->model(fn () => $this->getRecord())
                             ->label('Logo (Light Mode)')
                             ->image()
                             ->maxSize(2048)
                             ->helperText('Used on light backgrounds'),
                         Forms\Components\SpatieMediaLibraryFileUpload::make('logo_dark')
                             ->collection('logo_dark')
+                            ->model(fn () => $this->getRecord())
                             ->label('Logo (Dark Mode)')
                             ->image()
                             ->maxSize(2048)
@@ -168,12 +177,14 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('favicon')
                             ->collection('favicon')
+                            ->model(fn () => $this->getRecord())
                             ->label('Favicon')
                             ->image()
                             ->maxSize(512)
                             ->helperText('Recommended: 32x32 or 16x16 PNG/ICO'),
                         Forms\Components\SpatieMediaLibraryFileUpload::make('apple_touch_icon')
                             ->collection('apple_touch_icon')
+                            ->model(fn () => $this->getRecord())
                             ->label('Apple Touch Icon')
                             ->image()
                             ->maxSize(1024)
@@ -186,10 +197,23 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('og_image')
                             ->collection('og_image')
+                            ->model(fn () => $this->getRecord())
                             ->label('OG Image')
                             ->image()
                             ->maxSize(2048)
                             ->helperText('Recommended: 1200x630 PNG/JPG'),
+                    ]),
+
+                Forms\Components\Section::make('Hero Banner')
+                    ->description('Homepage hero section background image')
+                    ->schema([
+                        Forms\Components\SpatieMediaLibraryFileUpload::make('hero_banner')
+                            ->collection('hero_banner')
+                            ->model(fn () => $this->getRecord())
+                            ->label('Hero Banner Image')
+                            ->image()
+                            ->maxSize(10240)
+                            ->helperText('Recommended: 1920x1080 or larger, max 10MB'),
                     ]),
             ]);
     }
@@ -1120,10 +1144,13 @@ class PlatformSettingsPage extends Page implements HasForms
     {
         try {
             $data = $this->form->getState();
-            $settings = PlatformSettings::instance();
+            $settings = $this->getRecord();
 
-            // Handle media separately
-            $settings->fill($data);
+            // Filter out media fields - they are handled automatically by SpatieMediaLibraryFileUpload
+            $mediaFields = ['logo_light', 'logo_dark', 'favicon', 'apple_touch_icon', 'og_image', 'hero_banner'];
+            $filteredData = array_filter($data, fn ($key) => !in_array($key, $mediaFields), ARRAY_FILTER_USE_KEY);
+
+            $settings->fill($filteredData);
             $settings->save();
 
             Notification::make()
