@@ -45,6 +45,26 @@ class ListingResource extends Resource
             ->where('vendor_id', auth()->id());
     }
 
+    /**
+     * Resolve the record route binding, accepting both slug and ID.
+     * This allows notification links with IDs to work alongside slug-based URLs.
+     */
+    public static function resolveRecordRouteBinding(int|string $key): ?\Illuminate\Database\Eloquent\Model
+    {
+        // Build query with vendor ownership filter
+        $query = static::getEloquentQuery();
+
+        // First try by slug (the model's route key)
+        $record = (clone $query)->where('slug', $key)->first();
+
+        // If not found by slug, try by ID (for backward compatibility)
+        if (! $record && is_numeric($key)) {
+            $record = (clone $query)->where('id', $key)->first();
+        }
+
+        return $record;
+    }
+
     public static function getTranslatableLocales(): array
     {
         return ['en', 'fr'];
@@ -81,20 +101,47 @@ class ListingResource extends Resource
                             Forms\Components\TextInput::make('title')
                                 ->label('Title')
                                 ->maxLength(200)
-                                ->live(onBlur: true)
-                                ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-                                    if (! $get('slug') || $get('slug') === Str::slug($get('title') ?? '')) {
-                                        $set('slug', Str::slug($state ?? ''));
+                                ->live(debounce: 500)
+                                ->afterStateUpdated(function (Get $get, Set $set, ?string $state, $record) {
+                                    // Don't auto-update slug for existing listings (preserve SEO)
+                                    if ($record !== null && $record->exists && $record->slug) {
+                                        return;
+                                    }
+
+                                    $currentSlug = $get('slug');
+                                    $newSlug = Str::slug($state ?? '');
+
+                                    // Check if user manually edited the slug
+                                    // by seeing if the current slug differs from what would be auto-generated
+                                    // from the previous title (stored in _auto_slug)
+                                    $autoSlug = $get('_auto_slug');
+
+                                    // If slug is empty, or matches the auto-generated slug, update it
+                                    if (empty($currentSlug) || $currentSlug === $autoSlug) {
+                                        $set('slug', $newSlug);
+                                        $set('_auto_slug', $newSlug);
                                     }
                                 })
                                 ->helperText('Required for publishing')
                                 ->columnSpanFull(),
 
+                            Forms\Components\Hidden::make('_auto_slug')
+                                ->dehydrated(false),
+
                             Forms\Components\TextInput::make('slug')
                                 ->label('URL Slug')
                                 ->unique(Listing::class, 'slug', ignoreRecord: true)
                                 ->maxLength(200)
-                                ->helperText('Auto-generated from English title'),
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                    // When user manually edits slug, clear the auto_slug tracker
+                                    // so we know not to auto-update anymore
+                                    $autoSlug = $get('_auto_slug');
+                                    if ($state !== $autoSlug) {
+                                        $set('_auto_slug', null);
+                                    }
+                                })
+                                ->helperText('Auto-generated from title. Edit to customize.'),
 
                             Forms\Components\Textarea::make('summary')
                                 ->label('Summary')
@@ -892,7 +939,7 @@ class ListingResource extends Resource
                                                     ->columnSpan(1),
                                             ]),
 
-                                            // Pricing (TND/EUR with income parity calculator)
+                                            // Pricing (TND/EUR with real-time income parity calculator)
                                             Forms\Components\Grid::make(2)->schema([
                                                 Forms\Components\TextInput::make('tnd_price')
                                                     ->label('Price in Tunisian Dinar')
@@ -901,11 +948,23 @@ class ListingResource extends Resource
                                                     ->step(0.01)
                                                     ->minValue(0)
                                                     ->required()
-                                                    ->live(onBlur: true)
+                                                    ->live(debounce: 500)
                                                     ->afterStateUpdated(function ($state, $set, $get) {
-                                                        if ($state && ! $get('eur_price')) {
-                                                            $service = app(\App\Services\IncomePricingService::class);
-                                                            $set('eur_price', $service->calculateExpectedPrice((float) $state));
+                                                        if (! $state) {
+                                                            return;
+                                                        }
+
+                                                        $service = app(\App\Services\IncomePricingService::class);
+                                                        $calculatedEur = $service->calculateExpectedPrice((float) $state);
+
+                                                        $currentEur = $get('eur_price');
+                                                        $autoEur = $get('_auto_eur');
+
+                                                        // If EUR is empty, or matches the auto-generated value, update it
+                                                        // This respects manual overrides
+                                                        if (empty($currentEur) || (float) $currentEur === (float) $autoEur) {
+                                                            $set('eur_price', $calculatedEur);
+                                                            $set('_auto_eur', $calculatedEur);
                                                         }
                                                     })
                                                     ->columnSpan(1),
@@ -917,6 +976,14 @@ class ListingResource extends Resource
                                                     ->step(0.01)
                                                     ->minValue(0)
                                                     ->required()
+                                                    ->live(onBlur: true)
+                                                    ->afterStateUpdated(function ($state, $set, $get) {
+                                                        // When user manually edits EUR, clear auto tracker
+                                                        $autoEur = $get('_auto_eur');
+                                                        if ((float) $state !== (float) $autoEur) {
+                                                            $set('_auto_eur', null);
+                                                        }
+                                                    })
                                                     ->suffixAction(
                                                         Forms\Components\Actions\Action::make('calculate_eur')
                                                             ->icon('heroicon-o-calculator')
@@ -928,11 +995,16 @@ class ListingResource extends Resource
                                                                     $service = app(\App\Services\IncomePricingService::class);
                                                                     $suggested = $service->calculateExpectedPrice((float) $tnd);
                                                                     $set('eur_price', $suggested);
+                                                                    $set('_auto_eur', $suggested);
                                                                 }
                                                             })
                                                     )
                                                     ->columnSpan(1),
                                             ]),
+
+                                            // Hidden field to track auto-generated EUR price
+                                            Forms\Components\Hidden::make('_auto_eur')
+                                                ->dehydrated(false),
 
                                             // Age Range + Quantity Constraints
                                             Forms\Components\Grid::make(4)->schema([
