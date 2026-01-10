@@ -24,7 +24,7 @@ export function Footer({ locale }: FooterProps) {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Logo & Description */}
           <div className="lg:col-span-1">
-            <div className="mb-6">
+            <div className="mb-6 ml-2">
               <Logo variant="light" />
             </div>
             <p className="text-neutral-400 leading-relaxed mb-6">{tagline}</p>

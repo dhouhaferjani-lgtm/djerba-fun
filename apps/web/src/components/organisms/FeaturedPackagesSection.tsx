@@ -56,13 +56,13 @@ export function FeaturedPackagesSection() {
               onClick={() => router.push(pkg.link as any)}
             >
               {/* Image with Badge */}
-              <div className="relative h-64 w-full">
+              <div className="relative h-64 w-full overflow-hidden">
                 <Image
                   src={pkg.image}
                   alt={pkg.title}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
-                  className="object-cover"
+                  className="object-cover transition-transform duration-300 group-hover:scale-110"
                 />
                 {/* Badge (Category) on Top-Left */}
                 <div className="absolute top-4 left-4">

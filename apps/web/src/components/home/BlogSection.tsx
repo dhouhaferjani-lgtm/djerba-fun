@@ -91,7 +91,7 @@ export function BlogSection() {
           {blogPosts.map((post) => (
             <article
               key={post.id}
-              className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow group"
+              className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
             >
               <Link href={`/${locale}/blog/${post.slug}` as any}>
                 {/* Image Top - h-48 */}
@@ -100,7 +100,7 @@ export function BlogSection() {
                     src={post.image}
                     alt={post.title}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-cover transition-transform duration-300 group-hover:scale-110"
                   />
                 </div>
               </Link>

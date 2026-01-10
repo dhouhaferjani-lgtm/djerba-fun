@@ -38,9 +38,11 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
 
       {/* Content */}
       <div className="container mx-auto px-4 relative z-10 text-center">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-7xl font-bold text-white mb-6 leading-tight shadow-lg">
-            {t('hero_title')}
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+            {t('hero_title_line1')}
+            <br />
+            <span className="text-secondary">{t('hero_title_line2')}</span>
           </h1>
           <p className="text-xl md:text-2xl text-neutral-200 mb-10 max-w-2xl mx-auto">
             {t('hero_subtitle')}

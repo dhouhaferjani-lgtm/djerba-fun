@@ -26,9 +26,9 @@ export function Logo({ variant = 'light', className = '', showText = false }: Lo
         <Image
           src={logoUrl}
           alt={platformName}
-          width={150}
-          height={40}
-          className="h-10 w-auto object-contain"
+          width={180}
+          height={50}
+          className="h-12 w-auto object-contain"
           priority
           unoptimized={shouldUnoptimizeImage(logoUrl)}
         />
