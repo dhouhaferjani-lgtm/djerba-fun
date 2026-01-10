@@ -1,40 +1,55 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '@/lib/utils/image';
 
-const brandPillars = [
-  {
-    id: 'sustainable',
-    image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800',
-    title: 'Sustainable Travel',
-    description: 'Eco-conscious adventures that protect our planet',
-    bgColor: 'bg-primary/85',
-  },
-  {
-    id: 'authentic',
-    image: 'https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=800',
-    title: 'Authentic Experiences',
-    description: 'Connect with local cultures and traditions',
-    bgColor: 'bg-secondary/85',
-  },
-  {
-    id: 'adventure',
-    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
-    title: 'Epic Adventures',
-    description: 'Unforgettable journeys in breathtaking landscapes',
-    bgColor: 'bg-primary/85',
-  },
-];
+// Default fallback images when CMS images are not uploaded
+const defaultImages = {
+  pillar1: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800',
+  pillar2: 'https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=800',
+  pillar3: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+};
 
-export function MarketingMosaicSection() {
-  const t = useTranslations('home');
+interface MarketingMosaicSectionProps {
+  brandPillar1Url?: string | null;
+  brandPillar2Url?: string | null;
+  brandPillar3Url?: string | null;
+}
+
+export function MarketingMosaicSection({
+  brandPillar1Url,
+  brandPillar2Url,
+  brandPillar3Url,
+}: MarketingMosaicSectionProps) {
+  const brandPillars = [
+    {
+      id: 'sustainable',
+      image: brandPillar1Url || defaultImages.pillar1,
+      title: 'Sustainable Travel',
+      description: 'Eco-conscious adventures that protect our planet',
+      bgColor: 'bg-primary/85',
+    },
+    {
+      id: 'authentic',
+      image: brandPillar2Url || defaultImages.pillar2,
+      title: 'Authentic Experiences',
+      description: 'Connect with local cultures and traditions',
+      bgColor: 'bg-secondary/85',
+    },
+    {
+      id: 'adventure',
+      image: brandPillar3Url || defaultImages.pillar3,
+      title: 'Epic Adventures',
+      description: 'Unforgettable journeys in breathtaking landscapes',
+      bgColor: 'bg-primary/85',
+    },
+  ];
 
   return (
     <section className="py-16 bg-[#f5f0d1] overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-24 py-12">
-          {brandPillars.map((pillar, index) => (
+          {brandPillars.map((pillar) => (
             <div key={pillar.id} className="group relative" style={{ paddingBottom: '100%' }}>
               {/* Main Image Card - Absolute positioned to maintain square */}
               <div className="absolute inset-0 overflow-hidden rounded-lg">
@@ -43,6 +58,7 @@ export function MarketingMosaicSection() {
                   alt={pillar.title}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  unoptimized={shouldUnoptimizeImage(pillar.image)}
                 />
               </div>
 

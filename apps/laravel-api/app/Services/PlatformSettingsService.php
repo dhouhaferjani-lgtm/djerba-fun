@@ -71,6 +71,9 @@ class PlatformSettingsService
                 'ogImage' => $s->og_image_url,
                 'appleTouchIcon' => $s->apple_touch_icon_url,
                 'heroBanner' => $s->hero_banner_url,
+                'brandPillar1' => $s->brand_pillar_1_url,
+                'brandPillar2' => $s->brand_pillar_2_url,
+                'brandPillar3' => $s->brand_pillar_3_url,
             ],
             'seo' => [
                 'metaTitle' => $s->getTranslation('meta_title', $locale),

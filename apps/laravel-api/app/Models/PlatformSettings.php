@@ -276,6 +276,19 @@ class PlatformSettings extends Model implements HasMedia
         $this->addMediaCollection('hero_banner')
             ->singleFile()
             ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp']);
+
+        // Brand Pillar Images (Marketing Mosaic Section)
+        $this->addMediaCollection('brand_pillar_1')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp']);
+
+        $this->addMediaCollection('brand_pillar_2')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp']);
+
+        $this->addMediaCollection('brand_pillar_3')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp']);
     }
 
     /**
@@ -386,6 +399,21 @@ class PlatformSettings extends Model implements HasMedia
     public function getHeroBannerUrlAttribute(): ?string
     {
         return $this->getFirstMediaUrl('hero_banner') ?: null;
+    }
+
+    public function getBrandPillar1UrlAttribute(): ?string
+    {
+        return $this->getFirstMediaUrl('brand_pillar_1') ?: null;
+    }
+
+    public function getBrandPillar2UrlAttribute(): ?string
+    {
+        return $this->getFirstMediaUrl('brand_pillar_2') ?: null;
+    }
+
+    public function getBrandPillar3UrlAttribute(): ?string
+    {
+        return $this->getFirstMediaUrl('brand_pillar_3') ?: null;
     }
 
     /**

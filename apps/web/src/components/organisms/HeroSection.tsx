@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { Sparkles } from 'lucide-react';
 import { HeroSearchForm } from '../molecules/HeroSearchForm';
+import { shouldUnoptimizeImage } from '@/lib/utils/image';
 
 // Default hero image (Unsplash) - used when no custom banner is set
 const DEFAULT_HERO_IMAGE = 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=1920';
@@ -27,7 +28,7 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
           fill
           className="object-cover"
           priority
-          unoptimized={backgroundImage.startsWith('http://localhost')}
+          unoptimized={shouldUnoptimizeImage(backgroundImage)}
         />
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-transparent opacity-90" />

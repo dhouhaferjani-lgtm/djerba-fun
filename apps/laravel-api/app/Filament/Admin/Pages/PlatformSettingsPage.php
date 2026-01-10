@@ -215,6 +215,33 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->maxSize(10240)
                             ->helperText('Recommended: 1920x1080 or larger, max 10MB'),
                     ]),
+
+                Forms\Components\Section::make('Brand Pillar Images')
+                    ->description('Three images displayed in the Marketing Mosaic section below the hero banner. These represent your brand values.')
+                    ->schema([
+                        Forms\Components\SpatieMediaLibraryFileUpload::make('brand_pillar_1')
+                            ->collection('brand_pillar_1')
+                            ->model(fn () => $this->getRecord())
+                            ->label('Pillar 1: Sustainable Travel')
+                            ->image()
+                            ->maxSize(5120)
+                            ->helperText('First card image. Recommended: 800x800 square, max 5MB'),
+                        Forms\Components\SpatieMediaLibraryFileUpload::make('brand_pillar_2')
+                            ->collection('brand_pillar_2')
+                            ->model(fn () => $this->getRecord())
+                            ->label('Pillar 2: Authentic Experiences')
+                            ->image()
+                            ->maxSize(5120)
+                            ->helperText('Second card image. Recommended: 800x800 square, max 5MB'),
+                        Forms\Components\SpatieMediaLibraryFileUpload::make('brand_pillar_3')
+                            ->collection('brand_pillar_3')
+                            ->model(fn () => $this->getRecord())
+                            ->label('Pillar 3: Epic Adventures')
+                            ->image()
+                            ->maxSize(5120)
+                            ->helperText('Third card image. Recommended: 800x800 square, max 5MB'),
+                    ])
+                    ->columns(3),
             ]);
     }
 
@@ -1147,7 +1174,7 @@ class PlatformSettingsPage extends Page implements HasForms
             $settings = $this->getRecord();
 
             // Filter out media fields - they are handled automatically by SpatieMediaLibraryFileUpload
-            $mediaFields = ['logo_light', 'logo_dark', 'favicon', 'apple_touch_icon', 'og_image', 'hero_banner'];
+            $mediaFields = ['logo_light', 'logo_dark', 'favicon', 'apple_touch_icon', 'og_image', 'hero_banner', 'brand_pillar_1', 'brand_pillar_2', 'brand_pillar_3'];
             $filteredData = array_filter($data, fn ($key) => !in_array($key, $mediaFields), ARRAY_FILTER_USE_KEY);
 
             $settings->fill($filteredData);

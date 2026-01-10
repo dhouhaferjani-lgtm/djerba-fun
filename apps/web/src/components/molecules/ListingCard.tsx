@@ -20,6 +20,7 @@ import { Clock, MapPin } from 'lucide-react';
 import type { ListingSummary } from '@go-adventure/schemas';
 import { resolveTranslation } from '@/lib/utils/translate';
 import { getListingUrl } from '@/lib/utils/urls';
+import { shouldUnoptimizeImage } from '@/lib/utils/image';
 import type { Locale } from '@/i18n/routing';
 
 interface ListingCardProps {
@@ -45,6 +46,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               loading="lazy"
+              unoptimized={shouldUnoptimizeImage(mainImage.url)}
             />
           ) : (
             <div className="flex items-center justify-center h-full text-neutral-400">

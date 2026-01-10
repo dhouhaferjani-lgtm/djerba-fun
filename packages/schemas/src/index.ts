@@ -1137,6 +1137,10 @@ export const platformBrandingSchema = z.object({
   favicon: z.string().url().nullable(),
   ogImage: z.string().url().nullable(),
   appleTouchIcon: z.string().url().nullable(),
+  heroBanner: z.string().url().nullable(),
+  brandPillar1: z.string().url().nullable(),
+  brandPillar2: z.string().url().nullable(),
+  brandPillar3: z.string().url().nullable(),
 });
 
 /** SEO metadata */

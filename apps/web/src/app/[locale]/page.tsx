@@ -26,7 +26,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     <MainLayout locale={locale}>
       {/* Always show hardcoded Hero and Marketing Mosaic */}
       <HeroSection locale={locale} heroBannerUrl={branding.heroBanner} />
-      <MarketingMosaicSection />
+      <MarketingMosaicSection
+        brandPillar1Url={branding.brandPillar1}
+        brandPillar2Url={branding.brandPillar2}
+        brandPillar3Url={branding.brandPillar3}
+      />
 
       {/* CMS-managed middle sections OR hardcoded fallback */}
       {cmsPage && cmsPage.content_blocks && cmsPage.content_blocks.length > 0 ? (
