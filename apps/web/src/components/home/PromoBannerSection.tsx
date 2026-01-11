@@ -80,7 +80,7 @@ export function PromoBannerSection({ locale, eventOfYear }: PromoBannerSectionPr
               </div>
 
               {/* Title */}
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white mb-6 leading-tight">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white mb-6 leading-[0.9]">
                 {titleLines.map((line, index) => (
                   <span key={index}>
                     {line}
