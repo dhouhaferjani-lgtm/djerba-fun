@@ -5,6 +5,7 @@ import { shouldUnoptimizeImage } from '@/lib/utils/image';
 
 // CSS for single line sliding around the square perimeter
 const cornerAnimationStyles = `
+  /* Animation 1: Starts from top-left, goes clockwise */
   @keyframes slideLine {
     /* Top edge: slide left to right */
     0% {
@@ -49,8 +50,57 @@ const cornerAnimationStyles = `
     }
   }
 
+  /* Animation 2: Starts from right edge, goes clockwise */
+  @keyframes slideLineFromRight {
+    /* Right edge: slide top to bottom */
+    0% {
+      top: 12px; left: calc(100% - 14px);
+      width: 2px; height: 40px;
+    }
+    20% {
+      top: calc(100% - 52px); left: calc(100% - 14px);
+      width: 2px; height: 40px;
+    }
+    /* Bottom edge: slide right to left */
+    25% {
+      top: calc(100% - 14px); left: calc(100% - 52px);
+      width: 40px; height: 2px;
+    }
+    45% {
+      top: calc(100% - 14px); left: 12px;
+      width: 40px; height: 2px;
+    }
+    /* Left edge: slide bottom to top */
+    50% {
+      top: calc(100% - 52px); left: 12px;
+      width: 2px; height: 40px;
+    }
+    70% {
+      top: 12px; left: 12px;
+      width: 2px; height: 40px;
+    }
+    /* Top edge: slide left to right */
+    75% {
+      top: 12px; left: 12px;
+      width: 40px; height: 2px;
+    }
+    95% {
+      top: 12px; left: calc(100% - 52px);
+      width: 40px; height: 2px;
+    }
+    /* Back to right edge */
+    100% {
+      top: 12px; left: calc(100% - 14px);
+      width: 2px; height: 40px;
+    }
+  }
+
   .snake-line {
     animation: slideLine 6s linear infinite;
+  }
+
+  .snake-line-from-right {
+    animation: slideLineFromRight 6s linear infinite;
   }
 `;
 
@@ -81,6 +131,7 @@ export function MarketingMosaicSection({
       overlayBg: 'rgba(13, 100, 46, 0.9)', // Dark green
       textColor: 'white',
       lineColor: '#8BC34A', // Lime green line
+      lineAnimation: 'snake-line', // Starts from top-left
     },
     {
       id: 'authentic',
@@ -90,6 +141,7 @@ export function MarketingMosaicSection({
       overlayBg: 'rgba(139, 195, 74, 0.9)', // Lime green
       textColor: '#0D642E', // Dark green text
       lineColor: '#0D642E', // Dark green line
+      lineAnimation: 'snake-line-from-right', // Starts from right edge
     },
     {
       id: 'adventure',
@@ -99,6 +151,7 @@ export function MarketingMosaicSection({
       overlayBg: 'rgba(13, 100, 46, 0.9)', // Dark green
       textColor: 'white',
       lineColor: '#8BC34A', // Lime green line
+      lineAnimation: 'snake-line', // Starts from top-left
     },
   ];
 
@@ -175,7 +228,7 @@ export function MarketingMosaicSection({
                 >
                   {/* Single line that slides around the square perimeter */}
                   <div
-                    className="absolute snake-line"
+                    className={`absolute ${pillar.lineAnimation}`}
                     style={{ backgroundColor: pillar.lineColor }}
                   />
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { LatLngTuple } from 'leaflet';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { getListingUrl } from '@/lib/utils/urls';
 import type { Locale } from '@/i18n/routing';
 
@@ -19,6 +20,9 @@ interface MarkerPopupProps {
   location?: string | { name: string };
   locale?: Locale;
   type?: 'listing' | 'poi' | 'start' | 'end' | 'waypoint';
+  // Translation strings passed as props
+  fromLabel?: string;
+  viewDetailsLabel?: string;
 }
 
 export default function MarkerPopup({
@@ -32,8 +36,14 @@ export default function MarkerPopup({
   locale = 'fr',
   type = 'listing',
 }: MarkerPopupProps) {
+  const t = useTranslations('common');
+  const tMap = useTranslations('map');
   const [MarkerComponent, setMarkerComponent] =
     useState<React.ComponentType<MarkerPopupProps> | null>(null);
+
+  // Get translations at top level to pass to dynamic component
+  const fromLabel = t('from');
+  const viewDetailsLabel = tMap('view_details');
 
   useEffect(() => {
     // Lazy load Leaflet components
@@ -107,7 +117,7 @@ export default function MarkerPopup({
               )}
               {props.price && (
                 <div className="mb-2 text-sm font-semibold text-primary">
-                  From {props.price.amount / 100} {props.price.currency}
+                  {props.fromLabel} {props.price.amount / 100} {props.price.currency}
                 </div>
               )}
               {props.slug && props.location && (
@@ -115,7 +125,7 @@ export default function MarkerPopup({
                   href={getListingUrl(props.slug, props.location, props.locale)}
                   className="inline-block rounded bg-primary px-3 py-1 text-sm text-white hover:bg-primary/90"
                 >
-                  View Details
+                  {props.viewDetailsLabel}
                 </a>
               )}
             </div>
@@ -139,7 +149,11 @@ export default function MarkerPopup({
       imageUrl={imageUrl}
       price={price}
       slug={slug}
+      location={location}
+      locale={locale}
       type={type}
+      fromLabel={fromLabel}
+      viewDetailsLabel={viewDetailsLabel}
     />
   );
 }

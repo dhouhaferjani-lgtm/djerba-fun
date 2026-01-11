@@ -47,10 +47,10 @@ export function FeaturedPackagesSection() {
         {/* Header with View All Link */}
         <div className="flex justify-between items-center mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral-900">
-            Upcoming Adventures
+            {t('upcoming_adventures')}
           </h2>
           <Button variant="outline" onClick={() => router.push(`/${locale}/listings` as any)}>
-            View All
+            {t('view_all_adventures')}
           </Button>
         </div>
 
@@ -73,7 +73,11 @@ export function FeaturedPackagesSection() {
                 {/* Badge (Category) on Top-Left */}
                 <div className="absolute top-4 left-4">
                   <div className="bg-primary text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
-                    {index === 0 ? 'Tour' : index === 1 ? 'Event' : 'Adventure'}
+                    {index === 0
+                      ? t('badge_tour')
+                      : index === 1
+                        ? t('badge_event')
+                        : t('badge_adventure')}
                   </div>
                 </div>
               </div>
@@ -89,7 +93,7 @@ export function FeaturedPackagesSection() {
 
                 {/* View Details Link */}
                 <div className="text-primary font-semibold text-sm group-hover:underline">
-                  View Details →
+                  {t('view_details')}
                 </div>
               </div>
             </div>

@@ -7,25 +7,25 @@ import Link from 'next/link';
 const categories = [
   {
     id: 'trail-running',
-    name: 'Trail Running',
+    nameKey: 'trail-running',
     count: 12,
     image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&q=80',
   },
   {
     id: 'hiking',
-    name: 'Hiking & Trekking',
+    nameKey: 'hiking',
     count: 24,
     image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&q=80',
   },
   {
     id: 'cycling',
-    name: 'Cycling Tours',
+    nameKey: 'cycling',
     count: 18,
     image: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=600&q=80',
   },
   {
     id: 'cultural',
-    name: 'Cultural Tours',
+    nameKey: 'cultural',
     count: 32,
     image: 'https://images.unsplash.com/photo-1590492106698-05dc0e19fb26?w=600&q=80',
   },
@@ -37,6 +37,8 @@ interface CategoriesGridSectionProps {
 
 export function CategoriesGridSection({ locale }: CategoriesGridSectionProps) {
   const t = useTranslations('home');
+  const tCategories = useTranslations('categories');
+  const tCommon = useTranslations('common');
 
   return (
     <section className="py-20 bg-white">
@@ -59,7 +61,7 @@ export function CategoriesGridSection({ locale }: CategoriesGridSectionProps) {
               <div className="relative h-48 overflow-hidden">
                 <Image
                   src={category.image}
-                  alt={category.name}
+                  alt={tCategories(category.nameKey)}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover transition-all duration-300 group-hover:scale-110"
@@ -71,10 +73,10 @@ export function CategoriesGridSection({ locale }: CategoriesGridSectionProps) {
               {/* Footer */}
               <div className="bg-cream p-4 text-center">
                 <h3 className="font-display font-bold text-lg text-neutral-900 mb-1">
-                  {category.name}
+                  {tCategories(category.nameKey)}
                 </h3>
                 <p className="text-sm text-neutral-600">
-                  {category.count} {category.count === 1 ? 'Package' : 'Packages'}
+                  {category.count} {category.count === 1 ? tCommon('package') : tCommon('packages')}
                 </p>
               </div>
             </Link>

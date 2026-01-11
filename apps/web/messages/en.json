@@ -74,7 +74,26 @@
     "newsletter_subtitle": "Subscribe to our newsletter for exclusive offers, travel tips, and adventure inspiration",
     "newsletter_placeholder": "Enter your email",
     "newsletter_button": "Subscribe",
-    "newsletter_privacy": "We respect your privacy. Unsubscribe at any time."
+    "newsletter_privacy": "We respect your privacy. Unsubscribe at any time.",
+    "upcoming_adventures": "Upcoming Adventures",
+    "view_all_adventures": "View All",
+    "badge_tour": "Tour",
+    "badge_event": "Event",
+    "badge_adventure": "Adventure",
+    "view_details": "View Details →",
+    "blog_view_all": "View All Posts",
+    "blog_post_1_title": "Top 10 Hidden Gems in Tunisia You Must Visit",
+    "blog_post_1_excerpt": "Discover the lesser-known treasures of Tunisia that most tourists never see. From secret oases to ancient ruins...",
+    "blog_post_1_date": "Dec 10, 2024",
+    "blog_post_1_category": "Travel Guide",
+    "blog_post_2_title": "How to Travel Sustainably in Tunisia",
+    "blog_post_2_excerpt": "Tips and practices for eco-conscious travelers who want to explore Tunisia while protecting its natural beauty...",
+    "blog_post_2_date": "Dec 5, 2024",
+    "blog_post_2_category": "Eco Travel",
+    "blog_post_3_title": "A Food Lover's Guide to Tunisian Cuisine",
+    "blog_post_3_excerpt": "From couscous to brik, discover the rich flavors and culinary traditions that make Tunisian food so special...",
+    "blog_post_3_date": "Nov 28, 2024",
+    "blog_post_3_category": "Food & Culture"
   },
   "experience_types": {
     "cultural": "Cultural Tours",
@@ -679,7 +698,8 @@
     }
   },
   "map": {
-    "loading": "Loading map..."
+    "loading": "Loading map...",
+    "view_details": "View Details"
   },
   "itinerary": {
     "title": "Itinerary",

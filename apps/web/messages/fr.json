@@ -74,7 +74,26 @@
     "newsletter_subtitle": "Recevez des offres exclusives, des conseils de voyage et des inspirations directement dans votre boîte mail.",
     "newsletter_placeholder": "Entrez votre email",
     "newsletter_button": "S'abonner",
-    "newsletter_privacy": "Nous respectons votre vie privée. Désabonnez-vous à tout moment."
+    "newsletter_privacy": "Nous respectons votre vie privée. Désabonnez-vous à tout moment.",
+    "upcoming_adventures": "Prochaines Aventures",
+    "view_all_adventures": "Voir Tout",
+    "badge_tour": "Tour",
+    "badge_event": "Événement",
+    "badge_adventure": "Aventure",
+    "view_details": "Voir les Détails →",
+    "blog_view_all": "Voir Tous les Articles",
+    "blog_post_1_title": "Top 10 des Trésors Cachés de Tunisie à Découvrir",
+    "blog_post_1_excerpt": "Découvrez les trésors méconnus de la Tunisie que la plupart des touristes ne voient jamais. Des oasis secrètes aux ruines antiques...",
+    "blog_post_1_date": "10 Déc 2024",
+    "blog_post_1_category": "Guide de Voyage",
+    "blog_post_2_title": "Comment Voyager de Façon Durable en Tunisie",
+    "blog_post_2_excerpt": "Conseils et pratiques pour les voyageurs éco-responsables qui souhaitent explorer la Tunisie tout en protégeant sa beauté naturelle...",
+    "blog_post_2_date": "5 Déc 2024",
+    "blog_post_2_category": "Voyage Éco",
+    "blog_post_3_title": "Guide Gourmand de la Cuisine Tunisienne",
+    "blog_post_3_excerpt": "Du couscous au brik, découvrez les saveurs riches et les traditions culinaires qui rendent la cuisine tunisienne si spéciale...",
+    "blog_post_3_date": "28 Nov 2024",
+    "blog_post_3_category": "Gastronomie & Culture"
   },
   "experience_types": {
     "cultural": "Tours Culturels",
@@ -654,7 +673,8 @@
     }
   },
   "map": {
-    "loading": "Chargement de la carte..."
+    "loading": "Chargement de la carte...",
+    "view_details": "Voir les Détails"
   },
   "itinerary": {
     "title": "Itinéraire",

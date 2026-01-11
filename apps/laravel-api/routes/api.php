@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\V1\ParticipantController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PlatformSettingsController;
 use App\Http\Controllers\Api\V1\ReviewController;
+use App\Http\Controllers\Api\V1\TravelTipController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\VoucherController;
 use App\Http\Controllers\Api\Vendor\VendorVoucherController;
@@ -85,6 +86,9 @@ Route::prefix('v1')->group(function () {
     // Platform settings routes (public - for frontend configuration)
     Route::get('/platform/settings', [PlatformSettingsController::class, 'index']);
     Route::get('/platform/schema', [PlatformSettingsController::class, 'schema']);
+
+    // Travel tips routes (public - for hero section rotating tips)
+    Route::get('/travel-tips', [TravelTipController::class, 'index']);
 
     // Availability routes (public - anyone can view availability)
     Route::get('/listings/{listing:slug}/availability', [AvailabilityController::class, 'index']);

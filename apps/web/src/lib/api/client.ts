@@ -1219,4 +1219,31 @@ export const userApi = {
   },
 };
 
+// ============================================================================
+// TRAVEL TIPS API
+// ============================================================================
+
+export interface TravelTip {
+  id: number;
+  content: string;
+}
+
+export interface TravelTipsResponse {
+  data: TravelTip[];
+  locale: string;
+}
+
+export const travelTipsApi = {
+  /**
+   * Get all active travel tips
+   */
+  getAll: async (locale: string = 'en'): Promise<TravelTipsResponse> => {
+    return fetchApi<TravelTipsResponse>('/travel-tips', {
+      headers: {
+        'Accept-Language': locale,
+      },
+    });
+  },
+};
+
 export { ApiError };
