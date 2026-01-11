@@ -7,6 +7,9 @@ import MarkerPopup from './MarkerPopup';
 import type { ListingSummary } from '@go-adventure/schemas';
 import type { Locale } from '@/i18n/routing';
 
+// Default fallback image for listings without media
+const DEFAULT_LISTING_IMAGE = 'https://images.unsplash.com/photo-1539768942893-daf53e448371?w=800';
+
 interface SearchMapProps {
   listings: ListingSummary[];
   locale?: Locale;
@@ -78,7 +81,7 @@ export default function SearchMap({
             key={listing.id}
             position={position}
             title={listing.title}
-            imageUrl={listing.media[0]?.url}
+            imageUrl={listing.media[0]?.url || DEFAULT_LISTING_IMAGE}
             price={{
               amount: listing.pricing.displayPrice || listing.pricing.tndPrice || 0,
               currency: listing.pricing.displayCurrency || 'TND',

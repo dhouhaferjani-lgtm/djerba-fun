@@ -11,6 +11,9 @@ import Link from 'next/link';
 import { getListingUrl } from '@/lib/utils/urls';
 import type { Locale } from '@/i18n/routing';
 
+// Default fallback image for listings without media
+const DEFAULT_LISTING_IMAGE = 'https://images.unsplash.com/photo-1539768942893-daf53e448371?w=800';
+
 type Tab = 'listings' | 'reviews';
 
 export default function VendorProfilePage() {
@@ -207,13 +210,11 @@ export default function VendorProfilePage() {
                     >
                       {/* Image */}
                       <div className="aspect-video bg-gray-200 overflow-hidden">
-                        {listing.media[0] && (
-                          <img
-                            src={listing.media[0].url}
-                            alt={listing.media[0].alt}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        )}
+                        <img
+                          src={listing.media[0]?.url || DEFAULT_LISTING_IMAGE}
+                          alt={listing.media[0]?.alt || listing.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
                       </div>
 
                       {/* Content */}

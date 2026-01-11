@@ -23,6 +23,9 @@ import { getListingUrl } from '@/lib/utils/urls';
 import { shouldUnoptimizeImage } from '@/lib/utils/image';
 import type { Locale } from '@/i18n/routing';
 
+// Default fallback image for listings without media
+const DEFAULT_LISTING_IMAGE = 'https://images.unsplash.com/photo-1539768942893-daf53e448371?w=800';
+
 interface ListingCardProps {
   listing: ListingSummary;
   locale: string;
@@ -30,6 +33,7 @@ interface ListingCardProps {
 
 function ListingCardComponent({ listing, locale }: ListingCardProps) {
   const mainImage = listing.media[0];
+  const imageUrl = mainImage?.url || DEFAULT_LISTING_IMAGE;
   const href = getListingUrl(listing.slug, listing.location, locale as Locale) as any;
   const t = (field: any) => resolveTranslation(field, locale);
 
@@ -38,21 +42,15 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
       <Card variant="interactive" padding="none" className="overflow-hidden h-full">
         {/* Image */}
         <div className="relative h-48 w-full bg-neutral-100">
-          {mainImage ? (
-            <Image
-              src={mainImage.url}
-              alt={t(mainImage.alt) || t(listing.title)}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              loading="lazy"
-              unoptimized={shouldUnoptimizeImage(mainImage.url)}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full text-neutral-400">
-              <MapPin className="h-12 w-12" />
-            </div>
-          )}
+          <Image
+            src={imageUrl}
+            alt={mainImage ? t(mainImage.alt) || t(listing.title) : t(listing.title)}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            loading="lazy"
+            unoptimized={shouldUnoptimizeImage(imageUrl)}
+          />
         </div>
 
         {/* Content */}
