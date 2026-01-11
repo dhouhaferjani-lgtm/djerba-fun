@@ -13,7 +13,7 @@
  * - Automatic font subsetting and optimization
  */
 
-import { Inter, Poppins } from 'next/font/google';
+import { Inter, Poppins, Playfair_Display } from 'next/font/google';
 
 // Inter font for body text - optimized with Latin subset
 const inter = Inter({
@@ -34,6 +34,16 @@ const poppins = Poppins({
   adjustFontFallback: true,
 });
 
+// Playfair Display font for hero headlines - elegant serif italic
+const playfair = Playfair_Display({
+  variable: '--font-playfair',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+  preload: true,
+});
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html suppressHydrationWarning>
@@ -43,7 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body
-        className={`${inter.variable} ${poppins.variable} font-sans antialiased`}
+        className={`${inter.variable} ${poppins.variable} ${playfair.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
         {children}

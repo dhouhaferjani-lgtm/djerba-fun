@@ -97,9 +97,10 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  /* Fonts: Inter (sans) and Poppins (display) loaded via next/font in layout.tsx */
+  /* Fonts: Inter (sans), Poppins (display), and Playfair Display (serif) loaded via next/font in layout.tsx */
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
   --font-display: var(--font-poppins), system-ui, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, 'Times New Roman', serif;
 
   /* PRIMARY color scale for Tailwind (50-900) */
   --color-primary-50: var(--primary-50);
