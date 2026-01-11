@@ -41,20 +41,20 @@ export function PromoBannerSection({ locale }: PromoBannerSectionProps) {
 
               {/* Title */}
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white mb-6 leading-tight">
-                Ultra Mirage
+                Djerba Music
                 <br />
-                Marathon 2025
+                Festival 2025
               </h2>
 
               <p className="text-xl text-white/90 mb-8 max-w-lg">
-                Experience the ultimate desert challenge. 165km across the Sahara's most stunning
-                landscapes.
+                Three days of world music, traditional Tunisian performances, and international
+                artists on Djerba's stunning beaches.
               </p>
 
               {/* Buttons */}
               <div className="flex flex-wrap gap-4">
                 <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90">
-                  <Link href={`/${locale}/events/ultra-mirage-2025` as any}>
+                  <Link href={`/${locale}/djerba/djerba-music-festival-2025` as any}>
                     Learn More
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
@@ -65,7 +65,7 @@ export function PromoBannerSection({ locale }: PromoBannerSectionProps) {
                   size="lg"
                   className="border-white text-white hover:bg-white hover:text-primary"
                 >
-                  <Link href={`/${locale}/events/ultra-mirage-2025#register` as any}>
+                  <Link href={`/${locale}/djerba/djerba-music-festival-2025` as any}>
                     Register Now
                   </Link>
                 </Button>
