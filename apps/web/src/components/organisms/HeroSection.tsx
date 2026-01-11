@@ -38,9 +38,9 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
       {/* Content */}
       <div className="container mx-auto px-4 relative z-10 text-center">
         <div className="max-w-7xl mx-auto">
-          {/* Hero Headline - Very large, elegant serif italic */}
+          {/* Hero Headline - MASSIVE, dominating the hero section */}
           <h1
-            className="text-6xl sm:text-7xl md:text-8xl lg:text-[100px] xl:text-[120px] font-semibold text-white mb-8 leading-[1.1] tracking-tight"
+            className="text-[52px] sm:text-[72px] md:text-[96px] lg:text-[130px] xl:text-[160px] 2xl:text-[180px] font-bold text-white mb-6 leading-none tracking-tight"
             style={{ fontFamily: 'var(--font-serif)' }}
           >
             <span className="italic">{t('hero_title_line1')}</span>
