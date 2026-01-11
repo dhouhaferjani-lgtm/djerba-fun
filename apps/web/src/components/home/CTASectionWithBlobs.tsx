@@ -23,9 +23,12 @@ export function CTASectionWithBlobs({ locale }: CTASectionWithBlobsProps) {
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6">
-            {t('cta_custom_title')}
+            Tailor-Made Desert Experiences
           </h2>
-          <p className="text-xl text-white/90 mb-8">{t('cta_custom_description')}</p>
+          <p className="text-xl text-white/90 mb-8">
+            Can't find exactly what you're looking for? Let us create a custom adventure just for
+            you.
+          </p>
           <Button
             asChild
             size="lg"
@@ -34,7 +37,7 @@ export function CTASectionWithBlobs({ locale }: CTASectionWithBlobsProps) {
           >
             <Link href={`/${locale}/contact` as any}>
               <MessageCircle className="mr-2 h-5 w-5" />
-              {t('cta_custom_button')}
+              Request Custom Trip
             </Link>
           </Button>
         </div>

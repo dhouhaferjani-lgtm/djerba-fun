@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
 import { shouldUnoptimizeImage } from '@/lib/utils/image';
 
 // CSS for single line sliding around the square perimeter
@@ -123,14 +122,12 @@ export function MarketingMosaicSection({
   brandPillar2Url,
   brandPillar3Url,
 }: MarketingMosaicSectionProps) {
-  const t = useTranslations('home');
-
   const brandPillars = [
     {
       id: 'sustainable',
       image: brandPillar1Url || defaultImages.pillar1,
-      title: t('pillar_sustainable_title'),
-      description: t('pillar_sustainable_description'),
+      title: 'Sustainable Travel',
+      description: 'Eco-conscious adventures that protect our planet',
       overlayBg: 'rgba(13, 100, 46, 0.9)', // Dark green
       textColor: 'white',
       lineColor: '#8BC34A', // Lime green line
@@ -139,8 +136,8 @@ export function MarketingMosaicSection({
     {
       id: 'authentic',
       image: brandPillar2Url || defaultImages.pillar2,
-      title: t('pillar_authentic_title'),
-      description: t('pillar_authentic_description'),
+      title: 'Authentic Experiences',
+      description: 'Connect with local cultures and traditions',
       overlayBg: 'rgba(139, 195, 74, 0.9)', // Lime green
       textColor: '#0D642E', // Dark green text
       lineColor: '#0D642E', // Dark green line
@@ -149,8 +146,8 @@ export function MarketingMosaicSection({
     {
       id: 'adventure',
       image: brandPillar3Url || defaultImages.pillar3,
-      title: t('pillar_adventure_title'),
-      description: t('pillar_adventure_description'),
+      title: 'Epic Adventures',
+      description: 'Unforgettable journeys in breathtaking landscapes',
       overlayBg: 'rgba(13, 100, 46, 0.9)', // Dark green
       textColor: 'white',
       lineColor: '#8BC34A', // Lime green line
