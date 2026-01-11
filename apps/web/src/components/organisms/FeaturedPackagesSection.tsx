@@ -1,14 +1,17 @@
 'use client';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- typed routes for dynamic hrefs */
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import { Button } from '@go-adventure/ui';
 import { useRouter } from 'next/navigation';
 import { Award, Leaf, Globe } from 'lucide-react';
+import { getListingUrl } from '@/lib/utils/urls';
+import type { Locale } from '@/i18n/routing';
 
 export function FeaturedPackagesSection() {
   const t = useTranslations('home');
+  const locale = useLocale() as Locale;
   const router = useRouter();
 
   const featuredPackages = [
@@ -17,21 +20,24 @@ export function FeaturedPackagesSection() {
       title: t('featured_package_1_title'),
       description: t('featured_package_1_description'),
       image: 'https://images.unsplash.com/photo-1590059390047-f5e617690a0b?w=800&q=80',
-      link: '/en/listings?type=tour&destination=djerba',
+      slug: 'djerba-island-discovery-tour',
+      location: 'djerba',
     },
     {
       icon: <Leaf className="w-12 h-12" />,
       title: t('featured_package_2_title'),
       description: t('featured_package_2_description'),
       image: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=800&q=80',
-      link: '/en/listings?type=event&category=eco-tourism',
+      slug: 'sahara-desert-camel-trek',
+      location: 'tozeur',
     },
     {
       icon: <Globe className="w-12 h-12" />,
       title: t('featured_package_3_title'),
       description: t('featured_package_3_description'),
       image: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&q=80',
-      link: '/en/listings?type=tour&category=adventure',
+      slug: 'kroumirie-mountains-summit-trek',
+      location: 'ain-draham',
     },
   ];
 
@@ -43,7 +49,7 @@ export function FeaturedPackagesSection() {
           <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral-900">
             Upcoming Adventures
           </h2>
-          <Button variant="outline" onClick={() => router.push('/en/listings' as any)}>
+          <Button variant="outline" onClick={() => router.push(`/${locale}/listings` as any)}>
             View All
           </Button>
         </div>
@@ -53,7 +59,7 @@ export function FeaturedPackagesSection() {
             <div
               key={index}
               className="bg-white rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer"
-              onClick={() => router.push(pkg.link as any)}
+              onClick={() => router.push(getListingUrl(pkg.slug, pkg.location, locale) as any)}
             >
               {/* Image with Badge */}
               <div className="relative h-64 w-full overflow-hidden">
