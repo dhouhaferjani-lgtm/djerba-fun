@@ -38,16 +38,18 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
       {/* Content */}
       <div className="container mx-auto px-4 relative z-10 text-center">
         <div className="max-w-7xl mx-auto">
-          {/* Hero Headline - MASSIVE, dominating the hero section */}
+          {/* Hero Headline - MAXIMUM SIZE, viewport-scaled */}
           <h1
-            className="text-[52px] sm:text-[72px] md:text-[96px] lg:text-[130px] xl:text-[160px] 2xl:text-[180px] font-bold text-white mb-6 leading-none tracking-tight"
-            style={{ fontFamily: 'var(--font-serif)' }}
+            className="font-black text-white mb-3 md:mb-4 leading-[0.75] tracking-tight drop-shadow-2xl"
+            style={{
+              fontFamily: 'var(--font-serif)',
+              fontSize: 'clamp(70px, 18vw, 500px)',
+            }}
           >
-            <span className="italic">{t('hero_title_line1')}</span>
-            <br />
-            <span className="italic text-[#8BC34A]">{t('hero_title_line2')}</span>
+            <span className="italic block">{t('hero_title_line1')}</span>
+            <span className="italic block text-[#8BC34A]">{t('hero_title_line2')}</span>
           </h1>
-          <p className="text-2xl md:text-3xl lg:text-[32px] font-light text-white/90 mb-10 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-light text-white/90 mb-8 max-w-2xl mx-auto leading-tight">
             {t('hero_subtitle')}
           </p>
 
