@@ -54,7 +54,7 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
             <span className="block whitespace-nowrap">{t('hero_title_line1')}</span>
             <span className="block text-[#8BC34A] -mt-[0.15em]">{t('hero_title_line2')}</span>
           </h1>
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-light text-white/90 mb-8 max-w-2xl mx-auto leading-tight">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-light text-white/90 mb-8 max-w-2xl mx-auto leading-[0.95]">
             {t('hero_subtitle')}
           </p>
 
@@ -64,7 +64,7 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
           </div>
 
           {/* Travel Tip Banner - Transparent with white border */}
-          <div className="w-full max-w-3xl mx-auto bg-white/10 backdrop-blur-sm border border-white px-6 py-3 rounded-lg">
+          <div className="w-full max-w-5xl mx-auto bg-white/10 backdrop-blur-sm border border-white px-8 py-2 rounded-lg">
             <p className="text-white text-sm">
               <span className="text-[#8BC34A] font-semibold">Travel Tip:</span>{' '}
               <span>{t('hero_travel_tip_content')}</span>
