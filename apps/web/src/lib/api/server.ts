@@ -65,3 +65,21 @@ export async function getBrandingUrls(locale?: string) {
     description: settings?.data?.seo?.metaDescription ?? null,
   };
 }
+
+/**
+ * Get Event of the Year data from platform settings.
+ * Returns default values if settings cannot be fetched.
+ */
+export async function getEventOfYearData(locale?: string) {
+  const settings = await getPlatformSettings(locale);
+  const eventOfYear = settings?.data?.eventOfYear;
+
+  return {
+    enabled: eventOfYear?.enabled ?? true,
+    tag: eventOfYear?.tag ?? 'Event of the Year',
+    title: eventOfYear?.title ?? null,
+    description: eventOfYear?.description ?? null,
+    link: eventOfYear?.link ?? null,
+    image: eventOfYear?.image ?? null,
+  };
+}

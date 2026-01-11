@@ -34,6 +34,8 @@ class PlatformSettings extends Model implements HasMedia
         'description',
         'meta_title',
         'meta_description',
+        'event_of_year_title',
+        'event_of_year_description',
     ];
 
     /**
@@ -192,6 +194,13 @@ class PlatformSettings extends Model implements HasMedia
         'vendor_payout_minimum',
         'vendor_payout_currency',
         'vendor_payout_delay_days',
+
+        // Event of the Year
+        'event_of_year_title',
+        'event_of_year_description',
+        'event_of_year_link',
+        'event_of_year_tag',
+        'event_of_year_enabled',
     ];
 
     protected function casts(): array
@@ -225,6 +234,7 @@ class PlatformSettings extends Model implements HasMedia
             'mock_gateway_enabled' => 'boolean',
             'clicktopay_test_mode' => 'boolean',
             'offline_payments_enabled' => 'boolean',
+            'event_of_year_enabled' => 'boolean',
 
             // Decimals
             'platform_commission_percent' => 'decimal:2',
@@ -287,6 +297,11 @@ class PlatformSettings extends Model implements HasMedia
             ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp']);
 
         $this->addMediaCollection('brand_pillar_3')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp']);
+
+        // Event of the Year (Promo Banner)
+        $this->addMediaCollection('event_of_year_image')
             ->singleFile()
             ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp']);
     }
@@ -414,6 +429,11 @@ class PlatformSettings extends Model implements HasMedia
     public function getBrandPillar3UrlAttribute(): ?string
     {
         return $this->getFirstMediaUrl('brand_pillar_3') ?: null;
+    }
+
+    public function getEventOfYearImageUrlAttribute(): ?string
+    {
+        return $this->getFirstMediaUrl('event_of_year_image') ?: null;
     }
 
     /**

@@ -54,6 +54,7 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->tabs([
                         $this->platformIdentityTab(),
                         $this->logoBrandingTab(),
+                        $this->eventOfYearTab(),
                         $this->seoMetadataTab(),
                         $this->contactInformationTab(),
                         $this->physicalAddressTab(),
@@ -242,6 +243,101 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->helperText('Third card image. Recommended: 800x800 square, max 5MB'),
                     ])
                     ->columns(3),
+            ]);
+    }
+
+    protected function eventOfYearTab(): Forms\Components\Tabs\Tab
+    {
+        return Forms\Components\Tabs\Tab::make('Event of the Year')
+            ->icon('heroicon-o-star')
+            ->schema([
+                Forms\Components\Section::make('Event of the Year')
+                    ->description('Configure the featured event promo banner displayed on the homepage.')
+                    ->schema([
+                        Forms\Components\Toggle::make('event_of_year_enabled')
+                            ->label('Enable Event Banner')
+                            ->helperText('Show/hide the event promo banner on homepage')
+                            ->default(true)
+                            ->columnSpanFull(),
+
+                        Forms\Components\TextInput::make('event_of_year_tag')
+                            ->label('Event Tag')
+                            ->placeholder('Event of the Year')
+                            ->helperText('Small tag text displayed above the title (e.g., "Event of the Year", "Featured Event")')
+                            ->maxLength(50)
+                            ->columnSpanFull(),
+                    ]),
+
+                Forms\Components\Section::make('Event Title')
+                    ->description('The main headline for the event (supports multiple languages)')
+                    ->schema([
+                        Forms\Components\Tabs::make('Title Translations')
+                            ->tabs([
+                                Forms\Components\Tabs\Tab::make('English')
+                                    ->schema([
+                                        Forms\Components\Textarea::make('event_of_year_title.en')
+                                            ->label('Event Title')
+                                            ->rows(2)
+                                            ->placeholder("Djerba Music\nFestival 2025")
+                                            ->helperText('Use line breaks for multi-line titles')
+                                            ->maxLength(200),
+                                    ]),
+                                Forms\Components\Tabs\Tab::make('French')
+                                    ->schema([
+                                        Forms\Components\Textarea::make('event_of_year_title.fr')
+                                            ->label('Titre de l\'événement')
+                                            ->rows(2)
+                                            ->placeholder("Festival de Musique\nde Djerba 2025")
+                                            ->maxLength(200),
+                                    ]),
+                            ])
+                            ->columnSpanFull(),
+                    ]),
+
+                Forms\Components\Section::make('Event Description')
+                    ->description('A short description of the event')
+                    ->schema([
+                        Forms\Components\Tabs::make('Description Translations')
+                            ->tabs([
+                                Forms\Components\Tabs\Tab::make('English')
+                                    ->schema([
+                                        Forms\Components\Textarea::make('event_of_year_description.en')
+                                            ->label('Description')
+                                            ->rows(3)
+                                            ->placeholder('Three days of world music, traditional Tunisian performances, and international artists on the beach.')
+                                            ->maxLength(500),
+                                    ]),
+                                Forms\Components\Tabs\Tab::make('French')
+                                    ->schema([
+                                        Forms\Components\Textarea::make('event_of_year_description.fr')
+                                            ->label('Description')
+                                            ->rows(3)
+                                            ->placeholder('Trois jours de musique du monde, de spectacles tunisiens traditionnels et d\'artistes internationaux sur la plage.')
+                                            ->maxLength(500),
+                                    ]),
+                            ])
+                            ->columnSpanFull(),
+                    ]),
+
+                Forms\Components\Section::make('Event Link & Image')
+                    ->description('Link to the event page and banner image')
+                    ->schema([
+                        Forms\Components\TextInput::make('event_of_year_link')
+                            ->label('Event Link')
+                            ->placeholder('/en/djerba/djerba-music-festival-2025')
+                            ->helperText('Relative URL path to the event listing page (e.g., /en/location/slug)')
+                            ->maxLength(255)
+                            ->columnSpanFull(),
+
+                        Forms\Components\SpatieMediaLibraryFileUpload::make('event_of_year_image')
+                            ->collection('event_of_year_image')
+                            ->model(fn () => $this->getRecord())
+                            ->label('Event Banner Image')
+                            ->image()
+                            ->maxSize(10240)
+                            ->helperText('Recommended: 1920x1080 or larger landscape image, max 10MB')
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 
@@ -1174,7 +1270,7 @@ class PlatformSettingsPage extends Page implements HasForms
             $settings = $this->getRecord();
 
             // Filter out media fields - they are handled automatically by SpatieMediaLibraryFileUpload
-            $mediaFields = ['logo_light', 'logo_dark', 'favicon', 'apple_touch_icon', 'og_image', 'hero_banner', 'brand_pillar_1', 'brand_pillar_2', 'brand_pillar_3'];
+            $mediaFields = ['logo_light', 'logo_dark', 'favicon', 'apple_touch_icon', 'og_image', 'hero_banner', 'brand_pillar_1', 'brand_pillar_2', 'brand_pillar_3', 'event_of_year_image'];
             $filteredData = array_filter($data, fn ($key) => !in_array($key, $mediaFields), ARRAY_FILTER_USE_KEY);
 
             $settings->fill($filteredData);

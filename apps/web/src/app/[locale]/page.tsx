@@ -10,15 +10,16 @@ import { CTASectionWithBlobs } from '@/components/home/CTASectionWithBlobs';
 import { BlogSection } from '@/components/home';
 import { BlockRenderer } from '@/components/cms';
 import { getPageByCode } from '@/lib/api/cms';
-import { getBrandingUrls } from '@/lib/api/server';
+import { getBrandingUrls, getEventOfYearData } from '@/lib/api/server';
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // Fetch branding (includes hero banner) and CMS content in parallel
-  const [branding, cmsPage] = await Promise.all([
+  // Fetch branding, event of year data, and CMS content in parallel
+  const [branding, eventOfYear, cmsPage] = await Promise.all([
     getBrandingUrls(locale),
+    getEventOfYearData(locale),
     getPageByCode({ code: 'HOME', locale }).catch(() => null),
   ]);
 
@@ -38,7 +39,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       ) : (
         <>
           <FeaturedPackagesSection />
-          <PromoBannerSection locale={locale} />
+          <PromoBannerSection locale={locale} eventOfYear={eventOfYear} />
           <CategoriesGridSection locale={locale} />
           <DestinationsBentoGrid locale={locale} />
           <CTASectionWithBlobs locale={locale} />

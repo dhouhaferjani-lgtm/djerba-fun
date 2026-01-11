@@ -146,6 +146,14 @@ class PlatformSettingsService
                 'hotjarSiteId' => $s->hotjar_site_id,
                 'plausibleDomain' => $s->plausible_domain,
             ],
+            'eventOfYear' => [
+                'enabled' => $s->event_of_year_enabled ?? true,
+                'tag' => $s->event_of_year_tag ?? 'Event of the Year',
+                'title' => $s->getTranslation('event_of_year_title', $locale),
+                'description' => $s->getTranslation('event_of_year_description', $locale),
+                'link' => $s->event_of_year_link,
+                'image' => $s->event_of_year_image_url,
+            ],
         ];
     }
 
