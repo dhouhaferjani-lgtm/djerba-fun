@@ -54,7 +54,7 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
             <span className="block whitespace-nowrap">{t('hero_title_line1')}</span>
             <span className="block text-[#8BC34A] -mt-[0.15em]">{t('hero_title_line2')}</span>
           </h1>
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-light text-white/90 mb-8 max-w-2xl mx-auto leading-[0.95]">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-light text-white/90 mb-8 max-w-2xl mx-auto leading-[0.8]">
             {t('hero_subtitle')}
           </p>
 
