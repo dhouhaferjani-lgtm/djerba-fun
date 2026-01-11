@@ -53,7 +53,7 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
       <div className="grid md:grid-cols-4 gap-4">
         {/* Destination */}
         <div>
-          <label className="block text-xs font-semibold text-neutral-darker mb-2 uppercase tracking-wider">
+          <label className="block text-xs font-semibold text-primary mb-2 uppercase tracking-wider">
             {t('search_destination')}
           </label>
           <SelectWithIcon
