@@ -8,7 +8,7 @@ import { InputWithIcon } from '../atoms/InputWithIcon';
 import { SelectWithIcon } from '../atoms/SelectWithIcon';
 import { Button } from '@go-adventure/ui';
 
-// CSS for shining light sweep animation
+// CSS for shining light sweep animation and click pulse effect
 const shineAnimationStyles = `
   @keyframes shine {
     0% {
@@ -19,9 +19,21 @@ const shineAnimationStyles = `
     }
   }
 
+  @keyframes pulse-click {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 4px 15px rgba(13, 100, 46, 0.4);
+    }
+    50% {
+      transform: scale(0.97);
+      box-shadow: 0 2px 8px rgba(13, 100, 46, 0.6);
+    }
+  }
+
   .shine-button {
     position: relative;
     overflow: hidden;
+    animation: pulse-click 2s ease-in-out infinite;
   }
 
   .shine-button::before {
