@@ -19,7 +19,7 @@ export function Footer({ locale }: FooterProps) {
   const socialLinks = settings?.social || {};
 
   return (
-    <footer className="bg-neutral-900 text-white">
+    <footer className="bg-primary text-white">
       <div className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Logo & Description */}
