@@ -2,7 +2,6 @@
 
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import { Sparkles } from 'lucide-react';
 import { HeroSearchForm } from '../molecules/HeroSearchForm';
 import { shouldUnoptimizeImage } from '@/lib/utils/image';
 
@@ -57,10 +56,12 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
             <HeroSearchForm locale={locale} />
           </div>
 
-          {/* AI Tip Pill */}
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm">
-            <Sparkles className="h-4 w-4" />
-            <span>Travel Tip: Best time to visit the Sahara is October to April</span>
+          {/* Travel Tip Banner */}
+          <div className="w-full max-w-3xl mx-auto bg-primary/80 backdrop-blur-sm px-6 py-3 rounded-lg">
+            <p className="text-white text-sm">
+              <span className="text-[#8BC34A] font-semibold">Travel Tip:</span>{' '}
+              <span>{t('hero_travel_tip_content')}</span>
+            </p>
           </div>
         </div>
       </div>
