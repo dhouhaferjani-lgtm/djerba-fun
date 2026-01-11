@@ -8,6 +8,40 @@ import { InputWithIcon } from '../atoms/InputWithIcon';
 import { SelectWithIcon } from '../atoms/SelectWithIcon';
 import { Button } from '@go-adventure/ui';
 
+// CSS for shining light sweep animation
+const shineAnimationStyles = `
+  @keyframes shine {
+    0% {
+      left: -100%;
+    }
+    50%, 100% {
+      left: 100%;
+    }
+  }
+
+  .shine-button {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shine-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    animation: shine 2.5s infinite;
+    pointer-events: none;
+  }
+`;
+
 interface HeroSearchFormProps {
   locale: string;
 }
@@ -46,63 +80,66 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
   ];
 
   return (
-    <form
-      onSubmit={handleSearch}
-      className="bg-white/95 backdrop-blur-md rounded-lg p-6 shadow-2xl"
-    >
-      <div className="grid md:grid-cols-4 gap-4">
-        {/* Destination */}
-        <div>
-          <label className="block text-xs font-semibold text-primary mb-2 uppercase tracking-wider">
-            {t('search_destination')}
-          </label>
-          <SelectWithIcon
-            icon={<MapPin className="h-5 w-5 text-neutral-dark" />}
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
-            options={destinationsOptions}
-            placeholder={t('search_destination_placeholder')}
-          />
-        </div>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: shineAnimationStyles }} />
+      <form
+        onSubmit={handleSearch}
+        className="bg-white/95 backdrop-blur-md rounded-lg p-6 shadow-2xl"
+      >
+        <div className="grid md:grid-cols-4 gap-4">
+          {/* Destination */}
+          <div>
+            <label className="block text-xs font-semibold text-primary mb-2 uppercase tracking-wider">
+              {t('search_destination')}
+            </label>
+            <SelectWithIcon
+              icon={<MapPin className="h-5 w-5 text-neutral-dark" />}
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              options={destinationsOptions}
+              placeholder={t('search_destination_placeholder')}
+            />
+          </div>
 
-        {/* Activity Type */}
-        <div>
-          <label className="block text-xs font-semibold text-primary mb-2 uppercase tracking-wider">
-            {t('search_activity')}
-          </label>
-          <SelectWithIcon
-            icon={<Compass className="h-5 w-5 text-neutral-dark" />}
-            value={activityType}
-            onChange={(e) => setActivityType(e.target.value)}
-            options={activityTypeOptions}
-            placeholder={t('search_activity_placeholder')}
-          />
-        </div>
+          {/* Activity Type */}
+          <div>
+            <label className="block text-xs font-semibold text-primary mb-2 uppercase tracking-wider">
+              {t('search_activity')}
+            </label>
+            <SelectWithIcon
+              icon={<Compass className="h-5 w-5 text-neutral-dark" />}
+              value={activityType}
+              onChange={(e) => setActivityType(e.target.value)}
+              options={activityTypeOptions}
+              placeholder={t('search_activity_placeholder')}
+            />
+          </div>
 
-        {/* Date */}
-        <div>
-          <label className="block text-xs font-semibold text-primary mb-2 uppercase tracking-wider">
-            {t('search_date')}
-          </label>
-          <InputWithIcon
-            icon={<Calendar className="h-5 w-5 text-neutral-dark" />}
-            type="date"
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            placeholder={t('search_date_placeholder')}
-          />
-        </div>
+          {/* Date */}
+          <div>
+            <label className="block text-xs font-semibold text-primary mb-2 uppercase tracking-wider">
+              {t('search_date')}
+            </label>
+            <InputWithIcon
+              icon={<Calendar className="h-5 w-5 text-neutral-dark" />}
+              type="date"
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value)}
+              placeholder={t('search_date_placeholder')}
+            />
+          </div>
 
-        {/* Search Button */}
-        <div className="flex items-end">
-          <Button
-            type="submit"
-            className="w-full h-[46px] px-6 text-base font-semibold bg-primary hover:bg-primary-700 text-white rounded-md"
-          >
-            {t('search_button')}
-          </Button>
+          {/* Search Button */}
+          <div className="flex items-end">
+            <Button
+              type="submit"
+              className="shine-button w-full h-[46px] px-6 text-base font-semibold bg-primary hover:bg-primary-700 text-white rounded-md"
+            >
+              {t('search_button')}
+            </Button>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </>
   );
 }
