@@ -47,7 +47,7 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
             <br />
             <span className="italic text-[#8BC34A]">{t('hero_title_line2')}</span>
           </h1>
-          <p className="text-xl md:text-2xl text-neutral-200 mb-10 max-w-2xl mx-auto">
+          <p className="text-2xl md:text-3xl lg:text-[32px] font-light text-white/90 mb-10 max-w-3xl mx-auto leading-relaxed">
             {t('hero_subtitle')}
           </p>
 
