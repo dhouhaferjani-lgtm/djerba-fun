@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@go-adventure/ui';
 import { ArrowRight } from 'lucide-react';
+import { shouldUnoptimizeImage } from '@/lib/utils/image';
 
 // Default fallback values when CMS data is not available
 const DEFAULT_EVENT = {
@@ -57,7 +58,13 @@ export function PromoBannerSection({ locale, eventOfYear }: PromoBannerSectionPr
         <div className="relative h-[500px] rounded-lg overflow-hidden">
           {/* Background Image */}
           <div className="absolute inset-0">
-            <Image src={image} alt={tag} fill className="object-cover" />
+            <Image
+              src={image}
+              alt={tag}
+              fill
+              className="object-cover"
+              unoptimized={shouldUnoptimizeImage(image)}
+            />
             {/* Horizontal Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-primary to-transparent" />
           </div>
