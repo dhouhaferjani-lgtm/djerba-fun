@@ -34,7 +34,7 @@ export function Header({ locale }: HeaderProps) {
     <header
       className={cn(
         'sticky top-0 z-50 w-full transition-all duration-300',
-        scrolled ? 'bg-primary shadow-lg' : 'bg-primary/90'
+        scrolled ? 'bg-primary shadow-lg' : 'bg-primary'
       )}
     >
       <div className="container mx-auto px-4">
