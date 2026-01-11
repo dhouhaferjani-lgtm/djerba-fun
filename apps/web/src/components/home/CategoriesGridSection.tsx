@@ -53,7 +53,7 @@ export function CategoriesGridSection({ locale }: CategoriesGridSectionProps) {
             <Link
               key={category.id}
               href={`/${locale}/listings?category=${category.id}`}
-              className="group block overflow-hidden rounded-lg transition-all hover:shadow-xl active:shadow-[0_0_25px_rgba(13,100,46,0.5)] active:scale-[0.98]"
+              className="green-click-shadow group block overflow-hidden rounded-lg transition-all hover:shadow-xl"
             >
               {/* Image Area */}
               <div className="relative h-48 overflow-hidden">

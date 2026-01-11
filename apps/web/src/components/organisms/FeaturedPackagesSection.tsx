@@ -58,7 +58,7 @@ export function FeaturedPackagesSection() {
           {featuredPackages.map((pkg, index) => (
             <div
               key={index}
-              className="bg-white rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 active:shadow-[0_0_25px_rgba(13,100,46,0.5)] active:scale-[0.98] transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer"
+              className="green-click-shadow bg-white rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer"
               onClick={() => router.push(getListingUrl(pkg.slug, pkg.location, locale) as any)}
             >
               {/* Image with Badge */}

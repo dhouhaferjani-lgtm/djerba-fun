@@ -381,3 +381,13 @@ i {
   clip: auto;
   white-space: normal;
 }
+
+/* Green shadow on click for cards */
+.green-click-shadow {
+  transition: all 0.15s ease;
+}
+
+.green-click-shadow:active {
+  box-shadow: 0 0 30px 8px rgba(13, 100, 46, 0.6) !important;
+  transform: scale(0.98);
+}

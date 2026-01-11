@@ -91,7 +91,7 @@ export function BlogSection() {
           {blogPosts.map((post) => (
             <article
               key={post.id}
-              className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 active:shadow-[0_0_25px_rgba(13,100,46,0.5)] active:scale-[0.98] transition-all duration-300 group"
+              className="green-click-shadow bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
             >
               <Link href={`/${locale}/blog/${post.slug}` as any}>
                 {/* Image Top - h-48 */}
