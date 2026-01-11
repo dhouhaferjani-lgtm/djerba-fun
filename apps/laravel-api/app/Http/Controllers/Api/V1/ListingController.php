@@ -53,7 +53,7 @@ class ListingController extends Controller
             ->with([
                 'vendor:id,uuid',
                 'location:id,uuid,name,slug,city,latitude,longitude',
-                'media:id,uuid,url,thumbnail_url,alt,type,order,category',
+                'media:id,uuid,mediable_id,mediable_type,url,thumbnail_url,alt,type,order,category',
                 'faqs:id,listing_id,question,answer,order'
             ]);
 
@@ -174,7 +174,7 @@ class ListingController extends Controller
             return $listing->load([
                 'vendor:id,uuid',
                 'location:id,uuid,name,slug,city,country,latitude,longitude',
-                'media:id,uuid,url,thumbnail_url,alt,type,order,category',
+                'media:id,uuid,mediable_id,mediable_type,url,thumbnail_url,alt,type,order,category',
                 'faqs:id,listing_id,question,answer,order'
             ]);
         });

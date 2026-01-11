@@ -93,7 +93,16 @@
     "blog_post_3_title": "A Food Lover's Guide to Tunisian Cuisine",
     "blog_post_3_excerpt": "From couscous to brik, discover the rich flavors and culinary traditions that make Tunisian food so special...",
     "blog_post_3_date": "Nov 28, 2024",
-    "blog_post_3_category": "Food & Culture"
+    "blog_post_3_category": "Food & Culture",
+    "pillar_sustainable_title": "Sustainable Travel",
+    "pillar_sustainable_description": "Eco-conscious adventures that protect our planet",
+    "pillar_authentic_title": "Authentic Experiences",
+    "pillar_authentic_description": "Connect with local cultures and traditions",
+    "pillar_adventure_title": "Epic Adventures",
+    "pillar_adventure_description": "Unforgettable journeys in breathtaking landscapes",
+    "cta_custom_title": "Tailor-Made Desert Experiences",
+    "cta_custom_description": "Can't find exactly what you're looking for? Let us create a custom adventure just for you.",
+    "cta_custom_button": "Request Custom Trip"
   },
   "experience_types": {
     "cultural": "Cultural Tours",
