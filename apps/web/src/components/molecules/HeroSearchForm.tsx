@@ -97,7 +97,7 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
         <div className="flex items-end">
           <Button
             type="submit"
-            className="w-full h-auto py-3 text-lg font-semibold bg-primary hover:bg-primary-dark"
+            className="w-full h-[46px] px-6 text-base font-semibold bg-primary hover:bg-primary-700 text-white rounded-md"
           >
             {t('search_button')}
           </Button>
