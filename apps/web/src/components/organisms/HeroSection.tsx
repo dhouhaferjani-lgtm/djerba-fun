@@ -38,16 +38,19 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
       {/* Content */}
       <div className="container mx-auto px-4 relative z-10 text-center">
         <div className="max-w-7xl mx-auto">
-          {/* Hero Headline - MAXIMUM SIZE, viewport-scaled */}
+          {/* Hero Headline - Elegant serif style */}
           <h1
-            className="font-black text-white mb-3 md:mb-4 leading-[0.75] tracking-tight drop-shadow-2xl"
+            className="font-normal text-white mb-3 md:mb-4 leading-[0.85] tracking-normal drop-shadow-lg"
             style={{
               fontFamily: 'var(--font-serif)',
-              fontSize: 'clamp(70px, 18vw, 500px)',
+              fontSize: 'clamp(32px, 6vw, 150px)',
             }}
           >
-            <span className="italic block">{t('hero_title_line1')}</span>
-            <span className="italic block text-[#8BC34A]">{t('hero_title_line2')}</span>
+            <span className="block">{t('hero_title_line1')}</span>
+            <span className="block">
+              <span className="text-white">{t('hero_title_line2_prefix')} </span>
+              <span className="text-[#8BC34A]">{t('hero_title_line2_highlight')}</span>
+            </span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-light text-white/90 mb-8 max-w-2xl mx-auto leading-tight">
             {t('hero_subtitle')}
@@ -58,8 +61,8 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
             <HeroSearchForm locale={locale} />
           </div>
 
-          {/* Travel Tip Banner */}
-          <div className="w-full max-w-3xl mx-auto bg-primary/80 backdrop-blur-sm px-6 py-3 rounded-lg">
+          {/* Travel Tip Banner - Frosted glass effect */}
+          <div className="w-full max-w-3xl mx-auto bg-teal-800/50 backdrop-blur-md border border-white/10 px-6 py-3 rounded-lg">
             <p className="text-white text-sm">
               <span className="text-[#8BC34A] font-semibold">Travel Tip:</span>{' '}
               <span>{t('hero_travel_tip_content')}</span>
