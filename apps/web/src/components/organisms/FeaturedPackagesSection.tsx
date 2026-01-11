@@ -80,7 +80,7 @@ export function FeaturedPackagesSection() {
 
               {/* Card Body */}
               <div className="p-6 flex flex-col flex-grow">
-                <h3 className="text-xl font-bold text-neutral-900 mb-3 line-clamp-2">
+                <h3 className="text-xl font-bold text-neutral-900 mb-3 line-clamp-2 group-hover:text-primary transition-colors">
                   {pkg.title}
                 </h3>
                 <p className="text-neutral-600 text-sm leading-relaxed mb-4 flex-grow line-clamp-2">
