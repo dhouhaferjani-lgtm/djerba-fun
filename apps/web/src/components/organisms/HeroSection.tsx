@@ -40,7 +40,7 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
         <div className="max-w-7xl mx-auto">
           {/* Hero Headline - Elegant serif style */}
           <h1
-            className="font-normal text-white mb-3 md:mb-4 leading-[0.85] tracking-normal drop-shadow-lg"
+            className="font-normal text-white mb-3 md:mb-4 leading-[0.7] tracking-normal drop-shadow-lg"
             style={{
               fontFamily: 'var(--font-serif)',
               fontSize: 'clamp(32px, 6vw, 150px)',
