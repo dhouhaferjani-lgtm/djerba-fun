@@ -22,8 +22,8 @@
   },
   "home": {
     "hero_title": "Découvrez la Tunisie Authentique",
-    "hero_title_line1": "Découvrez la Magie de",
-    "hero_title_line2": "la Tunisie du Sud",
+    "hero_title_line1": "Vivez l'Aventure",
+    "hero_title_line2": "au Cœur du Sahara",
     "hero_subtitle": "Des expériences inoubliables vous attendent dans les plus beaux coins de Tunisie",
     "hero_travel_tip": "Astuce Voyage : Le meilleur moment pour visiter le Sahara est d'octobre à avril",
     "hero_travel_tip_content": "Le meilleur moment pour visiter le Sahara est d'octobre à avril",
@@ -101,7 +101,7 @@
     "pillar_adventure_title": "Sensations Fortes",
     "pillar_adventure_description": "Des moments inoubliables dans des paysages grandioses",
     "cta_custom_title": "Votre Aventure Sur Mesure",
-    "cta_custom_description": "Vous avez un projet particulier en tête ? Nous créons l'expérience parfaite, adaptée à vos envies.",
+    "cta_custom_description": "Vous rêvez d'une expérience unique ? Laissez-nous créer l'aventure parfaite, taillée sur mesure pour vous.",
     "cta_custom_button": "Créer mon aventure"
   },
   "experience_types": {
