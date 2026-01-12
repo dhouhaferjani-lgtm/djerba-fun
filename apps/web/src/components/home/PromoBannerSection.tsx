@@ -1,8 +1,15 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@go-adventure/ui';
 import { ArrowRight } from 'lucide-react';
 import { shouldUnoptimizeImage } from '@/lib/utils/image';
+
+// Typewriter timing constants
+const TYPING_SPEED = 50; // ms per character
+const CURSOR_BLINK_SPEED = 530; // ms for cursor blink
 
 // Default fallback values when CMS data is not available
 const DEFAULT_EVENT = {
@@ -29,13 +36,48 @@ interface PromoBannerSectionProps {
 }
 
 export function PromoBannerSection({ locale, eventOfYear }: PromoBannerSectionProps) {
+  // Typewriter state
+  const [displayedTag, setDisplayedTag] = useState('');
+  const [showCursor, setShowCursor] = useState(true);
+  const [typingComplete, setTypingComplete] = useState(false);
+
+  // Use CMS data or fallback to defaults
+  const tag = eventOfYear?.tag || DEFAULT_EVENT.tag;
+
+  // Typewriter effect for tag
+  useEffect(() => {
+    if (!tag) return;
+
+    setDisplayedTag('');
+    setTypingComplete(false);
+    let charIndex = 0;
+
+    const typingInterval = setInterval(() => {
+      if (charIndex < tag.length) {
+        setDisplayedTag(tag.slice(0, charIndex + 1));
+        charIndex++;
+      } else {
+        clearInterval(typingInterval);
+        setTypingComplete(true);
+      }
+    }, TYPING_SPEED);
+
+    return () => clearInterval(typingInterval);
+  }, [tag]);
+
+  // Blinking cursor effect
+  useEffect(() => {
+    const cursorInterval = setInterval(() => {
+      setShowCursor((prev) => !prev);
+    }, CURSOR_BLINK_SPEED);
+
+    return () => clearInterval(cursorInterval);
+  }, []);
+
   // Don't render if event of year is disabled
   if (eventOfYear && !eventOfYear.enabled) {
     return null;
   }
-
-  // Use CMS data or fallback to defaults
-  const tag = eventOfYear?.tag || DEFAULT_EVENT.tag;
   const title = eventOfYear?.title || DEFAULT_EVENT.title;
   const description = eventOfYear?.description || DEFAULT_EVENT.description;
   const image = eventOfYear?.image || DEFAULT_EVENT.image;
@@ -72,10 +114,15 @@ export function PromoBannerSection({ locale, eventOfYear }: PromoBannerSectionPr
           {/* Content - Left Aligned */}
           <div className="relative h-full flex items-center">
             <div className="max-w-2xl px-8 md:px-16">
-              {/* Event Tag */}
+              {/* Event Tag with Typewriter Effect */}
               <div className="inline-block bg-secondary px-4 py-2 rounded-full mb-6">
                 <span className="text-sm font-bold text-primary uppercase tracking-wide">
-                  {tag}
+                  {displayedTag}
+                  <span
+                    className={`inline-block w-[2px] h-[1em] bg-primary ml-[1px] align-middle transition-opacity ${
+                      showCursor && !typingComplete ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  />
                 </span>
               </div>
 
