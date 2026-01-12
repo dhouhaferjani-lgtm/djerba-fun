@@ -27,7 +27,7 @@ export function Footer({ locale }: FooterProps) {
             <div className="mb-6 ml-2">
               <Logo variant="light" />
             </div>
-            <p className="text-neutral-400 leading-relaxed mb-6">{tagline}</p>
+            <p className="text-white/80 leading-relaxed mb-6">{tagline}</p>
             <div className="flex gap-4">
               {socialLinks.facebook && (
                 <a
@@ -110,7 +110,7 @@ export function Footer({ locale }: FooterProps) {
               <li>
                 <Link
                   href={`/${locale}/about` as any}
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-white/80 hover:text-white transition-colors"
                 >
                   {t('about')}
                 </Link>
@@ -118,7 +118,7 @@ export function Footer({ locale }: FooterProps) {
               <li>
                 <Link
                   href={`/${locale}/careers` as any}
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-white/80 hover:text-white transition-colors"
                 >
                   {t('careers')}
                 </Link>
@@ -126,7 +126,7 @@ export function Footer({ locale }: FooterProps) {
               <li>
                 <Link
                   href={`/${locale}/press` as any}
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-white/80 hover:text-white transition-colors"
                 >
                   {t('press')}
                 </Link>
@@ -134,7 +134,7 @@ export function Footer({ locale }: FooterProps) {
               <li>
                 <Link
                   href={`/${locale}/blog` as any}
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-white/80 hover:text-white transition-colors"
                 >
                   {t('blog')}
                 </Link>
@@ -142,7 +142,7 @@ export function Footer({ locale }: FooterProps) {
               <li>
                 <Link
                   href={`/${locale}/partners` as any}
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-white/80 hover:text-white transition-colors"
                 >
                   {t('partners')}
                 </Link>
@@ -157,7 +157,7 @@ export function Footer({ locale }: FooterProps) {
               <li>
                 <Link
                   href={`/${locale}/help` as any}
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-white/80 hover:text-white transition-colors"
                 >
                   {t('help_center')}
                 </Link>
@@ -165,7 +165,7 @@ export function Footer({ locale }: FooterProps) {
               <li>
                 <Link
                   href={`/${locale}/faq` as any}
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-white/80 hover:text-white transition-colors"
                 >
                   {t('faq')}
                 </Link>
@@ -173,7 +173,7 @@ export function Footer({ locale }: FooterProps) {
               <li>
                 <Link
                   href={`/${locale}/cancellation` as any}
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-white/80 hover:text-white transition-colors"
                 >
                   {t('cancellation')}
                 </Link>
@@ -181,7 +181,7 @@ export function Footer({ locale }: FooterProps) {
               <li>
                 <Link
                   href={`/${locale}/safety` as any}
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-white/80 hover:text-white transition-colors"
                 >
                   {t('safety')}
                 </Link>
@@ -189,7 +189,7 @@ export function Footer({ locale }: FooterProps) {
               <li>
                 <Link
                   href={`/${locale}/accessibility` as any}
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-white/80 hover:text-white transition-colors"
                 >
                   {t('accessibility')}
                 </Link>
@@ -201,7 +201,7 @@ export function Footer({ locale }: FooterProps) {
           <div>
             <h3 className="font-bold text-lg mb-6">{t('contact')}</h3>
             <ul className="space-y-4">
-              <li className="flex items-start gap-3 text-neutral-400">
+              <li className="flex items-start gap-3 text-white/80">
                 <svg
                   className="w-5 h-5 mt-0.5 flex-shrink-0"
                   fill="none"
@@ -217,7 +217,7 @@ export function Footer({ locale }: FooterProps) {
                 </svg>
                 <span>{t('phone')}</span>
               </li>
-              <li className="flex items-start gap-3 text-neutral-400">
+              <li className="flex items-start gap-3 text-white/80">
                 <svg
                   className="w-5 h-5 mt-0.5 flex-shrink-0"
                   fill="none"
@@ -233,7 +233,7 @@ export function Footer({ locale }: FooterProps) {
                 </svg>
                 <span>{t('email')}</span>
               </li>
-              <li className="flex items-start gap-3 text-neutral-400">
+              <li className="flex items-start gap-3 text-white/80">
                 <svg
                   className="w-5 h-5 mt-0.5 flex-shrink-0"
                   fill="none"
@@ -255,7 +255,7 @@ export function Footer({ locale }: FooterProps) {
                 </svg>
                 <span>{t('address')}</span>
               </li>
-              <li className="flex items-start gap-3 text-neutral-400">
+              <li className="flex items-start gap-3 text-white/80">
                 <svg
                   className="w-5 h-5 mt-0.5 flex-shrink-0"
                   fill="none"
@@ -283,19 +283,19 @@ export function Footer({ locale }: FooterProps) {
       <div className="border-t border-white/10">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-neutral-400 text-sm">
+            <p className="text-white/80 text-sm">
               &copy; {new Date().getFullYear()} {t('copyright')}
             </p>
             <div className="flex gap-6">
               <Link
                 href={`/${locale}/terms` as any}
-                className="text-neutral-400 text-sm hover:text-white transition-colors"
+                className="text-white/80 text-sm hover:text-white transition-colors"
               >
                 {t('terms')}
               </Link>
               <Link
                 href={`/${locale}/privacy` as any}
-                className="text-neutral-400 text-sm hover:text-white transition-colors"
+                className="text-white/80 text-sm hover:text-white transition-colors"
               >
                 {t('privacy')}
               </Link>
