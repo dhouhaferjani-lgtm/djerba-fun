@@ -5,6 +5,52 @@ import Link from 'next/link';
 import { Button } from '@go-adventure/ui';
 import { MessageCircle } from 'lucide-react';
 
+// CSS for shining light sweep animation and click pulse effect
+const shineAnimationStyles = `
+  @keyframes shine {
+    0% {
+      left: -100%;
+    }
+    50%, 100% {
+      left: 100%;
+    }
+  }
+
+  @keyframes pulse-click {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 4px 15px rgba(13, 100, 46, 0.4);
+    }
+    50% {
+      transform: scale(0.97);
+      box-shadow: 0 2px 8px rgba(13, 100, 46, 0.6);
+    }
+  }
+
+  .shine-button-cta {
+    position: relative;
+    overflow: hidden;
+    animation: pulse-click 2s ease-in-out infinite;
+  }
+
+  .shine-button-cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.6),
+      transparent
+    );
+    animation: shine 2.5s infinite;
+    pointer-events: none;
+  }
+`;
+
 interface CTASectionWithBlobsProps {
   locale: string;
 }
@@ -14,6 +60,7 @@ export function CTASectionWithBlobs({ locale }: CTASectionWithBlobsProps) {
 
   return (
     <section className="relative py-24 bg-primary overflow-hidden">
+      <style dangerouslySetInnerHTML={{ __html: shineAnimationStyles }} />
       {/* Blurred Blob Decorations */}
       <div className="absolute top-10 left-10 w-96 h-96 bg-secondary rounded-full filter blur-3xl opacity-20" />
       <div className="absolute bottom-10 right-10 w-80 h-80 bg-secondary rounded-full filter blur-3xl opacity-20" />
@@ -30,7 +77,7 @@ export function CTASectionWithBlobs({ locale }: CTASectionWithBlobsProps) {
             asChild
             size="lg"
             variant="secondary"
-            className="bg-secondary text-primary hover:bg-secondary/90 shadow-lg"
+            className="shine-button-cta bg-secondary text-primary hover:bg-secondary/90 shadow-lg"
           >
             <Link href={`/${locale}/contact` as any}>
               <MessageCircle className="mr-2 h-5 w-5" />
