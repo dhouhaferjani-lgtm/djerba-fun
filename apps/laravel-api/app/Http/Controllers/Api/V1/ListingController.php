@@ -68,36 +68,44 @@ class ListingController extends Controller
             });
         }
 
-        // Filter by service type
-        if ($request->has('service_type')) {
+        // Filter by service type (only if non-empty value provided)
+        if ($request->filled('service_type')) {
             $query->where('service_type', $request->service_type);
         }
 
-        // Filter by location
+        // Filter by location (only if non-empty value provided)
         // Performance: Use whereHas with specific column selection
-        if ($request->has('location')) {
+        if ($request->filled('location')) {
             $query->whereHas('location', function ($q) use ($request) {
                 $q->where('slug', $request->location)
                     ->orWhere('city', 'like', "%{$request->location}%");
             });
         }
 
-        // Filter by difficulty
-        if ($request->has('difficulty')) {
+        // Filter by difficulty (only if non-empty value provided)
+        if ($request->filled('difficulty')) {
             $query->where('difficulty', $request->difficulty);
         }
 
         // Filter by price range
+        // Database stores: base_price (seeder) or tnd_price/tndPrice (Filament)
         if ($request->has('price_min') || $request->has('price_max')) {
             $priceMin = $request->get('price_min');
             $priceMax = $request->get('price_max');
 
+            // Try all possible JSON key formats
+            $priceExtractFilter = "COALESCE(
+                (pricing->>'base_price')::numeric,
+                (pricing->>'tnd_price')::numeric,
+                (pricing->>'tndPrice')::numeric
+            )";
+
             if ($priceMin !== null) {
-                $query->whereRaw("(pricing->>'tnd_price')::numeric >= ?", [$priceMin]);
+                $query->whereRaw("{$priceExtractFilter} >= ?", [$priceMin]);
             }
 
             if ($priceMax !== null) {
-                $query->whereRaw("(pricing->>'tnd_price')::numeric <= ?", [$priceMax]);
+                $query->whereRaw("{$priceExtractFilter} <= ?", [$priceMax]);
             }
         }
 
@@ -128,10 +136,16 @@ class ListingController extends Controller
         }
 
         // Sorting
+        // Database stores: base_price (seeder) or tnd_price/tndPrice (Filament)
         $sortBy = $request->get('sort', 'popularity');
+        $priceExtract = "COALESCE(
+            (pricing->>'base_price')::numeric,
+            (pricing->>'tnd_price')::numeric,
+            (pricing->>'tndPrice')::numeric
+        )";
         match ($sortBy) {
-            'price_asc' => $query->orderByRaw("(pricing->>'tnd_price')::numeric ASC NULLS LAST"),
-            'price_desc' => $query->orderByRaw("(pricing->>'tnd_price')::numeric DESC NULLS LAST"),
+            'price_asc' => $query->orderByRaw("{$priceExtract} ASC NULLS LAST"),
+            'price_desc' => $query->orderByRaw("{$priceExtract} DESC NULLS LAST"),
             'rating' => $query->orderBy('rating', 'desc'),
             'newest' => $query->orderBy('published_at', 'desc'),
             default => $query->orderBy('bookings_count', 'desc'),

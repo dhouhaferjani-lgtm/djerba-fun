@@ -20,15 +20,20 @@ class LocationController extends Controller
      */
     public function index(Request $request)
     {
-        $cacheKey = 'locations:popular';
+        $cacheKey = 'locations:all:v3';
         $cacheTtl = 1800; // 30 minutes
 
         $locations = cache()->remember($cacheKey, $cacheTtl, function () {
             return Location::query()
-                ->selectApi() // Use model scope to prevent column mismatch issues
-                ->where('listings_count', '>', 0)
+                ->select([
+                    'id', 'uuid', 'name', 'slug', 'city', 'region', 'country',
+                    'latitude', 'longitude', 'description', 'image_url',
+                    'created_at', 'updated_at'
+                ])
+                ->whereHas('listings', fn ($q) => $q->where('status', 'published'))
+                ->withCount(['listings as listings_count' => fn ($q) => $q->where('status', 'published')])
                 ->orderByDesc('listings_count')
-                ->limit(20)
+                ->limit(50)
                 ->get();
         });
 

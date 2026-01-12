@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { ListingGrid } from '@/components/organisms/ListingGrid';
 import { SearchBar } from '@/components/molecules/SearchBar';
-import { useListings } from '@/lib/api/hooks';
+import { useListings, useLocations } from '@/lib/api/hooks';
 import { Button } from '@go-adventure/ui';
 import { Filter, X, SlidersHorizontal } from 'lucide-react';
 
@@ -33,6 +33,7 @@ function ListingsContent({ locale }: { locale: string }) {
   };
 
   const { data, isLoading, error } = useListings(queryParams);
+  const { data: locations } = useLocations();
 
   const handleSearch = (query: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -126,13 +127,21 @@ function ListingsContent({ locale }: { locale: string }) {
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Location
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Enter location..."
+                  <select
                     value={searchParams.get('location') || ''}
                     onChange={(e) => handleFilterChange('location', e.target.value || null)}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
+                  >
+                    <option value="">All Locations</option>
+                    {locations?.map((location) => (
+                      <option key={location.id} value={location.slug}>
+                        {location.name}
+                        {location.city && location.city !== location.name
+                          ? ` (${location.city})`
+                          : ''}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Sort */}

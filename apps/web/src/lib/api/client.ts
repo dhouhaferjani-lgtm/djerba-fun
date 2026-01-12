@@ -192,9 +192,22 @@ export const authApi = {
 export const listingsApi = {
   search: async (params: ListingSearchParams) => {
     const queryParams = new URLSearchParams();
+
+    // Map frontend param names to backend param names (camelCase → snake_case)
+    const paramMapping: Record<string, string> = {
+      serviceType: 'service_type',
+      priceMin: 'price_min',
+      priceMax: 'price_max',
+      startDate: 'start_date',
+      endDate: 'end_date',
+      search: 'q', // Frontend uses 'search' but backend expects 'q'
+    };
+
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        queryParams.append(key, String(value));
+        // Use mapped key if available, otherwise use original key
+        const apiKey = paramMapping[key] || key;
+        queryParams.append(apiKey, String(value));
       }
     });
 

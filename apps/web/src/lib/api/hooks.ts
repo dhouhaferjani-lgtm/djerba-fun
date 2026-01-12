@@ -11,12 +11,14 @@ import {
   vouchersApi,
   platformApi,
   userApi,
+  locationsApi,
   type ProcessPaymentRequest,
   type Cart,
   type UpdateParticipantData,
   type UpdateProfileData,
   type UpdatePasswordData,
   type UpdatePreferencesData,
+  type Location,
 } from './client';
 import { getGuestSessionId } from '@/lib/utils/session';
 import type {
@@ -167,6 +169,31 @@ export function useHold(holdId: string | null) {
       }
       return failureCount < 3;
     },
+  });
+}
+
+// ============================================================================
+// LOCATIONS HOOKS
+// ============================================================================
+
+export function useLocations() {
+  return useQuery({
+    queryKey: ['locations'],
+    queryFn: async () => {
+      const response = await locationsApi.list();
+      return response.data;
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes - locations don't change often
+    gcTime: 60 * 60 * 1000, // Keep in cache for 1 hour
+  });
+}
+
+export function useLocation(slug: string, locale?: string) {
+  return useQuery({
+    queryKey: ['locations', slug, locale],
+    queryFn: () => locationsApi.getBySlug(slug, locale),
+    enabled: !!slug,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
