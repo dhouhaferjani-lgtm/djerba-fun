@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { HeroSearchForm } from '../molecules/HeroSearchForm';
 import { shouldUnoptimizeImage } from '@/lib/utils/image';
 import { travelTipsApi, type TravelTip } from '@/lib/api/client';
@@ -13,7 +13,210 @@ const DEFAULT_HERO_IMAGE = 'https://images.unsplash.com/photo-1509099836639-18ba
 // Timing constants
 const TYPING_SPEED = 30; // ms per character
 const PAUSE_AFTER_TYPING = 3000; // ms to pause after typing completes
-const CURSOR_BLINK_SPEED = 530; // ms for cursor blink
+
+// Running Traveler SVG Component - Dynamic running pose facing right
+function RunningTraveler({ isRunning }: { isRunning: boolean }) {
+  return (
+    <svg
+      width="28"
+      height="24"
+      viewBox="0 0 28 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="inline-block align-middle ml-1"
+      style={{
+        transform: 'translateY(-2px)',
+      }}
+    >
+      {/* Motion lines behind (left side) when running */}
+      {isRunning && (
+        <g className="motion-lines" opacity="0.5">
+          <line x1="1" y1="8" x2="4" y2="8" stroke="white" strokeWidth="1.5" strokeLinecap="round">
+            <animate
+              attributeName="opacity"
+              values="0.2;0.7;0.2"
+              dur="0.3s"
+              repeatCount="indefinite"
+            />
+          </line>
+          <line
+            x1="0"
+            y1="11"
+            x2="3"
+            y2="11"
+            stroke="white"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          >
+            <animate
+              attributeName="opacity"
+              values="0.2;0.7;0.2"
+              dur="0.3s"
+              begin="0.1s"
+              repeatCount="indefinite"
+            />
+          </line>
+          <line
+            x1="1"
+            y1="14"
+            x2="4"
+            y2="14"
+            stroke="white"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          >
+            <animate
+              attributeName="opacity"
+              values="0.2;0.7;0.2"
+              dur="0.3s"
+              begin="0.2s"
+              repeatCount="indefinite"
+            />
+          </line>
+        </g>
+      )}
+
+      {/* Backpack on back (left side) */}
+      <rect
+        x="7"
+        y="6"
+        width="4"
+        height="6"
+        rx="1"
+        fill="#8BC34A"
+        stroke="white"
+        strokeWidth="0.5"
+        style={{
+          transform: isRunning ? 'rotate(-8deg)' : 'rotate(0deg)',
+          transformOrigin: '9px 9px',
+        }}
+      />
+      {/* Backpack strap */}
+      <line
+        x1="11"
+        y1="7"
+        x2="13"
+        y2="5"
+        stroke="#8BC34A"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+
+      {/* Body - leaning forward when running */}
+      <line
+        x1={isRunning ? '12' : '13'}
+        y1="5"
+        x2={isRunning ? '14' : '13'}
+        y2="12"
+        stroke="white"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        style={{
+          transform: isRunning ? 'rotate(15deg)' : 'rotate(0deg)',
+          transformOrigin: '13px 8px',
+        }}
+      />
+
+      {/* Head - slightly forward when running */}
+      <circle cx={isRunning ? '16' : '14'} cy={isRunning ? '3' : '3'} r="2.5" fill="white" />
+
+      {/* Back arm (behind body) */}
+      <line
+        x1="13"
+        y1="7"
+        x2={isRunning ? '9' : '11'}
+        y2={isRunning ? '10' : '11'}
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        style={{
+          transformOrigin: '13px 7px',
+          animation: isRunning ? 'backArmSwing 0.3s ease-in-out infinite alternate' : 'none',
+        }}
+      />
+
+      {/* Front arm (pumping forward) */}
+      <line
+        x1="14"
+        y1="7"
+        x2={isRunning ? '20' : '17'}
+        y2={isRunning ? '5' : '10'}
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        style={{
+          transformOrigin: '14px 7px',
+          animation: isRunning
+            ? 'frontArmSwing 0.3s ease-in-out infinite alternate-reverse'
+            : 'none',
+        }}
+      />
+
+      {/* Back leg (pushing off) */}
+      <line
+        x1="14"
+        y1="12"
+        x2={isRunning ? '10' : '12'}
+        y2={isRunning ? '20' : '21'}
+        stroke="white"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        style={{
+          transformOrigin: '14px 12px',
+          animation: isRunning ? 'backLegSwing 0.3s ease-in-out infinite alternate' : 'none',
+        }}
+      />
+
+      {/* Front leg (striding forward) */}
+      <line
+        x1="14"
+        y1="12"
+        x2={isRunning ? '20' : '16'}
+        y2={isRunning ? '19' : '21'}
+        stroke="white"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        style={{
+          transformOrigin: '14px 12px',
+          animation: isRunning
+            ? 'frontLegSwing 0.3s ease-in-out infinite alternate-reverse'
+            : 'none',
+        }}
+      />
+
+      {/* Foot details when running */}
+      {isRunning && (
+        <>
+          <circle cx="10" cy="20" r="1" fill="white">
+            <animate attributeName="cy" values="20;19;20" dur="0.3s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="20" cy="19" r="1" fill="white">
+            <animate attributeName="cy" values="19;20;19" dur="0.3s" repeatCount="indefinite" />
+          </circle>
+        </>
+      )}
+
+      <style>{`
+        @keyframes backArmSwing {
+          0% { transform: rotate(-30deg); }
+          100% { transform: rotate(10deg); }
+        }
+        @keyframes frontArmSwing {
+          0% { transform: rotate(30deg); }
+          100% { transform: rotate(-10deg); }
+        }
+        @keyframes backLegSwing {
+          0% { transform: rotate(-25deg); }
+          100% { transform: rotate(15deg); }
+        }
+        @keyframes frontLegSwing {
+          0% { transform: rotate(25deg); }
+          100% { transform: rotate(-15deg); }
+        }
+      `}</style>
+    </svg>
+  );
+}
 
 interface HeroSectionProps {
   locale: string;
@@ -29,7 +232,6 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
-  const [showCursor, setShowCursor] = useState(true);
 
   // Fallback tip from translations
   const fallbackTip = t('hero_travel_tip_content');
@@ -86,15 +288,6 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
     return () => clearTimeout(timeout);
   }, [isTyping, tips.length]);
 
-  // Blinking cursor effect
-  useEffect(() => {
-    const cursorInterval = setInterval(() => {
-      setShowCursor((prev) => !prev);
-    }, CURSOR_BLINK_SPEED);
-
-    return () => clearInterval(cursorInterval);
-  }, []);
-
   return (
     <section className="relative h-[85vh] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
@@ -141,17 +334,13 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
             <HeroSearchForm locale={locale} />
           </div>
 
-          {/* Travel Tip Banner - Transparent with white border, typewriter effect */}
-          <div className="w-full max-w-5xl mx-auto bg-white/10 backdrop-blur-sm border border-white px-8 py-2 rounded-lg">
-            <p className="text-white text-sm">
-              <span className="text-[#8BC34A] font-semibold">Travel Tip:</span>{' '}
-              <span className="inline">
-                {displayedText}
-                <span
-                  className={`inline-block w-[2px] h-[1em] bg-white ml-[1px] align-middle ${
-                    showCursor ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
+          {/* Travel Tip Banner - Transparent with white border, typewriter effect with running traveler */}
+          <div className="w-full max-w-5xl mx-auto bg-white/10 backdrop-blur-sm border border-white px-8 py-3 rounded-lg">
+            <p className="text-white text-sm flex items-center justify-center">
+              <span className="text-[#8BC34A] font-semibold mr-1">Travel Tip:</span>
+              <span className="inline-flex items-center">
+                <span>{displayedText}</span>
+                <RunningTraveler isRunning={isTyping} />
               </span>
             </p>
           </div>
