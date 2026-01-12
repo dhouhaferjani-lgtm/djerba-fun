@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Pages;
 
 use App\Models\PlatformSettings;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -33,17 +34,85 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public ?array $data = [];
 
-    protected ?PlatformSettings $record = null;
+    /**
+     * The settings model instance.
+     *
+     * CRITICAL: Must be public for Livewire hydration between requests.
+     * Protected properties are not serialized, causing $settings to be null on save().
+     */
+    public ?PlatformSettings $settings = null;
 
     public function mount(): void
     {
-        $this->record = PlatformSettings::instance();
-        $this->form->fill($this->record->toArray());
+        // Get or create the settings record - MUST exist for media uploads
+        $this->settings = PlatformSettings::first();
+
+        if (! $this->settings) {
+            $this->settings = PlatformSettings::create([]);
+        }
+
+        // Ensure model is persisted (has ID) before form hydration
+        // SpatieMediaLibraryFileUpload needs model_id to associate media
+        if (! $this->settings->exists) {
+            $this->settings->save();
+        }
+
+        // Load media relationship for display in form
+        $this->settings->load('media');
+
+        // Get model attributes and sanitize KeyValue fields
+        $attributes = $this->settings->attributesToArray();
+        $attributes = $this->sanitizeKeyValueFieldsForForm($attributes);
+
+        // Fill form with sanitized model attributes
+        $this->form->fill($attributes);
     }
 
-    public function getRecord(): PlatformSettings
+    /**
+     * Sanitize KeyValue fields when loading from database for form display.
+     * Converts any nested arrays to strings to prevent form errors.
+     */
+    protected function sanitizeKeyValueFieldsForForm(array $data): array
     {
-        return $this->record ??= PlatformSettings::instance();
+        $keyValueFields = ['business_hours', 'default_cancellation_policy'];
+
+        foreach ($keyValueFields as $field) {
+            if (isset($data[$field])) {
+                if (is_array($data[$field])) {
+                    $data[$field] = array_map(function ($value) {
+                        if (is_array($value)) {
+                            return json_encode($value);
+                        }
+                        return $value === null ? '' : (string) $value;
+                    }, $data[$field]);
+                } else {
+                    // If it's not an array at all, reset to empty array
+                    $data[$field] = [];
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Get the model for form media uploads.
+     * Required for SpatieMediaLibraryFileUpload components.
+     */
+    public function getFormModel(): PlatformSettings
+    {
+        // Defensive: handle case where property was null after Livewire hydration
+        if ($this->settings === null) {
+            $this->settings = PlatformSettings::first();
+
+            if (! $this->settings) {
+                $this->settings = PlatformSettings::create([]);
+            }
+
+            $this->settings->load('media');
+        }
+
+        return $this->settings;
     }
 
     public function form(Form $form): Form
@@ -71,6 +140,7 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->persistTabInQueryString()
                     ->columnSpanFull(),
             ])
+            ->model($this->getFormModel()) // Explicitly bind model for media uploads
             ->statePath('data');
     }
 
@@ -158,14 +228,12 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('logo_light')
                             ->collection('logo_light')
-                            ->model(fn () => $this->getRecord())
                             ->label('Logo (Light Mode)')
                             ->image()
                             ->maxSize(2048)
                             ->helperText('Used on light backgrounds'),
                         Forms\Components\SpatieMediaLibraryFileUpload::make('logo_dark')
                             ->collection('logo_dark')
-                            ->model(fn () => $this->getRecord())
                             ->label('Logo (Dark Mode)')
                             ->image()
                             ->maxSize(2048)
@@ -178,14 +246,12 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('favicon')
                             ->collection('favicon')
-                            ->model(fn () => $this->getRecord())
                             ->label('Favicon')
                             ->image()
                             ->maxSize(512)
                             ->helperText('Recommended: 32x32 or 16x16 PNG/ICO'),
                         Forms\Components\SpatieMediaLibraryFileUpload::make('apple_touch_icon')
                             ->collection('apple_touch_icon')
-                            ->model(fn () => $this->getRecord())
                             ->label('Apple Touch Icon')
                             ->image()
                             ->maxSize(1024)
@@ -198,7 +264,6 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('og_image')
                             ->collection('og_image')
-                            ->model(fn () => $this->getRecord())
                             ->label('OG Image')
                             ->image()
                             ->maxSize(2048)
@@ -206,41 +271,37 @@ class PlatformSettingsPage extends Page implements HasForms
                     ]),
 
                 Forms\Components\Section::make('Hero Banner')
-                    ->description('Homepage hero section background image')
+                    ->description('Main banner image displayed on the homepage hero section')
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('hero_banner')
                             ->collection('hero_banner')
-                            ->model(fn () => $this->getRecord())
                             ->label('Hero Banner Image')
                             ->image()
                             ->maxSize(10240)
-                            ->helperText('Recommended: 1920x1080 or larger, max 10MB'),
+                            ->helperText('Recommended: 1920x1080 or larger. Max 10MB. JPG/PNG/WebP.'),
                     ]),
 
                 Forms\Components\Section::make('Brand Pillar Images')
-                    ->description('Three images displayed in the Marketing Mosaic section below the hero banner. These represent your brand values.')
+                    ->description('Three square images displayed in the marketing mosaic section below the hero')
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('brand_pillar_1')
                             ->collection('brand_pillar_1')
-                            ->model(fn () => $this->getRecord())
                             ->label('Pillar 1: Sustainable Travel')
                             ->image()
                             ->maxSize(5120)
-                            ->helperText('First card image. Recommended: 800x800 square, max 5MB'),
+                            ->helperText('Recommended: 1080x1080 square image'),
                         Forms\Components\SpatieMediaLibraryFileUpload::make('brand_pillar_2')
                             ->collection('brand_pillar_2')
-                            ->model(fn () => $this->getRecord())
                             ->label('Pillar 2: Authentic Experiences')
                             ->image()
                             ->maxSize(5120)
-                            ->helperText('Second card image. Recommended: 800x800 square, max 5MB'),
+                            ->helperText('Recommended: 1080x1080 square image'),
                         Forms\Components\SpatieMediaLibraryFileUpload::make('brand_pillar_3')
                             ->collection('brand_pillar_3')
-                            ->model(fn () => $this->getRecord())
                             ->label('Pillar 3: Epic Adventures')
                             ->image()
                             ->maxSize(5120)
-                            ->helperText('Third card image. Recommended: 800x800 square, max 5MB'),
+                            ->helperText('Recommended: 1080x1080 square image'),
                     ])
                     ->columns(3),
             ]);
@@ -251,92 +312,81 @@ class PlatformSettingsPage extends Page implements HasForms
         return Forms\Components\Tabs\Tab::make('Event of the Year')
             ->icon('heroicon-o-star')
             ->schema([
-                Forms\Components\Section::make('Event of the Year')
-                    ->description('Configure the featured event promo banner displayed on the homepage.')
+                Forms\Components\Section::make('Event Settings')
+                    ->description('Configure the featured "Event of the Year" banner displayed on the homepage')
                     ->schema([
                         Forms\Components\Toggle::make('event_of_year_enabled')
-                            ->label('Enable Event Banner')
-                            ->helperText('Show/hide the event promo banner on homepage')
+                            ->label('Enable Event of the Year')
+                            ->helperText('Show or hide the event banner on the homepage')
                             ->default(true)
                             ->columnSpanFull(),
 
                         Forms\Components\TextInput::make('event_of_year_tag')
-                            ->label('Event Tag')
+                            ->label('Tag / Badge Text')
                             ->placeholder('Event of the Year')
-                            ->helperText('Small tag text displayed above the title (e.g., "Event of the Year", "Featured Event")')
                             ->maxLength(50)
-                            ->columnSpanFull(),
-                    ]),
+                            ->helperText('Small tag displayed above the title (e.g., "Event of the Year", "Featured Event")'),
 
-                Forms\Components\Section::make('Event Title')
-                    ->description('The main headline for the event (supports multiple languages)')
-                    ->schema([
-                        Forms\Components\Tabs::make('Title Translations')
-                            ->tabs([
-                                Forms\Components\Tabs\Tab::make('English')
-                                    ->schema([
-                                        Forms\Components\Textarea::make('event_of_year_title.en')
-                                            ->label('Event Title')
-                                            ->rows(2)
-                                            ->placeholder("Djerba Music\nFestival 2025")
-                                            ->helperText('Use line breaks for multi-line titles')
-                                            ->maxLength(200),
-                                    ]),
-                                Forms\Components\Tabs\Tab::make('French')
-                                    ->schema([
-                                        Forms\Components\Textarea::make('event_of_year_title.fr')
-                                            ->label('Titre de l\'événement')
-                                            ->rows(2)
-                                            ->placeholder("Festival de Musique\nde Djerba 2025")
-                                            ->maxLength(200),
-                                    ]),
-                            ])
-                            ->columnSpanFull(),
-                    ]),
-
-                Forms\Components\Section::make('Event Description')
-                    ->description('A short description of the event')
-                    ->schema([
-                        Forms\Components\Tabs::make('Description Translations')
-                            ->tabs([
-                                Forms\Components\Tabs\Tab::make('English')
-                                    ->schema([
-                                        Forms\Components\Textarea::make('event_of_year_description.en')
-                                            ->label('Description')
-                                            ->rows(3)
-                                            ->placeholder('Three days of world music, traditional Tunisian performances, and international artists on the beach.')
-                                            ->maxLength(500),
-                                    ]),
-                                Forms\Components\Tabs\Tab::make('French')
-                                    ->schema([
-                                        Forms\Components\Textarea::make('event_of_year_description.fr')
-                                            ->label('Description')
-                                            ->rows(3)
-                                            ->placeholder('Trois jours de musique du monde, de spectacles tunisiens traditionnels et d\'artistes internationaux sur la plage.')
-                                            ->maxLength(500),
-                                    ]),
-                            ])
-                            ->columnSpanFull(),
-                    ]),
-
-                Forms\Components\Section::make('Event Link & Image')
-                    ->description('Link to the event page and banner image')
-                    ->schema([
                         Forms\Components\TextInput::make('event_of_year_link')
-                            ->label('Event Link')
-                            ->placeholder('/en/djerba/djerba-music-festival-2025')
-                            ->helperText('Relative URL path to the event listing page (e.g., /en/location/slug)')
-                            ->maxLength(255)
-                            ->columnSpanFull(),
+                            ->label('Event URL')
+                            ->url()
+                            ->placeholder('https://goadventure.com/events/festival-2025')
+                            ->helperText('Link for "Learn More" or "Register Now" button'),
+                    ])
+                    ->columns(2),
 
+                Forms\Components\Section::make('Event Content')
+                    ->description('Title and description in multiple languages')
+                    ->schema([
+                        Forms\Components\Tabs::make('Event Translations')
+                            ->tabs([
+                                Forms\Components\Tabs\Tab::make('English')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('event_of_year_title.en')
+                                            ->label('Event Title')
+                                            ->required()
+                                            ->maxLength(150)
+                                            ->placeholder('Sahara Festival 2025'),
+                                        Forms\Components\Textarea::make('event_of_year_description.en')
+                                            ->label('Event Description')
+                                            ->rows(3)
+                                            ->maxLength(500)
+                                            ->placeholder('Join us for an unforgettable celebration of Saharan culture...'),
+                                    ]),
+                                Forms\Components\Tabs\Tab::make('French')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('event_of_year_title.fr')
+                                            ->label('Titre de l\'événement')
+                                            ->maxLength(150)
+                                            ->placeholder('Festival du Sahara 2025'),
+                                        Forms\Components\Textarea::make('event_of_year_description.fr')
+                                            ->label('Description de l\'événement')
+                                            ->rows(3)
+                                            ->maxLength(500),
+                                    ]),
+                                Forms\Components\Tabs\Tab::make('Arabic')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('event_of_year_title.ar')
+                                            ->label('عنوان الحدث')
+                                            ->maxLength(150),
+                                        Forms\Components\Textarea::make('event_of_year_description.ar')
+                                            ->label('وصف الحدث')
+                                            ->rows(3)
+                                            ->maxLength(500),
+                                    ]),
+                            ])
+                            ->columnSpanFull(),
+                    ]),
+
+                Forms\Components\Section::make('Event Image')
+                    ->description('Featured image for the event banner')
+                    ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('event_of_year_image')
                             ->collection('event_of_year_image')
-                            ->model(fn () => $this->getRecord())
                             ->label('Event Banner Image')
                             ->image()
-                            ->maxSize(10240)
-                            ->helperText('Recommended: 1920x1080 or larger landscape image, max 10MB')
-                            ->columnSpanFull(),
+                            ->maxSize(5120)
+                            ->helperText('Recommended: 1200x600 or 16:9 aspect ratio. Max 5MB.'),
                     ]),
             ]);
     }
@@ -694,221 +744,24 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->columns(1)
                     ->collapsible(),
 
-                Forms\Components\Section::make('Payment Gateway Configuration')
-                    ->description('Select and configure payment gateways available to customers')
+                Forms\Components\Section::make('Payment Gateway')
                     ->schema([
                         Forms\Components\Select::make('default_payment_gateway')
-                            ->label('Default Payment Gateway')
+                            ->label('Default Gateway')
                             ->options([
                                 'mock' => 'Mock (Development)',
                                 'stripe' => 'Stripe',
-                                'clicktopay' => 'Click to Pay (Tunisia)',
-                                'bank_transfer' => 'Bank Transfer',
-                                'offline' => 'Offline/Manual',
+                                'offline' => 'Offline/Bank Transfer',
                             ])
-                            ->default('mock')
-                            ->live()
-                            ->helperText('The primary payment gateway used for transactions'),
+                            ->default('mock'),
                         Forms\Components\CheckboxList::make('enabled_payment_methods')
                             ->label('Enabled Payment Methods')
                             ->options([
                                 'card' => 'Credit/Debit Card',
                                 'bank_transfer' => 'Bank Transfer',
                                 'cash' => 'Cash on Delivery',
-                                'wallet' => 'Digital Wallet',
                             ])
-                            ->columns(4)
-                            ->helperText('Payment methods available to customers at checkout'),
-                    ])
-                    ->columns(1),
-
-                // Mock Gateway (Development)
-                Forms\Components\Section::make('Mock Gateway (Development Only)')
-                    ->description('Test payment gateway for development - always succeeds after 2 seconds')
-                    ->schema([
-                        Forms\Components\Placeholder::make('mock_info')
-                            ->label('')
-                            ->content('Mock gateway is for testing only. All payments automatically succeed after a 2-second delay. Do not use in production.')
-                            ->columnSpanFull(),
-                        Forms\Components\Toggle::make('mock_gateway_enabled')
-                            ->label('Enable Mock Gateway')
-                            ->helperText('Only enable in development/staging environments')
-                            ->default(app()->environment('local')),
-                    ])
-                    ->collapsed()
-                    ->collapsible(),
-
-                // Stripe Gateway
-                Forms\Components\Section::make('Stripe Payment Gateway')
-                    ->description('Configure Stripe for card payments')
-                    ->schema([
-                        Forms\Components\Placeholder::make('stripe_info')
-                            ->label('')
-                            ->content(new \Illuminate\Support\HtmlString(
-                                '<div class="text-sm text-gray-600 dark:text-gray-400">' .
-                                'Stripe is a leading payment processor supporting cards, wallets, and local payment methods. ' .
-                                '<a href="https://dashboard.stripe.com" target="_blank" class="text-primary-600 hover:underline">Get your API keys from Stripe Dashboard</a>' .
-                                '</div>'
-                            ))
-                            ->columnSpanFull(),
-
-                        Forms\Components\TextInput::make('stripe_publishable_key')
-                            ->label('Publishable Key')
-                            ->placeholder('pk_live_...')
-                            ->helperText('Public key used in frontend (starts with pk_)'),
-
-                        Forms\Components\TextInput::make('stripe_secret_key')
-                            ->label('Secret Key')
-                            ->placeholder('sk_live_...')
-                            ->password()
-                            ->revealable()
-                            ->helperText('Secret key for backend API calls (starts with sk_)'),
-
-                        Forms\Components\TextInput::make('stripe_webhook_secret')
-                            ->label('Webhook Signing Secret')
-                            ->placeholder('whsec_...')
-                            ->password()
-                            ->revealable()
-                            ->helperText('Used to verify webhook authenticity (starts with whsec_)'),
-
-                        Forms\Components\Actions::make([
-                            Forms\Components\Actions\Action::make('test_stripe')
-                                ->label('Test Connection')
-                                ->icon('heroicon-o-bolt')
-                                ->color('primary')
-                                ->action(function () {
-                                    // TODO: Implement Stripe connection test
-                                    \Filament\Notifications\Notification::make()
-                                        ->title('Test not yet implemented')
-                                        ->body('Stripe connection testing will be available once the Stripe gateway is fully integrated.')
-                                        ->warning()
-                                        ->send();
-                                }),
-                        ])
-                            ->columnSpanFull(),
-                    ])
-                    ->columns(2)
-                    ->collapsed()
-                    ->collapsible(),
-
-                // Click to Pay Gateway
-                Forms\Components\Section::make('Click to Pay (Tunisia)')
-                    ->description('Configure Click to Pay for Tunisian payment processing')
-                    ->schema([
-                        Forms\Components\Placeholder::make('clicktopay_info')
-                            ->label('')
-                            ->content(new \Illuminate\Support\HtmlString(
-                                '<div class="text-sm text-gray-600 dark:text-gray-400">' .
-                                'Click to Pay is Tunisia\'s local payment processor supporting cards and mobile payments. ' .
-                                'Contact your Click to Pay account manager for API credentials.' .
-                                '</div>'
-                            ))
-                            ->columnSpanFull(),
-
-                        Forms\Components\TextInput::make('clicktopay_merchant_id')
-                            ->label('Merchant ID')
-                            ->placeholder('MERCHANT123')
-                            ->helperText('Your Click to Pay merchant identifier'),
-
-                        Forms\Components\TextInput::make('clicktopay_api_key')
-                            ->label('API Key')
-                            ->placeholder('ctp_api_...')
-                            ->password()
-                            ->revealable()
-                            ->helperText('API key for authentication'),
-
-                        Forms\Components\TextInput::make('clicktopay_secret_key')
-                            ->label('Secret Key')
-                            ->placeholder('ctp_secret_...')
-                            ->password()
-                            ->revealable()
-                            ->helperText('Secret key for signing requests'),
-
-                        Forms\Components\Toggle::make('clicktopay_test_mode')
-                            ->label('Test Mode')
-                            ->helperText('Use Click to Pay test environment')
-                            ->default(true)
-                            ->inline(false),
-
-                        Forms\Components\Actions::make([
-                            Forms\Components\Actions\Action::make('test_clicktopay')
-                                ->label('Test Connection')
-                                ->icon('heroicon-o-bolt')
-                                ->color('primary')
-                                ->action(function () {
-                                    // TODO: Implement Click to Pay connection test
-                                    \Filament\Notifications\Notification::make()
-                                        ->title('Test not yet implemented')
-                                        ->body('Click to Pay connection testing will be available once API credentials are configured.')
-                                        ->warning()
-                                        ->send();
-                                }),
-                        ])
-                            ->columnSpanFull(),
-                    ])
-                    ->columns(2)
-                    ->collapsed()
-                    ->collapsible(),
-
-                // Bank Transfer Gateway
-                Forms\Components\Section::make('Bank Transfer')
-                    ->description('Configure bank transfer details for manual payments')
-                    ->schema([
-                        Forms\Components\Placeholder::make('bank_transfer_info')
-                            ->label('')
-                            ->content('Customers will see these bank details at checkout and must transfer funds manually. Vendors must confirm payment receipt.')
-                            ->columnSpanFull(),
-
-                        Forms\Components\TextInput::make('bank_transfer_bank_name')
-                            ->label('Bank Name')
-                            ->placeholder('Banque de Tunisie')
-                            ->helperText('Name of your bank'),
-
-                        Forms\Components\TextInput::make('bank_transfer_account_holder')
-                            ->label('Account Holder Name')
-                            ->placeholder('Go Adventure SARL')
-                            ->helperText('Legal name on the bank account'),
-
-                        Forms\Components\TextInput::make('bank_transfer_account_number')
-                            ->label('Account Number')
-                            ->placeholder('1234567890')
-                            ->helperText('Local account number'),
-
-                        Forms\Components\TextInput::make('bank_transfer_iban')
-                            ->label('IBAN')
-                            ->placeholder('TN59 1000 1234 5678 9012 3456')
-                            ->helperText('International Bank Account Number'),
-
-                        Forms\Components\TextInput::make('bank_transfer_swift_bic')
-                            ->label('SWIFT/BIC Code')
-                            ->placeholder('BCTNTNTT')
-                            ->helperText('Bank identifier code for international transfers'),
-
-                        Forms\Components\Textarea::make('bank_transfer_instructions')
-                            ->label('Payment Instructions')
-                            ->rows(4)
-                            ->placeholder('Please include your booking number in the transfer reference.')
-                            ->helperText('Additional instructions shown to customers')
-                            ->columnSpanFull(),
-                    ])
-                    ->columns(2)
-                    ->collapsed()
-                    ->collapsible(),
-
-                // Offline/Manual Payments
-                Forms\Components\Section::make('Offline/Manual Payments')
-                    ->description('Allow vendors to manually confirm payments (cash, check, etc.)')
-                    ->schema([
-                        Forms\Components\Placeholder::make('offline_info')
-                            ->label('')
-                            ->content('When enabled, bookings can be created with pending payment status and vendors can manually mark them as paid. Use for cash payments, checks, or other offline methods.')
-                            ->columnSpanFull(),
-
-                        Forms\Components\Toggle::make('offline_payments_enabled')
-                            ->label('Enable Offline Payments')
-                            ->helperText('Allow vendors to accept and manually confirm payments')
-                            ->default(true)
-                            ->inline(false),
+                            ->columns(3),
                     ]),
 
                 Forms\Components\Section::make('Fees & Limits')
@@ -1263,34 +1116,89 @@ class PlatformSettingsPage extends Page implements HasForms
             ]);
     }
 
+    /**
+     * Sanitize KeyValue fields to ensure values are strings, not arrays.
+     * This fixes data corruption issues where nested arrays were saved.
+     */
+    protected function sanitizeKeyValueFields(array $data): array
+    {
+        $keyValueFields = ['business_hours', 'default_cancellation_policy'];
+
+        foreach ($keyValueFields as $field) {
+            if (isset($data[$field]) && is_array($data[$field])) {
+                $data[$field] = array_map(function ($value) {
+                    if (is_array($value)) {
+                        return json_encode($value);
+                    }
+                    return (string) $value;
+                }, $data[$field]);
+            }
+        }
+
+        return $data;
+    }
+
     public function save(): void
     {
         try {
+            // Defensive check - ensure model exists after Livewire hydration
+            // This handles the case where $settings was null due to serialization
+            if ($this->settings === null) {
+                $this->settings = PlatformSettings::first();
+
+                if (! $this->settings) {
+                    $this->settings = PlatformSettings::create([]);
+                }
+            }
+
+            // Validate and get form state
             $data = $this->form->getState();
-            $settings = $this->getRecord();
 
-            // Filter out media fields - they are handled automatically by SpatieMediaLibraryFileUpload
-            $mediaFields = ['logo_light', 'logo_dark', 'favicon', 'apple_touch_icon', 'og_image', 'hero_banner', 'brand_pillar_1', 'brand_pillar_2', 'brand_pillar_3', 'event_of_year_image'];
-            $filteredData = array_filter($data, fn ($key) => !in_array($key, $mediaFields), ARRAY_FILTER_USE_KEY);
+            // Sanitize KeyValue fields to prevent array-as-value errors
+            $data = $this->sanitizeKeyValueFields($data);
 
-            $settings->fill($filteredData);
-            $settings->save();
+            // Fill model with scalar data and save
+            $this->settings->fill($data);
+            $this->settings->save();
+
+            // CRITICAL: Explicitly save relationships (media uploads)
+            // This must happen AFTER model save so media has a model_id to associate with
+            // SpatieMediaLibraryFileUpload stores uploads in temp storage during form interaction
+            // This call moves them to permanent storage and creates media table records
+            $this->form->model($this->settings)->saveRelationships();
+
+            // Clear cache so API returns fresh data
+            PlatformSettings::clearCache();
+
+            // Refresh model with new media
+            $this->settings->refresh();
+            $this->settings->load('media');
 
             Notification::make()
                 ->title('Settings saved successfully')
                 ->success()
                 ->send();
+
         } catch (Halt $exception) {
             return;
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Error saving settings')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+
+            throw $e;
         }
     }
 
     protected function getFormActions(): array
     {
         return [
-            Forms\Components\Actions\Action::make('save')
+            Action::make('save')
                 ->label('Save Settings')
-                ->submit('save'),
+                ->submit('form')
+                ->keyBindings(['mod+s']),
         ];
     }
 }

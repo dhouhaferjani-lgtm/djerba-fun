@@ -652,8 +652,8 @@ export function usePlatformSettings(locale?: string) {
       const response = await platformApi.getSettings(locale);
       return response.data;
     },
-    staleTime: 60 * 60 * 1000, // 1 hour - settings rarely change
-    gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 24 hours
+    staleTime: 5 * 60 * 1000, // 5 minutes - more responsive to admin changes
+    gcTime: 60 * 60 * 1000, // Keep in cache for 1 hour
   });
 }
 

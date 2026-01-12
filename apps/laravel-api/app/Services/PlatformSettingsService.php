@@ -10,6 +10,8 @@ class PlatformSettingsService
 {
     protected ?PlatformSettings $settings = null;
 
+    protected bool $withMedia = false;
+
     /**
      * Get settings instance (cached).
      */
@@ -17,9 +19,24 @@ class PlatformSettingsService
     {
         if ($this->settings === null) {
             $this->settings = PlatformSettings::instance();
+
+            // If media is needed, load it fresh to ensure we have current media URLs
+            if ($this->withMedia) {
+                $this->settings->load('media');
+            }
         }
 
         return $this->settings;
+    }
+
+    /**
+     * Get settings with media loaded (for public API responses).
+     */
+    public function settingsWithMedia(): PlatformSettings
+    {
+        // Always get fresh from DB to ensure media is current
+        // Cannot rely on cached instance for media URLs
+        return PlatformSettings::with('media')->firstOrCreate([]);
     }
 
     /**
@@ -50,11 +67,16 @@ class PlatformSettingsService
 
     /**
      * Get public settings for frontend (non-sensitive data only).
+     *
+     * Uses fresh settings with media loaded to ensure current media URLs are returned.
      */
     public function getPublicSettings(?string $locale = null): array
     {
         $locale = $locale ?? app()->getLocale();
-        $s = $this->settings();
+
+        // IMPORTANT: Use fresh settings with media loaded for public API
+        // Cached instances may have stale or missing media URLs
+        $s = $this->settingsWithMedia();
 
         return [
             'platform' => [
@@ -159,11 +181,15 @@ class PlatformSettingsService
 
     /**
      * Get settings for JSON-LD schema.org.
+     *
+     * Uses fresh settings with media loaded to ensure logo URL is current.
      */
     public function getSchemaOrgData(?string $locale = null): array
     {
         $locale = $locale ?? app()->getLocale();
-        $s = $this->settings();
+
+        // Use fresh settings with media for schema.org logo
+        $s = $this->settingsWithMedia();
 
         $schema = [
             '@context' => 'https://schema.org',

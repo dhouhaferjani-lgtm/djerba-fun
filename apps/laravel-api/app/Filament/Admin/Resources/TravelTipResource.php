@@ -14,7 +14,7 @@ class TravelTipResource extends Resource
 {
     protected static ?string $model = TravelTip::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-light-bulb';
+    protected static ?string $navigationIcon = null;
 
     protected static ?string $navigationGroup = 'Content';
 

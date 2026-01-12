@@ -308,12 +308,41 @@ class PlatformSettings extends Model implements HasMedia
 
     /**
      * Get the singleton instance (cached).
+     *
+     * WARNING: Do NOT use this for Filament forms with media uploads.
+     * Cached models lose their Eloquent state after serialization.
+     * Use freshInstance() instead for admin operations.
      */
     public static function instance(): self
     {
         return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
             return self::firstOrCreate([]);
         });
+    }
+
+    /**
+     * Get a fresh instance directly from database (not cached).
+     *
+     * This is required for:
+     * - Filament admin pages with SpatieMediaLibraryFileUpload
+     * - Any operation that modifies media collections
+     * - When you need the model with current media loaded
+     *
+     * The fresh instance has proper Eloquent state for media library operations.
+     */
+    public static function freshInstance(): self
+    {
+        // Get or create the settings record directly from DB
+        $settings = self::first();
+
+        if (! $settings) {
+            $settings = self::create([]);
+        }
+
+        // Eager load media to ensure it's available
+        $settings->load('media');
+
+        return $settings;
     }
 
     /**
