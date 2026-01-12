@@ -53,7 +53,7 @@ export function PromoBannerSection({ locale, eventOfYear }: PromoBannerSectionPr
   const titleLines = title.split('\n');
 
   return (
-    <section className="py-16 bg-accent">
+    <section className="py-16 bg-[#f5f0d1]">
       <div className="container mx-auto px-4">
         <div className="relative h-[500px] rounded-lg overflow-hidden">
           {/* Background Image */}
