@@ -41,8 +41,8 @@ services:
   # Laravel API
   api:
     build:
-      context: ./apps/laravel-api
-      dockerfile: Dockerfile.prod
+      context: .
+      dockerfile: apps/laravel-api/Dockerfile.prod
       args:
         - PHP_VERSION=8.4
     container_name: goadventure-api
@@ -85,8 +85,8 @@ services:
   # Laravel Horizon (Queue Worker)
   horizon:
     build:
-      context: ./apps/laravel-api
-      dockerfile: Dockerfile.prod
+      context: .
+      dockerfile: apps/laravel-api/Dockerfile.prod
       args:
         - PHP_VERSION=8.4
     container_name: goadventure-horizon
@@ -120,8 +120,8 @@ services:
   # Next.js Frontend
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile.prod
+      context: .
+      dockerfile: apps/web/Dockerfile.prod
       args:
         - NODE_ENV=production
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api.lucy.tn/api/v1}
