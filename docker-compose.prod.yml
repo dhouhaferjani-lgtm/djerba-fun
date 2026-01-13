@@ -51,7 +51,7 @@ services:
     environment:
       - APP_ENV=${APP_ENV:-production}
       - APP_DEBUG=${APP_DEBUG:-false}
-      - APP_URL=${APP_URL:-https://api.lucy.tn}
+      - APP_URL=${APP_URL:-https://dev.go-adventure.net}
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -124,14 +124,14 @@ services:
       dockerfile: apps/web/Dockerfile.prod
       args:
         - NODE_ENV=production
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api.lucy.tn/api/v1}
-        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://lucy.tn}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://dev.go-adventure.net/api/v1}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://dev.go-adventure.net}
     container_name: goadventure-web
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api.lucy.tn/api/v1}
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://lucy.tn}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://dev.go-adventure.net/api/v1}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://dev.go-adventure.net}
       - NEXT_PUBLIC_DEFAULT_LOCALE=fr
     depends_on:
       - api
