@@ -1,30 +1,44 @@
-# Production Dockerfile for Next.js Frontend
+# Production Dockerfile for Next.js Frontend (Monorepo-aware)
 FROM node:20-alpine AS base
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+# Add libc6-compat for Alpine
+RUN apk add --no-cache libc6-compat
 
 # Dependencies stage
 FROM base AS deps
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
-COPY ../../packages ./packages
+# Copy workspace root files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile --prod
+# Copy all workspace package.json files for dependency resolution
+COPY packages/schemas/package.json ./packages/schemas/
+COPY packages/ui/package.json ./packages/ui/
+COPY apps/web/package.json ./apps/web/
+COPY apps/laravel-api/package.json ./apps/laravel-api/
+
+# Install dependencies (skip husky, no --prod flag)
+ENV HUSKY=0
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Builder stage
 FROM base AS builder
 WORKDIR /app
 
-# Copy dependencies from deps stage
+# Copy workspace configuration
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copy all node_modules and packages from deps
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
+COPY --from=deps /app/apps ./apps
 
-# Copy source code
-COPY . .
+# Copy source code for packages and web app
+COPY packages ./packages
+COPY apps/web ./apps/web
 
 # Set build-time environment variables
 ARG NEXT_PUBLIC_API_URL
@@ -35,9 +49,14 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ENV NODE_ENV=$NODE_ENV
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV HUSKY=0
 
-# Build the application
-RUN pnpm build
+# Build workspace dependencies first (schemas, ui)
+RUN pnpm --filter "@go-adventure/schemas" build
+RUN pnpm --filter "@go-adventure/ui" build
+
+# Build ONLY the web app (not all workspaces)
+RUN pnpm --filter web build
 
 # Production runner stage
 FROM base AS runner
@@ -50,10 +69,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
 
-# Copy necessary files
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copy necessary files from standalone build
+COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 
 # Switch to non-root user
 USER nextjs
@@ -68,5 +87,5 @@ ENV HOSTNAME="0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=40s \
     CMD node -e "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start the application
-CMD ["node", "server.js"]
+# Start the application from standalone server
+CMD ["node", "apps/web/server.js"]

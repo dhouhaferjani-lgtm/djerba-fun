@@ -1,0 +1,28 @@
+# Ignore build artifacts
+**/node_modules
+**/.next
+**/dist
+**/build
+**/out
+**/.turbo
+
+# Ignore git
+.git
+.gitignore
+
+# Ignore env files (set via docker-compose)
+**/.env*
+!**/.env.example
+
+# Ignore docs and logs
+**/*.md
+!README.md
+**/.DS_Store
+**/coverage
+**/*.log
+
+# Ignore husky hooks (causes issues in Docker)
+.husky
+
+# Ignore build logs
+build_log*.txt
