@@ -149,9 +149,8 @@ services:
     image: nginx:alpine
     container_name: goadventure-nginx
     restart: unless-stopped
-    ports:
-      - '80:80'
-      - '443:443'
+    # Ports managed by Dokploy's reverse proxy (Traefik)
+    # Do not expose ports directly to avoid conflicts
     volumes:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
