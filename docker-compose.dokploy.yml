@@ -1,0 +1,130 @@
+# Dokploy-optimized Docker Compose
+# Deploy via: Dokploy Dashboard -> Docker Compose -> Select this file
+# Documentation: See .env.dokploy.example for required environment variables
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-go_adventure}
+      POSTGRES_USER: ${DB_USERNAME:-go_adventure}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Database password required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-go_adventure} -d ${DB_DATABASE:-go_adventure}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (Cache + Queue)
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?Redis password required}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Laravel API
+  api:
+    build:
+      context: ./apps/laravel-api
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      APP_KEY: ${APP_KEY:?App key required}
+      APP_URL: ${APP_URL:?API URL required}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-go_adventure}
+      DB_USERNAME: ${DB_USERNAME:-go_adventure}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PORT: 6379
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_DOMAINS:-localhost}
+      MAIL_MAILER: ${MAIL_MAILER:-log}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM:-noreply@example.com}
+    volumes:
+      - storage_data:/var/www/html/storage/app/public
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Laravel Horizon (Queue Worker)
+  horizon:
+    build:
+      context: ./apps/laravel-api
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    command: php artisan horizon
+    environment:
+      APP_ENV: production
+      APP_KEY: ${APP_KEY}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-go_adventure}
+      DB_USERNAME: ${DB_USERNAME:-go_adventure}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PORT: 6379
+      QUEUE_CONNECTION: redis
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # Next.js Frontend
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile.prod
+      args:
+        NODE_ENV: production
+        NEXT_PUBLIC_API_URL: ${APP_URL}/api/v1
+        NEXT_PUBLIC_APP_URL: ${WEB_URL:-https://localhost}
+        NEXT_PUBLIC_DEFAULT_LOCALE: ${DEFAULT_LOCALE:-fr}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:3000']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  postgres_data:
+  redis_data:
+  storage_data:
