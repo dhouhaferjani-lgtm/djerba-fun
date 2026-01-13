@@ -34,6 +34,7 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => '#0D642E', // Dark forest green from design system
             ])
             ->navigationGroups([
+                NavigationGroup::make('Sales'),
                 NavigationGroup::make('Operations')
                     ->icon('heroicon-o-clipboard-document-list'),
                 NavigationGroup::make('People')

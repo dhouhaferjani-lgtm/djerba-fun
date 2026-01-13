@@ -498,6 +498,7 @@
     "home": "Home",
     "tours": "Tours",
     "events": "Events",
+    "customTrip": "Request Custom Trip",
     "about": "About",
     "contact": "Contact"
   },
@@ -920,6 +921,145 @@
       "message": "Oops! The adventure you're looking for doesn't exist. Perhaps it's time to explore new horizons.",
       "home_button": "Back to Home",
       "browse_button": "Browse Adventures"
+    }
+  },
+  "customTrip": {
+    "hero": {
+      "title": "Design Your Dream Tunisia Adventure",
+      "subtitle": "Tell us your vision and our local experts will craft a personalized itinerary just for you",
+      "badge_free_consultation": "Free Consultation",
+      "badge_response_time": "Response within 24h",
+      "cta_button": "Start Planning"
+    },
+    "steps": {
+      "basics": "Trip Basics",
+      "interests": "Interests",
+      "budget": "Budget & Style",
+      "contact": "Contact"
+    },
+    "tripBasics": {
+      "title": "When would you like to travel?",
+      "subtitle": "Let us know your ideal dates and group size",
+      "when_travel": "When do you want to travel?",
+      "start_date": "Start date",
+      "end_date": "End date",
+      "dates_flexible": "My dates are flexible (+/- a few days)",
+      "how_many_travelers": "How many travelers?",
+      "adults": "Adults",
+      "adults_hint": "Ages 13+",
+      "children": "Children",
+      "children_hint": "Ages 2-12",
+      "trip_duration": "How many days do you have?",
+      "days": "days",
+      "continue": "Continue"
+    },
+    "interests": {
+      "title": "What interests you most?",
+      "subtitle": "Select up to 5 experiences you'd love to include in your trip",
+      "selection_hint": "{current} of {max} selected",
+      "max_selections_error": "You can select up to {max} interests",
+      "min_selection_error": "Please select at least 1 interest",
+      "options": {
+        "history_culture": "History & Culture",
+        "desert_adventures": "Desert Adventures",
+        "beach_relaxation": "Beach & Relaxation",
+        "food_gastronomy": "Food & Gastronomy",
+        "hiking_nature": "Hiking & Nature",
+        "photography": "Photography",
+        "local_festivals": "Local Festivals",
+        "star_wars_sites": "Star Wars Sites"
+      },
+      "back": "Back",
+      "continue": "Continue"
+    },
+    "budgetStyle": {
+      "title": "What's your travel style?",
+      "subtitle": "Help us understand your preferences and budget",
+      "budget_per_person": "Budget per person (TND)",
+      "accommodation_style": "Accommodation preference",
+      "accommodation": {
+        "budget": "Budget-friendly",
+        "mid-range": "Comfortable",
+        "luxury": "Premium"
+      },
+      "travel_pace": "How do you like to travel?",
+      "pace": {
+        "relaxed": "Relaxed",
+        "relaxed_desc": "Few activities, more free time",
+        "moderate": "Moderate",
+        "moderate_desc": "Balanced mix of activities",
+        "active": "Active",
+        "active_desc": "Packed schedule, see everything"
+      },
+      "special_occasion": "Special occasion?",
+      "optional": "(optional)",
+      "occasions": {
+        "honeymoon": "Honeymoon",
+        "birthday": "Birthday",
+        "anniversary": "Anniversary",
+        "other": "Other Celebration"
+      },
+      "back": "Back",
+      "continue": "Continue"
+    },
+    "contact": {
+      "title": "How can we reach you?",
+      "subtitle": "Our travel experts will contact you within 24 hours",
+      "full_name": "Full Name",
+      "full_name_placeholder": "Enter your full name",
+      "email": "Email Address",
+      "email_placeholder": "Enter your email",
+      "phone": "Phone Number",
+      "phone_placeholder": "+216 XX XXX XXX",
+      "whatsapp_same_as_phone": "WhatsApp number is same as phone",
+      "whatsapp_number": "WhatsApp Number",
+      "whatsapp_placeholder": "+216 XX XXX XXX",
+      "country": "Country of Residence",
+      "country_placeholder": "Select your country",
+      "preferred_contact": "Preferred contact method",
+      "method": {
+        "email": "Email",
+        "phone": "Phone",
+        "whatsapp": "WhatsApp"
+      },
+      "special_requests": "Special requests or requirements",
+      "special_requests_placeholder": "Tell us about any dietary restrictions, mobility needs, or specific wishes...",
+      "special_requests_hint": "Max 1000 characters",
+      "newsletter_consent": "I'd like to receive exclusive travel deals and destination inspiration from Go Adventure",
+      "back": "Back",
+      "submit": "Submit Request",
+      "submitting": "Submitting..."
+    },
+    "summary": {
+      "title": "Trip Summary",
+      "dates_flexible": "Flexible dates",
+      "per_person": "per person",
+      "pace": "pace",
+      "estimated_total": "Estimated Total",
+      "travelers": "travelers",
+      "questions": "Have questions?",
+      "chat_with_us": "Chat with us"
+    },
+    "success": {
+      "title": "Request Submitted!",
+      "subtitle": "Thank you for choosing Go Adventure. We're excited to help plan your dream trip to Tunisia.",
+      "reference_label": "Your Reference Number",
+      "email_sent_title": "Confirmation Email Sent",
+      "email_sent_description": "We've sent a confirmation to {email}. Check your inbox for details.",
+      "whats_next_title": "What Happens Next?",
+      "step1_title": "Expert Review",
+      "step1_description": "Our travel specialists will review your preferences",
+      "step2_title": "Custom Itinerary",
+      "step2_description": "We'll craft a personalized trip proposal for you",
+      "step3_title": "Connect & Refine",
+      "step3_description": "We'll discuss and fine-tune your perfect adventure",
+      "response_time": "We'll contact you within 24 hours",
+      "back_home": "Back to Home",
+      "contact_whatsapp": "Chat on WhatsApp",
+      "questions": "Need immediate assistance?"
+    },
+    "errors": {
+      "submission_failed": "We couldn't submit your request. Please try again or contact us directly."
     }
   }
 }

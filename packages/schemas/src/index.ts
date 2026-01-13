@@ -1452,3 +1452,131 @@ export type ClaimableBookingsResponse = z.infer<typeof claimableBookingsResponse
 export type LinkBookingsResponse = z.infer<typeof linkBookingsResponseSchema>;
 export type ClaimBookingResponse = z.infer<typeof claimBookingResponseSchema>;
 export type LinkedMethod = z.infer<typeof linkedMethodSchema>;
+
+// ============================================================================
+// CUSTOM TRIP REQUESTS
+// ============================================================================
+
+/** Available interest types for custom trip requests */
+export const customTripInterestSchema = z.enum([
+  'history-culture',
+  'desert-adventures',
+  'beach-relaxation',
+  'food-gastronomy',
+  'hiking-nature',
+  'photography',
+  'local-festivals',
+  'star-wars-sites',
+]);
+
+/** Accommodation style options */
+export const accommodationStyleSchema = z.enum(['budget', 'mid-range', 'luxury']);
+
+/** Travel pace options */
+export const travelPaceSchema = z.enum(['relaxed', 'moderate', 'active']);
+
+/** Special occasion options */
+export const specialOccasionSchema = z.enum(['honeymoon', 'birthday', 'anniversary', 'other']);
+
+/** Contact method preference */
+export const preferredContactMethodSchema = z.enum(['email', 'phone', 'whatsapp']);
+
+/** Custom trip request status */
+export const customTripStatusSchema = z.enum([
+  'pending',
+  'reviewed',
+  'assigned',
+  'in_progress',
+  'proposal_sent',
+  'converted',
+  'cancelled',
+]);
+
+/** Create custom trip request - request body */
+export const createCustomTripRequestSchema = z.object({
+  travel_dates: z.object({
+    start: z
+      .string()
+      .refine((date) => new Date(date) >= new Date(new Date().setHours(0, 0, 0, 0)), {
+        message: 'Travel start date must be today or in the future',
+      }),
+    end: z.string(),
+    flexible: z.boolean().default(false),
+  }),
+  travelers: z.object({
+    adults: z.number().int().min(1).max(20),
+    children: z.number().int().min(0).max(10).default(0),
+  }),
+  duration_days: z.number().int().min(3).max(21),
+  interests: z.array(customTripInterestSchema).min(1).max(5),
+  budget: z.object({
+    per_person: z.number().int().min(500).max(10000),
+    currency: z.enum(['TND', 'EUR', 'USD']).default('TND'),
+  }),
+  accommodation_style: accommodationStyleSchema,
+  travel_pace: travelPaceSchema,
+  special_occasions: z.array(specialOccasionSchema).optional(),
+  contact: z.object({
+    name: z.string().min(2).max(255),
+    email: z.string().email(),
+    phone: z.string().min(8).max(50),
+    whatsapp: z.string().max(50).optional().nullable(),
+    country: z.string().length(2),
+    preferred_method: preferredContactMethodSchema,
+  }),
+  special_requests: z.string().max(1000).optional().nullable(),
+  newsletter_consent: z.boolean().default(false),
+  locale: z.enum(['en', 'fr']).default('en'),
+});
+
+/** Custom trip request response */
+export const customTripRequestResponseSchema = z.object({
+  data: z.object({
+    id: z.string().uuid(),
+    reference: z.string(),
+    status: customTripStatusSchema,
+    created_at: z.string().datetime(),
+  }),
+  message: z.string(),
+});
+
+/** Full custom trip request entity */
+export const customTripRequestSchema = z.object({
+  id: z.string().uuid(),
+  reference: z.string(),
+  status: customTripStatusSchema,
+  travel_start_date: z.string(),
+  travel_end_date: z.string(),
+  dates_flexible: z.boolean(),
+  adults: z.number().int(),
+  children: z.number().int(),
+  duration_days: z.number().int(),
+  interests: z.array(customTripInterestSchema),
+  budget_per_person: z.number().int(),
+  budget_currency: z.string().length(3),
+  accommodation_style: accommodationStyleSchema,
+  travel_pace: travelPaceSchema,
+  special_occasions: z.array(specialOccasionSchema).nullable(),
+  special_requests: z.string().nullable(),
+  contact_name: z.string(),
+  contact_email: z.string().email(),
+  contact_phone: z.string(),
+  contact_whatsapp: z.string().nullable(),
+  contact_country: z.string().length(2),
+  preferred_contact_method: preferredContactMethodSchema,
+  newsletter_consent: z.boolean(),
+  locale: z.enum(['en', 'fr']),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+
+// Custom Trip Request Types
+export type CustomTripInterest = z.infer<typeof customTripInterestSchema>;
+export type AccommodationStyle = z.infer<typeof accommodationStyleSchema>;
+export type TravelPace = z.infer<typeof travelPaceSchema>;
+export type SpecialOccasion = z.infer<typeof specialOccasionSchema>;
+export type PreferredContactMethod = z.infer<typeof preferredContactMethodSchema>;
+export type CustomTripStatus = z.infer<typeof customTripStatusSchema>;
+export type CreateCustomTripRequest = z.infer<typeof createCustomTripRequestSchema>;
+export type CustomTripRequestResponse = z.infer<typeof customTripRequestResponseSchema>;
+export type CustomTripRequest = z.infer<typeof customTripRequestSchema>;

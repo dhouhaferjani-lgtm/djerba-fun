@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\BlogPostController;
 use App\Http\Controllers\Api\V1\BookingController;
+use App\Http\Controllers\Api\V1\CustomTripRequestController;
 use App\Http\Controllers\Api\V1\CartCheckoutController;
 use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CheckInController;
@@ -89,6 +90,9 @@ Route::prefix('v1')->group(function () {
 
     // Travel tips routes (public - for hero section rotating tips)
     Route::get('/travel-tips', [TravelTipController::class, 'index']);
+
+    // Custom trip request routes (public - anyone can submit a request)
+    Route::post('/custom-trip-requests', [CustomTripRequestController::class, 'store']);
 
     // Availability routes (public - anyone can view availability)
     Route::get('/listings/{listing:slug}/availability', [AvailabilityController::class, 'index']);

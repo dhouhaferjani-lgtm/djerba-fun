@@ -1259,4 +1259,62 @@ export const travelTipsApi = {
   },
 };
 
+// ============================================================================
+// CUSTOM TRIP REQUESTS API
+// ============================================================================
+
+export interface CustomTripRequestData {
+  travel_dates: {
+    start: string;
+    end: string;
+    flexible: boolean;
+  };
+  travelers: {
+    adults: number;
+    children: number;
+  };
+  duration_days: number;
+  interests: string[];
+  budget: {
+    per_person: number;
+    currency: 'TND' | 'EUR' | 'USD';
+  };
+  accommodation_style: 'budget' | 'mid-range' | 'luxury';
+  travel_pace: 'relaxed' | 'moderate' | 'active';
+  special_occasions?: string[];
+  contact: {
+    name: string;
+    email: string;
+    phone: string;
+    whatsapp?: string | null;
+    country: string;
+    preferred_method: 'email' | 'phone' | 'whatsapp';
+  };
+  special_requests?: string | null;
+  newsletter_consent: boolean;
+  locale: 'en' | 'fr';
+}
+
+export interface CustomTripRequestResponse {
+  data: {
+    id: string;
+    reference: string;
+    status: string;
+    created_at: string;
+  };
+  message: string;
+}
+
+export const customTripApi = {
+  /**
+   * Submit a custom trip request
+   */
+  submit: async (data: CustomTripRequestData): Promise<CustomTripRequestResponse> => {
+    return fetchApi<CustomTripRequestResponse>('/custom-trip-requests', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
 export { ApiError };

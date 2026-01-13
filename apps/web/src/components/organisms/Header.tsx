@@ -28,6 +28,7 @@ export function Header({ locale }: HeaderProps) {
     { href: `/${locale}`, label: t('home') },
     { href: `/${locale}/listings?type=tour`, label: t('tours') },
     { href: `/${locale}/listings?type=event`, label: t('events') },
+    { href: `/${locale}/custom-trip`, label: t('customTrip') },
   ];
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { useRouter } from '@/i18n/navigation';
@@ -11,6 +11,7 @@ import { useAvailability, useCreateHold, useAddToCart } from '@/lib/api/hooks';
 import { Button } from '@go-adventure/ui';
 import { PersonTypeSelector } from '@/components/booking/PersonTypeSelector';
 import { BookingStepIndicator, type BookingStep } from '@/components/booking/BookingStepIndicator';
+import DOMPurify from 'dompurify';
 
 // Dynamic imports for heavy components to reduce initial bundle size
 const AvailabilityCalendar = dynamic(
@@ -786,9 +787,27 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                       <h2 className="font-display text-4xl font-bold text-heading mb-6 tracking-tight">
                         About This Experience
                       </h2>
-                      <p className="font-sans text-lg text-neutral-700 leading-relaxed whitespace-pre-line">
-                        {description}
-                      </p>
+                      <div
+                        className="font-sans text-lg text-neutral-700 leading-relaxed prose prose-neutral max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1"
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(description, {
+                            ALLOWED_TAGS: [
+                              'p',
+                              'br',
+                              'strong',
+                              'em',
+                              'ul',
+                              'ol',
+                              'li',
+                              'a',
+                              'h2',
+                              'h3',
+                              'h4',
+                            ],
+                            ALLOWED_ATTR: ['href', 'target', 'rel'],
+                          }),
+                        }}
+                      />
                     </section>
                   )}
 

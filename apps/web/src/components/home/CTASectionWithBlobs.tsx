@@ -79,7 +79,7 @@ export function CTASectionWithBlobs({ locale }: CTASectionWithBlobsProps) {
             variant="secondary"
             className="shine-button-cta bg-secondary text-primary hover:bg-secondary/90 shadow-lg"
           >
-            <Link href={`/${locale}/contact` as any}>
+            <Link href={`/${locale}/custom-trip` as any}>
               <MessageCircle className="mr-2 h-5 w-5" />
               {t('cta_custom_button')}
             </Link>

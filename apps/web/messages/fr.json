@@ -473,6 +473,7 @@
     "home": "Accueil",
     "tours": "Tours",
     "events": "Événements",
+    "customTrip": "Voyage Sur Mesure",
     "about": "À Propos",
     "contact": "Contact"
   },
@@ -937,6 +938,145 @@
       "message": "Oups ! L'aventure que vous recherchez n'existe pas. Il est peut-être temps d'explorer de nouveaux horizons.",
       "home_button": "Retour à l'Accueil",
       "browse_button": "Explorer les Aventures"
+    }
+  },
+  "customTrip": {
+    "hero": {
+      "title": "Créez Votre Aventure Tunisienne Sur Mesure",
+      "subtitle": "Partagez votre vision et nos experts locaux créeront un itinéraire personnalisé juste pour vous",
+      "badge_free_consultation": "Consultation gratuite",
+      "badge_response_time": "Réponse sous 24h",
+      "cta_button": "Commencer la Planification"
+    },
+    "steps": {
+      "basics": "Infos du Voyage",
+      "interests": "Centres d'Intérêt",
+      "budget": "Budget & Style",
+      "contact": "Contact"
+    },
+    "tripBasics": {
+      "title": "Quand souhaitez-vous voyager ?",
+      "subtitle": "Indiquez-nous vos dates idéales et la taille de votre groupe",
+      "when_travel": "Quand voulez-vous partir ?",
+      "start_date": "Date de début",
+      "end_date": "Date de fin",
+      "dates_flexible": "Mes dates sont flexibles (+/- quelques jours)",
+      "how_many_travelers": "Combien de voyageurs ?",
+      "adults": "Adultes",
+      "adults_hint": "13 ans et plus",
+      "children": "Enfants",
+      "children_hint": "2-12 ans",
+      "trip_duration": "Combien de jours avez-vous ?",
+      "days": "jours",
+      "continue": "Continuer"
+    },
+    "interests": {
+      "title": "Qu'est-ce qui vous intéresse le plus ?",
+      "subtitle": "Sélectionnez jusqu'à 5 expériences que vous aimeriez inclure dans votre voyage",
+      "selection_hint": "{current} sur {max} sélectionnés",
+      "max_selections_error": "Vous pouvez sélectionner jusqu'à {max} centres d'intérêt",
+      "min_selection_error": "Veuillez sélectionner au moins 1 centre d'intérêt",
+      "options": {
+        "history_culture": "Histoire & Culture",
+        "desert_adventures": "Aventures dans le Désert",
+        "beach_relaxation": "Plage & Détente",
+        "food_gastronomy": "Gastronomie",
+        "hiking_nature": "Randonnée & Nature",
+        "photography": "Photographie",
+        "local_festivals": "Festivals Locaux",
+        "star_wars_sites": "Sites Star Wars"
+      },
+      "back": "Retour",
+      "continue": "Continuer"
+    },
+    "budgetStyle": {
+      "title": "Quel est votre style de voyage ?",
+      "subtitle": "Aidez-nous à comprendre vos préférences et votre budget",
+      "budget_per_person": "Budget par personne (TND)",
+      "accommodation_style": "Préférence d'hébergement",
+      "accommodation": {
+        "budget": "Économique",
+        "mid-range": "Confortable",
+        "luxury": "Premium"
+      },
+      "travel_pace": "Comment aimez-vous voyager ?",
+      "pace": {
+        "relaxed": "Détendu",
+        "relaxed_desc": "Peu d'activités, plus de temps libre",
+        "moderate": "Modéré",
+        "moderate_desc": "Mélange équilibré d'activités",
+        "active": "Actif",
+        "active_desc": "Programme chargé, tout voir"
+      },
+      "special_occasion": "Occasion spéciale ?",
+      "optional": "(facultatif)",
+      "occasions": {
+        "honeymoon": "Lune de Miel",
+        "birthday": "Anniversaire",
+        "anniversary": "Anniversaire de Mariage",
+        "other": "Autre Célébration"
+      },
+      "back": "Retour",
+      "continue": "Continuer"
+    },
+    "contact": {
+      "title": "Comment pouvons-nous vous contacter ?",
+      "subtitle": "Nos experts voyage vous contacteront sous 24 heures",
+      "full_name": "Nom Complet",
+      "full_name_placeholder": "Entrez votre nom complet",
+      "email": "Adresse Email",
+      "email_placeholder": "Entrez votre email",
+      "phone": "Numéro de Téléphone",
+      "phone_placeholder": "+216 XX XXX XXX",
+      "whatsapp_same_as_phone": "Le numéro WhatsApp est identique au téléphone",
+      "whatsapp_number": "Numéro WhatsApp",
+      "whatsapp_placeholder": "+216 XX XXX XXX",
+      "country": "Pays de Résidence",
+      "country_placeholder": "Sélectionnez votre pays",
+      "preferred_contact": "Méthode de contact préférée",
+      "method": {
+        "email": "Email",
+        "phone": "Téléphone",
+        "whatsapp": "WhatsApp"
+      },
+      "special_requests": "Demandes spéciales ou exigences",
+      "special_requests_placeholder": "Parlez-nous de vos restrictions alimentaires, besoins de mobilité ou souhaits spécifiques...",
+      "special_requests_hint": "1000 caractères maximum",
+      "newsletter_consent": "Je souhaite recevoir des offres de voyage exclusives et de l'inspiration destination de Go Adventure",
+      "back": "Retour",
+      "submit": "Envoyer la Demande",
+      "submitting": "Envoi en cours..."
+    },
+    "summary": {
+      "title": "Résumé du Voyage",
+      "dates_flexible": "Dates flexibles",
+      "per_person": "par personne",
+      "pace": "rythme",
+      "estimated_total": "Total Estimé",
+      "travelers": "voyageurs",
+      "questions": "Des questions ?",
+      "chat_with_us": "Discutez avec nous"
+    },
+    "success": {
+      "title": "Demande Envoyée !",
+      "subtitle": "Merci d'avoir choisi Go Adventure. Nous sommes ravis de vous aider à planifier votre voyage de rêve en Tunisie.",
+      "reference_label": "Votre Numéro de Référence",
+      "email_sent_title": "Email de Confirmation Envoyé",
+      "email_sent_description": "Nous avons envoyé une confirmation à {email}. Vérifiez votre boîte de réception.",
+      "whats_next_title": "Et Maintenant ?",
+      "step1_title": "Examen Expert",
+      "step1_description": "Nos spécialistes voyage examineront vos préférences",
+      "step2_title": "Itinéraire Personnalisé",
+      "step2_description": "Nous créerons une proposition de voyage sur mesure pour vous",
+      "step3_title": "Échange & Ajustements",
+      "step3_description": "Nous discuterons et peaufinerons votre aventure parfaite",
+      "response_time": "Nous vous contacterons sous 24 heures",
+      "back_home": "Retour à l'Accueil",
+      "contact_whatsapp": "Discuter sur WhatsApp",
+      "questions": "Besoin d'aide immédiate ?"
+    },
+    "errors": {
+      "submission_failed": "Nous n'avons pas pu envoyer votre demande. Veuillez réessayer ou nous contacter directement."
     }
   }
 }
