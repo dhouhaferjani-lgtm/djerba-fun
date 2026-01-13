@@ -1,5 +1,311 @@
 # Go Adventure - Production Deployment Guide
 
+---
+
+# Option 1: Dokploy Deployment (Recommended)
+
+## Quick Reference
+
+| Item             | Value                        |
+| ---------------- | ---------------------------- |
+| **Compose File** | `docker-compose.dokploy.yml` |
+| **API Port**     | 80                           |
+| **Web Port**     | 3000                         |
+| **Database**     | PostgreSQL 16                |
+| **Cache/Queue**  | Redis 7                      |
+
+---
+
+## Step 1: Dokploy Setup
+
+1. **Create Project** in Dokploy Dashboard
+2. **Add Service** → Select **"Docker Compose"**
+3. **Source**: Connect your GitHub repository
+4. **Compose File Path**: `docker-compose.dokploy.yml`
+
+---
+
+## Step 2: Environment Variables
+
+Add these in Dokploy's **Environment Variables** section:
+
+### Required Variables
+
+```bash
+# Database
+DB_DATABASE=go_adventure
+DB_USERNAME=go_adventure
+DB_PASSWORD=<generate-strong-password>
+
+# Redis
+REDIS_PASSWORD=<generate-strong-password>
+
+# Laravel App Key (see generation command below)
+APP_KEY=base64:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# URLs (replace with your domains)
+APP_URL=https://api.yourdomain.com
+WEB_URL=https://yourdomain.com
+
+# CORS/Auth domains
+SANCTUM_DOMAINS=yourdomain.com,api.yourdomain.com
+```
+
+### Optional Variables
+
+```bash
+# Locale (default: fr)
+DEFAULT_LOCALE=fr
+
+# Mail (SMTP) - leave empty to disable
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailgun.org
+MAIL_PORT=587
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_FROM=noreply@yourdomain.com
+```
+
+### Generate Secrets
+
+```bash
+# Generate strong password
+openssl rand -base64 32
+
+# Generate APP_KEY
+php -r "echo 'base64:' . base64_encode(random_bytes(32)) . PHP_EOL;"
+```
+
+---
+
+## Step 3: Configure Domains
+
+In Dokploy, configure domains for each service:
+
+| Service | Domain             | Port | SSL                 |
+| ------- | ------------------ | ---- | ------------------- |
+| **api** | api.yourdomain.com | 80   | Yes (Let's Encrypt) |
+| **web** | yourdomain.com     | 3000 | Yes (Let's Encrypt) |
+
+---
+
+## Step 4: Deploy
+
+Click **Deploy** in Dokploy. The system will automatically:
+
+1. Build Docker images
+2. Start PostgreSQL and Redis
+3. Run Laravel migrations
+4. Cache Laravel config/routes/views
+5. Start the API and frontend
+
+---
+
+## Step 5: Verify Deployment
+
+```bash
+# Check API health
+curl https://api.yourdomain.com/api/health
+# Should return: {"status":"ok",...}
+```
+
+**Access Points:**
+
+- Frontend: `https://yourdomain.com`
+- Horizon (queues): `https://api.yourdomain.com/horizon`
+- Admin Panel: `https://api.yourdomain.com/admin`
+
+---
+
+## Data Migration (Local to Production)
+
+### Export Local Database
+
+On your local machine:
+
+```bash
+# Export database
+docker exec goadventure-postgres pg_dump -U go_adventure go_adventure > local_backup.sql
+
+# Compress (optional)
+gzip local_backup.sql
+```
+
+### Import to Production
+
+```bash
+# 1. Copy file to server
+scp local_backup.sql user@your-server:/tmp/
+
+# 2. SSH into server
+ssh user@your-server
+
+# 3. Find postgres container
+docker ps | grep postgres
+
+# 4. Import database
+cat /tmp/local_backup.sql | docker exec -i <postgres-container> psql -U go_adventure go_adventure
+
+# If using gzip:
+gunzip -c /tmp/local_backup.sql.gz | docker exec -i <postgres-container> psql -U go_adventure go_adventure
+```
+
+### Migrate Storage/Images
+
+On your local machine:
+
+```bash
+# 1. Create archive of uploaded files
+cd apps/laravel-api
+tar -czvf local_storage.tar.gz storage/app/public/
+
+# 2. Copy to server
+scp local_storage.tar.gz user@your-server:/tmp/
+```
+
+On the server:
+
+```bash
+# 3. Find API container
+docker ps | grep api
+
+# 4. Copy archive into container
+docker cp /tmp/local_storage.tar.gz <api-container>:/tmp/
+
+# 5. Extract files
+docker exec <api-container> tar -xzvf /tmp/local_storage.tar.gz -C /var/www/html/
+
+# 6. Fix permissions
+docker exec <api-container> chown -R www-data:www-data /var/www/html/storage
+```
+
+---
+
+## Dokploy Backup Strategy
+
+### Manual Database Backup
+
+```bash
+# On server - find container
+docker ps | grep postgres
+
+# Create backup
+docker exec <postgres-container> pg_dump -U go_adventure go_adventure > backup_$(date +%Y%m%d).sql
+gzip backup_$(date +%Y%m%d).sql
+```
+
+### Automated Backup Script
+
+Create `/home/scripts/backup.sh` on server:
+
+```bash
+#!/bin/bash
+set -e
+
+BACKUP_DIR="/home/backups/goadventure"
+POSTGRES_CONTAINER="<your-postgres-container-name>"
+RETENTION_DAYS=7
+DATE=$(date +%Y%m%d_%H%M%S)
+
+mkdir -p $BACKUP_DIR
+
+echo "Starting backup at $(date)"
+
+# Database backup
+docker exec $POSTGRES_CONTAINER pg_dump -U go_adventure go_adventure | gzip > "$BACKUP_DIR/db_$DATE.sql.gz"
+
+# Storage backup
+docker run --rm \
+  -v <project>_storage_data:/data:ro \
+  -v $BACKUP_DIR:/backup \
+  alpine tar -czvf /backup/storage_$DATE.tar.gz -C /data .
+
+# Clean old backups
+find $BACKUP_DIR -name "db_*.sql.gz" -mtime +$RETENTION_DAYS -delete
+find $BACKUP_DIR -name "storage_*.tar.gz" -mtime +$RETENTION_DAYS -delete
+
+echo "Backup completed at $(date)"
+```
+
+Schedule with cron (daily at 2 AM):
+
+```bash
+crontab -e
+# Add: 0 2 * * * /home/scripts/backup.sh >> /var/log/goadventure-backup.log 2>&1
+```
+
+---
+
+## Dokploy Restore from Backup
+
+### Database Restore
+
+```bash
+docker stop <api-container>
+gunzip -c backup_file.sql.gz | docker exec -i <postgres-container> psql -U go_adventure go_adventure
+docker start <api-container>
+```
+
+### Storage Restore
+
+```bash
+docker run --rm \
+  -v <project>_storage_data:/data \
+  -v /path/to/backups:/backup:ro \
+  alpine tar -xzvf /backup/storage_backup.tar.gz -C /data
+```
+
+---
+
+## Dokploy Troubleshooting
+
+### API won't start
+
+```bash
+docker logs <api-container>
+docker exec <api-container> php artisan migrate:status
+```
+
+### Frontend blank page
+
+1. Check `SANCTUM_DOMAINS` includes frontend domain
+2. Check browser console for CORS errors
+
+### Images not loading
+
+```bash
+docker exec <api-container> ls -la public/storage
+docker exec <api-container> php artisan storage:link
+docker exec <api-container> chown -R www-data:www-data storage
+```
+
+### Clear all caches
+
+```bash
+docker exec <api-container> php artisan config:clear
+docker exec <api-container> php artisan cache:clear
+docker exec <api-container> php artisan config:cache
+docker exec <api-container> php artisan route:cache
+```
+
+---
+
+## Dokploy Files
+
+```
+docker-compose.dokploy.yml           # Main compose file
+.env.dokploy.example                 # Environment template
+apps/laravel-api/Dockerfile.prod     # API image
+apps/laravel-api/docker-entrypoint.prod.sh  # Auto-migration script
+apps/web/Dockerfile.prod             # Frontend image
+```
+
+---
+
+---
+
+# Option 2: Manual VPS Deployment (Hetzner)
+
 ## 🐳 Docker-based Deployment for Single VPS
 
 This guide covers deploying Go Adventure to a Hetzner VPS using Docker Compose and Cloudflare.
