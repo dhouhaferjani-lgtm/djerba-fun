@@ -13,6 +13,10 @@ import '../globals.css';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://goadventure.com';
 const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_ID;
 
+// Force dynamic rendering for all routes under this layout
+// This prevents build-time API calls and enables server-side rendering
+export const dynamic = 'force-dynamic';
+
 // Default metadata values (fallback if API fails)
 const DEFAULT_TITLE = 'Go Adventure - Tourism Marketplace';
 const DEFAULT_DESCRIPTION =
