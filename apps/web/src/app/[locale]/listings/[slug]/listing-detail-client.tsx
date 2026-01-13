@@ -98,6 +98,7 @@ import {
 } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
 import { getGuestSessionId } from '@/lib/utils/session';
+import { normalizeMediaUrl } from '@/lib/utils/image';
 import type { AvailabilitySlot, Listing, PersonType } from '@go-adventure/schemas';
 
 // Parse API errors from hold creation
@@ -740,7 +741,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                       className="col-span-2 row-span-2 relative overflow-hidden rounded-lg group"
                     >
                       <Image
-                        src={listing.media[0].url}
+                        src={normalizeMediaUrl(listing.media[0].url)}
                         alt={tr(listing.media[0].alt) || title}
                         fill
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -759,7 +760,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                       className="relative overflow-hidden rounded-lg group"
                     >
                       <Image
-                        src={media.url}
+                        src={normalizeMediaUrl(media.url)}
                         alt={tr(media.alt) || title}
                         fill
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -874,7 +875,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                           ] as [number, number];
                         })()}
                         title={title}
-                        imageUrl={listing.media?.[0]?.url}
+                        imageUrl={normalizeMediaUrl(listing.media?.[0]?.url)}
                         locale={locale}
                       />
 

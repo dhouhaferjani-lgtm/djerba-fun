@@ -60,3 +60,40 @@ export function isPrivateUrl(url: string | null | undefined): boolean {
 export function shouldUnoptimizeImage(url: string | null | undefined): boolean {
   return isPrivateUrl(url);
 }
+
+/**
+ * Get the Laravel backend base URL (without /api/v1 suffix)
+ */
+function getStorageBaseUrl(): string {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+  // Remove /api/v1 suffix to get base URL
+  return apiUrl.replace(/\/api\/v1\/?$/, '');
+}
+
+/**
+ * Normalize a media URL to be usable with Next.js Image component.
+ * - Full URLs (http/https) are returned as-is
+ * - Relative paths without leading slash get full Laravel storage URL
+ * - Paths with leading slash get full Laravel storage URL
+ *
+ * @param url - The media URL to normalize
+ * @returns A properly formatted URL for Next.js Image
+ */
+export function normalizeMediaUrl(url: string | null | undefined): string {
+  if (!url) return '';
+
+  // Already a full URL
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+
+  const baseUrl = getStorageBaseUrl();
+
+  // Path with leading slash - prepend base URL
+  if (url.startsWith('/')) {
+    return `${baseUrl}${url}`;
+  }
+
+  // Relative path from Laravel storage - prepend full storage URL
+  return `${baseUrl}/storage/${url}`;
+}

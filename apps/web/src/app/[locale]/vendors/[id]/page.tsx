@@ -9,6 +9,7 @@ import { enUS, fr } from 'date-fns/locale';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { getListingUrl } from '@/lib/utils/urls';
+import { normalizeMediaUrl } from '@/lib/utils/image';
 import type { Locale } from '@/i18n/routing';
 
 type Tab = 'listings' | 'reviews';
@@ -209,7 +210,7 @@ export default function VendorProfilePage() {
                       <div className="aspect-video bg-gray-200 overflow-hidden">
                         {listing.media[0] && (
                           <img
-                            src={listing.media[0].url}
+                            src={normalizeMediaUrl(listing.media[0].url)}
                             alt={listing.media[0].alt}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />

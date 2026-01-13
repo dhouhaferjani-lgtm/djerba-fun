@@ -6,6 +6,7 @@ import { format, parseISO } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
 import { useLocale } from 'next-intl';
 import { resolveTranslation } from '@/lib/utils/translate';
+import { normalizeMediaUrl } from '@/lib/utils/image';
 import type {
   BookingHold,
   ListingSummary,
@@ -75,7 +76,7 @@ export function BookingSummary({
       {mainImage && (
         <div className="relative h-48 w-full">
           <img
-            src={mainImage.url}
+            src={normalizeMediaUrl(mainImage.url)}
             alt={mainImage.alt || listing.title}
             className="w-full h-full object-cover"
           />

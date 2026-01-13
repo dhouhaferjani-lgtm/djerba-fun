@@ -5,6 +5,7 @@ import Image from 'next/image';
 import type { Media } from '@go-adventure/schemas';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Dialog } from '@go-adventure/ui';
+import { normalizeMediaUrl } from '@/lib/utils/image';
 
 interface ImageLightboxProps {
   images: Media[];
@@ -74,7 +75,7 @@ export function ImageLightbox({ images, initialIndex = 0, isOpen, onClose }: Ima
         <div className="absolute inset-0 flex items-center justify-center p-4 md:p-8">
           <div className="relative w-full h-full max-w-7xl max-h-full">
             <Image
-              src={currentImage.url}
+              src={normalizeMediaUrl(currentImage.url)}
               alt={currentImage.alt || `Image ${currentIndex + 1}`}
               fill
               className="object-contain"
@@ -120,7 +121,7 @@ export function ImageLightbox({ images, initialIndex = 0, isOpen, onClose }: Ima
                   }`}
                 >
                   <Image
-                    src={image.url}
+                    src={normalizeMediaUrl(image.url)}
                     alt={image.alt || `Thumbnail ${index + 1}`}
                     fill
                     className="object-cover"

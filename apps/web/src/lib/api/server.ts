@@ -72,7 +72,7 @@ export async function getBrandingUrls(locale?: string) {
  */
 export async function getEventOfYearData(locale?: string) {
   const settings = await getPlatformSettings(locale);
-  const eventOfYear = settings?.data?.eventOfYear;
+  const eventOfYear = (settings?.data as any)?.eventOfYear;
 
   return {
     enabled: eventOfYear?.enabled ?? true,

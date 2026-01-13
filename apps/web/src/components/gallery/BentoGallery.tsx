@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import type { Media } from '@go-adventure/schemas';
 import { Eye } from 'lucide-react';
+import { normalizeMediaUrl } from '@/lib/utils/image';
 
 interface BentoGalleryProps {
   images: Media[];
@@ -33,7 +34,7 @@ export function BentoGallery({ images, onViewAll }: BentoGalleryProps) {
             className="relative col-span-2 row-span-2 overflow-hidden group"
           >
             <Image
-              src={displayImages[0].url}
+              src={normalizeMediaUrl(displayImages[0].url)}
               alt={displayImages[0].alt || 'Listing image 1'}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -52,7 +53,7 @@ export function BentoGallery({ images, onViewAll }: BentoGalleryProps) {
             className="relative overflow-hidden group"
           >
             <Image
-              src={image.url}
+              src={normalizeMediaUrl(image.url)}
               alt={image.alt || `Listing image ${index + 2}`}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -82,7 +83,7 @@ export function BentoGallery({ images, onViewAll }: BentoGalleryProps) {
             className="relative w-full aspect-[4/3] overflow-hidden rounded-lg group"
           >
             <Image
-              src={image.url}
+              src={normalizeMediaUrl(image.url)}
               alt={image.alt || `Listing image ${index + 1}`}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
