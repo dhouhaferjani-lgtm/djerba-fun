@@ -44,7 +44,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 # Copy composer files
-COPY composer.json composer.lock ./
+COPY apps/laravel-api/composer.json apps/laravel-api/composer.lock ./
 
 # Install PHP dependencies (production only)
 RUN composer install \
@@ -55,7 +55,7 @@ RUN composer install \
     --optimize-autoloader
 
 # Copy application files
-COPY . .
+COPY apps/laravel-api .
 
 # Generate optimized autoloader
 RUN composer dump-autoload --optimize --no-dev
@@ -66,17 +66,17 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/bootstrap/cache
 
 # Copy PHP configuration
-COPY docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
-COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY apps/laravel-api/docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY apps/laravel-api/docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 # Copy supervisor configuration
-COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY apps/laravel-api/docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy nginx configuration
-COPY docker/nginx/laravel.conf /etc/nginx/http.d/default.conf
+COPY apps/laravel-api/docker/nginx/laravel.conf /etc/nginx/http.d/default.conf
 
 # Copy production entrypoint script
-COPY docker-entrypoint.prod.sh /usr/local/bin/docker-entrypoint.sh
+COPY apps/laravel-api/docker-entrypoint.prod.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose port 80
