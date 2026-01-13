@@ -10,25 +10,25 @@ const destinations = [
     id: 'tozeur',
     name: 'Tozeur',
     description: 'Gateway to the Sahara',
-    image: 'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=1200',
+    image: '/images/destinations/tozeur.jpg',
   },
   {
     id: 'douz',
     name: 'Douz',
     description: 'Door to the desert',
-    image: 'https://images.unsplash.com/photo-1509099863731-ef4bff19e808?w=800',
+    image: '/images/destinations/douz.webp',
   },
   {
     id: 'djerba',
     name: 'Djerba',
     description: 'Island of dreams',
-    image: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=800',
+    image: '/images/destinations/djerba.jpg',
   },
   {
     id: 'tataouine',
     name: 'Tataouine',
     description: 'Land of the Ksour',
-    image: 'https://images.unsplash.com/photo-1563308780-5fa633445448?w=1200',
+    image: '/images/destinations/tataouine.jpg',
   },
 ];
 
