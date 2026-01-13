@@ -59,8 +59,8 @@ RUN composer install \
 # Copy application files
 COPY apps/laravel-api .
 
-# Generate optimized autoloader
-RUN composer dump-autoload --optimize --classmap-authoritative
+# Generate optimized autoloader (skip scripts to avoid early package discovery)
+RUN composer dump-autoload --optimize --no-scripts
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
