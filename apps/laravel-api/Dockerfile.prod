@@ -71,7 +71,8 @@ RUN chown -R www-data:www-data /var/www/html \
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
-# Copy supervisor configuration
+# Create supervisor log directory and copy configuration
+RUN mkdir -p /var/log/supervisor
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy nginx configuration
