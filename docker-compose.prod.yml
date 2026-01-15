@@ -47,9 +47,10 @@ services:
     restart: unless-stopped
     working_dir: /var/www/html
     environment:
+      - APP_KEY=${APP_KEY}
       - APP_ENV=${APP_ENV:-production}
       - APP_DEBUG=${APP_DEBUG:-false}
-      - APP_URL=${APP_URL:-https://dev.go-adventure.net}
+      - APP_URL=${APP_URL:-https://app.go-adventure.net}
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
