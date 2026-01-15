@@ -20,6 +20,11 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
+        // Production subdomains
+        'https://dev.go-adventure.net',
+        'https://go-adventure.net',
+        'https://www.go-adventure.net',
+        // Local development
         'http://localhost:3000',
         'http://localhost:3001',
         'http://127.0.0.1:3000',
