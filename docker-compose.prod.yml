@@ -71,6 +71,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    ports:
+      - '8001:80'
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost/api/health']
       interval: 30s
@@ -133,6 +135,8 @@ services:
       - NEXT_PUBLIC_DEFAULT_LOCALE=fr
     depends_on:
       - api
+    ports:
+      - '3001:3000'
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000']
       interval: 30s
