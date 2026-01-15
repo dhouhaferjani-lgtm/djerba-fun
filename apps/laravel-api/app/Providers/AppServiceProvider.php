@@ -21,6 +21,7 @@ use App\Services\Payment\OfflinePaymentGateway;
 use App\Services\Payment\PaymentGatewayManager;
 use Filament\Http\Responses\Auth\Contracts\LogoutResponse as LogoutResponseContract;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -66,6 +67,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS in production (behind reverse proxy)
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         // Register policies
         foreach ($this->policies as $model => $policy) {
             Gate::policy($model, $policy);
