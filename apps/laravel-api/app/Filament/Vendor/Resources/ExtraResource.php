@@ -334,11 +334,15 @@ class ExtraResource extends Resource
                         $newExtra->is_active = false;
                         $newExtra->save();
                     }),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading('Delete Extra')
+                    ->modalDescription('Are you sure you want to delete this extra? This action cannot be undone.'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->requiresConfirmation(),
                     Tables\Actions\BulkAction::make('activate')
                         ->label('Activate')
                         ->icon('heroicon-o-check-circle')

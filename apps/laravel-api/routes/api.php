@@ -52,14 +52,19 @@ Route::get('/health/detailed', [HealthController::class, 'detailed'])->middlewar
 
 // Version prefix for API
 Route::prefix('v1')->group(function () {
-    // Authentication routes (public)
-    Route::post('/auth/register', [AuthController::class, 'register']);
-    Route::post('/auth/login', [AuthController::class, 'login']);
+    // Authentication routes (public) - rate limited to prevent brute force attacks
+    Route::post('/auth/register', [AuthController::class, 'register'])
+        ->middleware('throttle:3,60'); // 3 attempts per hour
+    Route::post('/auth/login', [AuthController::class, 'login'])
+        ->middleware('throttle:5,15'); // 5 attempts per 15 minutes
 
-    // Magic link authentication (public)
-    Route::post('/auth/magic-link/send', [AuthController::class, 'sendMagicLink']);
-    Route::post('/auth/magic-link/verify', [AuthController::class, 'verifyMagicLink']);
-    Route::post('/auth/magic-link/register', [AuthController::class, 'registerPasswordless']);
+    // Magic link authentication (public) - rate limited
+    Route::post('/auth/magic-link/send', [AuthController::class, 'sendMagicLink'])
+        ->middleware('throttle:3,60'); // 3 attempts per hour
+    Route::post('/auth/magic-link/verify', [AuthController::class, 'verifyMagicLink'])
+        ->middleware('throttle:5,15'); // 5 attempts per 15 minutes
+    Route::post('/auth/magic-link/register', [AuthController::class, 'registerPasswordless'])
+        ->middleware('throttle:3,60'); // 3 attempts per hour
 
     // Public listing routes
     Route::get('/listings', [ListingController::class, 'index']);

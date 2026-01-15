@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { getBlogPost, getRelatedBlogPosts } from '@/lib/api/blog';
 import { MainLayout } from '@/components/templates/MainLayout';
+import { SanitizedHtml } from '@/components/atoms/SanitizedHtml';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
@@ -51,11 +52,8 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
       {/* Article Content */}
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto">
-          {/* Main Content */}
-          <div
-            className="prose prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          {/* Main Content - Sanitized to prevent XSS */}
+          <SanitizedHtml html={post.content} className="prose prose-lg max-w-none" />
 
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (

@@ -1,5 +1,6 @@
 'use client';
 
+import DOMPurify from 'dompurify';
 import Image from 'next/image';
 import { TextImageBlockData } from '@/types/cms';
 
@@ -11,6 +12,33 @@ export function TextImageBlock({
 }: TextImageBlockData) {
   const hasImage = Boolean(image);
   const imageOnLeft = image_position === 'left';
+
+  // Sanitize HTML content to prevent XSS attacks
+  const sanitizedContent = DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: [
+      'p',
+      'br',
+      'strong',
+      'em',
+      'a',
+      'ul',
+      'ol',
+      'li',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'blockquote',
+      'code',
+      'pre',
+      'img',
+      'div',
+      'span',
+    ],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel'],
+  });
 
   return (
     <div className="text-image-block">
@@ -28,7 +56,10 @@ export function TextImageBlock({
           </div>
         )}
 
-        <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
+        <div
+          className="prose prose-lg max-w-none"
+          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+        />
 
         {hasImage && !imageOnLeft && (
           <div className="relative w-full h-[400px]">

@@ -102,14 +102,14 @@ class PaymentGatewayResource extends Resource
                             Forms\Components\TextInput::make('configuration.secret_key')
                                 ->label('Secret Key')
                                 ->password()
-                                ->revealable()
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->helperText('Secret keys cannot be revealed for security reasons'),
 
                             Forms\Components\TextInput::make('configuration.webhook_secret')
                                 ->label('Webhook Secret')
                                 ->password()
-                                ->revealable()
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->helperText('Webhook secrets cannot be revealed for security reasons'),
                         ])
                             ->visible(fn (Forms\Get $get) => $get('driver') === 'stripe')
                             ->columnSpanFull(),
@@ -123,14 +123,14 @@ class PaymentGatewayResource extends Resource
                             Forms\Components\TextInput::make('configuration.api_key')
                                 ->label('API Key')
                                 ->password()
-                                ->revealable()
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->helperText('API keys cannot be revealed for security reasons'),
 
                             Forms\Components\TextInput::make('configuration.shared_secret')
                                 ->label('Shared Secret')
                                 ->password()
-                                ->revealable()
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->helperText('Shared secrets cannot be revealed for security reasons'),
                         ])
                             ->visible(fn (Forms\Get $get) => $get('driver') === 'clicktopay')
                             ->columnSpanFull(),
@@ -283,6 +283,9 @@ class PaymentGatewayResource extends Resource
                 Tables\Actions\EditAction::make(),
 
                 Tables\Actions\DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading('Delete Payment Gateway')
+                    ->modalDescription('Are you sure you want to delete this payment gateway? This may affect checkout functionality.')
                     ->before(function (PaymentGateway $record) {
                         if ($record->is_default) {
                             throw new \Exception('Cannot delete the default gateway. Set another gateway as default first.');

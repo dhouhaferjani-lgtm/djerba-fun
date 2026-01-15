@@ -193,11 +193,15 @@ class AvailabilityRuleResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading('Delete Availability Rule')
+                    ->modalDescription('Are you sure you want to delete this availability rule? This action cannot be undone.'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->requiresConfirmation(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

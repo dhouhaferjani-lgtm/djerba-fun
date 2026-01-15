@@ -94,19 +94,25 @@ class BookingResource extends Resource
                     ->columns(3),
 
                 Forms\Components\Section::make('Traveler Information')
+                    ->description('⚠️ Contains sensitive personal information - handle with care')
                     ->schema([
                         Forms\Components\KeyValue::make('traveler_info')
                             ->label('Traveler Details')
                             ->keyLabel('Field')
                             ->valueLabel('Value')
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->disabled()
+                            ->helperText('Contact information is protected. Only view when necessary for customer support.'),
 
                         Forms\Components\KeyValue::make('extras')
                             ->label('Extras/Add-ons')
                             ->keyLabel('Name')
                             ->valueLabel('Details')
-                            ->columnSpanFull(),
-                    ]),
+                            ->columnSpanFull()
+                            ->disabled(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
 
                 Forms\Components\Section::make('Cancellation')
                     ->schema([
