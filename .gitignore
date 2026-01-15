@@ -47,3 +47,16 @@ public/hot
 
 # Docker
 docker/volumes/
+
+# Security - never commit these
+deploy-setup.php
+**/deploy-setup.php
+build_log*.txt
+*.pem
+*.key
+credentials.json
+secrets/
+
+# Production artifacts
+*.tar.gz
+*.zip
