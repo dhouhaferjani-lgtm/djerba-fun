@@ -6,19 +6,19 @@ export interface BlogPost {
   slug: string;
   excerpt: string;
   content: string;
-  featured_image: string | null;
+  featuredImage: string | null;
   tags: string[];
-  read_time_minutes: number;
-  views_count: number;
-  is_featured: boolean;
+  readTimeMinutes: number;
+  viewsCount: number;
+  isFeatured: boolean;
   status: string;
-  published_at: string;
-  created_at: string;
-  updated_at: string;
+  publishedAt: string;
+  createdAt: string;
+  updatedAt: string;
   author: {
     id: number;
     name: string;
-    avatar_url: string | null;
+    avatarUrl: string | null;
   };
   category: {
     id: number;

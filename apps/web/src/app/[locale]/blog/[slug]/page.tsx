@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
 import { getBlogPost, getRelatedBlogPosts } from '@/lib/api/blog';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { SanitizedHtml } from '@/components/atoms/SanitizedHtml';
@@ -10,18 +11,36 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const { slug, locale } = await params;
-  const { data: post } = await getBlogPost(slug, locale);
+  try {
+    const { slug, locale } = await params;
+    const { data: post } = await getBlogPost(slug, locale);
 
-  return {
-    title: post.seo.title,
-    description: post.seo.description,
-  };
+    return {
+      title: post?.seo?.title ?? 'Blog Post',
+      description: post?.seo?.description ?? '',
+    };
+  } catch {
+    return {
+      title: 'Post Not Found',
+      description: 'The requested blog post could not be found.',
+    };
+  }
 }
 
 async function BlogPostContent({ slug, locale }: { slug: string; locale: string }) {
-  const { data: post } = await getBlogPost(slug, locale);
-  const relatedPosts = await getRelatedBlogPosts(slug, locale);
+  let post;
+  let relatedPosts;
+
+  try {
+    const response = await getBlogPost(slug, locale);
+    post = response.data;
+    if (!post) {
+      notFound();
+    }
+    relatedPosts = await getRelatedBlogPosts(slug, locale);
+  } catch {
+    notFound();
+  }
 
   return (
     <>
@@ -42,9 +61,9 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
           <div className="flex items-center justify-center gap-6 text-sm text-gray-300">
             <span>{post.author.name}</span>
             <span>•</span>
-            <span>{new Date(post.published_at).toLocaleDateString()}</span>
+            <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
             <span>•</span>
-            <span>{post.read_time_minutes} min read</span>
+            <span>{post.readTimeMinutes} min read</span>
           </div>
         </div>
       </div>

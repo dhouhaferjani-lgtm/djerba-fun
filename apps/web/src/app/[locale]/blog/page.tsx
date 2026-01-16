@@ -33,7 +33,7 @@ async function BlogPostsGrid({ locale }: { locale: string }) {
           href={`/${locale}/blog/${post.slug}`}
           className="group block bg-white rounded-lg shadow-sm hover:shadow-xl transition-all duration-300"
         >
-          {post.featured_image && (
+          {post.featuredImage && (
             <div className="relative h-48 w-full overflow-hidden rounded-t-lg bg-gray-200">
               {/* Image placeholder */}
             </div>
@@ -60,7 +60,7 @@ async function BlogPostsGrid({ locale }: { locale: string }) {
 
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>{post.author.name}</span>
-              <span>{post.read_time_minutes} min read</span>
+              <span>{post.readTimeMinutes} min read</span>
             </div>
           </div>
         </Link>
