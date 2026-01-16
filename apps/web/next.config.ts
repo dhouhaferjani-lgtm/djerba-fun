@@ -71,6 +71,20 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      // Production domains
+      {
+        protocol: 'https',
+        hostname: 'app.go-adventure.net',
+        pathname: '/storage/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'go-adventure.net',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.go-adventure.net',
+      },
     ],
     // Use modern formats: AVIF first (best compression), WebP fallback
     formats: ['image/avif', 'image/webp'],
