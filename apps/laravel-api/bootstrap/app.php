@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust all proxies (required for signed URL validation behind reverse proxy)
+        $middleware->trustProxies(at: '*');
+
         // Register partner middleware aliases
         $middleware->alias([
             'partner.auth' => \App\Http\Middleware\PartnerAuthMiddleware::class,
