@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Filament\Vendor\Resources\ListingResource\RelationManagers;
 
 use App\Models\Extra;
+use App\Models\ListingExtra;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class ExtrasRelationManager extends RelationManager
 {
@@ -137,18 +139,27 @@ class ExtrasRelationManager extends RelationManager
                     ),
             ])
             ->headerActions([
-                Tables\Actions\AttachAction::make()
+                // Custom action that creates pivot record with UUID directly
+                // instead of using attach() which bypasses the model's HasUuids trait
+                Tables\Actions\Action::make('attach')
                     ->label('Add Extra')
-                    ->preloadRecordSelect()
-                    ->recordSelectOptionsQuery(function (Builder $query) {
-                        return $query
-                            ->where('vendor_id', auth()->id())
-                            ->where('is_active', true);
-                    })
-                    ->recordSelectSearchColumns(['name'])
-                    ->recordTitle(fn (Extra $record) => $record->getTranslation('name', app()->getLocale()) . ' - ' . $record->category?->label())
-                    ->form(fn (Tables\Actions\AttachAction $action): array => [
-                        $action->getRecordSelect(),
+                    ->icon('heroicon-o-plus')
+                    ->modalHeading('Add Extra')
+                    ->form([
+                        Forms\Components\Select::make('extra_id')
+                            ->label('Extra')
+                            ->options(function () {
+                                return Extra::query()
+                                    ->where('vendor_id', auth()->id())
+                                    ->where('is_active', true)
+                                    ->get()
+                                    ->mapWithKeys(fn (Extra $extra) => [
+                                        $extra->id => $extra->getTranslation('name', app()->getLocale()) . ' - ' . $extra->category?->label(),
+                                    ]);
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->required(),
 
                         Forms\Components\Section::make('Listing-Specific Settings')
                             ->schema([
@@ -185,7 +196,20 @@ class ExtrasRelationManager extends RelationManager
                                             ->default(true),
                                     ]),
                             ]),
-                    ]),
+                    ])
+                    ->action(function (array $data, RelationManager $livewire): void {
+                        // Create pivot record directly with UUID
+                        ListingExtra::create([
+                            'id' => (string) Str::uuid(),
+                            'listing_id' => $livewire->getOwnerRecord()->id,
+                            'extra_id' => $data['extra_id'],
+                            'override_price_tnd' => $data['override_price_tnd'] ?? null,
+                            'override_price_eur' => $data['override_price_eur'] ?? null,
+                            'display_order' => $data['display_order'] ?? 0,
+                            'is_featured' => $data['is_featured'] ?? false,
+                            'is_active' => $data['is_active'] ?? true,
+                        ]);
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
@@ -225,21 +249,43 @@ class ExtrasRelationManager extends RelationManager
             ->emptyStateDescription('Add extras like equipment, meals, or insurance to this listing.')
             ->emptyStateIcon('heroicon-o-puzzle-piece')
             ->emptyStateActions([
-                Tables\Actions\AttachAction::make()
+                // Custom action that creates pivot record with UUID directly
+                // instead of using attach() which bypasses the model's HasUuids trait
+                Tables\Actions\Action::make('attachFirst')
                     ->label('Add your first extra')
-                    ->preloadRecordSelect()
-                    ->recordSelectOptionsQuery(function (Builder $query) {
-                        return $query
-                            ->where('vendor_id', auth()->id())
-                            ->where('is_active', true);
-                    })
-                    ->recordTitle(fn (Extra $record) => $record->getTranslation('name', app()->getLocale()))
-                    ->form(fn (Tables\Actions\AttachAction $action): array => [
-                        $action->getRecordSelect(),
+                    ->icon('heroicon-o-plus')
+                    ->modalHeading('Add Extra')
+                    ->form([
+                        Forms\Components\Select::make('extra_id')
+                            ->label('Extra')
+                            ->options(function () {
+                                return Extra::query()
+                                    ->where('vendor_id', auth()->id())
+                                    ->where('is_active', true)
+                                    ->get()
+                                    ->mapWithKeys(fn (Extra $extra) => [
+                                        $extra->id => $extra->getTranslation('name', app()->getLocale()) . ' - ' . $extra->category?->label(),
+                                    ]);
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+
                         Forms\Components\Toggle::make('is_active')
                             ->label('Active')
                             ->default(true),
-                    ]),
+                    ])
+                    ->action(function (array $data, RelationManager $livewire): void {
+                        // Create pivot record directly with UUID
+                        ListingExtra::create([
+                            'id' => (string) Str::uuid(),
+                            'listing_id' => $livewire->getOwnerRecord()->id,
+                            'extra_id' => $data['extra_id'],
+                            'display_order' => 0,
+                            'is_featured' => false,
+                            'is_active' => $data['is_active'] ?? true,
+                        ]);
+                    }),
             ]);
     }
 }
