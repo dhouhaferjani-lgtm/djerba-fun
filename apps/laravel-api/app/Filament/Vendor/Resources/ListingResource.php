@@ -771,40 +771,19 @@ class ListingResource extends Resource
                                                         ->maxLength(500),
                                                 ]),
 
-                                            \Cheesegrits\FilamentGoogleMaps\Fields\Map::make('location')
-                                                ->mapControls([
-                                                    'zoomControl' => true,
-                                                    'searchBoxControl' => true,
-                                                ])
-                                                ->height('250px')
-                                                ->defaultZoom(13)
-                                                ->defaultLocation([36.8065, 10.1815]) // Tunis
-                                                ->clickable()
-                                                ->draggable()
-                                                ->afterStateUpdated(function ($state, $set) {
-                                                    if (isset($state['lat']) && isset($state['lng'])) {
-                                                        $set('lat', $state['lat']);
-                                                        $set('lng', $state['lng']);
-                                                    }
-                                                })
-                                                ->dehydrated(false)
-                                                ->columnSpanFull(),
-
                                             Forms\Components\Grid::make(3)
                                                 ->schema([
                                                     Forms\Components\TextInput::make('lat')
                                                         ->label('Latitude')
                                                         ->numeric()
-                                                        ->readOnly()
                                                         ->dehydrated()
-                                                        ->placeholder('Set via map'),
+                                                        ->placeholder('e.g., 36.8065'),
 
                                                     Forms\Components\TextInput::make('lng')
                                                         ->label('Longitude')
                                                         ->numeric()
-                                                        ->readOnly()
                                                         ->dehydrated()
-                                                        ->placeholder('Set via map'),
+                                                        ->placeholder('e.g., 10.1815'),
 
                                                     Forms\Components\TextInput::make('elevationMeters')
                                                         ->label('Elevation (meters)')

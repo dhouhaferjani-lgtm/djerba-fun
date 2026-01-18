@@ -9,6 +9,8 @@ use App\Filament\Vendor\Resources\AvailabilityRuleResource;
 use App\Filament\Vendor\Resources\ListingResource;
 use App\Models\AvailabilityRule;
 use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Notifications\Actions\Action as NotificationAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
@@ -198,6 +200,28 @@ class CreateListing extends CreateRecord
     protected function getCreatedNotificationTitle(): ?string
     {
         return 'Listing created successfully! It is now in Draft status.';
+    }
+
+    /**
+     * Override "Create & Create Another" to redirect to create page (resets wizard to step 1).
+     */
+    protected function getCreateAnotherFormAction(): Action
+    {
+        return Action::make('createAnother')
+            ->label(__('filament-panels::resources/pages/create-record.form.actions.create_another.label'))
+            ->action(function () {
+                $this->create(another: true);
+            })
+            ->keyBindings(['mod+shift+s'])
+            ->color('gray');
+    }
+
+    /**
+     * When creating another record, redirect to the create page to reset the wizard.
+     */
+    protected function getRedirectUrlForAnotherRecord(): string
+    {
+        return $this->getResource()::getUrl('create');
     }
 
     /**
