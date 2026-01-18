@@ -22,6 +22,7 @@ class ListingExtra extends Pivot
     protected $keyType = 'string';
 
     protected $fillable = [
+        'id',
         'listing_id',
         'extra_id',
         'override_price_tnd',
