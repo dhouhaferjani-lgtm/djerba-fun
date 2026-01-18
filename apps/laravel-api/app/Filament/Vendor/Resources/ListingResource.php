@@ -317,38 +317,20 @@ class ListingResource extends Resource
                                             Forms\Components\TextInput::make('venue.address')
                                                 ->label('Venue Address'),
 
-                                            \Cheesegrits\FilamentGoogleMaps\Fields\Map::make('venue.location')
-                                                ->mapControls([
-                                                    'zoomControl' => true,
-                                                    'searchBoxControl' => true,
-                                                ])
-                                                ->height('300px')
-                                                ->defaultZoom(14)
-                                                ->defaultLocation([36.8065, 10.1815]) // Tunis
-                                                ->clickable()
-                                                ->draggable()
-                                                ->autocomplete('venue.address')
-                                                ->afterStateUpdated(function ($state, $set) {
-                                                    if (isset($state['lat']) && isset($state['lng'])) {
-                                                        $set('venue.coordinates.lat', $state['lat']);
-                                                        $set('venue.coordinates.lng', $state['lng']);
-                                                    }
-                                                })
-                                                ->dehydrated(false)
-                                                ->columnSpanFull(),
-
+                                            // Note: Google Maps picker temporarily removed (requires API key)
+                                            // You can manually enter coordinates below
                                             Forms\Components\Grid::make(2)
                                                 ->schema([
                                                     Forms\Components\TextInput::make('venue.coordinates.lat')
                                                         ->label('Latitude')
                                                         ->numeric()
-                                                        ->readOnly()
+                                                        ->placeholder('e.g., 36.8065')
                                                         ->dehydrated(),
 
                                                     Forms\Components\TextInput::make('venue.coordinates.lng')
                                                         ->label('Longitude')
                                                         ->numeric()
-                                                        ->readOnly()
+                                                        ->placeholder('e.g., 10.1815')
                                                         ->dehydrated(),
                                                 ]),
 
@@ -367,38 +349,20 @@ class ListingResource extends Resource
                                         ->label('Meeting Point Address')
                                         ->helperText('Required for publishing'),
 
-                                    \Cheesegrits\FilamentGoogleMaps\Fields\Map::make('meeting_point.location')
-                                        ->mapControls([
-                                            'zoomControl' => true,
-                                            'searchBoxControl' => true,
-                                        ])
-                                        ->height('300px')
-                                        ->defaultZoom(14)
-                                        ->defaultLocation([36.8065, 10.1815]) // Tunis
-                                        ->clickable()
-                                        ->draggable()
-                                        ->autocomplete('meeting_point.address')
-                                        ->afterStateUpdated(function ($state, $set) {
-                                            if (isset($state['lat']) && isset($state['lng'])) {
-                                                $set('meeting_point.coordinates.lat', $state['lat']);
-                                                $set('meeting_point.coordinates.lng', $state['lng']);
-                                            }
-                                        })
-                                        ->dehydrated(false)
-                                        ->columnSpanFull(),
-
+                                    // Note: Google Maps picker temporarily removed (requires API key)
+                                    // You can manually enter coordinates below
                                     Forms\Components\Grid::make(2)
                                         ->schema([
                                             Forms\Components\TextInput::make('meeting_point.coordinates.lat')
                                                 ->label('Latitude')
                                                 ->numeric()
-                                                ->readOnly()
+                                                ->placeholder('e.g., 36.8065')
                                                 ->dehydrated(),
 
                                             Forms\Components\TextInput::make('meeting_point.coordinates.lng')
                                                 ->label('Longitude')
                                                 ->numeric()
-                                                ->readOnly()
+                                                ->placeholder('e.g., 10.1815')
                                                 ->dehydrated(),
                                         ]),
 
