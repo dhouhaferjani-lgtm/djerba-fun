@@ -47,9 +47,8 @@ class Extra extends Model
     ];
 
     protected $casts = [
-        'name' => 'array',
-        'description' => 'array',
-        'short_description' => 'array',
+        // Note: 'name', 'description', 'short_description' are handled by Spatie's
+        // HasTranslations trait - do NOT add them here as 'array' casts
         'person_type_prices' => 'array',
         'base_price_tnd' => 'decimal:2',
         'base_price_eur' => 'decimal:2',
