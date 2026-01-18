@@ -186,6 +186,13 @@ class ExtraResource extends Resource
                             ->minValue(0)
                             ->default(0)
                             ->visible(fn (Forms\Get $get) => $get('track_inventory')),
+
+                        Forms\Components\TextInput::make('capacity_per_unit')
+                            ->label('Capacity per Unit')
+                            ->numeric()
+                            ->minValue(1)
+                            ->helperText('Max people per unit. E.g., 4 for a 4-seat vehicle. Leave empty if not applicable.')
+                            ->visible(fn (Forms\Get $get) => $get('track_inventory')),
                     ])
                     ->columns(2)
                     ->collapsible(),

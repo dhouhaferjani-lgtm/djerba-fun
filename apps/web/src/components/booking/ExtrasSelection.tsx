@@ -179,10 +179,22 @@ export function ExtrasSelection({
     }
   };
 
-  // Group extras by category
+  // Filter extras based on shouldDisplay
+  const visibleExtras = useMemo(() => {
+    return extras.filter((extra) => {
+      // If shouldDisplay is explicitly false, hide it
+      if (extra.shouldDisplay === false) return false;
+      return true;
+    });
+  }, [extras]);
+
+  // Count hidden extras
+  const hiddenExtrasCount = extras.length - visibleExtras.length;
+
+  // Group visible extras by category
   const groupedExtras = useMemo(() => {
     const groups: Record<string, ListingExtraForBooking[]> = {};
-    extras.forEach((extra) => {
+    visibleExtras.forEach((extra) => {
       const category = extra.category || 'other';
       if (!groups[category]) {
         groups[category] = [];
@@ -190,16 +202,30 @@ export function ExtrasSelection({
       groups[category].push(extra);
     });
     return groups;
-  }, [extras]);
+  }, [visibleExtras]);
+
+  // Calculate units needed for capacity-based extras
+  const getUnitsNeeded = (extra: ListingExtraForBooking): number => {
+    if (!extra.capacityPerUnit || extra.capacityPerUnit <= 0) {
+      return 1;
+    }
+    return Math.ceil(totalGuests / extra.capacityPerUnit);
+  };
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('extras_title')}</h2>
         <p className="text-gray-600">{t('extras_subtitle')}</p>
+        {hiddenExtrasCount > 0 && (
+          <p className="text-sm text-gray-500 mt-2">
+            {t('hidden_extras', { count: hiddenExtrasCount }) ||
+              `${hiddenExtrasCount} extras not available for your group size`}
+          </p>
+        )}
       </div>
 
-      {extras.length === 0 ? (
+      {visibleExtras.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500">{t('no_extras')}</p>
         </div>
@@ -271,7 +297,19 @@ export function ExtrasSelection({
                                 ({extra.inventoryCount} {t('available') || 'available'})
                               </span>
                             )}
+                            {extra.capacityPerUnit && extra.capacityPerUnit > 0 && (
+                              <span className="ml-2 text-gray-500">
+                                ({extra.capacityPerUnit} {t('people_per_unit') || 'people per unit'}
+                                )
+                              </span>
+                            )}
                           </div>
+                          {extra.capacityPerUnit && totalGuests > extra.capacityPerUnit && (
+                            <div className="mt-1 ml-8 text-xs text-amber-600">
+                              {t('requires_units', { count: getUnitsNeeded(extra) }) ||
+                                `Requires ${getUnitsNeeded(extra)} units for your group of ${totalGuests}`}
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex items-center gap-4">

@@ -38,6 +38,7 @@ class Extra extends Model
         'default_quantity',
         'track_inventory',
         'inventory_count',
+        'capacity_per_unit',
         'is_required',
         'auto_add',
         'allow_quantity_change',
@@ -56,6 +57,7 @@ class Extra extends Model
         'max_quantity' => 'integer',
         'default_quantity' => 'integer',
         'inventory_count' => 'integer',
+        'capacity_per_unit' => 'integer',
         'track_inventory' => 'boolean',
         'is_required' => 'boolean',
         'auto_add' => 'boolean',
@@ -292,6 +294,63 @@ class Extra extends Model
             'notes' => $notes,
             'created_by' => $user?->id,
         ]);
+    }
+
+    // =========================================================================
+    // Capacity Methods (for vehicles, equipment with capacity limits)
+    // =========================================================================
+
+    /**
+     * Calculate how many units are needed for a given group size.
+     *
+     * Example: If capacity_per_unit = 4 (4-seat vehicle) and groupSize = 7,
+     * returns ceil(7/4) = 2 units needed.
+     */
+    public function getUnitsNeeded(int $groupSize): int
+    {
+        if (! $this->capacity_per_unit || $this->capacity_per_unit <= 0) {
+            return 1; // No capacity limit, 1 unit per booking
+        }
+
+        return (int) ceil($groupSize / $this->capacity_per_unit);
+    }
+
+    /**
+     * Check if there's enough inventory capacity for a group.
+     *
+     * This considers capacity_per_unit to calculate how many units
+     * are actually needed for the group size.
+     */
+    public function hasCapacityForGroup(int $groupSize): bool
+    {
+        if (! $this->track_inventory) {
+            return true;
+        }
+
+        $unitsNeeded = $this->getUnitsNeeded($groupSize);
+
+        return $this->hasAvailableInventory($unitsNeeded);
+    }
+
+    /**
+     * Reserve inventory based on group capacity.
+     *
+     * Automatically calculates how many units are needed for the group.
+     */
+    public function reserveCapacityForGroup(int $groupSize, ?Booking $booking = null, ?User $user = null): bool
+    {
+        $unitsNeeded = $this->getUnitsNeeded($groupSize);
+
+        return $this->reserveInventory($unitsNeeded, $booking, $user);
+    }
+
+    /**
+     * Release inventory based on group capacity.
+     */
+    public function releaseCapacityForGroup(int $groupSize, ?Booking $booking = null, ?User $user = null): void
+    {
+        $unitsNeeded = $this->getUnitsNeeded($groupSize);
+        $this->releaseInventory($unitsNeeded, $booking, $user);
     }
 
     // =========================================================================

@@ -88,6 +88,7 @@ class ExtrasService
             'allowQuantityChange' => $extra->allow_quantity_change,
             'trackInventory' => $extra->track_inventory,
             'inventoryCount' => $extra->inventory_count,
+            'capacityPerUnit' => $extra->capacity_per_unit,
             'hasAvailableInventory' => ! $extra->track_inventory || ($extra->inventory_count ?? 0) > 0,
         ];
     }
@@ -213,13 +214,33 @@ class ExtrasService
                 ];
             }
 
-            // Check inventory
-            if ($extra->track_inventory && ! $extra->hasAvailableInventory($quantity)) {
-                $errors[] = [
-                    'field' => 'extras',
-                    'message' => "Insufficient inventory for '{$extra->getTranslation('name', 'en')}'. Only {$extra->inventory_count} available.",
-                    'extraId' => $extra->id,
-                ];
+            // Check inventory with capacity consideration
+            if ($extra->track_inventory) {
+                $totalGuests = array_sum($personTypeBreakdown);
+                $unitsNeeded = $extra->capacity_per_unit
+                    ? $extra->getUnitsNeeded($totalGuests)
+                    : $quantity;
+
+                if (! $extra->hasAvailableInventory($unitsNeeded)) {
+                    $extraName = $extra->getTranslation('name', 'en');
+
+                    if ($extra->capacity_per_unit) {
+                        $errors[] = [
+                            'field' => 'extras',
+                            'message' => "Insufficient capacity for '{$extraName}'. Need {$unitsNeeded} units for your group of {$totalGuests}, but only {$extra->inventory_count} available.",
+                            'extraId' => $extra->id,
+                            'unitsNeeded' => $unitsNeeded,
+                            'groupSize' => $totalGuests,
+                            'capacityPerUnit' => $extra->capacity_per_unit,
+                        ];
+                    } else {
+                        $errors[] = [
+                            'field' => 'extras',
+                            'message' => "Insufficient inventory for '{$extraName}'. Only {$extra->inventory_count} available.",
+                            'extraId' => $extra->id,
+                        ];
+                    }
+                }
             }
         }
 
@@ -269,12 +290,20 @@ class ExtrasService
                 'status' => BookingExtraStatus::ACTIVE->value,
             ]);
 
-            // Reserve inventory if needed
+            // Reserve inventory if needed (considering capacity)
             if ($reserveInventory && $extra->track_inventory) {
-                $reserved = $extra->reserveInventory($quantity, $booking);
+                $totalGuests = array_sum($personTypeBreakdown);
+                $unitsToReserve = $extra->capacity_per_unit
+                    ? $extra->getUnitsNeeded($totalGuests)
+                    : $quantity;
+
+                $reserved = $extra->reserveInventory($unitsToReserve, $booking);
 
                 if ($reserved) {
-                    $bookingExtra->update(['inventory_reserved' => true]);
+                    $bookingExtra->update([
+                        'inventory_reserved' => true,
+                        'units_reserved' => $unitsToReserve,
+                    ]);
                 }
             }
 
@@ -291,12 +320,17 @@ class ExtrasService
     {
         foreach ($booking->bookingExtras as $bookingExtra) {
             if ($bookingExtra->inventory_reserved && $bookingExtra->extra) {
+                // Use units_reserved if available (for capacity-based extras), otherwise fall back to quantity
+                $unitsToRelease = $bookingExtra->units_reserved ?? $bookingExtra->quantity;
                 $bookingExtra->extra->releaseInventory(
-                    $bookingExtra->quantity,
+                    $unitsToRelease,
                     $booking,
                     $user
                 );
-                $bookingExtra->update(['inventory_reserved' => false]);
+                $bookingExtra->update([
+                    'inventory_reserved' => false,
+                    'units_reserved' => null,
+                ]);
             }
         }
     }

@@ -30,6 +30,7 @@ class BookingExtra extends Model
         'extra_name',
         'extra_category',
         'inventory_reserved',
+        'units_reserved',
         'status',
     ];
 
@@ -43,6 +44,7 @@ class BookingExtra extends Model
         'subtotal_eur' => 'decimal:2',
         'extra_name' => 'array',
         'inventory_reserved' => 'boolean',
+        'units_reserved' => 'integer',
         'status' => BookingExtraStatus::class,
     ];
 
@@ -119,8 +121,11 @@ class BookingExtra extends Model
 
         // Release inventory if it was reserved
         if ($this->inventory_reserved && $this->extra) {
-            $this->extra->releaseInventory($this->quantity, $this->booking);
+            // Use units_reserved if available (for capacity-based extras), otherwise fall back to quantity
+            $unitsToRelease = $this->units_reserved ?? $this->quantity;
+            $this->extra->releaseInventory($unitsToRelease, $this->booking);
             $this->inventory_reserved = false;
+            $this->units_reserved = null;
             $this->save();
         }
     }
@@ -135,8 +140,11 @@ class BookingExtra extends Model
 
         // Release inventory if it was reserved
         if ($this->inventory_reserved && $this->extra) {
-            $this->extra->releaseInventory($this->quantity, $this->booking);
+            // Use units_reserved if available (for capacity-based extras), otherwise fall back to quantity
+            $unitsToRelease = $this->units_reserved ?? $this->quantity;
+            $this->extra->releaseInventory($unitsToRelease, $this->booking);
             $this->inventory_reserved = false;
+            $this->units_reserved = null;
             $this->save();
         }
     }

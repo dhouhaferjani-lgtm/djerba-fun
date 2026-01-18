@@ -21,6 +21,13 @@ class ListingExtraResource extends JsonResource
         $currency = $request->header('X-Currency', 'EUR');
         $extra = $this->extra;
 
+        // Build context for conditional display evaluation
+        $context = [
+            'quantity' => $request->input('total_guests', 1),
+            'slot_id' => $request->input('slot_id'),
+            'person_types' => $request->input('person_types') ? json_decode($request->input('person_types'), true) : [],
+        ];
+
         return [
             'id' => $this->id,
             'extraId' => $extra->id,
@@ -49,9 +56,14 @@ class ListingExtraResource extends JsonResource
             'defaultQuantity' => $extra->default_quantity,
             'autoAdd' => $extra->auto_add,
 
-            // Inventory
+            // Conditional display
+            'shouldDisplay' => $this->shouldDisplay($context),
+            'displayConditions' => $this->display_conditions,
+
+            // Inventory & Capacity
             'trackInventory' => $extra->track_inventory,
             'inventoryCount' => $extra->inventory_count,
+            'capacityPerUnit' => $extra->capacity_per_unit,
             'hasAvailableInventory' => ! $extra->track_inventory || ($extra->inventory_count ?? 0) > 0,
         ];
     }

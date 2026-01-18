@@ -770,9 +770,25 @@ export const listingExtraForBookingSchema = z.object({
   // Display flags
   isFeatured: z.boolean(),
   allowQuantityChange: z.boolean(),
-  // Inventory
+  // Conditional display
+  shouldDisplay: z.boolean().optional(), // Evaluated based on booking context
+  displayConditions: z
+    .object({
+      conditions: z.array(
+        z.object({
+          field: z.string(),
+          operator: z.enum(['==', '!=', '>', '>=', '<', '<=', 'in']),
+          value: z.unknown(),
+        })
+      ),
+      action: z.enum(['show', 'hide']),
+    })
+    .nullable()
+    .optional(),
+  // Inventory & Capacity
   trackInventory: z.boolean(),
   inventoryCount: z.number().int().nonnegative().nullable(),
+  capacityPerUnit: z.number().int().positive().nullable().optional(), // Max people per unit (e.g., 4 for a vehicle)
   hasAvailableInventory: z.boolean(),
 });
 
