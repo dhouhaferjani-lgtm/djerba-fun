@@ -159,7 +159,7 @@ class BlogPostResource extends Resource
                             ->directory('blog-images')
                             ->visibility('public')
                             ->imageEditor()
-                            ->maxSize(2048),
+                            ->maxSize(10240),
                     ]),
 
                 Forms\Components\Section::make('Publishing')
