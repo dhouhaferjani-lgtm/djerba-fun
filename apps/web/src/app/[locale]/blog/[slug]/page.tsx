@@ -45,9 +45,18 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
 
   return (
     <>
-      {/* Article Header */}
-      <div className="bg-gray-900 text-white py-20">
-        <div className="container mx-auto px-4 max-w-4xl text-center">
+      {/* Article Header with Hero Image */}
+      <div className="relative min-h-[60vh] flex items-center justify-center">
+        {/* Background Image */}
+        {post.featuredImage && (
+          <Image src={post.featuredImage} alt={post.title} fill className="object-cover" priority />
+        )}
+
+        {/* Dark Overlay for text readability */}
+        <div className="absolute inset-0 bg-black/50" />
+
+        {/* Content */}
+        <div className="relative z-10 container mx-auto px-4 max-w-4xl text-center text-white py-20">
           {post.category && (
             <span
               className="inline-block px-4 py-2 rounded-full text-sm font-semibold mb-4"
@@ -59,7 +68,7 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
 
           <h1 className="text-4xl md:text-5xl font-display font-bold mb-6">{post.title}</h1>
 
-          <div className="flex items-center justify-center gap-6 text-sm text-gray-300">
+          <div className="flex items-center justify-center gap-6 text-sm text-gray-200">
             <span>{post.author.name}</span>
             <span>•</span>
             <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
@@ -68,23 +77,6 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
           </div>
         </div>
       </div>
-
-      {/* Featured Image */}
-      {post.featuredImage && (
-        <div className="container mx-auto px-4 -mt-10 relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <div className="relative w-full h-[400px] md:h-[500px] rounded-lg overflow-hidden shadow-xl">
-              <Image
-                src={post.featuredImage}
-                alt={post.title}
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Article Content */}
       <div className="container mx-auto px-4 py-16">
