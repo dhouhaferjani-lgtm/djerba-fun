@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             PaymentGatewaySeeder::class,
             VendorSeeder::class,
             LocationSeeder::class,
+            BlogCategorySeeder::class,
             ListingSeeder::class,
             HikingTourWithMapSeeder::class,
             TravelTipSeeder::class,
