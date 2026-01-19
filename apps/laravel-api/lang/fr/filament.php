@@ -444,4 +444,265 @@ return [
         'no_locations' => 'Aucun emplacement pour l\'instant',
         'create_first_location' => 'Créez votre première destination pour organiser les annonces',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment Gateway Resource
+    |--------------------------------------------------------------------------
+    */
+    'payment_gateway' => [
+        // Sections
+        'gateway_information' => 'Informations de la Passerelle',
+        'gateway_configuration' => 'Configuration de la Passerelle',
+        'driver_configuration' => 'Configuration Spécifique au Driver',
+
+        // Labels
+        'name' => 'Nom',
+        'slug' => 'Slug',
+        'display_name' => 'Nom d\'Affichage',
+        'description' => 'Description',
+        'driver' => 'Driver',
+        'priority' => 'Priorité',
+        'enabled' => 'Activé',
+        'is_default' => 'Par Défaut',
+        'set_as_default' => 'Définir par Défaut',
+        'test_mode' => 'Mode Test',
+
+        // Driver options
+        'driver_stripe' => 'Stripe',
+        'driver_clicktopay' => 'Click to Pay (Visa)',
+        'driver_offline' => 'Paiement Hors Ligne',
+        'driver_bank_transfer' => 'Virement Bancaire',
+        'driver_mock' => 'Mock (Test)',
+
+        // Stripe configuration
+        'publishable_key' => 'Clé Publique',
+        'secret_key' => 'Clé Secrète',
+        'webhook_secret' => 'Secret du Webhook',
+
+        // Click to Pay configuration
+        'merchant_id' => 'ID Marchand',
+        'api_key' => 'Clé API',
+        'shared_secret' => 'Secret Partagé',
+
+        // Bank Transfer configuration
+        'bank_name' => 'Nom de la Banque',
+        'account_number' => 'Numéro de Compte',
+        'routing_number' => 'Numéro de Routage',
+        'iban' => 'IBAN',
+        'swift_code' => 'Code SWIFT/BIC',
+        'payment_instructions' => 'Instructions de Paiement',
+
+        // Helper texts
+        'name_helper' => 'Identifiant interne pour la passerelle',
+        'slug_helper' => 'Identifiant URL',
+        'display_name_helper' => 'Nom visible par les utilisateurs',
+        'driver_helper' => 'Le driver de passerelle de paiement à utiliser',
+        'priority_helper' => 'Les nombres plus bas apparaissent en premier',
+        'enabled_helper' => 'Activer ou désactiver cette passerelle de paiement',
+        'default_helper' => 'Définir comme passerelle de paiement par défaut',
+        'test_mode_helper' => 'Activer le mode test/sandbox',
+        'secret_key_helper' => 'Les clés secrètes ne peuvent pas être révélées pour des raisons de sécurité',
+        'webhook_secret_helper' => 'Les secrets de webhook ne peuvent pas être révélés pour des raisons de sécurité',
+        'api_key_helper' => 'Les clés API ne peuvent pas être révélées pour des raisons de sécurité',
+        'shared_secret_helper' => 'Les secrets partagés ne peuvent pas être révélés pour des raisons de sécurité',
+        'offline_instructions_helper' => 'Instructions pour les clients payant hors ligne',
+
+        // Actions
+        'set_default_action' => 'Définir par Défaut',
+        'test_connection' => 'Tester',
+
+        // Modals
+        'set_default_heading' => 'Définir comme Passerelle par Défaut',
+        'set_default_description' => 'Définir :name comme passerelle de paiement par défaut ? Cela supprimera toute autre passerelle par défaut.',
+        'test_connection_heading' => 'Tester la Connexion de la Passerelle',
+        'test_connection_description' => 'Ceci tentera de valider la configuration de la passerelle.',
+        'delete_heading' => 'Supprimer la Passerelle de Paiement',
+        'delete_description' => 'Êtes-vous sûr de vouloir supprimer cette passerelle de paiement ? Cela peut affecter la fonctionnalité de paiement.',
+
+        // Notifications
+        'connection_passed' => 'Test de connexion réussi',
+        'connection_failed' => 'Test de connexion échoué',
+        'cannot_disable_default' => 'Impossible de désactiver la passerelle par défaut. Définissez d\'abord une autre passerelle par défaut.',
+        'cannot_delete_default' => 'Impossible de supprimer la passerelle par défaut. Définissez d\'abord une autre passerelle par défaut.',
+
+        // Bulk actions
+        'enable_selected' => 'Activer la Sélection',
+        'disable_selected' => 'Désactiver la Sélection',
+
+        // Filters
+        'filter_driver' => 'Driver',
+        'filter_enabled' => 'Activé',
+        'filter_enabled_all' => 'Toutes les passerelles',
+        'filter_enabled_only' => 'Activées uniquement',
+        'filter_disabled_only' => 'Désactivées uniquement',
+        'filter_test_mode' => 'Mode Test',
+        'filter_all_modes' => 'Tous les modes',
+        'filter_test_only' => 'Mode test',
+        'filter_live_only' => 'Mode production',
+
+        // Empty state
+        'empty_heading' => 'Aucune passerelle de paiement configurée',
+        'empty_description' => 'Ajoutez votre première passerelle de paiement pour commencer à accepter les paiements.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Data Deletion Request Resource
+    |--------------------------------------------------------------------------
+    */
+    'data_deletion' => [
+        // Sections
+        'request_details' => 'Détails de la Demande',
+        'processing_information' => 'Informations de Traitement',
+
+        // Labels
+        'email' => 'Email',
+        'status' => 'Statut',
+        'user_reason' => 'Raison de l\'Utilisateur',
+        'admin_notes' => 'Notes de l\'Admin',
+        'requested_at' => 'Demandé le',
+        'processed_at' => 'Traité le',
+        'processed_by' => 'Traité par',
+        'data_deleted' => 'Résumé des Données Supprimées',
+        'user' => 'Utilisateur',
+        'reason' => 'Raison',
+
+        // Status options
+        'status_pending' => 'En Attente',
+        'status_processing' => 'En Cours',
+        'status_completed' => 'Terminé',
+        'status_rejected' => 'Rejeté',
+
+        // Actions
+        'process' => 'Traiter',
+        'complete' => 'Terminer',
+        'reject' => 'Rejeter',
+
+        // Modals
+        'complete_heading' => 'Terminer la Demande de Suppression',
+        'complete_description' => 'Ceci marquera la demande comme terminée. Assurez-vous d\'avoir supprimé toutes les données de l\'utilisateur.',
+        'reject_heading' => 'Rejeter la Demande de Suppression',
+        'notes_placeholder' => 'Décrivez quelles données ont été supprimées...',
+        'rejection_reason' => 'Raison du Rejet',
+
+        // Placeholders
+        'guest' => 'Invité',
+        'not_processed' => 'Non traité',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Trip Request Resource
+    |--------------------------------------------------------------------------
+    */
+    'custom_trip' => [
+        // Sections
+        'request_information' => 'Informations de la Demande',
+        'contact_information' => 'Coordonnées',
+        'trip_details' => 'Détails du Voyage',
+        'travelers' => 'Voyageurs',
+        'interests' => 'Centres d\'Intérêt',
+        'budget_style' => 'Budget & Style',
+        'special_requests' => 'Demandes Spéciales',
+        'special_occasions' => 'Occasions Spéciales',
+        'metadata' => 'Métadonnées',
+
+        // Labels
+        'reference' => 'Référence',
+        'status' => 'Statut',
+        'submitted' => 'Soumis',
+        'language' => 'Langue',
+        'name' => 'Nom',
+        'email' => 'Email',
+        'phone' => 'Téléphone',
+        'whatsapp' => 'WhatsApp',
+        'country' => 'Pays',
+        'preferred_contact' => 'Contact Préféré',
+        'travel_dates' => 'Dates de Voyage',
+        'duration' => 'Durée',
+        'flexible_dates' => 'Dates Flexibles',
+        'adults' => 'Adultes',
+        'children' => 'Enfants',
+        'total_travelers' => 'Total Voyageurs',
+        'selected_interests' => 'Centres d\'Intérêt Sélectionnés',
+        'budget_per_person' => 'Budget par Personne',
+        'estimated_total' => 'Budget Total Estimé',
+        'accommodation_style' => 'Style d\'Hébergement',
+        'travel_pace' => 'Rythme de Voyage',
+        'notes' => 'Notes',
+        'occasions' => 'Occasions',
+        'ip_address' => 'Adresse IP',
+        'user_agent' => 'Agent Utilisateur',
+        'newsletter_consent' => 'Consentement Newsletter',
+        'assigned_agent' => 'Agent Assigné',
+        'traveler_name' => 'Nom du Voyageur',
+        'budget' => 'Budget',
+        'created_at' => 'Créé le',
+
+        // Table labels
+        'budget_display' => 'Budget',
+
+        // Language options
+        'lang_en' => 'Anglais',
+        'lang_fr' => 'Français',
+
+        // Yes/No
+        'yes' => 'Oui',
+        'no' => 'Non',
+
+        // Interest options
+        'interest_history_culture' => 'Histoire & Culture',
+        'interest_desert_adventures' => 'Aventures dans le Désert',
+        'interest_beach_relaxation' => 'Plage & Détente',
+        'interest_food_gastronomy' => 'Gastronomie',
+        'interest_hiking_nature' => 'Randonnée & Nature',
+        'interest_photography' => 'Photographie',
+        'interest_local_festivals' => 'Festivals Locaux',
+        'interest_star_wars_sites' => 'Sites Star Wars',
+
+        // Accommodation style
+        'style_budget' => 'Économique',
+        'style_mid_range' => 'Milieu de Gamme',
+        'style_luxury' => 'Luxe',
+        'style_not_specified' => 'Non spécifié',
+
+        // Travel pace
+        'pace_relaxed' => 'Détendu',
+        'pace_moderate' => 'Modéré',
+        'pace_active' => 'Actif',
+        'pace_not_specified' => 'Non spécifié',
+
+        // Duration format
+        'days' => ':count jours',
+
+        // Actions
+        'mark_contacted' => 'Marquer Contacté',
+
+        // Placeholders
+        'no_special_requests' => 'Aucune demande spéciale',
+        'not_provided' => 'Non fourni',
+        'not_assigned' => 'Non assigné',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard Widgets
+    |--------------------------------------------------------------------------
+    */
+    'widgets' => [
+        'total_users' => 'Total Utilisateurs',
+        'total_listings' => 'Total Annonces',
+        'total_bookings' => 'Total Réservations',
+        'total_revenue' => 'Revenu Total',
+        'active_platform_users' => 'Utilisateurs actifs',
+        'published' => ':count publiées',
+        'confirmed' => ':count confirmées',
+        'this_month' => ':amount ce mois',
+        'suspicious_activities' => 'Activités Suspectes',
+        'suspicious_activities_desc' => 'Réservations et activités récentes signalées pour examen',
+        'customer' => 'Client',
+        'listing' => 'Annonce',
+        'enabled_payment_gateways' => 'Passerelles de paiement activées',
+    ],
 ];

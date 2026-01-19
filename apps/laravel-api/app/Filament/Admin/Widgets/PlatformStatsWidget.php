@@ -24,23 +24,23 @@ class PlatformStatsWidget extends BaseWidget
             ->sum('total_amount');
 
         return [
-            Stat::make('Total Users', User::count())
-                ->description('Active platform users')
+            Stat::make(__('filament.widgets.total_users'), User::count())
+                ->description(__('filament.widgets.active_platform_users'))
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color('success'),
 
-            Stat::make('Total Listings', Listing::count())
-                ->description(Listing::where('status', ListingStatus::PUBLISHED)->count() . ' published')
+            Stat::make(__('filament.widgets.total_listings'), Listing::count())
+                ->description(__('filament.widgets.published', ['count' => Listing::where('status', ListingStatus::PUBLISHED)->count()]))
                 ->descriptionIcon('heroicon-m-map-pin')
                 ->color('info'),
 
-            Stat::make('Total Bookings', Booking::count())
-                ->description(Booking::where('status', BookingStatus::CONFIRMED)->count() . ' confirmed')
+            Stat::make(__('filament.widgets.total_bookings'), Booking::count())
+                ->description(__('filament.widgets.confirmed', ['count' => Booking::where('status', BookingStatus::CONFIRMED)->count()]))
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color('warning'),
 
-            Stat::make('Total Revenue', '$' . number_format($totalRevenue, 2))
-                ->description('$' . number_format($monthlyRevenue, 2) . ' this month')
+            Stat::make(__('filament.widgets.total_revenue'), '$' . number_format($totalRevenue, 2))
+                ->description(__('filament.widgets.this_month', ['amount' => '$' . number_format($monthlyRevenue, 2)]))
                 ->descriptionIcon('heroicon-m-currency-dollar')
                 ->color('success'),
         ];

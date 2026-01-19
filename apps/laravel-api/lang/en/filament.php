@@ -444,4 +444,265 @@ return [
         'no_locations' => 'No locations yet',
         'create_first_location' => 'Create your first destination/location to organize listings',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment Gateway Resource
+    |--------------------------------------------------------------------------
+    */
+    'payment_gateway' => [
+        // Sections
+        'gateway_information' => 'Gateway Information',
+        'gateway_configuration' => 'Gateway Configuration',
+        'driver_configuration' => 'Driver-Specific Configuration',
+
+        // Labels
+        'name' => 'Name',
+        'slug' => 'Slug',
+        'display_name' => 'Display Name',
+        'description' => 'Description',
+        'driver' => 'Driver',
+        'priority' => 'Priority',
+        'enabled' => 'Enabled',
+        'is_default' => 'Default',
+        'set_as_default' => 'Set as Default',
+        'test_mode' => 'Test Mode',
+
+        // Driver options
+        'driver_stripe' => 'Stripe',
+        'driver_clicktopay' => 'Click to Pay (Visa)',
+        'driver_offline' => 'Offline Payment',
+        'driver_bank_transfer' => 'Bank Transfer',
+        'driver_mock' => 'Mock (Testing)',
+
+        // Stripe configuration
+        'publishable_key' => 'Publishable Key',
+        'secret_key' => 'Secret Key',
+        'webhook_secret' => 'Webhook Secret',
+
+        // Click to Pay configuration
+        'merchant_id' => 'Merchant ID',
+        'api_key' => 'API Key',
+        'shared_secret' => 'Shared Secret',
+
+        // Bank Transfer configuration
+        'bank_name' => 'Bank Name',
+        'account_number' => 'Account Number',
+        'routing_number' => 'Routing Number',
+        'iban' => 'IBAN',
+        'swift_code' => 'SWIFT/BIC Code',
+        'payment_instructions' => 'Payment Instructions',
+
+        // Helper texts
+        'name_helper' => 'Internal identifier for the gateway',
+        'slug_helper' => 'URL-friendly identifier',
+        'display_name_helper' => 'User-facing name',
+        'driver_helper' => 'The payment gateway driver to use',
+        'priority_helper' => 'Lower numbers appear first',
+        'enabled_helper' => 'Enable or disable this payment gateway',
+        'default_helper' => 'Mark as the default payment gateway',
+        'test_mode_helper' => 'Enable test/sandbox mode',
+        'secret_key_helper' => 'Secret keys cannot be revealed for security reasons',
+        'webhook_secret_helper' => 'Webhook secrets cannot be revealed for security reasons',
+        'api_key_helper' => 'API keys cannot be revealed for security reasons',
+        'shared_secret_helper' => 'Shared secrets cannot be revealed for security reasons',
+        'offline_instructions_helper' => 'Instructions for customers paying offline',
+
+        // Actions
+        'set_default_action' => 'Set as Default',
+        'test_connection' => 'Test',
+
+        // Modals
+        'set_default_heading' => 'Set as Default Gateway',
+        'set_default_description' => 'Set :name as the default payment gateway? This will unset any other default gateway.',
+        'test_connection_heading' => 'Test Gateway Connection',
+        'test_connection_description' => 'This will attempt to validate the gateway configuration.',
+        'delete_heading' => 'Delete Payment Gateway',
+        'delete_description' => 'Are you sure you want to delete this payment gateway? This may affect checkout functionality.',
+
+        // Notifications
+        'connection_passed' => 'Connection test passed',
+        'connection_failed' => 'Connection test failed',
+        'cannot_disable_default' => 'Cannot disable the default gateway. Set another gateway as default first.',
+        'cannot_delete_default' => 'Cannot delete the default gateway. Set another gateway as default first.',
+
+        // Bulk actions
+        'enable_selected' => 'Enable Selected',
+        'disable_selected' => 'Disable Selected',
+
+        // Filters
+        'filter_driver' => 'Driver',
+        'filter_enabled' => 'Enabled',
+        'filter_enabled_all' => 'All gateways',
+        'filter_enabled_only' => 'Enabled only',
+        'filter_disabled_only' => 'Disabled only',
+        'filter_test_mode' => 'Test Mode',
+        'filter_all_modes' => 'All modes',
+        'filter_test_only' => 'Test mode',
+        'filter_live_only' => 'Live mode',
+
+        // Empty state
+        'empty_heading' => 'No payment gateways configured',
+        'empty_description' => 'Add your first payment gateway to start accepting payments.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Data Deletion Request Resource
+    |--------------------------------------------------------------------------
+    */
+    'data_deletion' => [
+        // Sections
+        'request_details' => 'Request Details',
+        'processing_information' => 'Processing Information',
+
+        // Labels
+        'email' => 'Email',
+        'status' => 'Status',
+        'user_reason' => "User's Reason",
+        'admin_notes' => 'Admin Notes',
+        'requested_at' => 'Requested At',
+        'processed_at' => 'Processed At',
+        'processed_by' => 'Processed By',
+        'data_deleted' => 'Data Deleted Summary',
+        'user' => 'User',
+        'reason' => 'Reason',
+
+        // Status options
+        'status_pending' => 'Pending',
+        'status_processing' => 'Processing',
+        'status_completed' => 'Completed',
+        'status_rejected' => 'Rejected',
+
+        // Actions
+        'process' => 'Process',
+        'complete' => 'Complete',
+        'reject' => 'Reject',
+
+        // Modals
+        'complete_heading' => 'Complete Deletion Request',
+        'complete_description' => 'This will mark the request as completed. Make sure you have deleted all user data.',
+        'reject_heading' => 'Reject Deletion Request',
+        'notes_placeholder' => 'Describe what data was deleted...',
+        'rejection_reason' => 'Reason for Rejection',
+
+        // Placeholders
+        'guest' => 'Guest',
+        'not_processed' => 'Not processed',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Trip Request Resource
+    |--------------------------------------------------------------------------
+    */
+    'custom_trip' => [
+        // Sections
+        'request_information' => 'Request Information',
+        'contact_information' => 'Contact Information',
+        'trip_details' => 'Trip Details',
+        'travelers' => 'Travelers',
+        'interests' => 'Interests',
+        'budget_style' => 'Budget & Style',
+        'special_requests' => 'Special Requests',
+        'special_occasions' => 'Special Occasions',
+        'metadata' => 'Metadata',
+
+        // Labels
+        'reference' => 'Reference',
+        'status' => 'Status',
+        'submitted' => 'Submitted',
+        'language' => 'Language',
+        'name' => 'Name',
+        'email' => 'Email',
+        'phone' => 'Phone',
+        'whatsapp' => 'WhatsApp',
+        'country' => 'Country',
+        'preferred_contact' => 'Preferred Contact',
+        'travel_dates' => 'Travel Dates',
+        'duration' => 'Duration',
+        'flexible_dates' => 'Flexible Dates',
+        'adults' => 'Adults',
+        'children' => 'Children',
+        'total_travelers' => 'Total Travelers',
+        'selected_interests' => 'Selected Interests',
+        'budget_per_person' => 'Budget per Person',
+        'estimated_total' => 'Estimated Total Budget',
+        'accommodation_style' => 'Accommodation Style',
+        'travel_pace' => 'Travel Pace',
+        'notes' => 'Notes',
+        'occasions' => 'Occasions',
+        'ip_address' => 'IP Address',
+        'user_agent' => 'User Agent',
+        'newsletter_consent' => 'Newsletter Consent',
+        'assigned_agent' => 'Assigned Agent',
+        'traveler_name' => 'Traveler Name',
+        'budget' => 'Budget',
+        'created_at' => 'Created At',
+
+        // Table labels
+        'budget_display' => 'Budget',
+
+        // Language options
+        'lang_en' => 'English',
+        'lang_fr' => 'French',
+
+        // Yes/No
+        'yes' => 'Yes',
+        'no' => 'No',
+
+        // Interest options
+        'interest_history_culture' => 'History & Culture',
+        'interest_desert_adventures' => 'Desert Adventures',
+        'interest_beach_relaxation' => 'Beach & Relaxation',
+        'interest_food_gastronomy' => 'Food & Gastronomy',
+        'interest_hiking_nature' => 'Hiking & Nature',
+        'interest_photography' => 'Photography',
+        'interest_local_festivals' => 'Local Festivals',
+        'interest_star_wars_sites' => 'Star Wars Sites',
+
+        // Accommodation style
+        'style_budget' => 'Budget',
+        'style_mid_range' => 'Mid-Range',
+        'style_luxury' => 'Luxury',
+        'style_not_specified' => 'Not specified',
+
+        // Travel pace
+        'pace_relaxed' => 'Relaxed',
+        'pace_moderate' => 'Moderate',
+        'pace_active' => 'Active',
+        'pace_not_specified' => 'Not specified',
+
+        // Duration format
+        'days' => ':count days',
+
+        // Actions
+        'mark_contacted' => 'Mark Contacted',
+
+        // Placeholders
+        'no_special_requests' => 'No special requests',
+        'not_provided' => 'Not provided',
+        'not_assigned' => 'Not assigned',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard Widgets
+    |--------------------------------------------------------------------------
+    */
+    'widgets' => [
+        'total_users' => 'Total Users',
+        'total_listings' => 'Total Listings',
+        'total_bookings' => 'Total Bookings',
+        'total_revenue' => 'Total Revenue',
+        'active_platform_users' => 'Active platform users',
+        'published' => ':count published',
+        'confirmed' => ':count confirmed',
+        'this_month' => ':amount this month',
+        'suspicious_activities' => 'Suspicious Activities',
+        'suspicious_activities_desc' => 'Recent bookings and activities flagged for review',
+        'customer' => 'Customer',
+        'listing' => 'Listing',
+        'enabled_payment_gateways' => 'Enabled payment gateways',
+    ],
 ];

@@ -52,9 +52,10 @@ class CustomTripRequestResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Status')
+                Forms\Components\Section::make(__('filament.custom_trip.status'))
                     ->schema([
                         Forms\Components\Select::make('status')
+                            ->label(__('filament.custom_trip.status'))
                             ->options(CustomTripRequestStatus::class)
                             ->required(),
                     ]),
@@ -66,64 +67,67 @@ class CustomTripRequestResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('reference')
-                    ->label('Reference')
+                    ->label(__('filament.custom_trip.reference'))
                     ->searchable()
                     ->sortable()
                     ->copyable()
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('contact_name')
-                    ->label('Traveler Name')
+                    ->label(__('filament.custom_trip.traveler_name'))
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('contact_email')
-                    ->label('Email')
+                    ->label(__('filament.custom_trip.email'))
                     ->searchable()
                     ->sortable()
                     ->copyable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('travel_dates')
-                    ->label('Travel Dates')
+                    ->label(__('filament.custom_trip.travel_dates'))
                     ->getStateUsing(fn (CustomTripRequest $record): string => $record->travel_start_date->format('M d') . ' - ' . $record->travel_end_date->format('M d, Y'))
                     ->sortable(query: function (Builder $query, string $direction): Builder {
                         return $query->orderBy('travel_start_date', $direction);
                     }),
 
                 Tables\Columns\TextColumn::make('budget_display')
-                    ->label('Budget')
+                    ->label(__('filament.custom_trip.budget'))
                     ->getStateUsing(fn (CustomTripRequest $record): string => number_format($record->budget_per_person) . ' ' . $record->budget_currency . '/person')
                     ->sortable(query: function (Builder $query, string $direction): Builder {
                         return $query->orderBy('budget_per_person', $direction);
                     }),
 
                 Tables\Columns\TextColumn::make('total_travelers')
-                    ->label('Travelers')
-                    ->getStateUsing(fn (CustomTripRequest $record): string => $record->adults . ' adults' . ($record->children > 0 ? ', ' . $record->children . ' children' : ''))
+                    ->label(__('filament.custom_trip.travelers'))
+                    ->getStateUsing(fn (CustomTripRequest $record): string => $record->adults . ' ' . __('filament.custom_trip.adults') . ($record->children > 0 ? ', ' . $record->children . ' ' . __('filament.custom_trip.children') : ''))
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('status')
+                    ->label(__('filament.custom_trip.status'))
                     ->badge()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created At')
+                    ->label(__('filament.custom_trip.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
+                    ->label(__('filament.custom_trip.status'))
                     ->options(CustomTripRequestStatus::class)
                     ->multiple(),
 
                 Tables\Filters\Filter::make('travel_dates')
+                    ->label(__('filament.custom_trip.travel_dates'))
                     ->form([
                         Forms\Components\DatePicker::make('travel_from')
-                            ->label('Travel From'),
+                            ->label(__('filament.labels.from')),
                         Forms\Components\DatePicker::make('travel_until')
-                            ->label('Travel Until'),
+                            ->label(__('filament.labels.until')),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -138,11 +142,12 @@ class CustomTripRequestResource extends Resource
                     }),
 
                 Tables\Filters\Filter::make('created_at')
+                    ->label(__('filament.custom_trip.created_at'))
                     ->form([
                         Forms\Components\DatePicker::make('created_from')
-                            ->label('Created From'),
+                            ->label(__('filament.labels.from')),
                         Forms\Components\DatePicker::make('created_until')
-                            ->label('Created Until'),
+                            ->label(__('filament.labels.until')),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -159,7 +164,7 @@ class CustomTripRequestResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\Action::make('mark_contacted')
-                    ->label('Mark Contacted')
+                    ->label(__('filament.custom_trip.mark_contacted'))
                     ->icon('heroicon-o-phone')
                     ->color('info')
                     ->requiresConfirmation()
@@ -178,178 +183,179 @@ class CustomTripRequestResource extends Resource
     {
         return $infolist
             ->schema([
-                Infolists\Components\Section::make('Request Information')
+                Infolists\Components\Section::make(__('filament.custom_trip.request_information'))
                     ->schema([
                         Infolists\Components\TextEntry::make('reference')
-                            ->label('Reference')
+                            ->label(__('filament.custom_trip.reference'))
                             ->copyable()
                             ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
                             ->weight('bold'),
 
                         Infolists\Components\TextEntry::make('status')
+                            ->label(__('filament.custom_trip.status'))
                             ->badge(),
 
                         Infolists\Components\TextEntry::make('created_at')
-                            ->label('Submitted')
+                            ->label(__('filament.custom_trip.submitted'))
                             ->dateTime(),
 
                         Infolists\Components\TextEntry::make('locale')
-                            ->label('Language')
+                            ->label(__('filament.custom_trip.language'))
                             ->formatStateUsing(fn (string $state): string => match ($state) {
-                                'en' => 'English',
-                                'fr' => 'French',
+                                'en' => __('filament.custom_trip.lang_en'),
+                                'fr' => __('filament.custom_trip.lang_fr'),
                                 default => $state,
                             }),
                     ])
                     ->columns(4),
 
-                Infolists\Components\Section::make('Contact Information')
+                Infolists\Components\Section::make(__('filament.custom_trip.contact_information'))
                     ->schema([
                         Infolists\Components\TextEntry::make('contact_name')
-                            ->label('Name'),
+                            ->label(__('filament.custom_trip.name')),
 
                         Infolists\Components\TextEntry::make('contact_email')
-                            ->label('Email')
+                            ->label(__('filament.custom_trip.email'))
                             ->copyable(),
 
                         Infolists\Components\TextEntry::make('contact_phone')
-                            ->label('Phone')
+                            ->label(__('filament.custom_trip.phone'))
                             ->copyable(),
 
                         Infolists\Components\TextEntry::make('contact_whatsapp')
-                            ->label('WhatsApp')
+                            ->label(__('filament.custom_trip.whatsapp'))
                             ->copyable()
-                            ->placeholder('Not provided'),
+                            ->placeholder(__('filament.custom_trip.not_provided')),
 
                         Infolists\Components\TextEntry::make('contact_country')
-                            ->label('Country'),
+                            ->label(__('filament.custom_trip.country')),
 
                         Infolists\Components\TextEntry::make('preferred_contact_method')
-                            ->label('Preferred Contact')
+                            ->label(__('filament.custom_trip.preferred_contact'))
                             ->formatStateUsing(fn (string $state): string => ucfirst($state)),
                     ])
                     ->columns(3),
 
-                Infolists\Components\Section::make('Trip Details')
+                Infolists\Components\Section::make(__('filament.custom_trip.trip_details'))
                     ->schema([
                         Infolists\Components\TextEntry::make('travel_dates')
-                            ->label('Travel Dates')
+                            ->label(__('filament.custom_trip.travel_dates'))
                             ->getStateUsing(fn (CustomTripRequest $record): string => $record->travel_start_date->format('F d, Y') . ' to ' . $record->travel_end_date->format('F d, Y')),
 
                         Infolists\Components\TextEntry::make('duration_days')
-                            ->label('Duration')
-                            ->formatStateUsing(fn (int $state): string => $state . ' days'),
+                            ->label(__('filament.custom_trip.duration'))
+                            ->formatStateUsing(fn (int $state): string => __('filament.custom_trip.days', ['count' => $state])),
 
                         Infolists\Components\TextEntry::make('dates_flexible')
-                            ->label('Flexible Dates')
-                            ->formatStateUsing(fn (bool $state): string => $state ? 'Yes' : 'No')
+                            ->label(__('filament.custom_trip.flexible_dates'))
+                            ->formatStateUsing(fn (bool $state): string => $state ? __('filament.custom_trip.yes') : __('filament.custom_trip.no'))
                             ->badge()
                             ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
                     ])
                     ->columns(3),
 
-                Infolists\Components\Section::make('Travelers')
+                Infolists\Components\Section::make(__('filament.custom_trip.travelers'))
                     ->schema([
                         Infolists\Components\TextEntry::make('adults')
-                            ->label('Adults'),
+                            ->label(__('filament.custom_trip.adults')),
 
                         Infolists\Components\TextEntry::make('children')
-                            ->label('Children'),
+                            ->label(__('filament.custom_trip.children')),
 
                         Infolists\Components\TextEntry::make('total_travelers')
-                            ->label('Total Travelers'),
+                            ->label(__('filament.custom_trip.total_travelers')),
                     ])
                     ->columns(3),
 
-                Infolists\Components\Section::make('Interests')
+                Infolists\Components\Section::make(__('filament.custom_trip.interests'))
                     ->schema([
                         Infolists\Components\TextEntry::make('interests')
-                            ->label('Selected Interests')
+                            ->label(__('filament.custom_trip.selected_interests'))
                             ->badge()
                             ->separator(',')
                             ->formatStateUsing(fn (string $state): string => match ($state) {
-                                'history-culture' => 'History & Culture',
-                                'desert-adventures' => 'Desert Adventures',
-                                'beach-relaxation' => 'Beach & Relaxation',
-                                'food-gastronomy' => 'Food & Gastronomy',
-                                'hiking-nature' => 'Hiking & Nature',
-                                'photography' => 'Photography',
-                                'local-festivals' => 'Local Festivals',
-                                'star-wars-sites' => 'Star Wars Sites',
+                                'history-culture' => __('filament.custom_trip.interest_history_culture'),
+                                'desert-adventures' => __('filament.custom_trip.interest_desert_adventures'),
+                                'beach-relaxation' => __('filament.custom_trip.interest_beach_relaxation'),
+                                'food-gastronomy' => __('filament.custom_trip.interest_food_gastronomy'),
+                                'hiking-nature' => __('filament.custom_trip.interest_hiking_nature'),
+                                'photography' => __('filament.custom_trip.interest_photography'),
+                                'local-festivals' => __('filament.custom_trip.interest_local_festivals'),
+                                'star-wars-sites' => __('filament.custom_trip.interest_star_wars_sites'),
                                 default => ucfirst(str_replace('-', ' ', $state)),
                             }),
                     ]),
 
-                Infolists\Components\Section::make('Budget & Style')
+                Infolists\Components\Section::make(__('filament.custom_trip.budget_style'))
                     ->schema([
                         Infolists\Components\TextEntry::make('budget_per_person')
-                            ->label('Budget per Person')
+                            ->label(__('filament.custom_trip.budget_per_person'))
                             ->formatStateUsing(fn (int $state, CustomTripRequest $record): string => number_format($state) . ' ' . $record->budget_currency),
 
                         Infolists\Components\TextEntry::make('estimated_total_budget')
-                            ->label('Estimated Total Budget')
+                            ->label(__('filament.custom_trip.estimated_total'))
                             ->formatStateUsing(fn (int $state, CustomTripRequest $record): string => number_format($state) . ' ' . $record->budget_currency),
 
                         Infolists\Components\TextEntry::make('accommodation_style')
-                            ->label('Accommodation Style')
+                            ->label(__('filament.custom_trip.accommodation_style'))
                             ->formatStateUsing(fn (?string $state): string => match ($state) {
-                                'budget' => 'Budget',
-                                'mid-range' => 'Mid-Range',
-                                'luxury' => 'Luxury',
-                                default => $state ?? 'Not specified',
+                                'budget' => __('filament.custom_trip.style_budget'),
+                                'mid-range' => __('filament.custom_trip.style_mid_range'),
+                                'luxury' => __('filament.custom_trip.style_luxury'),
+                                default => $state ?? __('filament.custom_trip.style_not_specified'),
                             })
                             ->badge(),
 
                         Infolists\Components\TextEntry::make('travel_pace')
-                            ->label('Travel Pace')
+                            ->label(__('filament.custom_trip.travel_pace'))
                             ->formatStateUsing(fn (?string $state): string => match ($state) {
-                                'relaxed' => 'Relaxed',
-                                'moderate' => 'Moderate',
-                                'active' => 'Active',
-                                default => $state ?? 'Not specified',
+                                'relaxed' => __('filament.custom_trip.pace_relaxed'),
+                                'moderate' => __('filament.custom_trip.pace_moderate'),
+                                'active' => __('filament.custom_trip.pace_active'),
+                                default => $state ?? __('filament.custom_trip.pace_not_specified'),
                             })
                             ->badge(),
                     ])
                     ->columns(4),
 
-                Infolists\Components\Section::make('Special Requests')
+                Infolists\Components\Section::make(__('filament.custom_trip.special_requests'))
                     ->schema([
                         Infolists\Components\TextEntry::make('special_requests')
-                            ->label('Notes')
+                            ->label(__('filament.custom_trip.notes'))
                             ->columnSpanFull()
-                            ->placeholder('No special requests'),
+                            ->placeholder(__('filament.custom_trip.no_special_requests')),
                     ])
                     ->visible(fn (CustomTripRequest $record): bool => ! empty($record->special_requests)),
 
-                Infolists\Components\Section::make('Special Occasions')
+                Infolists\Components\Section::make(__('filament.custom_trip.special_occasions'))
                     ->schema([
                         Infolists\Components\TextEntry::make('special_occasions')
-                            ->label('Occasions')
+                            ->label(__('filament.custom_trip.occasions'))
                             ->badge()
                             ->separator(',')
                             ->formatStateUsing(fn (string $state): string => ucfirst(str_replace('-', ' ', $state))),
                     ])
                     ->visible(fn (CustomTripRequest $record): bool => ! empty($record->special_occasions)),
 
-                Infolists\Components\Section::make('Metadata')
+                Infolists\Components\Section::make(__('filament.custom_trip.metadata'))
                     ->schema([
                         Infolists\Components\TextEntry::make('ip_address')
-                            ->label('IP Address')
+                            ->label(__('filament.custom_trip.ip_address'))
                             ->copyable(),
 
                         Infolists\Components\TextEntry::make('user_agent')
-                            ->label('User Agent')
+                            ->label(__('filament.custom_trip.user_agent'))
                             ->limit(50),
 
                         Infolists\Components\TextEntry::make('newsletter_consent')
-                            ->label('Newsletter Consent')
-                            ->formatStateUsing(fn (bool $state): string => $state ? 'Yes' : 'No')
+                            ->label(__('filament.custom_trip.newsletter_consent'))
+                            ->formatStateUsing(fn (bool $state): string => $state ? __('filament.custom_trip.yes') : __('filament.custom_trip.no'))
                             ->badge()
                             ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
 
                         Infolists\Components\TextEntry::make('assignedAgent.display_name')
-                            ->label('Assigned Agent')
-                            ->placeholder('Not assigned'),
+                            ->label(__('filament.custom_trip.assigned_agent'))
+                            ->placeholder(__('filament.custom_trip.not_assigned')),
                     ])
                     ->columns(4)
                     ->collapsed(),

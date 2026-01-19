@@ -19,8 +19,8 @@ class FraudAlertWidget extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->heading('Suspicious Activities')
-            ->description('Recent bookings and activities flagged for review')
+            ->heading(__('filament.widgets.suspicious_activities'))
+            ->description(__('filament.widgets.suspicious_activities_desc'))
             ->query(
                 Booking::query()
                     ->where('status', BookingStatus::CANCELLED)
@@ -34,11 +34,11 @@ class FraudAlertWidget extends BaseWidget
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('user.display_name')
-                    ->label('Customer')
+                    ->label(__('filament.widgets.customer'))
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('listing.title')
-                    ->label('Listing')
+                    ->label(__('filament.widgets.listing'))
                     ->formatStateUsing(fn ($record) => $record->listing?->getTranslation('title', app()->getLocale()))
                     ->limit(30),
 

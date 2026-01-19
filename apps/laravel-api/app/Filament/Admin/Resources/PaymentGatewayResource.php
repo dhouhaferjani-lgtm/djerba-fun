@@ -34,87 +34,93 @@ class PaymentGatewayResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Gateway Information')
+                Forms\Components\Section::make(__('filament.payment_gateway.gateway_information'))
                     ->schema([
                         Forms\Components\TextInput::make('name')
+                            ->label(__('filament.payment_gateway.name'))
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255)
-                            ->helperText('Internal identifier for the gateway'),
+                            ->helperText(__('filament.payment_gateway.name_helper')),
 
                         Forms\Components\TextInput::make('slug')
+                            ->label(__('filament.payment_gateway.slug'))
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255)
-                            ->helperText('URL-friendly identifier'),
+                            ->helperText(__('filament.payment_gateway.slug_helper')),
 
                         Forms\Components\TextInput::make('display_name')
+                            ->label(__('filament.payment_gateway.display_name'))
                             ->required()
                             ->maxLength(255)
-                            ->helperText('User-facing name'),
+                            ->helperText(__('filament.payment_gateway.display_name_helper')),
 
                         Forms\Components\Textarea::make('description')
+                            ->label(__('filament.payment_gateway.description'))
                             ->rows(3)
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Gateway Configuration')
+                Forms\Components\Section::make(__('filament.payment_gateway.gateway_configuration'))
                     ->schema([
                         Forms\Components\Select::make('driver')
+                            ->label(__('filament.payment_gateway.driver'))
                             ->required()
                             ->options([
-                                'stripe' => 'Stripe',
-                                'clicktopay' => 'Click to Pay (Visa)',
-                                'offline' => 'Offline Payment',
-                                'bank_transfer' => 'Bank Transfer',
-                                'mock' => 'Mock (Testing)',
+                                'stripe' => __('filament.payment_gateway.driver_stripe'),
+                                'clicktopay' => __('filament.payment_gateway.driver_clicktopay'),
+                                'offline' => __('filament.payment_gateway.driver_offline'),
+                                'bank_transfer' => __('filament.payment_gateway.driver_bank_transfer'),
+                                'mock' => __('filament.payment_gateway.driver_mock'),
                             ])
                             ->live()
-                            ->helperText('The payment gateway driver to use'),
+                            ->helperText(__('filament.payment_gateway.driver_helper')),
 
                         Forms\Components\TextInput::make('priority')
+                            ->label(__('filament.payment_gateway.priority'))
                             ->numeric()
                             ->default(0)
                             ->required()
-                            ->helperText('Lower numbers appear first'),
+                            ->helperText(__('filament.payment_gateway.priority_helper')),
 
                         Forms\Components\Toggle::make('is_enabled')
-                            ->label('Enabled')
+                            ->label(__('filament.payment_gateway.enabled'))
                             ->default(false)
-                            ->helperText('Enable or disable this payment gateway'),
+                            ->helperText(__('filament.payment_gateway.enabled_helper')),
 
                         Forms\Components\Toggle::make('is_default')
-                            ->label('Set as Default')
+                            ->label(__('filament.payment_gateway.set_as_default'))
                             ->default(false)
-                            ->helperText('Mark as the default payment gateway'),
+                            ->helperText(__('filament.payment_gateway.default_helper')),
 
                         Forms\Components\Toggle::make('test_mode')
-                            ->label('Test Mode')
+                            ->label(__('filament.payment_gateway.test_mode'))
                             ->default(false)
-                            ->helperText('Enable test/sandbox mode'),
+                            ->helperText(__('filament.payment_gateway.test_mode_helper')),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Driver-Specific Configuration')
+                Forms\Components\Section::make(__('filament.payment_gateway.driver_configuration'))
                     ->schema([
                         // Stripe Configuration
                         Forms\Components\Group::make([
                             Forms\Components\TextInput::make('configuration.publishable_key')
-                                ->label('Publishable Key')
+                                ->label(__('filament.payment_gateway.publishable_key'))
                                 ->password()
                                 ->revealable()
                                 ->maxLength(255),
 
                             Forms\Components\TextInput::make('configuration.secret_key')
-                                ->label('Secret Key')
+                                ->label(__('filament.payment_gateway.secret_key'))
                                 ->password()
                                 ->maxLength(255)
-                                ->helperText('Secret keys cannot be revealed for security reasons'),
+                                ->helperText(__('filament.payment_gateway.secret_key_helper')),
 
                             Forms\Components\TextInput::make('configuration.webhook_secret')
-                                ->label('Webhook Secret')
+                                ->label(__('filament.payment_gateway.webhook_secret'))
                                 ->password()
                                 ->maxLength(255)
-                                ->helperText('Webhook secrets cannot be revealed for security reasons'),
+                                ->helperText(__('filament.payment_gateway.webhook_secret_helper')),
                         ])
                             ->visible(fn (Forms\Get $get) => $get('driver') === 'stripe')
                             ->columnSpanFull(),
@@ -122,20 +128,20 @@ class PaymentGatewayResource extends Resource
                         // Click to Pay Configuration
                         Forms\Components\Group::make([
                             Forms\Components\TextInput::make('configuration.merchant_id')
-                                ->label('Merchant ID')
+                                ->label(__('filament.payment_gateway.merchant_id'))
                                 ->maxLength(255),
 
                             Forms\Components\TextInput::make('configuration.api_key')
-                                ->label('API Key')
+                                ->label(__('filament.payment_gateway.api_key'))
                                 ->password()
                                 ->maxLength(255)
-                                ->helperText('API keys cannot be revealed for security reasons'),
+                                ->helperText(__('filament.payment_gateway.api_key_helper')),
 
                             Forms\Components\TextInput::make('configuration.shared_secret')
-                                ->label('Shared Secret')
+                                ->label(__('filament.payment_gateway.shared_secret'))
                                 ->password()
                                 ->maxLength(255)
-                                ->helperText('Shared secrets cannot be revealed for security reasons'),
+                                ->helperText(__('filament.payment_gateway.shared_secret_helper')),
                         ])
                             ->visible(fn (Forms\Get $get) => $get('driver') === 'clicktopay')
                             ->columnSpanFull(),
@@ -143,27 +149,27 @@ class PaymentGatewayResource extends Resource
                         // Bank Transfer Configuration
                         Forms\Components\Group::make([
                             Forms\Components\TextInput::make('configuration.bank_name')
-                                ->label('Bank Name')
+                                ->label(__('filament.payment_gateway.bank_name'))
                                 ->maxLength(255),
 
                             Forms\Components\TextInput::make('configuration.account_number')
-                                ->label('Account Number')
+                                ->label(__('filament.payment_gateway.account_number'))
                                 ->maxLength(255),
 
                             Forms\Components\TextInput::make('configuration.routing_number')
-                                ->label('Routing Number')
+                                ->label(__('filament.payment_gateway.routing_number'))
                                 ->maxLength(255),
 
                             Forms\Components\TextInput::make('configuration.iban')
-                                ->label('IBAN')
+                                ->label(__('filament.payment_gateway.iban'))
                                 ->maxLength(255),
 
                             Forms\Components\TextInput::make('configuration.swift_code')
-                                ->label('SWIFT/BIC Code')
+                                ->label(__('filament.payment_gateway.swift_code'))
                                 ->maxLength(255),
 
                             Forms\Components\Textarea::make('configuration.instructions')
-                                ->label('Payment Instructions')
+                                ->label(__('filament.payment_gateway.payment_instructions'))
                                 ->rows(3)
                                 ->columnSpanFull(),
                         ])
@@ -173,9 +179,9 @@ class PaymentGatewayResource extends Resource
                         // Offline Payment Configuration
                         Forms\Components\Group::make([
                             Forms\Components\Textarea::make('configuration.instructions')
-                                ->label('Payment Instructions')
+                                ->label(__('filament.payment_gateway.payment_instructions'))
                                 ->rows(3)
-                                ->helperText('Instructions for customers paying offline')
+                                ->helperText(__('filament.payment_gateway.offline_instructions_helper'))
                                 ->columnSpanFull(),
                         ])
                             ->visible(fn (Forms\Get $get) => $get('driver') === 'offline')
@@ -189,12 +195,13 @@ class PaymentGatewayResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('display_name')
-                    ->label('Name')
+                    ->label(__('filament.payment_gateway.display_name'))
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('driver')
+                    ->label(__('filament.payment_gateway.driver'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'stripe' => 'purple',
@@ -206,114 +213,117 @@ class PaymentGatewayResource extends Resource
                     }),
 
                 Tables\Columns\ToggleColumn::make('is_enabled')
-                    ->label('Enabled')
+                    ->label(__('filament.payment_gateway.enabled'))
                     ->sortable()
                     ->beforeStateUpdated(function (PaymentGateway $record, bool $state) {
                         // If disabling and it's the default, prevent it
                         if (! $state && $record->is_default) {
-                            throw new \Exception('Cannot disable the default gateway. Set another gateway as default first.');
+                            throw new \Exception(__('filament.payment_gateway.cannot_disable_default'));
                         }
                     }),
 
                 Tables\Columns\IconColumn::make('is_default')
-                    ->label('Default')
+                    ->label(__('filament.payment_gateway.is_default'))
                     ->boolean()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('priority')
+                    ->label(__('filament.payment_gateway.priority'))
                     ->sortable()
                     ->alignCenter(),
 
                 Tables\Columns\IconColumn::make('test_mode')
-                    ->label('Test Mode')
+                    ->label(__('filament.payment_gateway.test_mode'))
                     ->boolean()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('filament.labels.created_at'))
                     ->dateTime('M d, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('driver')
+                    ->label(__('filament.payment_gateway.filter_driver'))
                     ->options([
-                        'stripe' => 'Stripe',
-                        'clicktopay' => 'Click to Pay',
-                        'offline' => 'Offline Payment',
-                        'bank_transfer' => 'Bank Transfer',
-                        'mock' => 'Mock',
+                        'stripe' => __('filament.payment_gateway.driver_stripe'),
+                        'clicktopay' => __('filament.payment_gateway.driver_clicktopay'),
+                        'offline' => __('filament.payment_gateway.driver_offline'),
+                        'bank_transfer' => __('filament.payment_gateway.driver_bank_transfer'),
+                        'mock' => __('filament.payment_gateway.driver_mock'),
                     ]),
 
                 Tables\Filters\TernaryFilter::make('is_enabled')
-                    ->label('Enabled')
-                    ->placeholder('All gateways')
-                    ->trueLabel('Enabled only')
-                    ->falseLabel('Disabled only'),
+                    ->label(__('filament.payment_gateway.filter_enabled'))
+                    ->placeholder(__('filament.payment_gateway.filter_enabled_all'))
+                    ->trueLabel(__('filament.payment_gateway.filter_enabled_only'))
+                    ->falseLabel(__('filament.payment_gateway.filter_disabled_only')),
 
                 Tables\Filters\TernaryFilter::make('test_mode')
-                    ->label('Test Mode')
-                    ->placeholder('All modes')
-                    ->trueLabel('Test mode')
-                    ->falseLabel('Live mode'),
+                    ->label(__('filament.payment_gateway.filter_test_mode'))
+                    ->placeholder(__('filament.payment_gateway.filter_all_modes'))
+                    ->trueLabel(__('filament.payment_gateway.filter_test_only'))
+                    ->falseLabel(__('filament.payment_gateway.filter_live_only')),
             ])
             ->actions([
                 Tables\Actions\Action::make('set_default')
-                    ->label('Set as Default')
+                    ->label(__('filament.payment_gateway.set_default_action'))
                     ->icon('heroicon-o-star')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->modalHeading('Set as Default Gateway')
-                    ->modalDescription(fn (PaymentGateway $record) => "Set {$record->display_name} as the default payment gateway? This will unset any other default gateway.")
+                    ->modalHeading(__('filament.payment_gateway.set_default_heading'))
+                    ->modalDescription(fn (PaymentGateway $record) => __('filament.payment_gateway.set_default_description', ['name' => $record->display_name]))
                     ->action(function (PaymentGateway $record) {
                         $record->setAsDefault();
                     })
                     ->visible(fn (PaymentGateway $record) => ! $record->is_default),
 
                 Tables\Actions\Action::make('test_connection')
-                    ->label('Test')
+                    ->label(__('filament.payment_gateway.test_connection'))
                     ->icon('heroicon-o-bolt')
                     ->color('info')
                     ->requiresConfirmation()
-                    ->modalHeading('Test Gateway Connection')
-                    ->modalDescription('This will attempt to validate the gateway configuration.')
+                    ->modalHeading(__('filament.payment_gateway.test_connection_heading'))
+                    ->modalDescription(__('filament.payment_gateway.test_connection_description'))
                     ->action(function (PaymentGateway $record) {
                         // Placeholder for testing connection
                         // In production, this would call the gateway's test endpoint
                         return true;
                     })
-                    ->successNotificationTitle('Connection test passed')
-                    ->failureNotificationTitle('Connection test failed')
+                    ->successNotificationTitle(__('filament.payment_gateway.connection_passed'))
+                    ->failureNotificationTitle(__('filament.payment_gateway.connection_failed'))
                     ->visible(fn (PaymentGateway $record) => in_array($record->driver, ['stripe', 'clicktopay'], true)),
 
                 Tables\Actions\EditAction::make(),
 
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
-                    ->modalHeading('Delete Payment Gateway')
-                    ->modalDescription('Are you sure you want to delete this payment gateway? This may affect checkout functionality.')
+                    ->modalHeading(__('filament.payment_gateway.delete_heading'))
+                    ->modalDescription(__('filament.payment_gateway.delete_description'))
                     ->before(function (PaymentGateway $record) {
                         if ($record->is_default) {
-                            throw new \Exception('Cannot delete the default gateway. Set another gateway as default first.');
+                            throw new \Exception(__('filament.payment_gateway.cannot_delete_default'));
                         }
                     }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkAction::make('enable')
-                    ->label('Enable Selected')
+                    ->label(__('filament.payment_gateway.enable_selected'))
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
                     ->action(fn ($records) => $records->each->enable()),
 
                 Tables\Actions\BulkAction::make('disable')
-                    ->label('Disable Selected')
+                    ->label(__('filament.payment_gateway.disable_selected'))
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
                     ->action(function ($records) {
                         foreach ($records as $record) {
                             if ($record->is_default) {
-                                throw new \Exception('Cannot disable the default gateway. Set another gateway as default first.');
+                                throw new \Exception(__('filament.payment_gateway.cannot_disable_default'));
                             }
                             $record->disable();
                         }
@@ -324,15 +334,15 @@ class PaymentGatewayResource extends Resource
                         ->before(function ($records) {
                             foreach ($records as $record) {
                                 if ($record->is_default) {
-                                    throw new \Exception('Cannot delete the default gateway. Set another gateway as default first.');
+                                    throw new \Exception(__('filament.payment_gateway.cannot_delete_default'));
                                 }
                             }
                         }),
                 ]),
             ])
             ->defaultSort('priority', 'asc')
-            ->emptyStateHeading('No payment gateways configured')
-            ->emptyStateDescription('Add your first payment gateway to start accepting payments.')
+            ->emptyStateHeading(__('filament.payment_gateway.empty_heading'))
+            ->emptyStateDescription(__('filament.payment_gateway.empty_description'))
             ->emptyStateIcon('heroicon-o-credit-card');
     }
 
