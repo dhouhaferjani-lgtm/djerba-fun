@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PlatformSettingsController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\TravelTipController;
+use App\Http\Controllers\Api\V1\ContactController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\VoucherController;
 use App\Http\Controllers\Api\Vendor\VendorVoucherController;
@@ -98,6 +99,10 @@ Route::prefix('v1')->group(function () {
 
     // Custom trip request routes (public - anyone can submit a request)
     Route::post('/custom-trip-requests', [CustomTripRequestController::class, 'store']);
+
+    // Contact form route (public - rate limited)
+    Route::post('/contact', [ContactController::class, 'store'])
+        ->middleware('throttle:5,1'); // 5 submissions per minute
 
     // Availability routes (public - anyone can view availability)
     Route::get('/listings/{listing:slug}/availability', [AvailabilityController::class, 'index']);
