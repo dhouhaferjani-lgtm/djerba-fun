@@ -22,11 +22,19 @@ class CustomTripRequestResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-paper-airplane';
 
-    protected static ?string $navigationGroup = 'Sales';
-
     protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'reference';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.sales');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.custom_trip_requests');
+    }
 
     public static function getNavigationBadge(): ?string
     {

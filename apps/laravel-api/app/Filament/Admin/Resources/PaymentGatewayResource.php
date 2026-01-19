@@ -11,7 +11,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class PaymentGatewayResource extends Resource
 {
@@ -19,11 +18,17 @@ class PaymentGatewayResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
 
-    protected static ?string $navigationGroup = 'Settings';
-
     protected static ?int $navigationSort = 5;
 
-    protected static ?string $navigationLabel = 'Payment Gateways';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.settings');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.payment_gateways');
+    }
 
     public static function form(Form $form): Form
     {

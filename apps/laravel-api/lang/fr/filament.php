@@ -15,6 +15,7 @@ return [
         'marketing' => 'Marketing',
         'system' => 'Système',
         'compliance' => 'Conformité',
+        'settings' => 'Paramètres',
         // Vendor Panel
         'my_listings' => 'Mes Annonces',
         'bookings' => 'Réservations',

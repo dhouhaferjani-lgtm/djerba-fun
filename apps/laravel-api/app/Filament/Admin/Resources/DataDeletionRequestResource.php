@@ -16,11 +16,17 @@ class DataDeletionRequestResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Compliance';
-
-    protected static ?string $navigationLabel = 'Deletion Requests';
-
     protected static ?int $navigationSort = 2;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.compliance');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.data_deletion_requests');
+    }
 
     public static function form(Form $form): Form
     {

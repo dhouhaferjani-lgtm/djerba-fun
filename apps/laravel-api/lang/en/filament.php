@@ -15,6 +15,7 @@ return [
         'marketing' => 'Marketing',
         'system' => 'System',
         'compliance' => 'Compliance',
+        'settings' => 'Settings',
         // Vendor Panel
         'my_listings' => 'My Listings',
         'bookings' => 'Bookings',

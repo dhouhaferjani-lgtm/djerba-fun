@@ -16,9 +16,17 @@ class TravelTipResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Content';
-
     protected static ?int $navigationSort = 50;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.content');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.travel_tips');
+    }
 
     public static function form(Form $form): Form
     {

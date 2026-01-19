@@ -50,9 +50,17 @@ class PageResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Content';
-
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.content');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.pages');
+    }
 
     protected static ?string $recordRouteKeyName = 'id';
 

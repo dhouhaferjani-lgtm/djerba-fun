@@ -16,11 +16,17 @@ class PartnerResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationLabel = 'API Partners';
-
-    protected static ?string $navigationGroup = 'System';
-
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.system');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.partners');
+    }
 
     public static function form(Form $form): Form
     {
