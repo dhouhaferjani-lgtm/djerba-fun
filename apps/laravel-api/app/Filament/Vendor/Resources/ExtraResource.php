@@ -22,7 +22,7 @@ class ExtraResource extends Resource
 
     protected static ?string $model = Extra::class;
 
-    protected static ?string $navigationIcon = null;
+    protected static ?string $navigationIcon = 'heroicon-o-puzzle-piece';
 
     protected static ?int $navigationSort = 3;
 
