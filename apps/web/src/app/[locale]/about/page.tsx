@@ -149,21 +149,21 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             {commitments.map((commitment, index) => (
               <div
                 key={index}
-                className="relative overflow-hidden rounded-lg shadow-sm hover:shadow-lg transition-shadow group"
+                className="bg-primary rounded-lg shadow-sm hover:shadow-lg transition-shadow overflow-hidden"
               >
-                <div className="relative h-48">
-                  <Image
-                    src={commitment.image}
-                    alt={commitment.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                  <div className="absolute bottom-4 left-4 text-white">{commitment.icon}</div>
-                </div>
-                <div className="bg-white p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{commitment.title}</h3>
-                  <p className="text-gray-600">{commitment.description}</p>
+                <div className="p-6 flex items-start gap-4">
+                  <div className="flex-shrink-0 w-20 h-20 relative">
+                    <Image
+                      src={commitment.image}
+                      alt={commitment.title}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <div className="flex-1 text-white">
+                    <h3 className="text-xl font-semibold mb-2">{commitment.title}</h3>
+                    <p className="text-white/80 text-sm">{commitment.description}</p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -220,7 +220,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             {partners.map((partner, index) => (
               <div
                 key={index}
-                className="relative w-24 h-24 md:w-32 md:h-32 grayscale hover:grayscale-0 transition-all duration-300"
+                className="relative w-24 h-24 md:w-32 md:h-32 hover:scale-110 transition-transform duration-300"
               >
                 <Image src={partner} alt={`Partner ${index + 1}`} fill className="object-contain" />
               </div>
