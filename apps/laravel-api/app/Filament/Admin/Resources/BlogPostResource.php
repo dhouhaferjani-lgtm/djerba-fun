@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Mohamedsabil83\FilamentFormsTinyeditor\Components\TinyEditor;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 
@@ -84,28 +85,12 @@ class BlogPostResource extends Resource
                             ->helperText(__('filament.helpers.excerpt_auto_generated'))
                             ->columnSpanFull(),
 
-                        Forms\Components\RichEditor::make('content')
+                        TinyEditor::make('content')
                             ->label(__('filament.labels.content'))
                             ->required()
                             ->fileAttachmentsDisk('public')
                             ->fileAttachmentsDirectory('blog-attachments')
-                            ->fileAttachmentsVisibility('public')
-                            ->toolbarButtons([
-                                'attachFiles',
-                                'blockquote',
-                                'bold',
-                                'bulletList',
-                                'codeBlock',
-                                'h2',
-                                'h3',
-                                'italic',
-                                'link',
-                                'orderedList',
-                                'redo',
-                                'strike',
-                                'underline',
-                                'undo',
-                            ])
+                            ->profile('default')
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
