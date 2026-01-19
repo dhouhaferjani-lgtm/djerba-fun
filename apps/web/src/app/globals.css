@@ -391,3 +391,19 @@ i {
   box-shadow: 0 0 30px 8px rgba(13, 100, 46, 0.6) !important;
   transform: scale(0.98);
 }
+
+/* Hide RichEditor's default file metadata captions (filename + size) */
+.prose figure figcaption {
+  display: none;
+}
+
+/* Ensure images in prose content are responsive */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+.prose figure {
+  margin: 1.5rem 0;
+}

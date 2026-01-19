@@ -4,6 +4,7 @@ import { getBlogPost, getRelatedBlogPosts } from '@/lib/api/blog';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { SanitizedHtml } from '@/components/atoms/SanitizedHtml';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
 
 interface PageProps {
@@ -67,6 +68,23 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
           </div>
         </div>
       </div>
+
+      {/* Featured Image */}
+      {post.featuredImage && (
+        <div className="container mx-auto px-4 -mt-10 relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative w-full h-[400px] md:h-[500px] rounded-lg overflow-hidden shadow-xl">
+              <Image
+                src={post.featuredImage}
+                alt={post.title}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Article Content */}
       <div className="container mx-auto px-4 py-16">
