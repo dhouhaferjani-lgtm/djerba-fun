@@ -1,32 +1,12 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
-export type HeaderStyle = 'image' | 'gallery' | 'none';
-
-export type TakeawayIcon =
-  | 'check'
-  | 'star'
-  | 'arrow'
-  | 'bulb'
-  | 'heart'
-  | 'map'
-  | 'clock'
-  | 'money';
-
-export interface KeyTakeaway {
-  text: string;
-  icon: TakeawayIcon;
-}
-
 export interface BlogPost {
   id: number;
   title: string;
   slug: string;
   excerpt: string;
   content: string;
-  headerStyle: HeaderStyle;
   featuredImage: string | null;
-  galleryImages: string[];
-  keyTakeaways: KeyTakeaway[];
   tags: string[];
   readTimeMinutes: number;
   viewsCount: number;

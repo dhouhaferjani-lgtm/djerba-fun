@@ -61,7 +61,6 @@ return [
         'content' => 'Content',
         'metadata' => 'Metadata',
         'media' => 'Media',
-        'key_takeaways' => 'Key Takeaways',
         'publishing' => 'Publishing',
         'seo' => 'SEO',
         'basic_information' => 'Basic Information',
@@ -118,12 +117,7 @@ return [
         'author' => 'Author',
         'category' => 'Category',
         'tags' => 'Tags',
-        'header_style' => 'Header Style',
         'featured_image' => 'Featured Image',
-        'gallery_images' => 'Gallery Images',
-        'key_takeaways' => 'Key Takeaways',
-        'takeaway_text' => 'Takeaway Text',
-        'takeaway_icon' => 'Icon',
         'publish_date' => 'Publish Date',
         'feature_on_homepage' => 'Feature on Homepage',
         'seo_title' => 'SEO Title',
@@ -249,11 +243,6 @@ return [
         'failed' => 'Failed',
         'rejected' => 'Rejected',
 
-        // Header Style
-        'single_image' => 'Single Image',
-        'image_gallery' => 'Image Gallery',
-        'no_header_image' => 'No Header Image',
-
         // Discount Type
         'percentage' => 'Percentage',
         'fixed_amount' => 'Fixed Amount',
@@ -314,9 +303,6 @@ return [
         'seo_title_max' => 'Max 60 characters (defaults to post title)',
         'seo_description_max' => 'Max 160 characters (defaults to excerpt)',
         'add_tags' => 'Add tags',
-        'header_style_hint' => 'Choose how the header image(s) will be displayed',
-        'gallery_upload_hint' => 'Upload up to 12 images for the gallery. Drag to reorder.',
-        'key_takeaways_hint' => 'Add up to 8 key points that summarize the article',
         'minimum_order_helper' => 'Minimum order amount required to use this coupon',
         'maximum_discount_helper' => 'Maximum discount amount (for percentage discounts)',
         'usage_limit_helper' => 'Leave empty for unlimited uses',
@@ -886,22 +872,6 @@ return [
         // Helpers
         'active_helper' => 'Only active tips will be shown on the website',
         'display_order_helper' => 'Lower numbers appear first',
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Icon Labels (for Key Takeaways)
-    |--------------------------------------------------------------------------
-    */
-    'icons' => [
-        'check' => 'Checkmark',
-        'star' => 'Star',
-        'arrow' => 'Arrow',
-        'bulb' => 'Lightbulb',
-        'heart' => 'Heart',
-        'map' => 'Location',
-        'clock' => 'Clock',
-        'money' => 'Money',
     ],
 
     /*

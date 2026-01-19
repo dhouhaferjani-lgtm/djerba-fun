@@ -31,11 +31,8 @@ class BlogPostFactory extends Factory
             'title' => $title,
             'slug' => Str::slug($title),
             'excerpt' => fake()->paragraph(2),
-            'key_takeaways' => null,
             'content' => fake()->paragraphs(5, true),
             'featured_image' => null,
-            'header_style' => 'image',
-            'gallery_images' => null,
             'tags' => fake()->words(3),
             'seo_title' => $title,
             'seo_description' => fake()->sentence(),
@@ -107,54 +104,6 @@ class BlogPostFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'blog_category_id' => $category->id,
-        ]);
-    }
-
-    /**
-     * Indicate that the post uses gallery header style.
-     */
-    public function withGallery(int $imageCount = 4): static
-    {
-        $images = [];
-        for ($i = 1; $i <= $imageCount; $i++) {
-            $images[] = "blog-galleries/image{$i}.jpg";
-        }
-
-        return $this->state(fn (array $attributes) => [
-            'header_style' => 'gallery',
-            'gallery_images' => $images,
-        ]);
-    }
-
-    /**
-     * Indicate that the post has key takeaways.
-     */
-    public function withTakeaways(int $count = 3): static
-    {
-        $icons = ['check', 'star', 'bulb', 'heart', 'map', 'clock', 'money', 'arrow'];
-        $takeaways = [];
-
-        for ($i = 0; $i < $count; $i++) {
-            $takeaways[] = [
-                'text' => fake()->sentence(),
-                'icon' => $icons[array_rand($icons)],
-            ];
-        }
-
-        return $this->state(fn (array $attributes) => [
-            'key_takeaways' => $takeaways,
-        ]);
-    }
-
-    /**
-     * Indicate that the post has no header image.
-     */
-    public function withoutHeader(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'header_style' => 'none',
-            'featured_image' => null,
-            'gallery_images' => null,
         ]);
     }
 }

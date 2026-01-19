@@ -1,10 +1,8 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
 import { getBlogPost, getRelatedBlogPosts } from '@/lib/api/blog';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { SanitizedHtml } from '@/components/atoms/SanitizedHtml';
-import { BlogImageGallery, KeyTakeaways } from '@/components/blog';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
@@ -70,39 +68,9 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
         </div>
       </div>
 
-      {/* Header Image/Gallery */}
-      {post.headerStyle === 'image' && post.featuredImage && (
-        <div className="container mx-auto px-4 -mt-10">
-          <div className="max-w-4xl mx-auto">
-            <div className="relative aspect-[16/9] rounded-xl overflow-hidden shadow-2xl">
-              <Image
-                src={post.featuredImage}
-                alt={post.title}
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {post.headerStyle === 'gallery' && post.galleryImages.length > 0 && (
-        <div className="container mx-auto px-4 -mt-10">
-          <div className="max-w-5xl mx-auto">
-            <BlogImageGallery images={post.galleryImages} title={post.title} />
-          </div>
-        </div>
-      )}
-
       {/* Article Content */}
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto">
-          {/* Key Takeaways */}
-          {post.keyTakeaways && post.keyTakeaways.length > 0 && (
-            <KeyTakeaways takeaways={post.keyTakeaways} className="mb-12" />
-          )}
-
           {/* Main Content - Sanitized to prevent XSS */}
           <SanitizedHtml html={post.content} className="prose prose-lg max-w-none" />
 

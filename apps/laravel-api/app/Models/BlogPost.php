@@ -25,7 +25,6 @@ class BlogPost extends Model
         'content',
         'seo_title',
         'seo_description',
-        'key_takeaways',
     ];
 
     protected $fillable = [
@@ -34,11 +33,8 @@ class BlogPost extends Model
         'title',
         'slug',
         'excerpt',
-        'key_takeaways',
         'content',
         'featured_image',
-        'header_style',
-        'gallery_images',
         'tags',
         'seo_title',
         'seo_description',
@@ -51,8 +47,6 @@ class BlogPost extends Model
 
     protected $casts = [
         'tags' => 'array',
-        'gallery_images' => 'array',
-        'key_takeaways' => 'array',
         'is_featured' => 'boolean',
         'published_at' => 'datetime',
         'created_at' => 'datetime',
@@ -185,19 +179,5 @@ class BlogPost extends Model
         }
 
         return Storage::disk('public')->url($this->featured_image);
-    }
-
-    /**
-     * Get the full URLs for gallery images.
-     */
-    public function getGalleryImageUrlsAttribute(): array
-    {
-        if (empty($this->gallery_images)) {
-            return [];
-        }
-
-        return collect($this->gallery_images)
-            ->map(fn ($path) => Storage::disk('public')->url($path))
-            ->toArray();
     }
 }
