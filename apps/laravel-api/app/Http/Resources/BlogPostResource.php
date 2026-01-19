@@ -19,7 +19,7 @@ class BlogPostResource extends BaseResource
             'slug' => $this->slug,
             'excerpt' => $this->excerpt,
             'content' => $this->content,
-            'featuredImage' => $this->featured_image,
+            'featuredImage' => $this->featured_image_url,
             'tags' => $this->tags ?? [],
             'readTimeMinutes' => $this->read_time_minutes,
             'viewsCount' => $this->views_count,

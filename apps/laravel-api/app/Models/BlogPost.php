@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 
@@ -166,5 +167,17 @@ class BlogPost extends Model
         return $this->status === 'published'
             && $this->published_at !== null
             && $this->published_at->isPast();
+    }
+
+    /**
+     * Get the full URL for the featured image.
+     */
+    public function getFeaturedImageUrlAttribute(): ?string
+    {
+        if (! $this->featured_image) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->featured_image);
     }
 }

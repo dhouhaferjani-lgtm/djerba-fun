@@ -51,40 +51,19 @@ class BlogPostResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->live(debounce: 500)
-                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state, $record) {
-                                // Don't auto-update slug for existing posts (preserve SEO)
-                                if ($record !== null && $record->exists && $record->slug) {
-                                    return;
-                                }
-
+                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?string $state) {
+                                // Only auto-generate slug when it's empty (new posts)
                                 $currentSlug = $get('slug');
-                                $newSlug = Str::slug($state ?? '');
-                                $autoSlug = $get('_auto_slug');
-
-                                // If slug is empty, or matches the auto-generated slug, update it
-                                if (empty($currentSlug) || $currentSlug === $autoSlug) {
-                                    $set('slug', $newSlug);
-                                    $set('_auto_slug', $newSlug);
+                                if (empty($currentSlug)) {
+                                    $set('slug', Str::slug($state ?? ''));
                                 }
                             }),
-
-                        Forms\Components\Hidden::make('_auto_slug')
-                            ->dehydrated(false),
 
                         Forms\Components\TextInput::make('slug')
                             ->label(__('filament.labels.slug'))
                             ->required()
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state) {
-                                // When user manually edits slug, clear the auto_slug tracker
-                                $autoSlug = $get('_auto_slug');
-
-                                if ($state !== $autoSlug) {
-                                    $set('_auto_slug', null);
-                                }
-                            })
                             ->helperText(__('filament.helpers.slug_auto_generated')),
 
                         Forms\Components\Textarea::make('excerpt')
