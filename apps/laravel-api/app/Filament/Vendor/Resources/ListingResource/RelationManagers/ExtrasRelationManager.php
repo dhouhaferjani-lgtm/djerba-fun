@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Vendor\Resources\ListingResource\RelationManagers;
 
+use App\Enums\ExtraCategory;
 use App\Models\Extra;
+use App\Models\ExtraTemplate;
 use App\Models\ListingExtra;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -139,12 +143,12 @@ class ExtrasRelationManager extends RelationManager
                     ),
             ])
             ->headerActions([
-                // Custom action that creates pivot record with UUID directly
-                // instead of using attach() which bypasses the model's HasUuids trait
+                // Action to add existing vendor extras to this listing
                 Tables\Actions\Action::make('attach')
-                    ->label('Add Extra')
+                    ->label('Add Existing Extra')
                     ->icon('heroicon-o-plus')
-                    ->modalHeading('Add Extra')
+                    ->modalHeading('Add Extra from Your Library')
+                    ->visible(fn () => Extra::where('vendor_id', auth()->id())->where('is_active', true)->exists())
                     ->form([
                         Forms\Components\Select::make('extra_id')
                             ->label('Extra')
@@ -210,6 +214,109 @@ class ExtrasRelationManager extends RelationManager
                             'is_active' => $data['is_active'] ?? true,
                         ]);
                     }),
+
+                // Action to create a new extra from a template and attach it
+                Tables\Actions\Action::make('createFromTemplate')
+                    ->label('Create from Template')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('success')
+                    ->modalHeading('Create Extra from Template')
+                    ->modalDescription('Select a template to create a new extra and add it to this listing.')
+                    ->form([
+                        Forms\Components\Select::make('category')
+                            ->label('Category')
+                            ->options(ExtraCategory::class)
+                            ->placeholder('All categories')
+                            ->live()
+                            ->afterStateUpdated(fn (Forms\Set $set) => $set('template_id', null)),
+
+                        Forms\Components\Select::make('template_id')
+                            ->label('Template')
+                            ->options(function (Get $get) {
+                                $query = ExtraTemplate::active()->ordered();
+
+                                if ($category = $get('category')) {
+                                    $query->where('category', $category);
+                                }
+
+                                return $query->get()->mapWithKeys(fn (ExtraTemplate $template) => [
+                                    $template->id => $template->getTranslation('name', app()->getLocale()) .
+                                        ' - ' . ($template->category?->label() ?? 'Other') .
+                                        ' (' . number_format($template->suggested_price_tnd, 2) . ' TND)',
+                                ]);
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->helperText('The template will be cloned to your extras library and attached to this listing.'),
+
+                        Forms\Components\Section::make('Customize Pricing (Optional)')
+                            ->description('Override the template\'s suggested prices for this listing.')
+                            ->schema([
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('override_price_tnd')
+                                            ->label('Price (TND)')
+                                            ->numeric()
+                                            ->prefix('TND')
+                                            ->step(0.01)
+                                            ->helperText('Leave empty to use template price'),
+
+                                        Forms\Components\TextInput::make('override_price_eur')
+                                            ->label('Price (EUR)')
+                                            ->numeric()
+                                            ->prefix('EUR')
+                                            ->step(0.01)
+                                            ->helperText('Leave empty to use template price'),
+                                    ]),
+                            ])
+                            ->collapsible()
+                            ->collapsed(),
+                    ])
+                    ->action(function (array $data, RelationManager $livewire): void {
+                        $template = ExtraTemplate::find($data['template_id']);
+
+                        if (! $template) {
+                            Notification::make()
+                                ->title('Template not found')
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
+                        // Clone template to vendor's extras
+                        $extra = $template->cloneForVendor(auth()->id());
+
+                        // If custom prices provided, update the extra
+                        if (! empty($data['override_price_tnd'])) {
+                            $extra->base_price_tnd = $data['override_price_tnd'];
+                        }
+
+                        if (! empty($data['override_price_eur'])) {
+                            $extra->base_price_eur = $data['override_price_eur'];
+                        }
+
+                        // Activate the extra so it's ready to use
+                        $extra->is_active = true;
+                        $extra->save();
+
+                        // Attach to listing
+                        ListingExtra::create([
+                            'id' => (string) Str::uuid(),
+                            'listing_id' => $livewire->getOwnerRecord()->id,
+                            'extra_id' => $extra->id,
+                            'display_order' => 0,
+                            'is_featured' => false,
+                            'is_active' => true,
+                        ]);
+
+                        Notification::make()
+                            ->title('Extra created and added')
+                            ->body("'{$extra->getTranslation('name', 'en')}' has been created and added to this listing.")
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
@@ -246,15 +353,85 @@ class ExtrasRelationManager extends RelationManager
                 ]),
             ])
             ->emptyStateHeading('No extras attached')
-            ->emptyStateDescription('Add extras like equipment, meals, or insurance to this listing.')
+            ->emptyStateDescription('Add extras like equipment, meals, or insurance to enhance your listing.')
             ->emptyStateIcon('heroicon-o-puzzle-piece')
             ->emptyStateActions([
-                // Custom action that creates pivot record with UUID directly
-                // instead of using attach() which bypasses the model's HasUuids trait
+                // Primary action: Create from Template (most common use case)
+                Tables\Actions\Action::make('createFromTemplateEmpty')
+                    ->label('Create from Template')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('success')
+                    ->modalHeading('Create Extra from Template')
+                    ->modalDescription('Select a template to create a new extra and add it to this listing.')
+                    ->form([
+                        Forms\Components\Select::make('category')
+                            ->label('Category')
+                            ->options(ExtraCategory::class)
+                            ->placeholder('All categories')
+                            ->live()
+                            ->afterStateUpdated(fn (Forms\Set $set) => $set('template_id', null)),
+
+                        Forms\Components\Select::make('template_id')
+                            ->label('Template')
+                            ->options(function (Get $get) {
+                                $query = ExtraTemplate::active()->ordered();
+
+                                if ($category = $get('category')) {
+                                    $query->where('category', $category);
+                                }
+
+                                return $query->get()->mapWithKeys(fn (ExtraTemplate $template) => [
+                                    $template->id => $template->getTranslation('name', app()->getLocale()) .
+                                        ' - ' . ($template->category?->label() ?? 'Other') .
+                                        ' (' . number_format($template->suggested_price_tnd, 2) . ' TND)',
+                                ]);
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->helperText('Choose from common extras like breakfast, transport, equipment, etc.'),
+                    ])
+                    ->action(function (array $data, RelationManager $livewire): void {
+                        $template = ExtraTemplate::find($data['template_id']);
+
+                        if (! $template) {
+                            Notification::make()
+                                ->title('Template not found')
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
+                        // Clone template to vendor's extras
+                        $extra = $template->cloneForVendor(auth()->id());
+                        $extra->is_active = true;
+                        $extra->save();
+
+                        // Attach to listing
+                        ListingExtra::create([
+                            'id' => (string) Str::uuid(),
+                            'listing_id' => $livewire->getOwnerRecord()->id,
+                            'extra_id' => $extra->id,
+                            'display_order' => 0,
+                            'is_featured' => false,
+                            'is_active' => true,
+                        ]);
+
+                        Notification::make()
+                            ->title('Extra created and added')
+                            ->body("'{$extra->getTranslation('name', 'en')}' has been added to this listing.")
+                            ->success()
+                            ->send();
+                    }),
+
+                // Secondary action: Add existing extra (only visible if vendor has extras)
                 Tables\Actions\Action::make('attachFirst')
-                    ->label('Add your first extra')
+                    ->label('Add Existing Extra')
                     ->icon('heroicon-o-plus')
-                    ->modalHeading('Add Extra')
+                    ->color('gray')
+                    ->visible(fn () => Extra::where('vendor_id', auth()->id())->where('is_active', true)->exists())
+                    ->modalHeading('Add Extra from Your Library')
                     ->form([
                         Forms\Components\Select::make('extra_id')
                             ->label('Extra')
@@ -276,7 +453,6 @@ class ExtrasRelationManager extends RelationManager
                             ->default(true),
                     ])
                     ->action(function (array $data, RelationManager $livewire): void {
-                        // Create pivot record directly with UUID
                         ListingExtra::create([
                             'id' => (string) Str::uuid(),
                             'listing_id' => $livewire->getOwnerRecord()->id,
@@ -285,6 +461,11 @@ class ExtrasRelationManager extends RelationManager
                             'is_featured' => false,
                             'is_active' => $data['is_active'] ?? true,
                         ]);
+
+                        Notification::make()
+                            ->title('Extra added')
+                            ->success()
+                            ->send();
                     }),
             ]);
     }
