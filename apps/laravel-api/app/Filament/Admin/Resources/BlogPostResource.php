@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources;
 
+use App\Enums\UserRole;
 use App\Filament\Admin\Resources\BlogPostResource\Pages;
 use App\Models\BlogPost;
 use Filament\Forms;
@@ -43,17 +44,41 @@ class BlogPostResource extends Resource
                             ->label('Title')
                             ->required()
                             ->maxLength(255)
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(
-                                fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null
-                            ),
+                            ->live(debounce: 500)
+                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state, $record) {
+                                // Don't auto-update slug for existing posts (preserve SEO)
+                                if ($record !== null && $record->exists && $record->slug) {
+                                    return;
+                                }
+
+                                $currentSlug = $get('slug');
+                                $newSlug = Str::slug($state ?? '');
+                                $autoSlug = $get('_auto_slug');
+
+                                // If slug is empty, or matches the auto-generated slug, update it
+                                if (empty($currentSlug) || $currentSlug === $autoSlug) {
+                                    $set('slug', $newSlug);
+                                    $set('_auto_slug', $newSlug);
+                                }
+                            }),
+
+                        Forms\Components\Hidden::make('_auto_slug')
+                            ->dehydrated(false),
 
                         Forms\Components\TextInput::make('slug')
                             ->label('Slug')
                             ->required()
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
-                            ->helperText('URL-friendly version of the title'),
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state) {
+                                // When user manually edits slug, clear the auto_slug tracker
+                                $autoSlug = $get('_auto_slug');
+                                if ($state !== $autoSlug) {
+                                    $set('_auto_slug', null);
+                                }
+                            })
+                            ->helperText('Auto-generated from title. Edit to customize.'),
 
                         Forms\Components\Textarea::make('excerpt')
                             ->label('Excerpt')
@@ -69,6 +94,8 @@ class BlogPostResource extends Resource
                             ->fileAttachmentsDirectory('blog-attachments')
                             ->fileAttachmentsVisibility('public')
                             ->toolbarButtons([
+                                'attachFiles',
+                                'blockquote',
                                 'bold',
                                 'bulletList',
                                 'codeBlock',
@@ -90,7 +117,14 @@ class BlogPostResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('author_id')
                             ->label('Author')
-                            ->relationship('author', 'display_name')
+                            ->relationship(
+                                'author',
+                                'display_name',
+                                fn (Builder $query) => $query->whereIn('role', [
+                                    UserRole::ADMIN->value,
+                                    UserRole::VENDOR->value,
+                                ])
+                            )
                             ->searchable()
                             ->preload()
                             ->required()
@@ -139,7 +173,13 @@ class BlogPostResource extends Resource
                             ])
                             ->required()
                             ->default('draft')
-                            ->live(),
+                            ->live()
+                            ->afterStateUpdated(function (string $state, Forms\Set $set, Forms\Get $get) {
+                                // Auto-fill published_at when status becomes 'published' and field is empty
+                                if ($state === 'published' && empty($get('published_at'))) {
+                                    $set('published_at', now());
+                                }
+                            }),
 
                         Forms\Components\DateTimePicker::make('published_at')
                             ->label('Publish Date')

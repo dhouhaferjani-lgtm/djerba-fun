@@ -17,8 +17,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Add default UUID generator for PostgreSQL
-        DB::statement("ALTER TABLE listing_extras ALTER COLUMN id SET DEFAULT gen_random_uuid()");
+        // Only apply for PostgreSQL - SQLite doesn't support ALTER COLUMN DEFAULT
+        // and doesn't need it since UUIDs are generated in the model
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE listing_extras ALTER COLUMN id SET DEFAULT gen_random_uuid()");
+        }
     }
 
     /**
@@ -26,6 +29,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE listing_extras ALTER COLUMN id DROP DEFAULT");
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE listing_extras ALTER COLUMN id DROP DEFAULT");
+        }
     }
 };

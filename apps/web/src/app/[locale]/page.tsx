@@ -47,7 +47,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       )}
 
       {/* Always show Blog section */}
-      <BlogSection />
+      <BlogSection locale={locale} />
     </MainLayout>
   );
 }

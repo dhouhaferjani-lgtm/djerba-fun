@@ -1,55 +1,28 @@
-'use client';
-
-/* eslint-disable @typescript-eslint/no-explicit-any -- typed routes for blog pages not yet defined */
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useLocale } from 'next-intl';
+import { getFeaturedBlogPosts, BlogPost } from '@/lib/api/blog';
 
-interface BlogPostKey {
-  id: string;
-  slug: string;
-  titleKey: string;
-  excerptKey: string;
-  image: string;
-  dateKey: string;
-  categoryKey: string;
+interface BlogSectionProps {
+  locale: string;
 }
 
-// Blog posts use translation keys for dynamic content
-const blogPostKeys = [
-  {
-    id: '1',
-    slug: 'top-10-hidden-gems-tunisia',
-    titleKey: 'blog_post_1_title',
-    excerptKey: 'blog_post_1_excerpt',
-    image: 'https://images.unsplash.com/photo-1590059390047-f5e617690a0b?w=600',
-    dateKey: 'blog_post_1_date',
-    categoryKey: 'blog_post_1_category',
-  },
-  {
-    id: '2',
-    slug: 'sustainable-travel-tunisia',
-    titleKey: 'blog_post_2_title',
-    excerptKey: 'blog_post_2_excerpt',
-    image: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=600',
-    dateKey: 'blog_post_2_date',
-    categoryKey: 'blog_post_2_category',
-  },
-  {
-    id: '3',
-    slug: 'tunisian-cuisine-guide',
-    titleKey: 'blog_post_3_title',
-    excerptKey: 'blog_post_3_excerpt',
-    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600',
-    dateKey: 'blog_post_3_date',
-    categoryKey: 'blog_post_3_category',
-  },
-];
+export async function BlogSection({ locale }: BlogSectionProps) {
+  const t = await getTranslations('home');
 
-export function BlogSection() {
-  const t = useTranslations('home');
-  const locale = useLocale();
+  // Fetch featured blog posts from API
+  let posts: BlogPost[] = [];
+  try {
+    const response = await getFeaturedBlogPosts(3, locale);
+    posts = response.data || [];
+  } catch (error) {
+    console.error('Failed to fetch blog posts:', error);
+  }
+
+  // Don't render section if no posts
+  if (posts.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-20 bg-neutral-light">
@@ -62,7 +35,7 @@ export function BlogSection() {
             <p className="text-lg text-neutral-dark max-w-2xl">{t('blog_subtitle')}</p>
           </div>
           <Link
-            href={`/${locale}/blog` as any}
+            href={`/${locale}/blog`}
             className="hidden md:flex items-center gap-2 text-primary font-semibold hover:underline"
           >
             {t('blog_view_all')}
@@ -78,43 +51,49 @@ export function BlogSection() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {blogPostKeys.map((post) => (
+          {posts.map((post) => (
             <article
               key={post.id}
               className="green-click-shadow bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
             >
-              <Link href={`/${locale}/blog/${post.slug}` as any}>
-                {/* Image Top - h-48 */}
+              <Link href={`/${locale}/blog/${post.slug}`}>
                 <div className="relative h-48 overflow-hidden">
-                  <Image
-                    src={post.image}
-                    alt={t(post.titleKey)}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-110"
-                  />
+                  {post.featuredImage ? (
+                    <Image
+                      src={post.featuredImage}
+                      alt={post.title}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-neutral-200 flex items-center justify-center">
+                      <span className="text-neutral-400">No image</span>
+                    </div>
+                  )}
                 </div>
               </Link>
 
-              {/* Content */}
               <div className="p-6">
-                {/* Category Kicker */}
-                <div className="text-xs font-bold text-secondary uppercase tracking-wide mb-2">
-                  {t(post.categoryKey)}
-                </div>
+                {post.category && (
+                  <div
+                    className="text-xs font-bold uppercase tracking-wide mb-2"
+                    style={{ color: post.category.color }}
+                  >
+                    {post.category.name}
+                  </div>
+                )}
 
-                {/* Title */}
-                <Link href={`/${locale}/blog/${post.slug}` as any}>
+                <Link href={`/${locale}/blog/${post.slug}`}>
                   <h3 className="font-bold text-xl text-neutral-900 mb-3 group-hover:text-primary transition-colors line-clamp-2">
-                    {t(post.titleKey)}
+                    {post.title}
                   </h3>
                 </Link>
 
-                {/* Link */}
                 <Link
-                  href={`/${locale}/blog/${post.slug}` as any}
+                  href={`/${locale}/blog/${post.slug}`}
                   className="inline-flex items-center gap-2 text-primary font-semibold text-sm hover:underline"
                 >
-                  {t('blog_read_more')} →
+                  {t('blog_read_more')} &rarr;
                 </Link>
               </div>
             </article>
