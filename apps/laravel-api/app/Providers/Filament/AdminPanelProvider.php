@@ -34,21 +34,29 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => '#0D642E', // Dark forest green from design system
             ])
             ->navigationGroups([
-                NavigationGroup::make('Sales'),
-                NavigationGroup::make('Operations')
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.sales')),
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.operations'))
                     ->icon('heroicon-o-clipboard-document-list'),
-                NavigationGroup::make('People')
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.people'))
                     ->icon('heroicon-o-user-group'),
-                NavigationGroup::make('Catalog')
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.catalog'))
                     ->icon('heroicon-o-squares-2x2'),
-                NavigationGroup::make('Content')
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.content'))
                     ->icon('heroicon-o-document-text'),
-                NavigationGroup::make('Marketing')
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.marketing'))
                     ->icon('heroicon-o-megaphone'),
-                NavigationGroup::make('System')
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.system'))
                     ->icon('heroicon-o-cog-6-tooth')
                     ->collapsed(),
-                NavigationGroup::make('Compliance')
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.compliance'))
                     ->icon('heroicon-o-shield-check')
                     ->collapsed(),
             ])

@@ -16,15 +16,7 @@ enum BookingStatus: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::PENDING_PAYMENT => 'Pending Payment',
-            self::CONFIRMED => 'Confirmed',
-            self::CANCELLED => 'Cancelled',
-            self::REFUND_REQUESTED => 'Refund Requested',
-            self::REFUNDED => 'Refunded',
-            self::COMPLETED => 'Completed',
-            self::NO_SHOW => 'No Show',
-        };
+        return __('enums.booking_status.'.$this->value);
     }
 
     public function color(): string

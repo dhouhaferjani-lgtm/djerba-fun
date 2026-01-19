@@ -17,16 +17,7 @@ enum ExtraCategory: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::EQUIPMENT => 'Equipment',
-            self::MEAL => 'Meals & Refreshments',
-            self::INSURANCE => 'Insurance & Protection',
-            self::UPGRADE => 'Upgrades',
-            self::MERCHANDISE => 'Merchandise',
-            self::TRANSPORT => 'Transportation',
-            self::ACCESSIBILITY => 'Accessibility',
-            self::OTHER => 'Other',
-        };
+        return __('enums.extra_category.'.$this->value);
     }
 
     public function icon(): string

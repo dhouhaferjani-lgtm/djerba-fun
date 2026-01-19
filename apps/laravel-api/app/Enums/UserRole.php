@@ -10,16 +10,11 @@ enum UserRole: string
     case AGENT = 'agent';
 
     /**
-     * Get human-readable label
+     * Get human-readable label (translated)
      */
     public function label(): string
     {
-        return match ($this) {
-            self::TRAVELER => 'Traveler',
-            self::VENDOR => 'Vendor',
-            self::ADMIN => 'Admin',
-            self::AGENT => 'Agent',
-        };
+        return __('enums.user_role.'.$this->value);
     }
 
     /**

@@ -31,14 +31,21 @@ class VendorPanelProvider extends PanelProvider
                 'primary' => '#0D642E', // Dark forest green from design system
             ])
             ->navigationGroups([
-                NavigationGroup::make('My Listings')
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.my_listings'))
                     ->icon('heroicon-o-map'),
-                NavigationGroup::make('Bookings')
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.bookings'))
                     ->icon('heroicon-o-calendar'),
-                NavigationGroup::make('Feedback')
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.feedback'))
                     ->icon('heroicon-o-star'),
-                NavigationGroup::make('Finance')
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.finance'))
                     ->icon('heroicon-o-banknotes'),
+                NavigationGroup::make()
+                    ->label(__('filament-panels.navigation.groups.catalog'))
+                    ->icon('heroicon-o-squares-2x2'),
             ])
             ->discoverResources(in: app_path('Filament/Vendor/Resources'), for: 'App\\Filament\\Vendor\\Resources')
             ->discoverPages(in: app_path('Filament/Vendor/Pages'), for: 'App\\Filament\\Vendor\\Pages')

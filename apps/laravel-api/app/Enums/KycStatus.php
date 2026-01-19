@@ -10,16 +10,11 @@ enum KycStatus: string
     case REJECTED = 'rejected';
 
     /**
-     * Get human-readable label
+     * Get human-readable label (translated)
      */
     public function label(): string
     {
-        return match ($this) {
-            self::PENDING => 'Pending',
-            self::SUBMITTED => 'Submitted',
-            self::VERIFIED => 'Verified',
-            self::REJECTED => 'Rejected',
-        };
+        return __('enums.kyc_status.'.$this->value);
     }
 
     /**

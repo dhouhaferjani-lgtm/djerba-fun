@@ -12,16 +12,11 @@ enum PayoutStatus: string
     case FAILED = 'failed';
 
     /**
-     * Get the label for the status.
+     * Get the label for the status (translated).
      */
     public function label(): string
     {
-        return match ($this) {
-            self::PENDING => 'Pending',
-            self::PROCESSING => 'Processing',
-            self::COMPLETED => 'Completed',
-            self::FAILED => 'Failed',
-        };
+        return __('enums.payout_status.'.$this->value);
     }
 
     /**

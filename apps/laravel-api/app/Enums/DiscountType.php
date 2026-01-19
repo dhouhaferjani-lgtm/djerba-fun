@@ -10,14 +10,11 @@ enum DiscountType: string
     case FIXED_AMOUNT = 'fixed_amount';
 
     /**
-     * Get the label for the discount type.
+     * Get the label for the discount type (translated).
      */
     public function label(): string
     {
-        return match ($this) {
-            self::PERCENTAGE => 'Percentage',
-            self::FIXED_AMOUNT => 'Fixed Amount',
-        };
+        return __('enums.discount_type.'.$this->value);
     }
 
     /**
