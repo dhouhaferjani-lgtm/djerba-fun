@@ -4,6 +4,7 @@ import type { KeyTakeaway, TakeawayIcon } from '@/lib/api/blog';
 
 interface KeyTakeawaysProps {
   takeaways: KeyTakeaway[];
+  className?: string;
 }
 
 const iconMap: Record<TakeawayIcon, string> = {
@@ -17,13 +18,15 @@ const iconMap: Record<TakeawayIcon, string> = {
   money: '💰',
 };
 
-export function KeyTakeaways({ takeaways }: KeyTakeawaysProps) {
+export function KeyTakeaways({ takeaways, className }: KeyTakeawaysProps) {
   if (!takeaways || takeaways.length === 0) {
     return null;
   }
 
   return (
-    <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-6 my-8">
+    <div
+      className={`bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-6 my-8 ${className || ''}`}
+    >
       <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
         <span className="text-primary">📋</span>
         Key Takeaways

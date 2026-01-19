@@ -90,7 +90,7 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
       {post.headerStyle === 'gallery' && post.galleryImages.length > 0 && (
         <div className="container mx-auto px-4 -mt-10">
           <div className="max-w-5xl mx-auto">
-            <BlogImageGallery images={post.galleryImages} alt={post.title} />
+            <BlogImageGallery images={post.galleryImages} title={post.title} />
           </div>
         </div>
       )}
