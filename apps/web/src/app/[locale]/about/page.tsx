@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 
@@ -24,6 +25,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     {
       title: t('sustainable'),
       description: t('sustainable_desc'),
+      image: '/images/about/commitments/sustainable.jpg',
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -38,6 +40,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     {
       title: t('active_lifestyle'),
       description: t('active_lifestyle_desc'),
+      image: '/images/about/commitments/active-lifestyle.jpg',
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -52,6 +55,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     {
       title: t('local_immersion'),
       description: t('local_immersion_desc'),
+      image: '/images/about/commitments/local-immersion.jpg',
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -72,6 +76,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     {
       title: t('expertise'),
       description: t('expertise_desc'),
+      image: '/images/about/commitments/passion.jpg',
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -85,11 +90,35 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     },
   ];
 
+  const initiatives = [
+    { image: '/images/about/initiatives/workshop.png', alt: 'Educational Workshop' },
+    { image: '/images/about/initiatives/sports.png', alt: 'Sports Activities' },
+    { image: '/images/about/initiatives/heritage.png', alt: 'Heritage & Craft' },
+  ];
+
+  const partners = [
+    '/images/about/partners/partner-1.png',
+    '/images/about/partners/partner-2.png',
+    '/images/about/partners/partner-3.png',
+    '/images/about/partners/partner-4.png',
+    '/images/about/partners/partner-5.png',
+    '/images/about/partners/partner-6.png',
+    '/images/about/partners/partner-7.png',
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="bg-primary text-white py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
+      {/* Hero Section with Background Image */}
+      <section className="relative min-h-[400px] flex items-center justify-center">
+        <Image
+          src="/images/about/hero-banner.png"
+          alt="About Go Adventure"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-primary/80" />
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 text-center text-white py-20">
           <p className="text-primary-light text-lg mb-4 italic">{t('tagline')}</p>
           <h1 className="text-4xl md:text-5xl font-bold mb-6">{t('hero_title')}</h1>
           <p className="text-xl text-white/90 max-w-3xl mx-auto">{t('hero_subtitle')}</p>
@@ -112,7 +141,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         </div>
       </section>
 
-      {/* Commitments Section */}
+      {/* Commitments Section with Images */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">{t('commitments')}</h2>
@@ -120,11 +149,22 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             {commitments.map((commitment, index) => (
               <div
                 key={index}
-                className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+                className="relative overflow-hidden rounded-lg shadow-sm hover:shadow-lg transition-shadow group"
               >
-                <div className="text-primary mb-4">{commitment.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{commitment.title}</h3>
-                <p className="text-gray-600">{commitment.description}</p>
+                <div className="relative h-48">
+                  <Image
+                    src={commitment.image}
+                    alt={commitment.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  <div className="absolute bottom-4 left-4 text-white">{commitment.icon}</div>
+                </div>
+                <div className="bg-white p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{commitment.title}</h3>
+                  <p className="text-gray-600">{commitment.description}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -147,16 +187,50 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         </div>
       </section>
 
-      {/* Initiatives Section */}
+      {/* Initiatives Section with Images */}
       <section className="py-16 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('initiatives')}</h2>
-          <p className="text-lg text-gray-600 leading-relaxed">{t('initiatives_desc')}</p>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{t('initiatives')}</h2>
+          <p className="text-lg text-gray-600 leading-relaxed text-center mb-12 max-w-3xl mx-auto">
+            {t('initiatives_desc')}
+          </p>
+          <div className="grid md:grid-cols-3 gap-6">
+            {initiatives.map((initiative, index) => (
+              <div
+                key={index}
+                className="relative h-64 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow"
+              >
+                <Image
+                  src={initiative.image}
+                  alt={initiative.alt}
+                  fill
+                  className="object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Partners Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">{t('partners')}</h2>
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
+            {partners.map((partner, index) => (
+              <div
+                key={index}
+                className="relative w-24 h-24 md:w-32 md:h-32 grayscale hover:grayscale-0 transition-all duration-300"
+              >
+                <Image src={partner} alt={`Partner ${index + 1}`} fill className="object-contain" />
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Back to Home */}
-      <section className="py-8 bg-white border-t">
+      <section className="py-8 bg-gray-50 border-t">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <Link href="/" className="text-primary hover:underline inline-flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
