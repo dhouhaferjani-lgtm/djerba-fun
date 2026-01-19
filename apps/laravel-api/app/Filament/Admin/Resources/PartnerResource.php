@@ -32,56 +32,56 @@ class PartnerResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Partner Information')
+                Forms\Components\Section::make(__('filament.partner.partner_information'))
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->required()
                             ->maxLength(255)
-                            ->label('Partner Name'),
+                            ->label(__('filament.partner.partner_name')),
 
                         Forms\Components\TextInput::make('company_name')
                             ->required()
                             ->maxLength(255)
-                            ->label('Company Name'),
+                            ->label(__('filament.partner.company_name')),
 
                         Forms\Components\TextInput::make('company_type')
                             ->maxLength(255)
-                            ->label('Company Type')
-                            ->placeholder('e.g., Hotel, Tour Operator, Travel Agency'),
+                            ->label(__('filament.partner.company_type'))
+                            ->placeholder(__('filament.partner.company_type_placeholder')),
 
                         Forms\Components\Select::make('partner_tier')
                             ->options([
-                                'standard' => 'Standard',
-                                'premium' => 'Premium',
-                                'enterprise' => 'Enterprise',
+                                'standard' => __('filament.partner.tier_standard'),
+                                'premium' => __('filament.partner.tier_premium'),
+                                'enterprise' => __('filament.partner.tier_enterprise'),
                             ])
                             ->default('standard')
                             ->required()
-                            ->label('Partner Tier'),
+                            ->label(__('filament.partner.partner_tier')),
 
                         Forms\Components\Select::make('kyc_status')
                             ->options([
-                                'pending' => 'Pending',
-                                'under_review' => 'Under Review',
-                                'approved' => 'Approved',
-                                'rejected' => 'Rejected',
+                                'pending' => __('filament.partner.kyc_pending'),
+                                'under_review' => __('filament.partner.kyc_under_review'),
+                                'approved' => __('filament.partner.kyc_approved'),
+                                'rejected' => __('filament.partner.kyc_rejected'),
                             ])
                             ->default('pending')
                             ->required()
-                            ->label('KYC Status'),
+                            ->label(__('filament.partner.kyc_status')),
 
                         Forms\Components\Toggle::make('is_active')
-                            ->label('Active')
+                            ->label(__('filament.partner.active'))
                             ->default(true)
                             ->required(),
 
                         Forms\Components\Toggle::make('sandbox_mode')
-                            ->label('Sandbox Mode')
+                            ->label(__('filament.partner.sandbox_mode'))
                             ->default(true)
-                            ->helperText('Sandbox mode partners can only access test data'),
+                            ->helperText(__('filament.partner.sandbox_mode_helper')),
 
                         Forms\Components\TextInput::make('rate_limit')
-                            ->label('Rate Limit (per minute)')
+                            ->label(__('filament.partner.rate_limit'))
                             ->numeric()
                             ->default(60)
                             ->required()
@@ -89,35 +89,35 @@ class PartnerResource extends Resource
                             ->maxValue(10000),
                     ])->columns(3),
 
-                Forms\Components\Section::make('Contact Information')
+                Forms\Components\Section::make(__('filament.partner.contact_information'))
                     ->schema([
                         Forms\Components\TextInput::make('website_url')
                             ->url()
                             ->maxLength(255)
-                            ->label('Website URL'),
+                            ->label(__('filament.partner.website_url')),
 
                         Forms\Components\TextInput::make('contact_email')
                             ->email()
                             ->maxLength(255)
-                            ->label('Contact Email'),
+                            ->label(__('filament.partner.contact_email')),
 
                         Forms\Components\TextInput::make('contact_phone')
                             ->tel()
                             ->maxLength(50)
-                            ->label('Contact Phone'),
+                            ->label(__('filament.partner.contact_phone')),
 
                         Forms\Components\Textarea::make('description')
                             ->maxLength(1000)
-                            ->label('Description')
+                            ->label(__('filament.partner.description'))
                             ->columnSpanFull(),
                     ])->columns(3),
 
-                Forms\Components\Section::make('Permissions')
+                Forms\Components\Section::make(__('filament.partner.permissions'))
                     ->schema([
                         Forms\Components\TagsInput::make('permissions')
-                            ->label('Permissions')
-                            ->placeholder('Enter permissions (e.g., listings:read, bookings:create)')
-                            ->helperText('Use * for all permissions, or resource:action format')
+                            ->label(__('filament.partner.permissions'))
+                            ->placeholder(__('filament.partner.permissions_placeholder'))
+                            ->helperText(__('filament.partner.permissions_helper'))
                             ->suggestions([
                                 'listings:read',
                                 'listings:search',
@@ -128,60 +128,60 @@ class PartnerResource extends Resource
                             ]),
                     ]),
 
-                Forms\Components\Section::make('Webhooks')
+                Forms\Components\Section::make(__('filament.partner.webhooks'))
                     ->schema([
                         Forms\Components\TextInput::make('webhook_url')
                             ->url()
                             ->maxLength(255)
-                            ->label('Webhook URL')
-                            ->helperText('Events will be sent to this URL'),
+                            ->label(__('filament.partner.webhook_url'))
+                            ->helperText(__('filament.partner.webhook_url_helper')),
 
                         Forms\Components\TextInput::make('webhook_secret')
                             ->maxLength(255)
-                            ->label('Webhook Secret')
-                            ->helperText('Used to verify webhook signatures')
+                            ->label(__('filament.partner.webhook_secret'))
+                            ->helperText(__('filament.partner.webhook_secret_helper'))
                             ->password()
                             ->revealable(),
                     ])->columns(2)
                     ->collapsible()
                     ->collapsed(),
 
-                Forms\Components\Section::make('Security')
+                Forms\Components\Section::make(__('filament.partner.security'))
                     ->schema([
                         Forms\Components\TagsInput::make('ip_whitelist')
-                            ->label('IP Whitelist')
-                            ->placeholder('Add IP addresses')
-                            ->helperText('Leave empty to allow all IPs'),
+                            ->label(__('filament.partner.ip_whitelist'))
+                            ->placeholder(__('filament.partner.ip_whitelist_placeholder'))
+                            ->helperText(__('filament.partner.ip_whitelist_helper')),
 
                         Forms\Components\DateTimePicker::make('api_key_expires_at')
-                            ->label('API Key Expiration')
-                            ->helperText('Leave empty for no expiration'),
+                            ->label(__('filament.partner.api_key_expiration'))
+                            ->helperText(__('filament.partner.api_key_expiration_helper')),
                     ])->columns(2)
                     ->collapsible()
                     ->collapsed(),
 
-                Forms\Components\Section::make('Metadata')
+                Forms\Components\Section::make(__('filament.partner.metadata'))
                     ->schema([
                         Forms\Components\KeyValue::make('metadata')
-                            ->label('Additional Metadata')
-                            ->keyLabel('Key')
-                            ->valueLabel('Value')
-                            ->addActionLabel('Add metadata'),
+                            ->label(__('filament.partner.additional_metadata'))
+                            ->keyLabel(__('filament.partner.key'))
+                            ->valueLabel(__('filament.partner.value'))
+                            ->addActionLabel(__('filament.partner.add_metadata')),
                     ])
                     ->collapsible()
                     ->collapsed(),
 
-                Forms\Components\Section::make('API Credentials')
+                Forms\Components\Section::make(__('filament.partner.api_credentials'))
                     ->schema([
                         Forms\Components\Placeholder::make('api_key_info')
                             ->label('')
-                            ->content('API credentials were generated automatically when this partner was created. The credentials were shown once in a notification and cannot be retrieved again. To generate new credentials, use the CLI command: php artisan partner:create'),
+                            ->content(__('filament.partner.api_key_info')),
 
                         Forms\Components\TextInput::make('api_key')
-                            ->label('API Key (Current)')
+                            ->label(__('filament.partner.api_key_current'))
                             ->disabled()
                             ->dehydrated(false)
-                            ->helperText('This is the current API key. The secret cannot be displayed for security reasons.'),
+                            ->helperText(__('filament.partner.api_key_helper')),
                     ])
                     ->hiddenOn('create'),
             ]);
@@ -192,17 +192,17 @@ class PartnerResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Name')
+                    ->label(__('filament.partner.name'))
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('company_name')
-                    ->label('Company')
+                    ->label(__('filament.partner.company'))
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('partner_tier')
-                    ->label('Tier')
+                    ->label(__('filament.partner.tier'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'standard' => 'gray',
@@ -213,7 +213,7 @@ class PartnerResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('kyc_status')
-                    ->label('KYC Status')
+                    ->label(__('filament.partner.kyc_status'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'gray',
@@ -225,65 +225,67 @@ class PartnerResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('filament.partner.active'))
                     ->boolean()
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('sandbox_mode')
-                    ->label('Sandbox')
+                    ->label(__('filament.partner.sandbox'))
                     ->boolean()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('rate_limit')
-                    ->label('Rate Limit')
-                    ->suffix(' req/min')
+                    ->label(__('filament.partner.rate_limit'))
+                    ->suffix(' ' . __('filament.partner.req_min'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('permissions')
-                    ->label('Permissions')
+                    ->label(__('filament.partner.permissions'))
                     ->badge()
                     ->separator(',')
                     ->limitList(3)
-                    ->formatStateUsing(fn ($state) => $state === '*' ? 'All' : $state),
+                    ->formatStateUsing(fn ($state) => $state === '*' ? __('filament.partner.all_permissions') : $state),
 
                 Tables\Columns\TextColumn::make('last_used_at')
-                    ->label('Last Used')
+                    ->label(__('filament.partner.last_used'))
                     ->dateTime()
                     ->sortable()
-                    ->placeholder('Never'),
+                    ->placeholder(__('filament.partner.never')),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label(__('filament.partner.created'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active Status')
-                    ->placeholder('All partners')
-                    ->trueLabel('Active only')
-                    ->falseLabel('Inactive only'),
+                    ->label(__('filament.partner.active_status'))
+                    ->placeholder(__('filament.partner.all_partners'))
+                    ->trueLabel(__('filament.partner.active_only'))
+                    ->falseLabel(__('filament.partner.inactive_only')),
 
                 Tables\Filters\SelectFilter::make('kyc_status')
+                    ->label(__('filament.partner.kyc_status'))
                     ->options([
-                        'pending' => 'Pending',
-                        'under_review' => 'Under Review',
-                        'approved' => 'Approved',
-                        'rejected' => 'Rejected',
+                        'pending' => __('filament.partner.kyc_pending'),
+                        'under_review' => __('filament.partner.kyc_under_review'),
+                        'approved' => __('filament.partner.kyc_approved'),
+                        'rejected' => __('filament.partner.kyc_rejected'),
                     ]),
 
                 Tables\Filters\SelectFilter::make('partner_tier')
+                    ->label(__('filament.partner.partner_tier'))
                     ->options([
-                        'standard' => 'Standard',
-                        'premium' => 'Premium',
-                        'enterprise' => 'Enterprise',
+                        'standard' => __('filament.partner.tier_standard'),
+                        'premium' => __('filament.partner.tier_premium'),
+                        'enterprise' => __('filament.partner.tier_enterprise'),
                     ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('view_logs')
-                    ->label('View Logs')
+                    ->label(__('filament.partner.view_logs'))
                     ->icon('heroicon-o-document-text')
                     ->url(fn (Partner $record) => route('filament.admin.resources.partners.logs', ['record' => $record]))
                     ->openUrlInNewTab(),

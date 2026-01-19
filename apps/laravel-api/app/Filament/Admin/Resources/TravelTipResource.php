@@ -32,22 +32,22 @@ class TravelTipResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Tip Content')
+                Forms\Components\Section::make(__('filament.travel_tip.tip_content'))
                     ->schema([
-                        Forms\Components\Tabs::make('Translations')
+                        Forms\Components\Tabs::make(__('filament.travel_tip.translations'))
                             ->tabs([
-                                Forms\Components\Tabs\Tab::make('English')
+                                Forms\Components\Tabs\Tab::make(__('filament.travel_tip.english'))
                                     ->schema([
                                         Forms\Components\Textarea::make('content.en')
-                                            ->label('Content (English)')
+                                            ->label(__('filament.travel_tip.content_english'))
                                             ->required()
                                             ->rows(3)
                                             ->maxLength(500),
                                     ]),
-                                Forms\Components\Tabs\Tab::make('French')
+                                Forms\Components\Tabs\Tab::make(__('filament.travel_tip.french'))
                                     ->schema([
                                         Forms\Components\Textarea::make('content.fr')
-                                            ->label('Content (French)')
+                                            ->label(__('filament.travel_tip.content_french'))
                                             ->required()
                                             ->rows(3)
                                             ->maxLength(500),
@@ -56,18 +56,18 @@ class TravelTipResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make('Settings')
+                Forms\Components\Section::make(__('filament.travel_tip.settings'))
                     ->schema([
                         Forms\Components\Toggle::make('is_active')
-                            ->label('Active')
+                            ->label(__('filament.travel_tip.active'))
                             ->default(true)
-                            ->helperText('Only active tips will be shown on the website'),
+                            ->helperText(__('filament.travel_tip.active_helper')),
 
                         Forms\Components\TextInput::make('display_order')
-                            ->label('Display Order')
+                            ->label(__('filament.travel_tip.display_order'))
                             ->numeric()
                             ->default(0)
-                            ->helperText('Lower numbers appear first'),
+                            ->helperText(__('filament.travel_tip.display_order_helper')),
                     ])
                     ->columns(2),
             ]);
@@ -78,32 +78,32 @@ class TravelTipResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')
-                    ->label('ID')
+                    ->label(__('filament.travel_tip.id'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('content')
-                    ->label('Content (EN)')
+                    ->label(__('filament.travel_tip.content_en'))
                     ->getStateUsing(fn ($record) => $record->getTranslation('content', 'en'))
                     ->limit(60)
                     ->searchable(),
 
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('filament.travel_tip.active'))
                     ->boolean()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('display_order')
-                    ->label('Order')
+                    ->label(__('filament.travel_tip.order'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Updated')
+                    ->label(__('filament.travel_tip.updated'))
                     ->dateTime()
                     ->sortable(),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label(__('filament.travel_tip.active')),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

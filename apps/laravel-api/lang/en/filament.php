@@ -705,4 +705,222 @@ return [
         'listing' => 'Listing',
         'enabled_payment_gateways' => 'Enabled payment gateways',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Partner Resource
+    |--------------------------------------------------------------------------
+    */
+    'partner' => [
+        // Sections
+        'partner_information' => 'Partner Information',
+        'contact_information' => 'Contact Information',
+        'permissions' => 'Permissions',
+        'webhooks' => 'Webhooks',
+        'security' => 'Security',
+        'metadata' => 'Metadata',
+        'api_credentials' => 'API Credentials',
+
+        // Labels
+        'partner_name' => 'Partner Name',
+        'company_name' => 'Company Name',
+        'company_type' => 'Company Type',
+        'partner_tier' => 'Partner Tier',
+        'kyc_status' => 'KYC Status',
+        'active' => 'Active',
+        'sandbox_mode' => 'Sandbox Mode',
+        'rate_limit' => 'Rate Limit (per minute)',
+        'website_url' => 'Website URL',
+        'contact_email' => 'Contact Email',
+        'contact_phone' => 'Contact Phone',
+        'description' => 'Description',
+        'webhook_url' => 'Webhook URL',
+        'webhook_secret' => 'Webhook Secret',
+        'ip_whitelist' => 'IP Whitelist',
+        'api_key_expiration' => 'API Key Expiration',
+        'additional_metadata' => 'Additional Metadata',
+        'key' => 'Key',
+        'value' => 'Value',
+        'add_metadata' => 'Add metadata',
+        'api_key_current' => 'API Key (Current)',
+
+        // Partner tier options
+        'tier_standard' => 'Standard',
+        'tier_premium' => 'Premium',
+        'tier_enterprise' => 'Enterprise',
+
+        // KYC status options
+        'kyc_pending' => 'Pending',
+        'kyc_under_review' => 'Under Review',
+        'kyc_approved' => 'Approved',
+        'kyc_rejected' => 'Rejected',
+
+        // Table columns
+        'name' => 'Name',
+        'company' => 'Company',
+        'tier' => 'Tier',
+        'sandbox' => 'Sandbox',
+        'last_used' => 'Last Used',
+        'created' => 'Created',
+        'all_permissions' => 'All',
+        'never' => 'Never',
+        'req_min' => 'req/min',
+
+        // Filters
+        'active_status' => 'Active Status',
+        'all_partners' => 'All partners',
+        'active_only' => 'Active only',
+        'inactive_only' => 'Inactive only',
+
+        // Actions
+        'view_logs' => 'View Logs',
+
+        // Helpers
+        'sandbox_mode_helper' => 'Sandbox mode partners can only access test data',
+        'permissions_placeholder' => 'Enter permissions (e.g., listings:read, bookings:create)',
+        'permissions_helper' => 'Use * for all permissions, or resource:action format',
+        'webhook_url_helper' => 'Events will be sent to this URL',
+        'webhook_secret_helper' => 'Used to verify webhook signatures',
+        'ip_whitelist_placeholder' => 'Add IP addresses',
+        'ip_whitelist_helper' => 'Leave empty to allow all IPs',
+        'api_key_expiration_helper' => 'Leave empty for no expiration',
+        'api_key_info' => 'API credentials were generated automatically when this partner was created. The credentials were shown once in a notification and cannot be retrieved again. To generate new credentials, use the CLI command: php artisan partner:create',
+        'api_key_helper' => 'This is the current API key. The secret cannot be displayed for security reasons.',
+        'company_type_placeholder' => 'e.g., Hotel, Tour Operator, Travel Agency',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Availability Rule Resource
+    |--------------------------------------------------------------------------
+    */
+    'availability_rule' => [
+        // Sections
+        'basic_information' => 'Basic Information',
+        'schedule' => 'Schedule',
+        'capacity_pricing' => 'Capacity & Pricing',
+
+        // Labels
+        'listing' => 'Listing',
+        'rule_type' => 'Rule Type',
+        'active' => 'Active',
+        'days_of_week' => 'Days of Week',
+        'start_time' => 'Start Time',
+        'end_time' => 'End Time',
+        'start_date' => 'Start Date',
+        'end_date' => 'End Date',
+        'capacity' => 'Capacity',
+        'price_override' => 'Price Override',
+
+        // Days
+        'sunday' => 'Sunday',
+        'monday' => 'Monday',
+        'tuesday' => 'Tuesday',
+        'wednesday' => 'Wednesday',
+        'thursday' => 'Thursday',
+        'friday' => 'Friday',
+        'saturday' => 'Saturday',
+
+        // Table columns
+        'type' => 'Type',
+        'time' => 'Time',
+        'date_range' => 'Date Range',
+        'from' => 'From',
+        'ongoing' => 'Ongoing',
+        'created' => 'Created',
+
+        // Filters
+        'all_rules' => 'All rules',
+        'active_only' => 'Active only',
+        'inactive_only' => 'Inactive only',
+
+        // Modals
+        'delete_heading' => 'Delete Availability Rule',
+        'delete_description' => 'Are you sure you want to delete this availability rule? This action cannot be undone.',
+
+        // Helpers
+        'price_override_helper' => 'Leave empty to use listing base price',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Travel Tip Resource
+    |--------------------------------------------------------------------------
+    */
+    'travel_tip' => [
+        // Sections
+        'tip_content' => 'Tip Content',
+        'settings' => 'Settings',
+
+        // Tabs
+        'translations' => 'Translations',
+        'english' => 'English',
+        'french' => 'French',
+
+        // Labels
+        'content_english' => 'Content (English)',
+        'content_french' => 'Content (French)',
+        'active' => 'Active',
+        'display_order' => 'Display Order',
+
+        // Table columns
+        'id' => 'ID',
+        'content_en' => 'Content (EN)',
+        'order' => 'Order',
+        'updated' => 'Updated',
+
+        // Helpers
+        'active_helper' => 'Only active tips will be shown on the website',
+        'display_order_helper' => 'Lower numbers appear first',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Blog Category Resource
+    |--------------------------------------------------------------------------
+    */
+    'blog_category' => [
+        // Labels
+        'name' => 'Name',
+        'slug' => 'Slug',
+        'description' => 'Description',
+        'color' => 'Color',
+        'sort_order' => 'Sort Order',
+        'created_at' => 'Created At',
+        'updated_at' => 'Updated At',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Page Resource
+    |--------------------------------------------------------------------------
+    */
+    'page' => [
+        // Labels
+        'page' => 'Page',
+        'pages' => 'Pages',
+
+        // Tabs
+        'general' => 'General',
+        'content' => 'Content',
+        'overview' => 'Overview',
+        'seo' => 'SEO',
+        'advanced' => 'Advanced',
+
+        // Table columns
+        'created' => 'Created',
+        'updated' => 'Updated',
+        'code' => 'Code',
+
+        // Status
+        'draft' => 'Draft',
+        'published' => 'Published',
+
+        // Search results
+        'intro' => 'Intro',
+        'status' => 'Status',
+
+        // Helpers
+        'required_for_publishing' => 'Required for publishing',
+    ],
 ];

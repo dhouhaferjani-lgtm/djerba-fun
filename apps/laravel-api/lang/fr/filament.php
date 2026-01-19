@@ -705,4 +705,222 @@ return [
         'listing' => 'Annonce',
         'enabled_payment_gateways' => 'Passerelles de paiement activées',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Partner Resource
+    |--------------------------------------------------------------------------
+    */
+    'partner' => [
+        // Sections
+        'partner_information' => 'Informations du Partenaire',
+        'contact_information' => 'Coordonnées',
+        'permissions' => 'Permissions',
+        'webhooks' => 'Webhooks',
+        'security' => 'Sécurité',
+        'metadata' => 'Métadonnées',
+        'api_credentials' => 'Identifiants API',
+
+        // Labels
+        'partner_name' => 'Nom du Partenaire',
+        'company_name' => 'Nom de l\'Entreprise',
+        'company_type' => 'Type d\'Entreprise',
+        'partner_tier' => 'Niveau Partenaire',
+        'kyc_status' => 'Statut KYC',
+        'active' => 'Actif',
+        'sandbox_mode' => 'Mode Sandbox',
+        'rate_limit' => 'Limite de Requêtes (par minute)',
+        'website_url' => 'URL du Site Web',
+        'contact_email' => 'Email de Contact',
+        'contact_phone' => 'Téléphone de Contact',
+        'description' => 'Description',
+        'webhook_url' => 'URL du Webhook',
+        'webhook_secret' => 'Secret du Webhook',
+        'ip_whitelist' => 'Liste Blanche IP',
+        'api_key_expiration' => 'Expiration de la Clé API',
+        'additional_metadata' => 'Métadonnées Supplémentaires',
+        'key' => 'Clé',
+        'value' => 'Valeur',
+        'add_metadata' => 'Ajouter des métadonnées',
+        'api_key_current' => 'Clé API (Actuelle)',
+
+        // Partner tier options
+        'tier_standard' => 'Standard',
+        'tier_premium' => 'Premium',
+        'tier_enterprise' => 'Entreprise',
+
+        // KYC status options
+        'kyc_pending' => 'En Attente',
+        'kyc_under_review' => 'En Cours d\'Examen',
+        'kyc_approved' => 'Approuvé',
+        'kyc_rejected' => 'Rejeté',
+
+        // Table columns
+        'name' => 'Nom',
+        'company' => 'Entreprise',
+        'tier' => 'Niveau',
+        'sandbox' => 'Sandbox',
+        'last_used' => 'Dernière Utilisation',
+        'created' => 'Créé',
+        'all_permissions' => 'Toutes',
+        'never' => 'Jamais',
+        'req_min' => 'req/min',
+
+        // Filters
+        'active_status' => 'Statut d\'Activité',
+        'all_partners' => 'Tous les partenaires',
+        'active_only' => 'Actifs uniquement',
+        'inactive_only' => 'Inactifs uniquement',
+
+        // Actions
+        'view_logs' => 'Voir les Logs',
+
+        // Helpers
+        'sandbox_mode_helper' => 'Les partenaires en mode sandbox ne peuvent accéder qu\'aux données de test',
+        'permissions_placeholder' => 'Entrez les permissions (ex: listings:read, bookings:create)',
+        'permissions_helper' => 'Utilisez * pour toutes les permissions, ou le format ressource:action',
+        'webhook_url_helper' => 'Les événements seront envoyés à cette URL',
+        'webhook_secret_helper' => 'Utilisé pour vérifier les signatures des webhooks',
+        'ip_whitelist_placeholder' => 'Ajouter des adresses IP',
+        'ip_whitelist_helper' => 'Laisser vide pour autoriser toutes les IP',
+        'api_key_expiration_helper' => 'Laisser vide pour aucune expiration',
+        'api_key_info' => 'Les identifiants API ont été générés automatiquement lors de la création de ce partenaire. Les identifiants ont été affichés une seule fois dans une notification et ne peuvent pas être récupérés. Pour générer de nouveaux identifiants, utilisez la commande CLI : php artisan partner:create',
+        'api_key_helper' => 'Ceci est la clé API actuelle. Le secret ne peut pas être affiché pour des raisons de sécurité.',
+        'company_type_placeholder' => 'ex: Hôtel, Tour Opérateur, Agence de Voyage',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Availability Rule Resource
+    |--------------------------------------------------------------------------
+    */
+    'availability_rule' => [
+        // Sections
+        'basic_information' => 'Informations de Base',
+        'schedule' => 'Horaire',
+        'capacity_pricing' => 'Capacité & Tarification',
+
+        // Labels
+        'listing' => 'Annonce',
+        'rule_type' => 'Type de Règle',
+        'active' => 'Actif',
+        'days_of_week' => 'Jours de la Semaine',
+        'start_time' => 'Heure de Début',
+        'end_time' => 'Heure de Fin',
+        'start_date' => 'Date de Début',
+        'end_date' => 'Date de Fin',
+        'capacity' => 'Capacité',
+        'price_override' => 'Prix Personnalisé',
+
+        // Days
+        'sunday' => 'Dimanche',
+        'monday' => 'Lundi',
+        'tuesday' => 'Mardi',
+        'wednesday' => 'Mercredi',
+        'thursday' => 'Jeudi',
+        'friday' => 'Vendredi',
+        'saturday' => 'Samedi',
+
+        // Table columns
+        'type' => 'Type',
+        'time' => 'Horaire',
+        'date_range' => 'Période',
+        'from' => 'À partir de',
+        'ongoing' => 'En cours',
+        'created' => 'Créé',
+
+        // Filters
+        'all_rules' => 'Toutes les règles',
+        'active_only' => 'Actives uniquement',
+        'inactive_only' => 'Inactives uniquement',
+
+        // Modals
+        'delete_heading' => 'Supprimer la Règle de Disponibilité',
+        'delete_description' => 'Êtes-vous sûr de vouloir supprimer cette règle de disponibilité ? Cette action est irréversible.',
+
+        // Helpers
+        'price_override_helper' => 'Laisser vide pour utiliser le prix de base de l\'annonce',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Travel Tip Resource
+    |--------------------------------------------------------------------------
+    */
+    'travel_tip' => [
+        // Sections
+        'tip_content' => 'Contenu du Conseil',
+        'settings' => 'Paramètres',
+
+        // Tabs
+        'translations' => 'Traductions',
+        'english' => 'Anglais',
+        'french' => 'Français',
+
+        // Labels
+        'content_english' => 'Contenu (Anglais)',
+        'content_french' => 'Contenu (Français)',
+        'active' => 'Actif',
+        'display_order' => 'Ordre d\'Affichage',
+
+        // Table columns
+        'id' => 'ID',
+        'content_en' => 'Contenu (EN)',
+        'order' => 'Ordre',
+        'updated' => 'Mis à jour',
+
+        // Helpers
+        'active_helper' => 'Seuls les conseils actifs seront affichés sur le site',
+        'display_order_helper' => 'Les nombres plus bas apparaissent en premier',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Blog Category Resource
+    |--------------------------------------------------------------------------
+    */
+    'blog_category' => [
+        // Labels
+        'name' => 'Nom',
+        'slug' => 'Slug',
+        'description' => 'Description',
+        'color' => 'Couleur',
+        'sort_order' => 'Ordre de Tri',
+        'created_at' => 'Créé le',
+        'updated_at' => 'Mis à jour le',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Page Resource
+    |--------------------------------------------------------------------------
+    */
+    'page' => [
+        // Labels
+        'page' => 'Page',
+        'pages' => 'Pages',
+
+        // Tabs
+        'general' => 'Général',
+        'content' => 'Contenu',
+        'overview' => 'Aperçu',
+        'seo' => 'SEO',
+        'advanced' => 'Avancé',
+
+        // Table columns
+        'created' => 'Créé',
+        'updated' => 'Mis à jour',
+        'code' => 'Code',
+
+        // Status
+        'draft' => 'Brouillon',
+        'published' => 'Publié',
+
+        // Search results
+        'intro' => 'Introduction',
+        'status' => 'Statut',
+
+        // Helpers
+        'required_for_publishing' => 'Requis pour la publication',
+    ],
 ];

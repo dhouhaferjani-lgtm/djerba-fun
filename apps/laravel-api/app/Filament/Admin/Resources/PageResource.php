@@ -77,12 +77,12 @@ class PageResource extends Resource
 
     public static function getLabel(): ?string
     {
-        return 'Page';
+        return __('filament.page.page');
     }
 
     public static function getPluralLabel(): ?string
     {
-        return 'Pages';
+        return __('filament.page.pages');
     }
 
     public static function getEloquentQuery(): Builder
@@ -95,22 +95,22 @@ class PageResource extends Resource
     {
         return $form
             ->schema([
-                Tabs::make('Page')
+                Tabs::make(__('filament.page.page'))
                     ->columnSpan(2)
                     ->tabs([
-                        Tab::make('General')
+                        Tab::make(__('filament.page.general'))
                             ->icon('heroicon-m-globe-alt')
                             ->schema(static::getGeneralTabFields()),
-                        Tab::make('Content')
+                        Tab::make(__('filament.page.content'))
                             ->icon('heroicon-o-rectangle-group')
                             ->schema(static::getContentTabFields()),
-                        Tab::make('Overview')
+                        Tab::make(__('filament.page.overview'))
                             ->icon('heroicon-o-magnifying-glass')
                             ->schema(static::getOverviewTabFields()),
-                        Tab::make('SEO')
+                        Tab::make(__('filament.page.seo'))
                             ->icon('heroicon-o-globe-alt')
                             ->schema(static::getSEOTabFields()),
-                        Tab::make('Advanced')
+                        Tab::make(__('filament.page.advanced'))
                             ->icon('heroicon-o-wrench-screwdriver')
                             ->schema(static::getAdvancedTabFields()),
                     ])
@@ -124,7 +124,7 @@ class PageResource extends Resource
             // Title is NOT required for drafts - just recommended
             TitleField::create(true)
                 ->required(false)
-                ->helperText('Required for publishing'),
+                ->helperText(__('filament.page.required_for_publishing')),
             IntroField::create(),
             // Hero image is optional
             HeroImageSection::create(true),
@@ -194,17 +194,17 @@ class PageResource extends Resource
                 TitleColumn::create()
                     ->searchable(),
                 TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label(__('filament.page.created'))
                     ->dateTime(FilamentFlexibleBlocksConfig::getPublishingDateFormatting())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
-                    ->label('Updated')
+                    ->label(__('filament.page.updated'))
                     ->dateTime(FilamentFlexibleBlocksConfig::getPublishingDateFormatting())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('code')
-                    ->label('Code')
+                    ->label(__('filament.page.code'))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
@@ -273,15 +273,15 @@ class PageResource extends Resource
     public static function getGlobalSearchResultDetails(Model $record): array
     {
         /** @var Page $record */
-        $published = 'Draft';
+        $published = __('filament.page.draft');
 
         if ($record->isPublished()) {
-            $published = 'Published';
+            $published = __('filament.page.published');
         }
 
         return [
-            'Intro' => Str::limit(strip_tags($record->intro ?? ''), 50),
-            'Status' => $published,
+            __('filament.page.intro') => Str::limit(strip_tags($record->intro ?? ''), 50),
+            __('filament.page.status') => $published,
         ];
     }
 }

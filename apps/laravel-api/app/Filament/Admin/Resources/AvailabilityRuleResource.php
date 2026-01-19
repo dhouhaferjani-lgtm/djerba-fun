@@ -34,10 +34,10 @@ class AvailabilityRuleResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Basic Information')
+                Forms\Components\Section::make(__('filament.availability_rule.basic_information'))
                     ->schema([
                         Forms\Components\Select::make('listing_id')
-                            ->label('Listing')
+                            ->label(__('filament.availability_rule.listing'))
                             ->relationship(
                                 name: 'listing',
                                 modifyQueryUsing: fn (Builder $query) => $query->orderBy('slug'),
@@ -48,7 +48,7 @@ class AvailabilityRuleResource extends Resource
                             ->preload(),
 
                         Forms\Components\Select::make('rule_type')
-                            ->label('Rule Type')
+                            ->label(__('filament.availability_rule.rule_type'))
                             ->options([
                                 AvailabilityRuleType::WEEKLY->value => AvailabilityRuleType::WEEKLY->label(),
                                 AvailabilityRuleType::DAILY->value => AvailabilityRuleType::DAILY->label(),
@@ -60,62 +60,62 @@ class AvailabilityRuleResource extends Resource
                             ->afterStateUpdated(fn (Forms\Set $set) => $set('days_of_week', null)),
 
                         Forms\Components\Toggle::make('is_active')
-                            ->label('Active')
+                            ->label(__('filament.availability_rule.active'))
                             ->default(true)
                             ->required(),
                     ])
                     ->columns(3),
 
-                Forms\Components\Section::make('Schedule')
+                Forms\Components\Section::make(__('filament.availability_rule.schedule'))
                     ->schema([
                         Forms\Components\CheckboxList::make('days_of_week')
-                            ->label('Days of Week')
+                            ->label(__('filament.availability_rule.days_of_week'))
                             ->options([
-                                0 => 'Sunday',
-                                1 => 'Monday',
-                                2 => 'Tuesday',
-                                3 => 'Wednesday',
-                                4 => 'Thursday',
-                                5 => 'Friday',
-                                6 => 'Saturday',
+                                0 => __('filament.availability_rule.sunday'),
+                                1 => __('filament.availability_rule.monday'),
+                                2 => __('filament.availability_rule.tuesday'),
+                                3 => __('filament.availability_rule.wednesday'),
+                                4 => __('filament.availability_rule.thursday'),
+                                5 => __('filament.availability_rule.friday'),
+                                6 => __('filament.availability_rule.saturday'),
                             ])
                             ->columns(7)
                             ->visible(fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::WEEKLY->value),
 
                         Forms\Components\TimePicker::make('start_time')
-                            ->label('Start Time')
+                            ->label(__('filament.availability_rule.start_time'))
                             ->seconds(false),
 
                         Forms\Components\TimePicker::make('end_time')
-                            ->label('End Time')
+                            ->label(__('filament.availability_rule.end_time'))
                             ->seconds(false),
 
                         Forms\Components\DatePicker::make('start_date')
-                            ->label('Start Date')
+                            ->label(__('filament.availability_rule.start_date'))
                             ->native(false),
 
                         Forms\Components\DatePicker::make('end_date')
-                            ->label('End Date')
+                            ->label(__('filament.availability_rule.end_date'))
                             ->native(false)
                             ->after('start_date'),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Capacity & Pricing')
+                Forms\Components\Section::make(__('filament.availability_rule.capacity_pricing'))
                     ->schema([
                         Forms\Components\TextInput::make('capacity')
-                            ->label('Capacity')
+                            ->label(__('filament.availability_rule.capacity'))
                             ->numeric()
                             ->minValue(1)
                             ->default(1)
                             ->required(),
 
                         Forms\Components\TextInput::make('price_override')
-                            ->label('Price Override')
+                            ->label(__('filament.availability_rule.price_override'))
                             ->numeric()
                             ->prefix('$')
                             ->step('0.01')
-                            ->helperText('Leave empty to use listing base price'),
+                            ->helperText(__('filament.availability_rule.price_override_helper')),
                     ])
                     ->columns(2),
             ]);
@@ -126,12 +126,12 @@ class AvailabilityRuleResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('listing.title')
-                    ->label('Listing')
+                    ->label(__('filament.availability_rule.listing'))
                     ->formatStateUsing(fn ($record) => $record->listing?->getTranslation('title', app()->getLocale()))
                     ->limit(30),
 
                 Tables\Columns\TextColumn::make('rule_type')
-                    ->label('Type')
+                    ->label(__('filament.availability_rule.type'))
                     ->formatStateUsing(fn (AvailabilityRuleType $state): string => $state->label())
                     ->badge()
                     ->color(fn (AvailabilityRuleType $state): string => match ($state) {
@@ -142,7 +142,7 @@ class AvailabilityRuleResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('start_time')
-                    ->label('Time')
+                    ->label(__('filament.availability_rule.time'))
                     ->formatStateUsing(
                         fn ($record) => $record->start_time && $record->end_time
                             ? $record->start_time->format('H:i') . ' - ' . $record->end_time->format('H:i')
@@ -150,32 +150,32 @@ class AvailabilityRuleResource extends Resource
                     ),
 
                 Tables\Columns\TextColumn::make('start_date')
-                    ->label('Date Range')
+                    ->label(__('filament.availability_rule.date_range'))
                     ->formatStateUsing(
                         fn ($record) => $record->start_date && $record->end_date
                             ? $record->start_date->format('M d, Y') . ' - ' . $record->end_date->format('M d, Y')
-                            : ($record->start_date ? 'From ' . $record->start_date->format('M d, Y') : 'Ongoing')
+                            : ($record->start_date ? __('filament.availability_rule.from') . ' ' . $record->start_date->format('M d, Y') : __('filament.availability_rule.ongoing'))
                     )
                     ->wrap(),
 
                 Tables\Columns\TextColumn::make('capacity')
-                    ->label('Capacity')
+                    ->label(__('filament.availability_rule.capacity'))
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('filament.availability_rule.active'))
                     ->boolean()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label(__('filament.availability_rule.created'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('listing_id')
-                    ->label('Listing')
+                    ->label(__('filament.availability_rule.listing'))
                     ->options(
                         fn () => \App\Models\Listing::query()
                             ->orderBy('slug')
@@ -185,7 +185,7 @@ class AvailabilityRuleResource extends Resource
                     ->searchable(),
 
                 Tables\Filters\SelectFilter::make('rule_type')
-                    ->label('Rule Type')
+                    ->label(__('filament.availability_rule.rule_type'))
                     ->options([
                         AvailabilityRuleType::WEEKLY->value => AvailabilityRuleType::WEEKLY->label(),
                         AvailabilityRuleType::DAILY->value => AvailabilityRuleType::DAILY->label(),
@@ -194,17 +194,17 @@ class AvailabilityRuleResource extends Resource
                     ]),
 
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active')
-                    ->placeholder('All rules')
-                    ->trueLabel('Active only')
-                    ->falseLabel('Inactive only'),
+                    ->label(__('filament.availability_rule.active'))
+                    ->placeholder(__('filament.availability_rule.all_rules'))
+                    ->trueLabel(__('filament.availability_rule.active_only'))
+                    ->falseLabel(__('filament.availability_rule.inactive_only')),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
-                    ->modalHeading('Delete Availability Rule')
-                    ->modalDescription('Are you sure you want to delete this availability rule? This action cannot be undone.'),
+                    ->modalHeading(__('filament.availability_rule.delete_heading'))
+                    ->modalDescription(__('filament.availability_rule.delete_description')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
