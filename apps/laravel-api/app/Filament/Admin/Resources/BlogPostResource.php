@@ -88,8 +88,6 @@ class BlogPostResource extends Resource
                         TinyEditor::make('content')
                             ->label(__('filament.labels.content'))
                             ->required()
-                            ->fileAttachmentsDisk('public')
-                            ->fileAttachmentsDirectory('blog-attachments')
                             ->profile('default')
                             ->columnSpanFull(),
                     ])
