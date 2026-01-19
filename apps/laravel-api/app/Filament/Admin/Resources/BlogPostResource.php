@@ -51,11 +51,22 @@ class BlogPostResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->live(debounce: 500)
-                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?string $state) {
-                                // Only auto-generate slug when it's empty (new posts)
+                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?string $state, ?string $old, $record) {
+                                // Don't auto-update for existing posts (preserve SEO)
+                                if ($record !== null && $record->exists) {
+                                    return;
+                                }
+
                                 $currentSlug = $get('slug');
-                                if (empty($currentSlug)) {
-                                    $set('slug', Str::slug($state ?? ''));
+                                $newSlug = Str::slug($state ?? '');
+                                $oldAutoSlug = $old ? Str::slug($old) : '';
+
+                                // Update slug if:
+                                // 1. It's empty, OR
+                                // 2. It matches what would have been auto-generated from previous title
+                                //    (meaning user hasn't manually edited it)
+                                if (empty($currentSlug) || $currentSlug === $oldAutoSlug) {
+                                    $set('slug', $newSlug);
                                 }
                             }),
 
