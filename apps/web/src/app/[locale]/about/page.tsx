@@ -101,10 +101,13 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('our_story')}</h2>
           <div className="prose prose-lg max-w-none text-gray-700">
-            <p className="text-lg leading-relaxed">{t('founder_story')}</p>
+            <p className="text-lg leading-relaxed mb-8">{t('founder_story')}</p>
+            <blockquote className="border-l-4 border-primary pl-6 italic text-gray-600 my-8">
+              "{t('founder_quote')}"
+            </blockquote>
           </div>
           <div className="mt-8 text-center">
-            <p className="text-gray-600 italic">— {t('founder_name')}</p>
+            <p className="text-gray-900 font-semibold">— {t('founder_name')}</p>
           </div>
         </div>
       </section>
@@ -144,8 +147,16 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         </div>
       </section>
 
+      {/* Initiatives Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('initiatives')}</h2>
+          <p className="text-lg text-gray-600 leading-relaxed">{t('initiatives_desc')}</p>
+        </div>
+      </section>
+
       {/* Back to Home */}
-      <section className="py-8 bg-gray-50">
+      <section className="py-8 bg-white border-t">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <Link href="/" className="text-primary hover:underline inline-flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

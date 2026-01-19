@@ -112,10 +112,16 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
                 {t('terms.contact_title')}
               </h2>
               <p className="text-gray-700 mb-4">{t('terms.contact_text')}</p>
-              <p className="text-gray-700">
+              <p className="text-gray-700 mb-2">
                 <strong>{t('terms.contact_email_label')}:</strong>{' '}
-                <a href="mailto:legal@goadventure.tn" className="text-primary hover:underline">
-                  legal@goadventure.tn
+                <a href="mailto:contact@go-adventure.net" className="text-primary hover:underline">
+                  contact@go-adventure.net
+                </a>
+              </p>
+              <p className="text-gray-700">
+                <strong>{t('terms.contact_phone_label')}:</strong>{' '}
+                <a href="tel:+21652665202" className="text-primary hover:underline">
+                  +216 52 665 202
                 </a>
               </p>
             </section>
