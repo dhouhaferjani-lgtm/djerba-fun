@@ -11,11 +11,17 @@ enum ListingStatus: string
     case REJECTED = 'rejected';
 
     /**
-     * Get human-readable label (translated)
+     * Get human-readable label
      */
     public function label(): string
     {
-        return __('enums.listing_status.'.$this->value);
+        return match ($this) {
+            self::DRAFT => 'Draft',
+            self::PENDING_REVIEW => 'Pending Review',
+            self::PUBLISHED => 'Published',
+            self::ARCHIVED => 'Archived',
+            self::REJECTED => 'Rejected',
+        };
     }
 
     /**

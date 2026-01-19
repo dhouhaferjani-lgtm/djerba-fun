@@ -2,12 +2,10 @@
 
 namespace App\Providers\Filament;
 
-use App\Http\Middleware\SetFilamentLocale;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Navigation\MenuItem;
 use Filament\Navigation\NavigationGroup;
 use Filament\Pages;
 use Filament\Panel;
@@ -36,29 +34,21 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => '#0D642E', // Dark forest green from design system
             ])
             ->navigationGroups([
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.sales')),
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.operations'))
+                NavigationGroup::make('Sales'),
+                NavigationGroup::make('Operations')
                     ->icon('heroicon-o-clipboard-document-list'),
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.people'))
+                NavigationGroup::make('People')
                     ->icon('heroicon-o-user-group'),
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.catalog'))
+                NavigationGroup::make('Catalog')
                     ->icon('heroicon-o-squares-2x2'),
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.content'))
+                NavigationGroup::make('Content')
                     ->icon('heroicon-o-document-text'),
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.marketing'))
+                NavigationGroup::make('Marketing')
                     ->icon('heroicon-o-megaphone'),
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.system'))
+                NavigationGroup::make('System')
                     ->icon('heroicon-o-cog-6-tooth')
                     ->collapsed(),
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.compliance'))
+                NavigationGroup::make('Compliance')
                     ->icon('heroicon-o-shield-check')
                     ->collapsed(),
             ])
@@ -88,13 +78,6 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                SetFilamentLocale::class,
-            ])
-            ->userMenuItems([
-                MenuItem::make()
-                    ->label(fn () => app()->getLocale() === 'en' ? 'Français' : 'English')
-                    ->icon(fn () => app()->getLocale() === 'en' ? 'heroicon-o-language' : 'heroicon-o-language')
-                    ->url(fn () => route('filament.locale.switch', ['locale' => app()->getLocale() === 'en' ? 'fr' : 'en'])),
             ])
             ->authMiddleware([
                 Authenticate::class,

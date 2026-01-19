@@ -15,7 +15,14 @@ enum PaymentStatus: string
 
     public function label(): string
     {
-        return __('enums.payment_status.'.$this->value);
+        return match ($this) {
+            self::PENDING => 'Pending',
+            self::PROCESSING => 'Processing',
+            self::SUCCEEDED => 'Succeeded',
+            self::FAILED => 'Failed',
+            self::REFUNDED => 'Refunded',
+            self::PARTIALLY_REFUNDED => 'Partially Refunded',
+        };
     }
 
     public function color(): string

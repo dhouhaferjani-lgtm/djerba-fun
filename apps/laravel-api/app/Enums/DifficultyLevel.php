@@ -10,11 +10,16 @@ enum DifficultyLevel: string
     case EXPERT = 'expert';
 
     /**
-     * Get human-readable label (translated)
+     * Get human-readable label
      */
     public function label(): string
     {
-        return __('enums.difficulty_level.'.$this->value);
+        return match ($this) {
+            self::EASY => 'Easy',
+            self::MODERATE => 'Moderate',
+            self::CHALLENGING => 'Challenging',
+            self::EXPERT => 'Expert',
+        };
     }
 
     /**

@@ -8,11 +8,14 @@ enum ServiceType: string
     case EVENT = 'event';
 
     /**
-     * Get human-readable label (translated)
+     * Get human-readable label
      */
     public function label(): string
     {
-        return __('enums.service_type.'.$this->value);
+        return match ($this) {
+            self::TOUR => 'Tour',
+            self::EVENT => 'Event',
+        };
     }
 
     /**

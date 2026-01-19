@@ -13,7 +13,12 @@ enum ExtraPricingType: string
 
     public function label(): string
     {
-        return __('enums.pricing_type.'.$this->value);
+        return match ($this) {
+            self::PER_PERSON => 'Per Person',
+            self::PER_BOOKING => 'Per Booking (Flat)',
+            self::PER_UNIT => 'Per Unit',
+            self::PER_PERSON_TYPE => 'Per Person Type',
+        };
     }
 
     public function description(): string

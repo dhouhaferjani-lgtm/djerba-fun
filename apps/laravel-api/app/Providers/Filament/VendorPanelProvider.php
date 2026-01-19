@@ -2,12 +2,10 @@
 
 namespace App\Providers\Filament;
 
-use App\Http\Middleware\SetFilamentLocale;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Navigation\MenuItem;
 use Filament\Navigation\NavigationGroup;
 use Filament\Pages;
 use Filament\Panel;
@@ -33,21 +31,14 @@ class VendorPanelProvider extends PanelProvider
                 'primary' => '#0D642E', // Dark forest green from design system
             ])
             ->navigationGroups([
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.my_listings'))
+                NavigationGroup::make('My Listings')
                     ->icon('heroicon-o-map'),
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.bookings'))
+                NavigationGroup::make('Bookings')
                     ->icon('heroicon-o-calendar'),
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.feedback'))
+                NavigationGroup::make('Feedback')
                     ->icon('heroicon-o-star'),
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.finance'))
+                NavigationGroup::make('Finance')
                     ->icon('heroicon-o-banknotes'),
-                NavigationGroup::make()
-                    ->label(__('filament-panels.navigation.groups.catalog'))
-                    ->icon('heroicon-o-squares-2x2'),
             ])
             ->discoverResources(in: app_path('Filament/Vendor/Resources'), for: 'App\\Filament\\Vendor\\Resources')
             ->discoverPages(in: app_path('Filament/Vendor/Pages'), for: 'App\\Filament\\Vendor\\Pages')
@@ -74,13 +65,6 @@ class VendorPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                SetFilamentLocale::class,
-            ])
-            ->userMenuItems([
-                MenuItem::make()
-                    ->label(fn () => app()->getLocale() === 'en' ? 'Français' : 'English')
-                    ->icon(fn () => app()->getLocale() === 'en' ? 'heroicon-o-language' : 'heroicon-o-language')
-                    ->url(fn () => route('filament.locale.switch', ['locale' => app()->getLocale() === 'en' ? 'fr' : 'en'])),
             ])
             ->authMiddleware([
                 Authenticate::class,
