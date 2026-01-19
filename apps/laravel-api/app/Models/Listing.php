@@ -200,6 +200,9 @@ class Listing extends Model
         'safety_info',
         'accessibility_info',
         'difficulty_details',
+        // Gallery
+        'gallery_layout',
+        'gallery_images',
     ];
 
     /**
@@ -248,6 +251,7 @@ class Listing extends Model
             'safety_info' => 'array',
             'accessibility_info' => 'array',
             'difficulty_details' => 'array',
+            'gallery_images' => 'array',
         ];
     }
 

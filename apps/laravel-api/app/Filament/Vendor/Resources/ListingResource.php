@@ -170,7 +170,78 @@ class ListingResource extends Resource
                                 ->columnSpanFull(),
                         ]),
 
-                    // Step 2: Details & Highlights
+                    // Step 2: Media & Gallery
+                    Forms\Components\Wizard\Step::make('Media & Gallery')
+                        ->icon('heroicon-o-photo')
+                        ->description('Upload photos and choose layout')
+                        ->schema([
+                            Forms\Components\Section::make('Listing Photos')
+                                ->description('Upload up to 10 photos. Drag to reorder. First photo is the cover.')
+                                ->schema([
+                                    Forms\Components\Select::make('gallery_layout')
+                                        ->label('Gallery Layout')
+                                        ->options([
+                                            'bento-1-4' => 'Hero + 4 Grid (1 large left, 4 small right)',
+                                            'bento-2-3' => '2 Medium + 3 Small',
+                                            'bento-1-2-2' => '1 Large + 2 Medium + 2 Small',
+                                            'grid-3' => '3 Column Grid',
+                                            'masonry' => 'Masonry Layout',
+                                        ])
+                                        ->default('bento-1-4')
+                                        ->live()
+                                        ->helperText('Choose how photos display on your listing page'),
+
+                                    Forms\Components\FileUpload::make('gallery_images')
+                                        ->label('Photos')
+                                        ->image()
+                                        ->multiple()
+                                        ->reorderable()
+                                        ->maxFiles(10)
+                                        ->maxSize(5120)
+                                        ->directory('listing-galleries')
+                                        ->imageResizeMode('cover')
+                                        ->panelLayout('grid')
+                                        ->helperText('Upload up to 10 photos. Drag to reorder. First image is your cover photo.')
+                                        ->columnSpanFull(),
+
+                                    Forms\Components\Placeholder::make('layout_preview')
+                                        ->label('Layout Preview')
+                                        ->content(function (Get $get) {
+                                            $layout = $get('gallery_layout') ?? 'bento-1-4';
+                                            $images = $get('gallery_images') ?? [];
+                                            $imageCount = is_array($images) ? count($images) : 0;
+
+                                            $layoutDescriptions = [
+                                                'bento-1-4' => '1 large hero image on the left, 4 smaller images on the right (requires 5 photos for full effect)',
+                                                'bento-2-3' => '2 medium images on top, 3 smaller images below (requires 5 photos for full effect)',
+                                                'bento-1-2-2' => '1 large image, 2 medium below, 2 small at bottom (requires 5 photos for full effect)',
+                                                'grid-3' => 'Uniform 3-column grid layout (works with any number of photos)',
+                                                'masonry' => 'Pinterest-style masonry layout (works with any number of photos)',
+                                            ];
+
+                                            $description = $layoutDescriptions[$layout] ?? '';
+
+                                            return new \Illuminate\Support\HtmlString(sprintf(
+                                                '<div class="p-4 bg-gray-50 rounded-lg">
+                                                    <div class="text-sm text-gray-600 mb-2">
+                                                        <strong>Selected Layout:</strong> %s
+                                                    </div>
+                                                    <div class="text-sm text-gray-500 mb-2">%s</div>
+                                                    <div class="text-sm %s">
+                                                        <strong>Photos uploaded:</strong> %d / 10
+                                                    </div>
+                                                </div>',
+                                                e(ucwords(str_replace('-', ' ', $layout))),
+                                                e($description),
+                                                $imageCount > 0 ? 'text-green-600' : 'text-orange-600',
+                                                $imageCount
+                                            ));
+                                        })
+                                        ->dehydrated(false),
+                                ]),
+                        ]),
+
+                    // Step 3: Details & Highlights
                     Forms\Components\Wizard\Step::make('Details & Highlights')
                         ->icon('heroicon-o-sparkles')
                         ->schema([
@@ -1134,9 +1205,9 @@ class ListingResource extends Resource
                                             0 => 'Sunday',
                                         ])
                                         ->columns(4)
-                                        ->visible(fn ($get) => $get('rule_type') === 'weekly')
+                                        ->visible(fn ($get) => in_array($get('rule_type'), ['weekly', 'daily']))
                                         ->default([1, 2, 3, 4, 5])
-                                        ->required(fn ($get) => $get('rule_type') === 'weekly'),
+                                        ->required(fn ($get) => in_array($get('rule_type'), ['weekly', 'daily'])),
 
                                     Forms\Components\Grid::make(2)->schema([
                                         Forms\Components\TimePicker::make('start_time')

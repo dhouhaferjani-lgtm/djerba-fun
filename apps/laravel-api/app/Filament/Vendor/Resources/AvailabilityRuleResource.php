@@ -88,7 +88,10 @@ class AvailabilityRuleResource extends Resource
                                 6 => 'Saturday',
                             ])
                             ->columns(7)
-                            ->visible(fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::WEEKLY->value)
+                            ->visible(fn (Forms\Get $get): bool => in_array($get('rule_type'), [
+                                AvailabilityRuleType::WEEKLY->value,
+                                AvailabilityRuleType::DAILY->value,
+                            ]))
                             ->helperText('Select the days when this tour/event is available'),
 
                         Forms\Components\TimePicker::make('start_time')
@@ -104,7 +107,8 @@ class AvailabilityRuleResource extends Resource
                         Forms\Components\DatePicker::make('start_date')
                             ->label('Start Date')
                             ->native(false)
-                            ->helperText('When does this availability start? Leave empty for immediate.'),
+                            ->default(now())
+                            ->helperText('When does this availability start?'),
 
                         Forms\Components\DatePicker::make('end_date')
                             ->label('End Date')
