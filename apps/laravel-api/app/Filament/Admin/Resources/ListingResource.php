@@ -22,22 +22,30 @@ class ListingResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Catalog';
-
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.catalog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.listings');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Listing Information')
+                Forms\Components\Section::make(__('filament.sections.listing_information'))
                     ->schema([
                         Forms\Components\TextInput::make('title.en')
-                            ->label('Title (English)')
+                            ->label(__('filament.labels.title_english'))
                             ->disabled(),
 
                         Forms\Components\TextInput::make('title.fr')
-                            ->label('Title (French)')
+                            ->label(__('filament.labels.title_french'))
                             ->disabled(),
 
                         Forms\Components\Select::make('service_type')
@@ -64,7 +72,7 @@ class ListingResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Location')
+                Forms\Components\Section::make(__('filament.sections.location'))
                     ->schema([
                         Forms\Components\Select::make('location_id')
                             ->relationship(
@@ -76,28 +84,28 @@ class ListingResource extends Resource
                             ->preload(),
                     ]),
 
-                Forms\Components\Section::make('Description')
+                Forms\Components\Section::make(__('filament.sections.description'))
                     ->schema([
                         Forms\Components\Textarea::make('summary.en')
-                            ->label('Summary (English)')
+                            ->label(__('filament.labels.summary_english'))
                             ->disabled()
                             ->rows(3)
                             ->columnSpanFull(),
 
                         Forms\Components\RichEditor::make('description.en')
-                            ->label('Description (English)')
+                            ->label(__('filament.labels.description_english'))
                             ->disabled()
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make('Pricing & Capacity')
+                Forms\Components\Section::make(__('filament.sections.pricing_capacity'))
                     ->schema([
                         Forms\Components\TextInput::make('pricing.base')
-                            ->label('Base Price (cents)')
+                            ->label(__('filament.labels.base_price'))
                             ->disabled(),
 
                         Forms\Components\TextInput::make('pricing.currency')
-                            ->label('Currency')
+                            ->label(__('filament.labels.currency'))
                             ->disabled(),
 
                         Forms\Components\TextInput::make('min_group_size')
@@ -108,11 +116,11 @@ class ListingResource extends Resource
                     ])
                     ->columns(4),
 
-                Forms\Components\Section::make('Moderation')
+                Forms\Components\Section::make(__('filament.sections.moderation'))
                     ->schema([
                         Forms\Components\Textarea::make('rejection_reason')
-                            ->label('Rejection Reason')
-                            ->helperText('If rejecting, provide a reason for the vendor.')
+                            ->label(__('filament.labels.rejection_reason'))
+                            ->helperText(__('filament.helpers.rejection_reason_helper'))
                             ->rows(3)
                             ->visible(fn ($record) => $record?->status === ListingStatus::REJECTED)
                             ->columnSpanFull(),
@@ -125,27 +133,33 @@ class ListingResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Title')
+                    ->label(__('filament.labels.title'))
                     ->formatStateUsing(function ($record) {
                         $title = $record->getTranslation('title', app()->getLocale());
+
                         // Handle malformed nested arrays from earlier bug
                         if (is_array($title)) {
                             $title = $title[app()->getLocale()] ?? $title['en'] ?? reset($title) ?: 'Untitled';
+
                             while (is_array($title)) {
                                 $title = reset($title) ?: 'Untitled';
                             }
                         }
+
                         return $title ?: 'Untitled';
                     })
                     ->limit(30)
                     ->tooltip(function ($record) {
                         $title = $record->getTranslation('title', app()->getLocale());
+
                         if (is_array($title)) {
                             $title = $title[app()->getLocale()] ?? $title['en'] ?? reset($title) ?: 'Untitled';
+
                             while (is_array($title)) {
                                 $title = reset($title) ?: 'Untitled';
                             }
                         }
+
                         return $title ?: 'Untitled';
                     })
                     ->searchable(false),
@@ -155,12 +169,12 @@ class ListingResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('vendor.display_name')
-                    ->label('Vendor')
+                    ->label(__('filament.labels.vendor'))
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('service_type')
-                    ->label('Type')
+                    ->label(__('filament.labels.type'))
                     ->badge()
                     ->color(fn (ServiceType $state): string => match ($state) {
                         ServiceType::TOUR => 'info',
@@ -172,44 +186,47 @@ class ListingResource extends Resource
                     ->color(fn (ListingStatus $state): string => $state->color()),
 
                 Tables\Columns\TextColumn::make('location.name')
-                    ->label('Location')
+                    ->label(__('filament.sections.location'))
                     ->formatStateUsing(function ($record) {
                         $name = $record->location?->getTranslation('name', app()->getLocale());
+
                         if (is_array($name)) {
                             $name = $name[app()->getLocale()] ?? $name['en'] ?? reset($name) ?: '-';
+
                             while (is_array($name)) {
                                 $name = reset($name) ?: '-';
                             }
                         }
+
                         return $name ?: '-';
                     })
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('pricing.base')
-                    ->label('Price')
+                    ->label(__('filament.labels.price'))
                     ->formatStateUsing(
                         fn ($state, $record) => $state ? number_format((float) $state / 100, 2) . ' ' . ($record->pricing['currency'] ?? 'TND') : '-'
                     )
                     ->alignEnd(),
 
                 Tables\Columns\TextColumn::make('bookings_count')
-                    ->label('Bookings')
+                    ->label(__('filament.resources.bookings'))
                     ->sortable()
                     ->alignCenter(),
 
                 Tables\Columns\TextColumn::make('rating')
-                    ->label('Rating')
+                    ->label(__('filament.labels.rating'))
                     ->formatStateUsing(fn ($state) => $state ? number_format((float) $state, 1) : '-')
                     ->alignCenter(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label(__('filament.labels.created'))
                     ->date()
                     ->sortable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('published_at')
-                    ->label('Published')
+                    ->label(__('filament.labels.published'))
                     ->date()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -227,12 +244,12 @@ class ListingResource extends Resource
 
                 Tables\Filters\SelectFilter::make('service_type')
                     ->options([
-                        ServiceType::TOUR->value => 'Tours',
-                        ServiceType::EVENT->value => 'Events',
+                        ServiceType::TOUR->value => __('filament.options.tours'),
+                        ServiceType::EVENT->value => __('filament.options.events'),
                     ]),
 
                 Tables\Filters\Filter::make('pending_review')
-                    ->label('Pending Review')
+                    ->label(__('filament.filters.pending_review'))
                     ->query(fn (Builder $query): Builder => $query->where('status', ListingStatus::PENDING_REVIEW))
                     ->toggle(),
 
@@ -244,45 +261,48 @@ class ListingResource extends Resource
 
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('approve')
-                        ->label('Approve & Publish')
+                        ->label(__('filament.actions.approve_publish'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->modalHeading('Approve Listing')
-                        ->modalDescription('This will publish the listing and make it visible to travelers.')
+                        ->modalHeading(__('filament.modals.approve_listing'))
+                        ->modalDescription(__('filament.modals.approve_listing_description'))
                         ->action(function (Listing $record) {
                             // Validate required fields before publishing
                             $errors = [];
 
                             // Check title
                             $title = $record->getTranslation('title', 'en');
+
                             if (empty($title) || (is_array($title) && empty(array_filter($title)))) {
-                                $errors[] = 'English title is required';
+                                $errors[] = __('filament.validation.english_title_required');
                             }
 
                             // Check summary
                             $summary = $record->getTranslation('summary', 'en');
+
                             if (empty($summary) || (is_array($summary) && empty(array_filter($summary)))) {
-                                $errors[] = 'English summary is required';
+                                $errors[] = __('filament.validation.english_summary_required');
                             }
 
                             // Check pricing - accept new or old format
                             $pricing = $record->pricing;
-                            $hasNewFormatPricing = !empty($pricing['person_types']) || !empty($pricing['personTypes']);
-                            $hasOldFormatPricing = !empty($pricing['base_price']) || !empty($pricing['tnd_price']) || !empty($pricing['eur_price']);
-                            if (!$hasNewFormatPricing && !$hasOldFormatPricing) {
-                                $errors[] = 'Pricing information is required';
+                            $hasNewFormatPricing = ! empty($pricing['person_types']) || ! empty($pricing['personTypes']);
+                            $hasOldFormatPricing = ! empty($pricing['base_price']) || ! empty($pricing['tnd_price']) || ! empty($pricing['eur_price']);
+
+                            if (! $hasNewFormatPricing && ! $hasOldFormatPricing) {
+                                $errors[] = __('filament.validation.pricing_required');
                             }
 
                             // Check location
                             if (empty($record->location_id)) {
-                                $errors[] = 'Location is required';
+                                $errors[] = __('filament.validation.location_required');
                             }
 
-                            if (!empty($errors)) {
+                            if (! empty($errors)) {
                                 Notification::make()
-                                    ->title('Cannot Publish Listing')
-                                    ->body('Missing required fields: ' . implode(', ', $errors))
+                                    ->title(__('filament.notifications.cannot_publish'))
+                                    ->body(implode(', ', $errors))
                                     ->danger()
                                     ->persistent()
                                     ->send();
@@ -296,27 +316,27 @@ class ListingResource extends Resource
                             ]);
 
                             Notification::make()
-                                ->title('Listing Approved')
-                                ->body('The listing has been published.')
+                                ->title(__('filament.notifications.listing_approved'))
+                                ->body(__('filament.notifications.listing_approved_body'))
                                 ->success()
                                 ->send();
                         })
                         ->visible(fn (Listing $record) => $record->status === ListingStatus::PENDING_REVIEW),
 
                     Tables\Actions\Action::make('reject')
-                        ->label('Reject')
+                        ->label(__('filament.actions.reject'))
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->form([
                             Forms\Components\Textarea::make('reason')
-                                ->label('Rejection Reason')
+                                ->label(__('filament.labels.rejection_reason'))
                                 ->required()
                                 ->rows(3)
-                                ->helperText('This will be shared with the vendor.'),
+                                ->helperText(__('filament.helpers.rejection_shared_helper')),
                         ])
                         ->requiresConfirmation()
-                        ->modalHeading('Reject Listing')
-                        ->modalDescription('The vendor will be notified of the rejection.')
+                        ->modalHeading(__('filament.modals.reject_listing'))
+                        ->modalDescription(__('filament.modals.reject_listing_description'))
                         ->action(function (Listing $record, array $data) {
                             $record->update([
                                 'status' => ListingStatus::REJECTED,
@@ -325,15 +345,15 @@ class ListingResource extends Resource
                             // TODO: Send notification to vendor with rejection reason
 
                             Notification::make()
-                                ->title('Listing Rejected')
-                                ->body('The listing has been rejected.')
+                                ->title(__('filament.notifications.listing_rejected'))
+                                ->body(__('filament.notifications.listing_rejected_body'))
                                 ->warning()
                                 ->send();
                         })
                         ->visible(fn (Listing $record) => $record->status === ListingStatus::PENDING_REVIEW),
 
                     Tables\Actions\Action::make('archive')
-                        ->label('Archive')
+                        ->label(__('filament.actions.archive'))
                         ->icon('heroicon-o-archive-box')
                         ->color('gray')
                         ->requiresConfirmation()
@@ -341,14 +361,14 @@ class ListingResource extends Resource
                             $record->archive();
 
                             Notification::make()
-                                ->title('Listing Archived')
+                                ->title(__('filament.notifications.listing_archived'))
                                 ->success()
                                 ->send();
                         })
                         ->visible(fn (Listing $record) => $record->status === ListingStatus::PUBLISHED),
 
                     Tables\Actions\Action::make('republish')
-                        ->label('Re-publish')
+                        ->label(__('filament.actions.republish'))
                         ->icon('heroicon-o-arrow-path')
                         ->color('success')
                         ->requiresConfirmation()
@@ -356,7 +376,7 @@ class ListingResource extends Resource
                             $record->publish();
 
                             Notification::make()
-                                ->title('Listing Re-published')
+                                ->title(__('filament.notifications.listing_republished'))
                                 ->success()
                                 ->send();
                         })
@@ -374,7 +394,7 @@ class ListingResource extends Resource
                     Tables\Actions\RestoreBulkAction::make(),
 
                     Tables\Actions\BulkAction::make('bulk_approve')
-                        ->label('Approve Selected')
+                        ->label(__('filament.actions.approve_selected'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
@@ -390,12 +410,12 @@ class ListingResource extends Resource
                                 // Validate required fields
                                 $title = $record->getTranslation('title', 'en');
                                 $summary = $record->getTranslation('summary', 'en');
-                                $hasTitle = !empty($title) && !(is_array($title) && empty(array_filter($title)));
-                                $hasSummary = !empty($summary) && !(is_array($summary) && empty(array_filter($summary)));
+                                $hasTitle = ! empty($title) && ! (is_array($title) && empty(array_filter($title)));
+                                $hasSummary = ! empty($summary) && ! (is_array($summary) && empty(array_filter($summary)));
                                 $pricing = $record->pricing;
-                                $hasPricing = !empty($pricing['person_types']) || !empty($pricing['personTypes']) ||
-                                              !empty($pricing['base_price']) || !empty($pricing['tnd_price']) || !empty($pricing['eur_price']);
-                                $hasLocation = !empty($record->location_id);
+                                $hasPricing = ! empty($pricing['person_types']) || ! empty($pricing['personTypes']) ||
+                                              ! empty($pricing['base_price']) || ! empty($pricing['tnd_price']) || ! empty($pricing['eur_price']);
+                                $hasLocation = ! empty($record->location_id);
 
                                 if ($hasTitle && $hasSummary && $hasPricing && $hasLocation) {
                                     $record->publish();
@@ -405,9 +425,10 @@ class ListingResource extends Resource
                                 }
                             }
 
-                            $message = "$approved listings approved";
+                            $message = __('filament.notifications.listings_approved', ['approved' => $approved]);
+
                             if ($skipped > 0) {
-                                $message .= ", $skipped skipped (incomplete data)";
+                                $message = __('filament.notifications.listings_skipped', ['approved' => $approved, 'skipped' => $skipped]);
                             }
 
                             Notification::make()
@@ -417,7 +438,7 @@ class ListingResource extends Resource
                         }),
 
                     Tables\Actions\BulkAction::make('bulk_archive')
-                        ->label('Archive Selected')
+                        ->label(__('filament.actions.archive_selected'))
                         ->icon('heroicon-o-archive-box')
                         ->color('gray')
                         ->requiresConfirmation()
@@ -432,7 +453,7 @@ class ListingResource extends Resource
                             }
 
                             Notification::make()
-                                ->title("$count listings archived")
+                                ->title(__('filament.notifications.listings_archived', ['count' => $count]))
                                 ->success()
                                 ->send();
                         }),
@@ -472,6 +493,6 @@ class ListingResource extends Resource
 
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return 'Pending review';
+        return __('filament.tooltips.pending_review');
     }
 }

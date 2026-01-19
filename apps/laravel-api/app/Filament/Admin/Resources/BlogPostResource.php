@@ -23,11 +23,17 @@ class BlogPostResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Content';
-
     protected static ?int $navigationSort = 1;
 
-    protected static ?string $navigationLabel = 'Blog Posts';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.content');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.blog_posts');
+    }
 
     public static function getTranslatableLocales(): array
     {
@@ -38,10 +44,10 @@ class BlogPostResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Content')
+                Forms\Components\Section::make(__('filament.sections.content'))
                     ->schema([
                         Forms\Components\TextInput::make('title')
-                            ->label('Title')
+                            ->label(__('filament.labels.title'))
                             ->required()
                             ->maxLength(255)
                             ->live(debounce: 500)
@@ -66,7 +72,7 @@ class BlogPostResource extends Resource
                             ->dehydrated(false),
 
                         Forms\Components\TextInput::make('slug')
-                            ->label('Slug')
+                            ->label(__('filament.labels.slug'))
                             ->required()
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
@@ -74,21 +80,22 @@ class BlogPostResource extends Resource
                             ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state) {
                                 // When user manually edits slug, clear the auto_slug tracker
                                 $autoSlug = $get('_auto_slug');
+
                                 if ($state !== $autoSlug) {
                                     $set('_auto_slug', null);
                                 }
                             })
-                            ->helperText('Auto-generated from title. Edit to customize.'),
+                            ->helperText(__('filament.helpers.slug_auto_generated')),
 
                         Forms\Components\Textarea::make('excerpt')
-                            ->label('Excerpt')
+                            ->label(__('filament.labels.excerpt'))
                             ->rows(3)
                             ->maxLength(500)
-                            ->helperText('Short summary (auto-generated if left empty)')
+                            ->helperText(__('filament.helpers.excerpt_auto_generated'))
                             ->columnSpanFull(),
 
                         Forms\Components\RichEditor::make('content')
-                            ->label('Content')
+                            ->label(__('filament.labels.content'))
                             ->required()
                             ->fileAttachmentsDisk('public')
                             ->fileAttachmentsDirectory('blog-attachments')
@@ -113,10 +120,10 @@ class BlogPostResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Metadata')
+                Forms\Components\Section::make(__('filament.sections.metadata'))
                     ->schema([
                         Forms\Components\Select::make('author_id')
-                            ->label('Author')
+                            ->label(__('filament.labels.author'))
                             ->relationship(
                                 'author',
                                 'display_name',
@@ -131,7 +138,7 @@ class BlogPostResource extends Resource
                             ->default(fn () => auth()->id()),
 
                         Forms\Components\Select::make('blog_category_id')
-                            ->label('Category')
+                            ->label(__('filament.labels.category'))
                             ->relationship('category', 'name')
                             ->searchable()
                             ->preload()
@@ -144,16 +151,16 @@ class BlogPostResource extends Resource
                             ]),
 
                         Forms\Components\TagsInput::make('tags')
-                            ->label('Tags')
-                            ->placeholder('Add tags')
+                            ->label(__('filament.labels.tags'))
+                            ->placeholder(__('filament.helpers.add_tags'))
                             ->separator(','),
                     ])
                     ->columns(3),
 
-                Forms\Components\Section::make('Media')
+                Forms\Components\Section::make(__('filament.sections.media'))
                     ->schema([
                         Forms\Components\FileUpload::make('featured_image')
-                            ->label('Featured Image')
+                            ->label(__('filament.labels.featured_image'))
                             ->image()
                             ->disk('public')
                             ->directory('blog-images')
@@ -162,14 +169,14 @@ class BlogPostResource extends Resource
                             ->maxSize(10240),
                     ]),
 
-                Forms\Components\Section::make('Publishing')
+                Forms\Components\Section::make(__('filament.sections.publishing'))
                     ->schema([
                         Forms\Components\Select::make('status')
-                            ->label('Status')
+                            ->label(__('filament.labels.status'))
                             ->options([
-                                'draft' => 'Draft',
-                                'published' => 'Published',
-                                'scheduled' => 'Scheduled',
+                                'draft' => __('filament.options.draft'),
+                                'published' => __('filament.options.published'),
+                                'scheduled' => __('filament.options.scheduled'),
                             ])
                             ->required()
                             ->default('draft')
@@ -182,28 +189,28 @@ class BlogPostResource extends Resource
                             }),
 
                         Forms\Components\DateTimePicker::make('published_at')
-                            ->label('Publish Date')
+                            ->label(__('filament.labels.publish_date'))
                             ->seconds(false)
                             ->visible(fn (Forms\Get $get) => in_array($get('status'), ['published', 'scheduled'])),
 
                         Forms\Components\Toggle::make('is_featured')
-                            ->label('Feature on Homepage')
-                            ->helperText('Show this post on the homepage'),
+                            ->label(__('filament.labels.feature_on_homepage'))
+                            ->helperText(__('filament.helpers.show_on_homepage')),
                     ])
                     ->columns(3),
 
-                Forms\Components\Section::make('SEO')
+                Forms\Components\Section::make(__('filament.sections.seo'))
                     ->schema([
                         Forms\Components\TextInput::make('seo_title')
-                            ->label('SEO Title')
+                            ->label(__('filament.labels.seo_title'))
                             ->maxLength(60)
-                            ->helperText('Max 60 characters (defaults to post title)'),
+                            ->helperText(__('filament.helpers.seo_title_max')),
 
                         Forms\Components\Textarea::make('seo_description')
-                            ->label('SEO Description')
+                            ->label(__('filament.labels.seo_description'))
                             ->rows(2)
                             ->maxLength(160)
-                            ->helperText('Max 160 characters (defaults to excerpt)'),
+                            ->helperText(__('filament.helpers.seo_description_max')),
                     ])
                     ->collapsed(),
             ]);
@@ -214,29 +221,29 @@ class BlogPostResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('featured_image')
-                    ->label('Image')
+                    ->label(__('filament.labels.image'))
                     ->square()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Title')
+                    ->label(__('filament.labels.title'))
                     ->searchable()
                     ->sortable()
                     ->limit(50),
 
                 Tables\Columns\TextColumn::make('author.display_name')
-                    ->label('Author')
+                    ->label(__('filament.labels.author'))
                     ->sortable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('category.name')
-                    ->label('Category')
+                    ->label(__('filament.labels.category'))
                     ->badge()
                     ->color(fn ($record) => $record->category?->color)
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
+                    ->label(__('filament.labels.status'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'draft' => 'gray',
@@ -246,24 +253,24 @@ class BlogPostResource extends Resource
                     }),
 
                 Tables\Columns\IconColumn::make('is_featured')
-                    ->label('Featured')
+                    ->label(__('filament.labels.featured'))
                     ->boolean()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('views_count')
-                    ->label('Views')
+                    ->label(__('filament.labels.views'))
                     ->numeric()
                     ->sortable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('published_at')
-                    ->label('Published')
+                    ->label(__('filament.labels.published'))
                     ->date()
                     ->sortable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label(__('filament.labels.created'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -271,16 +278,16 @@ class BlogPostResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'draft' => 'Draft',
-                        'published' => 'Published',
-                        'scheduled' => 'Scheduled',
+                        'draft' => __('filament.options.draft'),
+                        'published' => __('filament.options.published'),
+                        'scheduled' => __('filament.options.scheduled'),
                     ]),
 
                 Tables\Filters\SelectFilter::make('category')
                     ->relationship('category', 'name'),
 
                 Tables\Filters\TernaryFilter::make('is_featured')
-                    ->label('Featured'),
+                    ->label(__('filament.labels.featured')),
 
                 Tables\Filters\TrashedFilter::make(),
             ])

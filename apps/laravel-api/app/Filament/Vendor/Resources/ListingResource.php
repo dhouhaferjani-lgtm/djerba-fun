@@ -33,11 +33,17 @@ class ListingResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'My Listings';
-
-    protected static ?string $navigationLabel = 'Listings';
-
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.my_listings');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.listings');
+    }
 
     public static function getEloquentQuery(): Builder
     {
@@ -137,6 +143,7 @@ class ListingResource extends Resource
                                     // When user manually edits slug, clear the auto_slug tracker
                                     // so we know not to auto-update anymore
                                     $autoSlug = $get('_auto_slug');
+
                                     if ($state !== $autoSlug) {
                                         $set('_auto_slug', null);
                                     }
@@ -923,6 +930,7 @@ class ListingResource extends Resource
                                                     ->afterStateUpdated(function ($state, $set, $get) {
                                                         // When user manually edits EUR, clear auto tracker
                                                         $autoEur = $get('_auto_eur');
+
                                                         if ((float) $state !== (float) $autoEur) {
                                                             $set('_auto_eur', null);
                                                         }
@@ -1187,15 +1195,18 @@ class ListingResource extends Resource
                     ->label('Title')
                     ->formatStateUsing(function ($record) {
                         $title = $record->getTranslation('title', app()->getLocale());
+
                         // Handle malformed nested arrays from earlier bug
                         if (is_array($title)) {
                             // Try to extract the string value from nested arrays
                             $title = $title[app()->getLocale()] ?? $title['en'] ?? reset($title) ?: 'Untitled';
+
                             // If still an array, keep drilling down
                             while (is_array($title)) {
                                 $title = reset($title) ?: 'Untitled';
                             }
                         }
+
                         return $title ?: 'Untitled';
                     })
                     ->limit(40)
@@ -1219,12 +1230,15 @@ class ListingResource extends Resource
                     ->label('Location')
                     ->formatStateUsing(function ($record) {
                         $name = $record->location?->getTranslation('name', app()->getLocale());
+
                         if (is_array($name)) {
                             $name = $name[app()->getLocale()] ?? $name['en'] ?? reset($name) ?: '-';
+
                             while (is_array($name)) {
                                 $name = reset($name) ?: '-';
                             }
                         }
+
                         return $name ?: '-';
                     })
                     ->toggleable(),

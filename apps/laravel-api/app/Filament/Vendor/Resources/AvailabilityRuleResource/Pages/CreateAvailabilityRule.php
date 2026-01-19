@@ -8,7 +8,6 @@ use App\Filament\Vendor\Resources\AvailabilityRuleResource;
 use App\Models\Listing;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Database\Eloquent\Model;
 
 class CreateAvailabilityRule extends CreateRecord
 {
@@ -18,7 +17,8 @@ class CreateAvailabilityRule extends CreateRecord
     {
         // Verify the listing belongs to the current vendor
         $listing = Listing::find($data['listing_id']);
-        if (!$listing || $listing->vendor_id !== auth()->id()) {
+
+        if (! $listing || $listing->vendor_id !== auth()->id()) {
             Notification::make()
                 ->title('Error')
                 ->body('You can only create availability rules for your own listings.')

@@ -20,13 +20,19 @@ class LocationResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Content';
-
     protected static ?int $navigationSort = 3;
 
-    protected static ?string $navigationLabel = 'Locations';
-
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.content');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.locations');
+    }
 
     public static function getTranslatableLocales(): array
     {
@@ -37,9 +43,10 @@ class LocationResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Location Information')
+                Forms\Components\Section::make(__('filament.sections.location_information'))
                     ->schema([
                         Forms\Components\TextInput::make('name')
+                            ->label(__('filament.labels.name'))
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
@@ -51,47 +58,53 @@ class LocationResource extends Resource
                             ->columnSpan(1),
 
                         Forms\Components\TextInput::make('slug')
+                            ->label(__('filament.labels.slug'))
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255)
-                            ->helperText('URL-friendly identifier (auto-generated from name)')
+                            ->helperText(__('filament.helpers.slug_url_friendly'))
                             ->columnSpan(1),
 
                         Forms\Components\Textarea::make('description')
+                            ->label(__('filament.labels.description'))
                             ->rows(4)
                             ->columnSpanFull()
-                            ->helperText('Rich description for destination landing pages'),
+                            ->helperText(__('filament.helpers.description_rich')),
 
                         Forms\Components\TextInput::make('image_url')
-                            ->label('Image URL')
+                            ->label(__('filament.labels.image_url'))
                             ->url()
                             ->maxLength(500)
                             ->columnSpanFull()
-                            ->helperText('Full URL to destination hero image (e.g., from Unsplash or uploaded to MinIO)'),
+                            ->helperText(__('filament.helpers.image_url_helper')),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Geographic Information')
+                Forms\Components\Section::make(__('filament.sections.geographic_information'))
                     ->schema([
                         Forms\Components\TextInput::make('address')
+                            ->label(__('filament.labels.address'))
                             ->maxLength(255)
                             ->columnSpanFull(),
 
                         Forms\Components\TextInput::make('city')
+                            ->label(__('filament.labels.city'))
                             ->maxLength(100)
                             ->columnSpan(1),
 
                         Forms\Components\TextInput::make('region')
-                            ->label('Region/State')
+                            ->label(__('filament.labels.region'))
                             ->maxLength(100)
                             ->columnSpan(1),
 
                         Forms\Components\TextInput::make('country')
+                            ->label(__('filament.labels.country'))
                             ->required()
                             ->default('Tunisia')
                             ->maxLength(100)
                             ->columnSpan(1),
 
                         Forms\Components\Select::make('timezone')
+                            ->label(__('filament.labels.timezone'))
                             ->options([
                                 'Africa/Tunis' => 'Africa/Tunis (UTC+1)',
                                 'Europe/Paris' => 'Europe/Paris (UTC+1/+2)',
@@ -102,7 +115,7 @@ class LocationResource extends Resource
                             ->columnSpan(1),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Map Coordinates')
+                Forms\Components\Section::make(__('filament.sections.map_coordinates'))
                     ->schema([
                         \Cheesegrits\FilamentGoogleMaps\Fields\Map::make('location')
                             ->mapControls([
@@ -124,12 +137,14 @@ class LocationResource extends Resource
 
                         Forms\Components\Grid::make(2)->schema([
                             Forms\Components\TextInput::make('latitude')
+                                ->label(__('filament.labels.latitude'))
                                 ->numeric()
                                 ->readOnly()
                                 ->dehydrated()
                                 ->columnSpan(1),
 
                             Forms\Components\TextInput::make('longitude')
+                                ->label(__('filament.labels.longitude'))
                                 ->numeric()
                                 ->readOnly()
                                 ->dehydrated()
@@ -137,15 +152,15 @@ class LocationResource extends Resource
                         ]),
                     ]),
 
-                Forms\Components\Section::make('Statistics')
+                Forms\Components\Section::make(__('filament.sections.statistics'))
                     ->schema([
                         Forms\Components\TextInput::make('listings_count')
-                            ->label('Number of Listings')
+                            ->label(__('filament.labels.number_of_listings'))
                             ->numeric()
                             ->default(0)
                             ->disabled()
                             ->dehydrated(false)
-                            ->helperText('Auto-calculated based on published listings'),
+                            ->helperText(__('filament.helpers.listings_count_helper')),
                     ])
                     ->visibleOn('edit'),
             ]);
@@ -156,16 +171,18 @@ class LocationResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('image_url')
-                    ->label('Image')
+                    ->label(__('filament.labels.image'))
                     ->width(80)
                     ->height(60)
                     ->defaultImageUrl(url('/images/placeholder-location.jpg')),
 
                 Tables\Columns\TextColumn::make('name')
+                    ->label(__('filament.labels.name'))
                     ->searchable()
                     ->weight('medium'),
 
                 Tables\Columns\TextColumn::make('slug')
+                    ->label(__('filament.labels.slug'))
                     ->searchable()
                     ->copyable()
                     ->copyMessage('Slug copied!')
@@ -173,21 +190,24 @@ class LocationResource extends Resource
                     ->size('sm'),
 
                 Tables\Columns\TextColumn::make('city')
+                    ->label(__('filament.labels.city'))
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('region')
+                    ->label(__('filament.labels.region'))
                     ->searchable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('country')
+                    ->label(__('filament.labels.country'))
                     ->searchable()
                     ->sortable()
                     ->badge(),
 
                 Tables\Columns\TextColumn::make('listings_count')
-                    ->label('Listings')
+                    ->label(__('filament.labels.listings'))
                     ->sortable()
                     ->badge()
                     ->color(fn (int $state): string => match (true) {
@@ -197,19 +217,23 @@ class LocationResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('latitude')
+                    ->label(__('filament.labels.latitude'))
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->placeholder('—'),
 
                 Tables\Columns\TextColumn::make('longitude')
+                    ->label(__('filament.labels.longitude'))
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->placeholder('—'),
 
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('filament.labels.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label(__('filament.labels.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -217,6 +241,7 @@ class LocationResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('country')
+                    ->label(__('filament.labels.country'))
                     ->options([
                         'Tunisia' => 'Tunisia',
                         'Morocco' => 'Morocco',
@@ -224,11 +249,11 @@ class LocationResource extends Resource
                     ]),
 
                 Tables\Filters\Filter::make('has_listings')
-                    ->label('Has Listings')
+                    ->label(__('filament.filters.has_listings'))
                     ->query(fn ($query) => $query->where('listings_count', '>', 0)),
 
                 Tables\Filters\Filter::make('has_coordinates')
-                    ->label('Has Coordinates')
+                    ->label(__('filament.filters.has_coordinates'))
                     ->query(fn ($query) => $query->whereNotNull('latitude')->whereNotNull('longitude')),
             ])
             ->actions([
@@ -257,8 +282,8 @@ class LocationResource extends Resource
                         }),
                 ]),
             ])
-            ->emptyStateHeading('No locations yet')
-            ->emptyStateDescription('Create your first destination/location to organize listings')
+            ->emptyStateHeading(__('filament.empty_states.no_locations'))
+            ->emptyStateDescription(__('filament.empty_states.create_first_location'))
             ->emptyStateIcon('heroicon-o-map-pin')
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make(),

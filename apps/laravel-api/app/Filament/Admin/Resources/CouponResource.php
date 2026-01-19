@@ -19,17 +19,26 @@ class CouponResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Marketing';
-
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.marketing');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.coupons');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Basic Information')
+                Forms\Components\Section::make(__('filament.sections.basic_information'))
                     ->schema([
                         Forms\Components\TextInput::make('code')
+                            ->label(__('filament.labels.code'))
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255)
@@ -38,78 +47,90 @@ class CouponResource extends Resource
                             ->columnSpanFull(),
 
                         Forms\Components\TextInput::make('name')
+                            ->label(__('filament.labels.name'))
                             ->required()
                             ->maxLength(255),
 
                         Forms\Components\Toggle::make('is_active')
-                            ->label('Active')
+                            ->label(__('filament.labels.active'))
                             ->default(true),
 
                         Forms\Components\Textarea::make('description')
+                            ->label(__('filament.labels.description'))
                             ->rows(3)
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Discount Settings')
+                Forms\Components\Section::make(__('filament.sections.discount_settings'))
                     ->schema([
                         Forms\Components\Select::make('discount_type')
+                            ->label(__('filament.labels.discount_type'))
                             ->options([
-                                DiscountType::PERCENTAGE->value => 'Percentage',
-                                DiscountType::FIXED_AMOUNT->value => 'Fixed Amount',
+                                DiscountType::PERCENTAGE->value => __('filament.options.percentage'),
+                                DiscountType::FIXED_AMOUNT->value => __('filament.options.fixed_amount'),
                             ])
                             ->required()
                             ->live(),
 
                         Forms\Components\TextInput::make('discount_value')
+                            ->label(__('filament.labels.discount_value'))
                             ->required()
                             ->numeric()
                             ->minValue(0)
                             ->suffix(fn (Forms\Get $get) => $get('discount_type') === DiscountType::PERCENTAGE->value ? '%' : 'CAD'),
 
                         Forms\Components\TextInput::make('minimum_order')
+                            ->label(__('filament.labels.minimum_order'))
                             ->numeric()
                             ->minValue(0)
                             ->suffix('CAD')
-                            ->helperText('Minimum order amount required to use this coupon'),
+                            ->helperText(__('filament.helpers.minimum_order_helper')),
 
                         Forms\Components\TextInput::make('maximum_discount')
+                            ->label(__('filament.labels.maximum_discount'))
                             ->numeric()
                             ->minValue(0)
                             ->suffix('CAD')
-                            ->helperText('Maximum discount amount (for percentage discounts)')
+                            ->helperText(__('filament.helpers.maximum_discount_helper'))
                             ->visible(fn (Forms\Get $get) => $get('discount_type') === DiscountType::PERCENTAGE->value),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Validity & Usage')
+                Forms\Components\Section::make(__('filament.sections.validity_usage'))
                     ->schema([
                         Forms\Components\DateTimePicker::make('valid_from')
+                            ->label(__('filament.labels.valid_from'))
                             ->required()
                             ->default(now()),
 
                         Forms\Components\DateTimePicker::make('valid_until')
+                            ->label(__('filament.labels.valid_until'))
                             ->required()
                             ->after('valid_from'),
 
                         Forms\Components\TextInput::make('usage_limit')
+                            ->label(__('filament.labels.usage_limit'))
                             ->numeric()
                             ->minValue(1)
-                            ->helperText('Leave empty for unlimited uses'),
+                            ->helperText(__('filament.helpers.usage_limit_helper')),
 
                         Forms\Components\TextInput::make('usage_count')
+                            ->label(__('filament.labels.usage_count'))
                             ->numeric()
                             ->disabled()
                             ->default(0)
-                            ->helperText('Number of times this coupon has been used'),
+                            ->helperText(__('filament.helpers.usage_count_helper')),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Restrictions')
+                Forms\Components\Section::make(__('filament.sections.restrictions'))
                     ->schema([
                         Forms\Components\TagsInput::make('listing_ids')
-                            ->helperText('Leave empty to apply to all listings. Enter listing UUIDs to restrict.')
+                            ->label(__('filament.labels.listing_ids'))
+                            ->helperText(__('filament.helpers.listing_ids_helper'))
                             ->columnSpanFull(),
 
                         Forms\Components\TagsInput::make('user_ids')
-                            ->helperText('Leave empty to apply to all users. Enter user UUIDs to restrict.')
+                            ->label(__('filament.labels.user_ids'))
+                            ->helperText(__('filament.helpers.user_ids_helper'))
                             ->columnSpanFull(),
                     ]),
             ]);
@@ -120,20 +141,24 @@ class CouponResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('code')
+                    ->label(__('filament.labels.code'))
                     ->searchable()
                     ->sortable()
                     ->copyable()
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('name')
+                    ->label(__('filament.labels.name'))
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('discount_type')
+                    ->label(__('filament.labels.discount_type'))
                     ->badge()
                     ->formatStateUsing(fn (DiscountType $state) => $state->label()),
 
                 Tables\Columns\TextColumn::make('discount_value')
+                    ->label(__('filament.labels.discount_value'))
                     ->formatStateUsing(function ($state, $record) {
                         return $record->discount_type === DiscountType::PERCENTAGE
                             ? $state . '%'
@@ -141,42 +166,46 @@ class CouponResource extends Resource
                     }),
 
                 Tables\Columns\IconColumn::make('is_active')
+                    ->label(__('filament.labels.active'))
                     ->boolean()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('usage_count')
-                    ->label('Used')
+                    ->label(__('filament.labels.used'))
                     ->sortable()
                     ->formatStateUsing(fn ($state, $record) => $record->usage_limit
                         ? "{$state} / {$record->usage_limit}"
                         : $state),
 
                 Tables\Columns\TextColumn::make('valid_from')
+                    ->label(__('filament.labels.valid_from'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('valid_until')
+                    ->label(__('filament.labels.valid_until'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label(__('filament.labels.active')),
 
                 Tables\Filters\SelectFilter::make('discount_type')
+                    ->label(__('filament.labels.discount_type'))
                     ->options([
-                        DiscountType::PERCENTAGE->value => 'Percentage',
-                        DiscountType::FIXED_AMOUNT->value => 'Fixed Amount',
+                        DiscountType::PERCENTAGE->value => __('filament.options.percentage'),
+                        DiscountType::FIXED_AMOUNT->value => __('filament.options.fixed_amount'),
                     ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
-                    ->modalHeading('Delete Coupon')
-                    ->modalDescription('Are you sure you want to delete this coupon? Active bookings using this coupon will not be affected.'),
+                    ->modalHeading(__('filament.modals.delete_coupon'))
+                    ->modalDescription(__('filament.modals.delete_coupon_description')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

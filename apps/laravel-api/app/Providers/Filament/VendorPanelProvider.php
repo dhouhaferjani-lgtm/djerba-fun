@@ -12,6 +12,7 @@ use Filament\Navigation\NavigationGroup;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\SpatieLaravelTranslatablePlugin;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -33,13 +34,17 @@ class VendorPanelProvider extends PanelProvider
                 'primary' => '#0D642E', // Dark forest green from design system
             ])
             ->navigationGroups([
-                NavigationGroup::make('My Listings')
+                NavigationGroup::make()
+                    ->label(fn () => __('filament.nav.my_listings'))
                     ->icon('heroicon-o-map'),
-                NavigationGroup::make('Bookings')
+                NavigationGroup::make()
+                    ->label(fn () => __('filament.nav.bookings'))
                     ->icon('heroicon-o-calendar'),
-                NavigationGroup::make('Feedback')
+                NavigationGroup::make()
+                    ->label(fn () => __('filament.nav.feedback'))
                     ->icon('heroicon-o-star'),
-                NavigationGroup::make('Finance')
+                NavigationGroup::make()
+                    ->label(fn () => __('filament.nav.finance'))
                     ->icon('heroicon-o-banknotes'),
             ])
             ->discoverResources(in: app_path('Filament/Vendor/Resources'), for: 'App\\Filament\\Vendor\\Resources')
@@ -54,7 +59,7 @@ class VendorPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
             ->plugins([
-                \Filament\SpatieLaravelTranslatablePlugin::make()
+                SpatieLaravelTranslatablePlugin::make()
                     ->defaultLocales(['en', 'fr']),
             ])
             ->middleware([

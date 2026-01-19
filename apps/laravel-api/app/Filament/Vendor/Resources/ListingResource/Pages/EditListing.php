@@ -149,9 +149,11 @@ class EditListing extends EditRecord
                 foreach ($locales as $locale) {
                     if (isset($value[$locale])) {
                         $localeValue = $value[$locale];
+
                         // Unwrap nested arrays
                         while (is_array($localeValue)) {
                             $extracted = $localeValue[$locale] ?? $localeValue['en'] ?? reset($localeValue);
+
                             if ($extracted === false || $extracted === $localeValue) {
                                 break;
                             }
@@ -201,9 +203,11 @@ class EditListing extends EditRecord
                     foreach ($locales as $locale) {
                         if (isset($value[$locale])) {
                             $localeValue = $value[$locale];
+
                             // Unwrap if the locale value is ALSO an array
                             while (is_array($localeValue)) {
                                 $extracted = $localeValue[$locale] ?? $localeValue['en'] ?? reset($localeValue);
+
                                 if ($extracted === false || $extracted === $localeValue) {
                                     break;
                                 }
@@ -239,6 +243,7 @@ class EditListing extends EditRecord
             foreach (['en', 'fr'] as $locale) {
                 if (isset($value[$locale])) {
                     $extracted = $this->extractStringFromNested($value[$locale]);
+
                     if ($extracted !== '') {
                         return $extracted;
                     }
@@ -246,6 +251,7 @@ class EditListing extends EditRecord
             }
             // Try first value
             $first = reset($value);
+
             if ($first !== false) {
                 return $this->extractStringFromNested($first);
             }

@@ -38,8 +38,10 @@ class ListExtras extends ListRecords
                             $query = ExtraTemplate::active()->ordered();
 
                             $categoryFilter = $get('category_filter');
+
                             if ($categoryFilter) {
                                 $category = ExtraCategory::tryFrom($categoryFilter);
+
                                 if ($category) {
                                     $query->byCategory($category);
                                 }
@@ -52,6 +54,7 @@ class ListExtras extends ListRecords
                                     $price = $template->suggested_price_tnd
                                         ? number_format((float) $template->suggested_price_tnd, 2) . ' TND'
                                         : '';
+
                                     return [
                                         $template->id => "{$name} ({$category}) - {$price}",
                                     ];

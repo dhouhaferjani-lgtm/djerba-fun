@@ -18,42 +18,54 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'People';
-
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.people');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.users');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('User Information')
+                Forms\Components\Section::make(__('filament.sections.user_information'))
                     ->schema([
                         Forms\Components\TextInput::make('display_name')
-                            ->label('Display Name')
+                            ->label(__('filament.labels.display_name'))
                             ->required()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('email')
+                            ->label(__('filament.labels.email'))
                             ->email()
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
                         Forms\Components\TextInput::make('password')
+                            ->label(__('filament.labels.password'))
                             ->password()
                             ->required(fn (string $operation): bool => $operation === 'create')
                             ->dehydrated(fn (?string $state): bool => filled($state))
                             ->maxLength(255),
                         Forms\Components\Select::make('role')
+                            ->label(__('filament.labels.role'))
                             ->options(UserRole::class)
                             ->required(),
                         Forms\Components\Select::make('status')
+                            ->label(__('filament.labels.status'))
                             ->options(UserStatus::class)
                             ->required(),
                         Forms\Components\TextInput::make('avatar_url')
-                            ->label('Avatar URL')
+                            ->label(__('filament.labels.avatar_url'))
                             ->url()
                             ->maxLength(255),
                         Forms\Components\DateTimePicker::make('email_verified_at')
-                            ->label('Email Verified At'),
+                            ->label(__('filament.labels.email_verified_at')),
                     ])->columns(2),
             ]);
     }
@@ -65,31 +77,37 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('id')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('display_name')
-                    ->label('Name')
+                    ->label(__('filament.labels.name'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')
+                    ->label(__('filament.labels.email'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('role')
+                    ->label(__('filament.labels.role'))
                     ->badge()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
+                    ->label(__('filament.labels.status'))
                     ->badge()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email_verified_at')
-                    ->label('Verified')
+                    ->label(__('filament.labels.verified'))
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('filament.labels.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('role')
+                    ->label(__('filament.labels.role'))
                     ->options(UserRole::class),
                 Tables\Filters\SelectFilter::make('status')
+                    ->label(__('filament.labels.status'))
                     ->options(UserStatus::class),
             ])
             ->actions([

@@ -36,21 +36,29 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => '#0D642E', // Dark forest green from design system
             ])
             ->navigationGroups([
-                NavigationGroup::make('Sales'),
-                NavigationGroup::make('Operations')
+                NavigationGroup::make()
+                    ->label(fn () => __('filament.nav.sales')),
+                NavigationGroup::make()
+                    ->label(fn () => __('filament.nav.operations'))
                     ->icon('heroicon-o-clipboard-document-list'),
-                NavigationGroup::make('People')
+                NavigationGroup::make()
+                    ->label(fn () => __('filament.nav.people'))
                     ->icon('heroicon-o-user-group'),
-                NavigationGroup::make('Catalog')
+                NavigationGroup::make()
+                    ->label(fn () => __('filament.nav.catalog'))
                     ->icon('heroicon-o-squares-2x2'),
-                NavigationGroup::make('Content')
+                NavigationGroup::make()
+                    ->label(fn () => __('filament.nav.content'))
                     ->icon('heroicon-o-document-text'),
-                NavigationGroup::make('Marketing')
+                NavigationGroup::make()
+                    ->label(fn () => __('filament.nav.marketing'))
                     ->icon('heroicon-o-megaphone'),
-                NavigationGroup::make('System')
+                NavigationGroup::make()
+                    ->label(fn () => __('filament.nav.system'))
                     ->icon('heroicon-o-cog-6-tooth')
                     ->collapsed(),
-                NavigationGroup::make('Compliance')
+                NavigationGroup::make()
+                    ->label(fn () => __('filament.nav.compliance'))
                     ->icon('heroicon-o-shield-check')
                     ->collapsed(),
             ])

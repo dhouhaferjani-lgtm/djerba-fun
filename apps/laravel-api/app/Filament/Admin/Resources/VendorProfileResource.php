@@ -21,21 +21,33 @@ class VendorProfileResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'People';
-
     protected static ?int $navigationSort = 2;
 
-    protected static ?string $navigationLabel = 'Vendor KYC';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.people');
+    }
 
-    protected static ?string $modelLabel = 'Vendor Profile';
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.vendor_kyc');
+    }
 
-    protected static ?string $pluralModelLabel = 'Vendor Profiles';
+    public static function getModelLabel(): string
+    {
+        return __('filament.resources.vendor_profile');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('filament.resources.vendor_profiles');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Vendor Information')
+                Forms\Components\Section::make(__('filament.sections.vendor_information'))
                     ->schema([
                         Forms\Components\Select::make('user_id')
                             ->relationship('user', 'display_name')
@@ -43,62 +55,62 @@ class VendorProfileResource extends Resource
                             ->preload(),
 
                         Forms\Components\TextInput::make('company_name')
-                            ->label('Company Name')
+                            ->label(__('filament.labels.company_name'))
                             ->maxLength(255),
 
                         Forms\Components\Select::make('company_type')
-                            ->label('Company Type')
+                            ->label(__('filament.labels.company_type'))
                             ->options([
-                                'individual' => 'Individual / Sole Proprietor',
-                                'company' => 'Company / LLC',
-                                'nonprofit' => 'Non-Profit Organization',
-                                'government' => 'Government Entity',
+                                'individual' => __('filament.options.individual'),
+                                'company' => __('filament.options.company_llc'),
+                                'nonprofit' => __('filament.options.nonprofit'),
+                                'government' => __('filament.options.government'),
                             ]),
 
                         Forms\Components\TextInput::make('tax_id')
-                            ->label('Tax ID / VAT Number')
+                            ->label(__('filament.labels.tax_id'))
                             ->maxLength(50),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Contact Information')
+                Forms\Components\Section::make(__('filament.sections.contact_information'))
                     ->schema([
                         Forms\Components\TextInput::make('phone')
-                            ->label('Phone Number')
+                            ->label(__('filament.labels.phone'))
                             ->tel(),
 
                         Forms\Components\TextInput::make('website_url')
-                            ->label('Website')
+                            ->label(__('filament.labels.website'))
                             ->url()
                             ->prefix('https://'),
 
                         Forms\Components\Textarea::make('description')
-                            ->label('Business Description')
+                            ->label(__('filament.labels.business_description'))
                             ->rows(3)
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Address')
+                Forms\Components\Section::make(__('filament.sections.address'))
                     ->schema([
                         Forms\Components\TextInput::make('address.street')
-                            ->label('Street Address'),
+                            ->label(__('filament.labels.street_address')),
 
                         Forms\Components\TextInput::make('address.city')
-                            ->label('City'),
+                            ->label(__('filament.labels.city')),
 
                         Forms\Components\TextInput::make('address.postal_code')
-                            ->label('Postal Code'),
+                            ->label(__('filament.labels.postal_code')),
 
                         Forms\Components\TextInput::make('address.country')
-                            ->label('Country'),
+                            ->label(__('filament.labels.country')),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('KYC Status')
+                Forms\Components\Section::make(__('filament.sections.kyc_status'))
                     ->schema([
                         Forms\Components\Select::make('kyc_status')
-                            ->label('KYC Status')
+                            ->label(__('filament.labels.status'))
                             ->options([
                                 KycStatus::PENDING->value => KycStatus::PENDING->label(),
                                 KycStatus::SUBMITTED->value => KycStatus::SUBMITTED->label(),
@@ -108,21 +120,21 @@ class VendorProfileResource extends Resource
                             ->required(),
 
                         Forms\Components\Select::make('commission_tier')
-                            ->label('Commission Tier')
+                            ->label(__('filament.labels.commission_tier'))
                             ->options([
-                                'standard' => 'Standard (15%)',
-                                'silver' => 'Silver (12%)',
-                                'gold' => 'Gold (10%)',
-                                'platinum' => 'Platinum (8%)',
+                                'standard' => __('filament.options.standard'),
+                                'silver' => __('filament.options.silver'),
+                                'gold' => __('filament.options.gold'),
+                                'platinum' => __('filament.options.platinum'),
                             ])
-                            ->helperText('Commission rate charged on bookings'),
+                            ->helperText(__('filament.helpers.commission_tier_helper')),
 
                         Forms\Components\TextInput::make('payout_account_id')
-                            ->label('Payout Account ID')
-                            ->helperText('Stripe Connect account or bank account reference'),
+                            ->label(__('filament.labels.payout_account_id'))
+                            ->helperText(__('filament.helpers.payout_account_helper')),
 
                         Forms\Components\DateTimePicker::make('verified_at')
-                            ->label('Verified At')
+                            ->label(__('filament.labels.verified_at'))
                             ->disabled(),
                     ])
                     ->columns(2),
@@ -134,23 +146,23 @@ class VendorProfileResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('user.display_name')
-                    ->label('Vendor')
+                    ->label(__('filament.labels.vendor'))
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('user.email')
-                    ->label('Email')
+                    ->label(__('filament.labels.email'))
                     ->searchable()
                     ->copyable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('company_name')
-                    ->label('Company')
+                    ->label(__('filament.labels.company'))
                     ->searchable()
                     ->limit(20),
 
                 Tables\Columns\TextColumn::make('company_type')
-                    ->label('Type')
+                    ->label(__('filament.labels.type'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'individual' => 'gray',
@@ -162,12 +174,12 @@ class VendorProfileResource extends Resource
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('kyc_status')
-                    ->label('KYC Status')
+                    ->label(__('filament.labels.status'))
                     ->badge()
                     ->color(fn (KycStatus $state): string => $state->color()),
 
                 Tables\Columns\TextColumn::make('commission_tier')
-                    ->label('Tier')
+                    ->label(__('filament.labels.tier'))
                     ->badge()
                     ->color(fn (?string $state): string => match ($state) {
                         'platinum' => 'warning',
@@ -177,26 +189,26 @@ class VendorProfileResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('listings_count')
-                    ->label('Listings')
+                    ->label(__('filament.resources.listings'))
                     ->getStateUsing(fn (VendorProfile $record) => $record->user?->listings()->count() ?? 0)
                     ->alignCenter()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('verified_at')
-                    ->label('Verified')
+                    ->label(__('filament.labels.verified'))
                     ->date()
                     ->sortable()
-                    ->placeholder('Not verified'),
+                    ->placeholder(__('filament.tooltips.not_verified')),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Joined')
+                    ->label(__('filament.labels.joined'))
                     ->date()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('kyc_status')
-                    ->label('KYC Status')
+                    ->label(__('filament.labels.status'))
                     ->options([
                         KycStatus::PENDING->value => KycStatus::PENDING->label(),
                         KycStatus::SUBMITTED->value => KycStatus::SUBMITTED->label(),
@@ -205,21 +217,21 @@ class VendorProfileResource extends Resource
                     ]),
 
                 Tables\Filters\SelectFilter::make('commission_tier')
-                    ->label('Commission Tier')
+                    ->label(__('filament.labels.commission_tier'))
                     ->options([
-                        'standard' => 'Standard',
-                        'silver' => 'Silver',
-                        'gold' => 'Gold',
-                        'platinum' => 'Platinum',
+                        'standard' => __('filament.options.standard_label'),
+                        'silver' => __('filament.options.silver_label'),
+                        'gold' => __('filament.options.gold_label'),
+                        'platinum' => __('filament.options.platinum_label'),
                     ]),
 
                 Tables\Filters\Filter::make('pending_review')
-                    ->label('Pending KYC Review')
+                    ->label(__('filament.filters.pending_kyc_review'))
                     ->query(fn (Builder $query): Builder => $query->where('kyc_status', KycStatus::SUBMITTED))
                     ->toggle(),
 
                 Tables\Filters\Filter::make('verified')
-                    ->label('Verified Only')
+                    ->label(__('filament.filters.verified_only'))
                     ->query(fn (Builder $query): Builder => $query->where('kyc_status', KycStatus::VERIFIED))
                     ->toggle(),
             ])
@@ -229,36 +241,36 @@ class VendorProfileResource extends Resource
 
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('verify')
-                        ->label('Verify Vendor')
+                        ->label(__('filament.actions.verify_vendor'))
                         ->icon('heroicon-o-check-badge')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->modalHeading('Verify Vendor')
-                        ->modalDescription('This will mark the vendor as verified and allow them to publish listings.')
+                        ->modalHeading(__('filament.modals.verify_vendor'))
+                        ->modalDescription(__('filament.modals.verify_vendor_description'))
                         ->action(function (VendorProfile $record) {
                             $record->markAsVerified();
 
                             Notification::make()
-                                ->title('Vendor Verified')
-                                ->body('The vendor has been verified successfully.')
+                                ->title(__('filament.notifications.vendor_verified'))
+                                ->body(__('filament.notifications.vendor_verified_body'))
                                 ->success()
                                 ->send();
                         })
                         ->visible(fn (VendorProfile $record) => $record->kyc_status === KycStatus::SUBMITTED),
 
                     Tables\Actions\Action::make('reject')
-                        ->label('Reject KYC')
+                        ->label(__('filament.actions.reject_kyc'))
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->form([
                             Forms\Components\Textarea::make('reason')
-                                ->label('Rejection Reason')
+                                ->label(__('filament.labels.rejection_reason'))
                                 ->required()
                                 ->rows(3)
-                                ->helperText('This will be sent to the vendor.'),
+                                ->helperText(__('filament.helpers.document_request_helper')),
                         ])
                         ->requiresConfirmation()
-                        ->modalHeading('Reject KYC Application')
+                        ->modalHeading(__('filament.modals.reject_kyc'))
                         ->action(function (VendorProfile $record, array $data) {
                             $record->update([
                                 'kyc_status' => KycStatus::REJECTED,
@@ -267,55 +279,55 @@ class VendorProfileResource extends Resource
                             // TODO: Send notification email to vendor
 
                             Notification::make()
-                                ->title('KYC Rejected')
+                                ->title(__('filament.notifications.kyc_rejected'))
                                 ->warning()
                                 ->send();
                         })
                         ->visible(fn (VendorProfile $record) => $record->kyc_status === KycStatus::SUBMITTED),
 
                     Tables\Actions\Action::make('request_documents')
-                        ->label('Request Documents')
+                        ->label(__('filament.actions.request_documents'))
                         ->icon('heroicon-o-document-text')
                         ->color('info')
                         ->form([
                             Forms\Components\CheckboxList::make('documents')
-                                ->label('Required Documents')
+                                ->label(__('filament.labels.required_documents'))
                                 ->options([
-                                    'id_proof' => 'Government ID (Passport/National ID)',
-                                    'business_license' => 'Business License',
-                                    'tax_certificate' => 'Tax Certificate',
-                                    'bank_statement' => 'Bank Statement',
-                                    'insurance' => 'Liability Insurance',
-                                    'address_proof' => 'Proof of Address',
+                                    'id_proof' => __('filament.options.id_proof'),
+                                    'business_license' => __('filament.options.business_license'),
+                                    'tax_certificate' => __('filament.options.tax_certificate'),
+                                    'bank_statement' => __('filament.options.bank_statement'),
+                                    'insurance' => __('filament.options.insurance'),
+                                    'address_proof' => __('filament.options.address_proof'),
                                 ])
                                 ->required(),
                             Forms\Components\Textarea::make('notes')
-                                ->label('Additional Notes')
+                                ->label(__('filament.labels.additional_notes'))
                                 ->rows(2),
                         ])
                         ->action(function (VendorProfile $record, array $data) {
                             // TODO: Send document request to vendor
 
                             Notification::make()
-                                ->title('Document Request Sent')
-                                ->body('The vendor has been notified to submit additional documents.')
+                                ->title(__('filament.notifications.document_request_sent'))
+                                ->body(__('filament.notifications.document_request_sent_body'))
                                 ->success()
                                 ->send();
                         })
                         ->visible(fn (VendorProfile $record) => $record->kyc_status === KycStatus::PENDING),
 
                     Tables\Actions\Action::make('update_tier')
-                        ->label('Update Commission Tier')
+                        ->label(__('filament.actions.update_commission_tier'))
                         ->icon('heroicon-o-arrow-trending-up')
                         ->color('warning')
                         ->form([
                             Forms\Components\Select::make('commission_tier')
-                                ->label('New Commission Tier')
+                                ->label(__('filament.labels.new_commission_tier'))
                                 ->options([
-                                    'standard' => 'Standard (15%)',
-                                    'silver' => 'Silver (12%)',
-                                    'gold' => 'Gold (10%)',
-                                    'platinum' => 'Platinum (8%)',
+                                    'standard' => __('filament.options.standard'),
+                                    'silver' => __('filament.options.silver'),
+                                    'gold' => __('filament.options.gold'),
+                                    'platinum' => __('filament.options.platinum'),
                                 ])
                                 ->required(),
                         ])
@@ -325,7 +337,7 @@ class VendorProfileResource extends Resource
                             ]);
 
                             Notification::make()
-                                ->title('Commission Tier Updated')
+                                ->title(__('filament.notifications.commission_tier_updated'))
                                 ->success()
                                 ->send();
                         })
@@ -335,7 +347,7 @@ class VendorProfileResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\BulkAction::make('bulk_verify')
-                        ->label('Verify Selected')
+                        ->label(__('filament.actions.verify_selected'))
                         ->icon('heroicon-o-check-badge')
                         ->color('success')
                         ->requiresConfirmation()
@@ -350,7 +362,7 @@ class VendorProfileResource extends Resource
                             }
 
                             Notification::make()
-                                ->title("$count vendors verified")
+                                ->title(__('filament.notifications.vendors_verified', ['count' => $count]))
                                 ->success()
                                 ->send();
                         }),
@@ -390,6 +402,6 @@ class VendorProfileResource extends Resource
 
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return 'Pending KYC review';
+        return __('filament.tooltips.pending_kyc_review');
     }
 }

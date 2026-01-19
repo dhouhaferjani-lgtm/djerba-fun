@@ -21,62 +21,78 @@ class PayoutResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Operations';
-
     protected static ?int $navigationSort = 2;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.operations');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.payouts');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Payout Information')
+                Forms\Components\Section::make(__('filament.sections.payout_information'))
                     ->schema([
                         Forms\Components\Select::make('vendor_id')
                             ->relationship('vendor', 'display_name')
+                            ->label(__('filament.labels.vendor'))
                             ->required()
                             ->searchable()
                             ->preload(),
 
                         Forms\Components\Select::make('status')
+                            ->label(__('filament.labels.status'))
                             ->options([
-                                PayoutStatus::PENDING->value => 'Pending',
-                                PayoutStatus::PROCESSING->value => 'Processing',
-                                PayoutStatus::COMPLETED->value => 'Completed',
-                                PayoutStatus::FAILED->value => 'Failed',
+                                PayoutStatus::PENDING->value => __('filament.options.pending'),
+                                PayoutStatus::PROCESSING->value => __('filament.options.processing'),
+                                PayoutStatus::COMPLETED->value => __('filament.options.completed'),
+                                PayoutStatus::FAILED->value => __('filament.options.failed'),
                             ])
                             ->required()
                             ->default(PayoutStatus::PENDING->value),
 
                         Forms\Components\TextInput::make('amount')
+                            ->label(__('filament.labels.amount'))
                             ->required()
                             ->numeric()
                             ->prefix('$')
                             ->minValue(0),
 
                         Forms\Components\TextInput::make('currency')
+                            ->label(__('filament.labels.currency'))
                             ->required()
                             ->default('CAD')
                             ->maxLength(3),
 
                         Forms\Components\Select::make('payout_method')
+                            ->label(__('filament.labels.payout_method'))
                             ->options([
-                                PayoutMethod::BANK_TRANSFER->value => 'Bank Transfer',
-                                PayoutMethod::PAYPAL->value => 'PayPal',
+                                PayoutMethod::BANK_TRANSFER->value => __('filament.options.bank_transfer'),
+                                PayoutMethod::PAYPAL->value => __('filament.options.paypal'),
                             ])
                             ->required(),
 
                         Forms\Components\TextInput::make('reference')
+                            ->label(__('filament.labels.reference'))
                             ->maxLength(255)
-                            ->helperText('Transaction reference number'),
+                            ->helperText(__('filament.helpers.transaction_reference_helper')),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Additional Information')
+                Forms\Components\Section::make(__('filament.sections.additional_information'))
                     ->schema([
                         Forms\Components\Textarea::make('notes')
+                            ->label(__('filament.labels.notes'))
                             ->rows(3)
                             ->columnSpanFull(),
 
                         Forms\Components\DateTimePicker::make('processed_at')
+                            ->label(__('filament.labels.processed_at'))
                             ->disabled(),
                     ]),
             ]);
@@ -87,54 +103,64 @@ class PayoutResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('vendor.display_name')
+                    ->label(__('filament.labels.vendor'))
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('amount')
+                    ->label(__('filament.labels.amount'))
                     ->money('CAD')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('status')
+                    ->label(__('filament.labels.status'))
                     ->badge()
                     ->formatStateUsing(fn (PayoutStatus $state) => $state->label())
                     ->color(fn (PayoutStatus $state) => $state->color()),
 
                 Tables\Columns\TextColumn::make('payout_method')
+                    ->label(__('filament.labels.payout_method'))
                     ->formatStateUsing(fn (PayoutMethod $state) => $state->label())
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('reference')
+                    ->label(__('filament.labels.reference'))
                     ->searchable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('processed_at')
+                    ->label(__('filament.labels.processed_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('filament.labels.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
+                    ->label(__('filament.labels.status'))
                     ->options([
-                        PayoutStatus::PENDING->value => 'Pending',
-                        PayoutStatus::PROCESSING->value => 'Processing',
-                        PayoutStatus::COMPLETED->value => 'Completed',
-                        PayoutStatus::FAILED->value => 'Failed',
+                        PayoutStatus::PENDING->value => __('filament.options.pending'),
+                        PayoutStatus::PROCESSING->value => __('filament.options.processing'),
+                        PayoutStatus::COMPLETED->value => __('filament.options.completed'),
+                        PayoutStatus::FAILED->value => __('filament.options.failed'),
                     ]),
 
                 Tables\Filters\SelectFilter::make('payout_method')
+                    ->label(__('filament.labels.payout_method'))
                     ->options([
-                        PayoutMethod::BANK_TRANSFER->value => 'Bank Transfer',
-                        PayoutMethod::PAYPAL->value => 'PayPal',
+                        PayoutMethod::BANK_TRANSFER->value => __('filament.options.bank_transfer'),
+                        PayoutMethod::PAYPAL->value => __('filament.options.paypal'),
                     ]),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('approve')
+                        ->label(__('filament.actions.approve'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
@@ -143,39 +169,41 @@ class PayoutResource extends Resource
                             $record->markAsProcessing();
                             Notification::make()
                                 ->success()
-                                ->title('Payout approved')
-                                ->body('The payout is now being processed.')
+                                ->title(__('filament.notifications.payout_approved'))
+                                ->body(__('filament.notifications.payout_approved_body'))
                                 ->send();
                         }),
 
                     Tables\Actions\Action::make('complete')
+                        ->label(__('filament.actions.complete'))
                         ->icon('heroicon-o-check-badge')
                         ->color('success')
                         ->requiresConfirmation()
                         ->form([
                             Forms\Components\TextInput::make('reference')
                                 ->required()
-                                ->label('Transaction Reference')
-                                ->helperText('Enter the transaction reference number'),
+                                ->label(__('filament.labels.transaction_reference'))
+                                ->helperText(__('filament.helpers.enter_transaction_reference')),
                         ])
                         ->visible(fn (Payout $record) => $record->status === PayoutStatus::PROCESSING)
                         ->action(function (Payout $record, array $data) {
                             $record->markAsCompleted($data['reference']);
                             Notification::make()
                                 ->success()
-                                ->title('Payout completed')
-                                ->body('The payout has been marked as completed.')
+                                ->title(__('filament.notifications.payout_completed'))
+                                ->body(__('filament.notifications.payout_completed_body'))
                                 ->send();
                         }),
 
                     Tables\Actions\Action::make('fail')
+                        ->label(__('filament.actions.fail'))
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->requiresConfirmation()
                         ->form([
                             Forms\Components\Textarea::make('reason')
                                 ->required()
-                                ->label('Failure Reason')
+                                ->label(__('filament.labels.failure_reason'))
                                 ->rows(3),
                         ])
                         ->visible(fn (Payout $record) => in_array($record->status, [PayoutStatus::PENDING, PayoutStatus::PROCESSING], true))
@@ -183,8 +211,8 @@ class PayoutResource extends Resource
                             $record->markAsFailed($data['reason']);
                             Notification::make()
                                 ->danger()
-                                ->title('Payout failed')
-                                ->body('The payout has been marked as failed.')
+                                ->title(__('filament.notifications.payout_failed'))
+                                ->body(__('filament.notifications.payout_failed_body'))
                                 ->send();
                         }),
 

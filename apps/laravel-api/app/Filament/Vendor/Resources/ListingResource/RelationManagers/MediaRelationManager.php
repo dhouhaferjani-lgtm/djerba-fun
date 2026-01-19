@@ -12,8 +12,6 @@ use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 
 class MediaRelationManager extends RelationManager
 {
@@ -118,6 +116,7 @@ class MediaRelationManager extends RelationManager
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['type'] = 'image';
                         $data['alt'] = $data['alt'] ?? '';
+
                         return $data;
                     })
                     ->after(function () {
@@ -176,10 +175,12 @@ class MediaRelationManager extends RelationManager
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['type'] = 'image';
                         $data['alt'] = $data['alt'] ?? '';
+
                         // First image should be hero by default
                         if ($this->getOwnerRecord()->media()->count() === 0) {
                             $data['category'] = MediaCategory::HERO->value;
                         }
+
                         return $data;
                     }),
             ]);

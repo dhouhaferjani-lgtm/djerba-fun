@@ -10,7 +10,6 @@ use App\Filament\Vendor\Resources\ListingResource;
 use App\Models\AvailabilityRule;
 use Filament\Actions;
 use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
 use Filament\Notifications\Actions\Action as NotificationAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
@@ -71,12 +70,15 @@ class CreateListing extends CreateRecord
         // Ensure title is properly formatted (not double-nested)
         if (is_array($data['title'])) {
             $cleaned = [];
+
             foreach (['en', 'fr'] as $locale) {
                 if (isset($data['title'][$locale])) {
                     $val = $data['title'][$locale];
+
                     while (is_array($val)) {
                         $val = $val[$locale] ?? $val['en'] ?? reset($val) ?: '';
                     }
+
                     if (is_string($val) && $val !== '') {
                         $cleaned[$locale] = $val;
                     }
@@ -140,11 +142,13 @@ class CreateListing extends CreateRecord
                     foreach ($locales as $locale) {
                         if (isset($value[$locale])) {
                             $localeValue = $value[$locale];
+
                             // Unwrap if the locale value is ALSO an array with locale keys
                             // This handles {"en": {"en": "actual value"}}
                             while (is_array($localeValue)) {
                                 // Get the first value from the nested array
                                 $extracted = $localeValue[$locale] ?? $localeValue['en'] ?? reset($localeValue);
+
                                 if ($extracted === false || $extracted === $localeValue) {
                                     break; // Can't extract further
                                 }
@@ -182,6 +186,7 @@ class CreateListing extends CreateRecord
             $titleForSlug = is_array($data['title'])
                 ? ($data['title']['en'] ?? $data['title']['fr'] ?? reset($data['title']) ?: null)
                 : ($data['title'] ?: null);
+
             if ($titleForSlug) {
                 $data['slug'] = Str::slug($titleForSlug) . '-' . Str::random(6);
             } else {
@@ -238,6 +243,7 @@ class CreateListing extends CreateRecord
             foreach (['en', 'fr'] as $locale) {
                 if (isset($value[$locale])) {
                     $extracted = $this->extractStringFromNested($value[$locale]);
+
                     if ($extracted !== '') {
                         return $extracted;
                     }
@@ -245,6 +251,7 @@ class CreateListing extends CreateRecord
             }
             // Try first value
             $first = reset($value);
+
             if ($first !== false) {
                 return $this->extractStringFromNested($first);
             }

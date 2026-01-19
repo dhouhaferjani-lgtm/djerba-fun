@@ -20,15 +20,27 @@ use Illuminate\Database\Eloquent\Builder;
 class BookingResource extends Resource
 {
     use SafeTranslation;
+
     protected static ?string $model = Booking::class;
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Bookings';
-
     protected static ?int $navigationSort = 1;
 
-    protected static ?string $navigationLabel = 'My Bookings';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.bookings');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.bookings');
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return __('filament.tooltips.upcoming_confirmed_bookings');
+    }
 
     public static function getEloquentQuery(): Builder
     {
@@ -265,8 +277,8 @@ class BookingResource extends Resource
                             ->title('Payment Confirmed')
                             ->body('Booking has been marked as paid and confirmed.')
                     )
-                    ->visible(fn (Booking $record) =>
-                        $record->status === BookingStatus::PENDING_PAYMENT &&
+                    ->visible(
+                        fn (Booking $record) => $record->status === BookingStatus::PENDING_PAYMENT &&
                         in_array($record->paymentIntents()->latest()->first()?->payment_method?->value ?? 'offline', ['offline', 'bank_transfer', 'cash'])
                     ),
 
@@ -281,7 +293,7 @@ class BookingResource extends Resource
                             ->required()
                             ->minValue(0.01)
                             ->suffix(fn (Booking $record) => $record->currency ?? 'TND')
-                            ->helperText(fn (Booking $record) => "Total booking amount: " . number_format((float) $record->total_amount, 2) . ' ' . ($record->currency ?? 'TND')),
+                            ->helperText(fn (Booking $record) => 'Total booking amount: ' . number_format((float) $record->total_amount, 2) . ' ' . ($record->currency ?? 'TND')),
 
                         Forms\Components\Textarea::make('payment_note')
                             ->label('Payment Note')
@@ -312,6 +324,7 @@ class BookingResource extends Resource
                         // Update payment notes on booking
                         $existingNotes = $record->payment_notes ?? '';
                         $newNote = now()->format('Y-m-d H:i') . ': Partial payment of ' . number_format((float) $data['amount_paid'], 2) . ' ' . $record->currency . ' recorded by ' . auth()->user()->name;
+
                         if (! empty($data['payment_note'])) {
                             $newNote .= ' - ' . $data['payment_note'];
                         }
@@ -339,8 +352,8 @@ class BookingResource extends Resource
                             ->title('Partial Payment Recorded')
                             ->body('The partial payment has been logged. Booking remains pending until full payment.')
                     )
-                    ->visible(fn (Booking $record) =>
-                        $record->status === BookingStatus::PENDING_PAYMENT &&
+                    ->visible(
+                        fn (Booking $record) => $record->status === BookingStatus::PENDING_PAYMENT &&
                         in_array($record->paymentIntents()->latest()->first()?->payment_method?->value ?? 'offline', ['offline', 'bank_transfer', 'cash'])
                     ),
 
@@ -472,10 +485,5 @@ class BookingResource extends Resource
     public static function getNavigationBadgeColor(): ?string
     {
         return 'success';
-    }
-
-    public static function getNavigationBadgeTooltip(): ?string
-    {
-        return 'Upcoming confirmed bookings';
     }
 }

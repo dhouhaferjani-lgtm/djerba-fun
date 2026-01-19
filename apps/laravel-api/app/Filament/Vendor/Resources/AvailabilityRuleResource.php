@@ -21,11 +21,17 @@ class AvailabilityRuleResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static ?string $navigationGroup = 'Listings';
-
-    protected static ?string $navigationLabel = 'Availability';
-
     protected static ?int $navigationSort = 2;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.my_listings');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.availability_rules');
+    }
 
     public static function form(Form $form): Form
     {

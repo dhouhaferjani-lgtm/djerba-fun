@@ -24,11 +24,17 @@ class ExtraResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-puzzle-piece';
 
-    protected static ?string $navigationLabel = 'Extras & Add-ons';
-
-    protected static ?string $navigationGroup = 'Catalog';
-
     protected static ?int $navigationSort = 3;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament.nav.my_listings');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('filament.resources.extras');
+    }
 
     public static function getEloquentQuery(): Builder
     {
@@ -85,10 +91,11 @@ class ExtraResource extends Resource
                             ->required()
                             ->default(ExtraPricingType::PER_BOOKING)
                             ->helperText(function ($state) {
-                                if (!$state) {
+                                if (! $state) {
                                     return 'Select a pricing type';
                                 }
                                 $enum = $state instanceof ExtraPricingType ? $state : ExtraPricingType::tryFrom($state);
+
                                 return $enum?->description() ?? 'Select a pricing type';
                             })
                             ->live(),
