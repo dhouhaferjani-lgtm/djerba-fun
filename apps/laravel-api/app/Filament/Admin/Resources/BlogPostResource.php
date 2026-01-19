@@ -7,6 +7,7 @@ use App\Filament\Admin\Resources\BlogPostResource\Pages;
 use App\Models\BlogPost;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -149,6 +150,17 @@ class BlogPostResource extends Resource
 
                 Forms\Components\Section::make(__('filament.sections.media'))
                     ->schema([
+                        Forms\Components\Select::make('header_style')
+                            ->label(__('filament.labels.header_style'))
+                            ->options([
+                                'image' => __('filament.options.single_image'),
+                                'gallery' => __('filament.options.image_gallery'),
+                                'none' => __('filament.options.no_header_image'),
+                            ])
+                            ->default('image')
+                            ->live()
+                            ->helperText(__('filament.helpers.header_style_hint')),
+
                         Forms\Components\FileUpload::make('featured_image')
                             ->label(__('filament.labels.featured_image'))
                             ->image()
@@ -156,8 +168,53 @@ class BlogPostResource extends Resource
                             ->directory('blog-images')
                             ->visibility('public')
                             ->imageEditor()
-                            ->maxSize(10240),
+                            ->maxSize(10240)
+                            ->visible(fn (Get $get) => $get('header_style') === 'image'),
+
+                        Forms\Components\FileUpload::make('gallery_images')
+                            ->label(__('filament.labels.gallery_images'))
+                            ->multiple()
+                            ->reorderable()
+                            ->image()
+                            ->disk('public')
+                            ->directory('blog-galleries')
+                            ->visibility('public')
+                            ->maxFiles(12)
+                            ->helperText(__('filament.helpers.gallery_upload_hint'))
+                            ->visible(fn (Get $get) => $get('header_style') === 'gallery'),
                     ]),
+
+                Forms\Components\Section::make(__('filament.sections.key_takeaways'))
+                    ->schema([
+                        Forms\Components\Repeater::make('key_takeaways')
+                            ->label(__('filament.labels.key_takeaways'))
+                            ->schema([
+                                Forms\Components\TextInput::make('text')
+                                    ->label(__('filament.labels.takeaway_text'))
+                                    ->required()
+                                    ->maxLength(200),
+                                Forms\Components\Select::make('icon')
+                                    ->label(__('filament.labels.takeaway_icon'))
+                                    ->options([
+                                        'check' => '✓ ' . __('filament.icons.check'),
+                                        'star' => '⭐ ' . __('filament.icons.star'),
+                                        'arrow' => '→ ' . __('filament.icons.arrow'),
+                                        'bulb' => '💡 ' . __('filament.icons.bulb'),
+                                        'heart' => '❤️ ' . __('filament.icons.heart'),
+                                        'map' => '📍 ' . __('filament.icons.map'),
+                                        'clock' => '⏰ ' . __('filament.icons.clock'),
+                                        'money' => '💰 ' . __('filament.icons.money'),
+                                    ])
+                                    ->default('check'),
+                            ])
+                            ->columns(2)
+                            ->reorderable()
+                            ->collapsible()
+                            ->defaultItems(0)
+                            ->maxItems(8)
+                            ->helperText(__('filament.helpers.key_takeaways_hint')),
+                    ])
+                    ->collapsed(),
 
                 Forms\Components\Section::make(__('filament.sections.publishing'))
                     ->schema([

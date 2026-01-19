@@ -61,6 +61,7 @@ return [
         'content' => 'Contenu',
         'metadata' => 'Métadonnées',
         'media' => 'Média',
+        'key_takeaways' => 'Points Clés',
         'publishing' => 'Publication',
         'seo' => 'SEO',
         'basic_information' => 'Informations de Base',
@@ -117,7 +118,12 @@ return [
         'author' => 'Auteur',
         'category' => 'Catégorie',
         'tags' => 'Tags',
+        'header_style' => 'Style d\'En-tête',
         'featured_image' => 'Image à la Une',
+        'gallery_images' => 'Images de la Galerie',
+        'key_takeaways' => 'Points Clés',
+        'takeaway_text' => 'Texte du Point',
+        'takeaway_icon' => 'Icône',
         'publish_date' => 'Date de Publication',
         'feature_on_homepage' => 'Afficher sur la Page d\'Accueil',
         'seo_title' => 'Titre SEO',
@@ -243,6 +249,11 @@ return [
         'failed' => 'Échoué',
         'rejected' => 'Rejeté',
 
+        // Header Style
+        'single_image' => 'Image Unique',
+        'image_gallery' => 'Galerie d\'Images',
+        'no_header_image' => 'Pas d\'Image d\'En-tête',
+
         // Discount Type
         'percentage' => 'Pourcentage',
         'fixed_amount' => 'Montant Fixe',
@@ -303,6 +314,9 @@ return [
         'seo_title_max' => 'Max 60 caractères (par défaut: titre de l\'article)',
         'seo_description_max' => 'Max 160 caractères (par défaut: extrait)',
         'add_tags' => 'Ajouter des tags',
+        'header_style_hint' => 'Choisissez comment l\'image d\'en-tête sera affichée',
+        'gallery_upload_hint' => 'Téléchargez jusqu\'à 12 images pour la galerie. Glissez pour réorganiser.',
+        'key_takeaways_hint' => 'Ajoutez jusqu\'à 8 points clés qui résument l\'article',
         'minimum_order_helper' => 'Montant de commande minimum requis pour utiliser ce coupon',
         'maximum_discount_helper' => 'Montant de réduction maximum (pour les réductions en pourcentage)',
         'usage_limit_helper' => 'Laisser vide pour une utilisation illimitée',
@@ -872,6 +886,22 @@ return [
         // Helpers
         'active_helper' => 'Seuls les conseils actifs seront affichés sur le site',
         'display_order_helper' => 'Les nombres plus bas apparaissent en premier',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Icon Labels (for Key Takeaways)
+    |--------------------------------------------------------------------------
+    */
+    'icons' => [
+        'check' => 'Coche',
+        'star' => 'Étoile',
+        'arrow' => 'Flèche',
+        'bulb' => 'Ampoule',
+        'heart' => 'Cœur',
+        'map' => 'Emplacement',
+        'clock' => 'Horloge',
+        'money' => 'Argent',
     ],
 
     /*
