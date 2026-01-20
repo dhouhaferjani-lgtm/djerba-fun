@@ -500,6 +500,7 @@
     "home": "Home",
     "tours": "Tours",
     "events": "Events",
+    "blog": "Blog",
     "customTrip": "Request Custom Trip",
     "about": "About",
     "contact": "Contact"
@@ -511,7 +512,13 @@
     "hero_title": "Tales from the Dunes",
     "hero_subtitle": "Guides, stories, and inspiration for your Tunisian adventure",
     "no_posts": "No blog posts found. Check back soon!",
-    "back_home": "Back to Home"
+    "back_home": "Back to Home",
+    "filter_by_date": "Sort by Date",
+    "filter_by_tag": "Filter by Tag",
+    "all_tags": "All Tags",
+    "newest_first": "Newest First",
+    "oldest_first": "Oldest First",
+    "clear_filters": "Clear Filters"
   },
   "footer": {
     "tagline": "Discover authentic Tunisian adventures with eco-friendly practices and local expertise. Your journey to extraordinary experiences starts here",

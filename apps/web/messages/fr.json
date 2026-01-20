@@ -475,6 +475,7 @@
     "home": "Accueil",
     "tours": "Tours",
     "events": "Événements",
+    "blog": "Blog",
     "customTrip": "Voyage Sur Mesure",
     "about": "À Propos",
     "contact": "Contact"
@@ -486,7 +487,13 @@
     "hero_title": "Récits des Dunes",
     "hero_subtitle": "Guides, histoires et inspiration pour votre aventure tunisienne",
     "no_posts": "Aucun article trouvé. Revenez bientôt !",
-    "back_home": "Retour à l'accueil"
+    "back_home": "Retour à l'accueil",
+    "filter_by_date": "Trier par Date",
+    "filter_by_tag": "Filtrer par Tag",
+    "all_tags": "Tous les Tags",
+    "newest_first": "Plus Récents",
+    "oldest_first": "Plus Anciens",
+    "clear_filters": "Effacer les Filtres"
   },
   "footer": {
     "tagline": "Vivez la Tunisie autrement. Des expériences authentiques avec des guides locaux passionnés",

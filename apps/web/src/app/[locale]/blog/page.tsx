@@ -6,9 +6,11 @@ import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { HeroCarousel } from './components/HeroCarousel';
+import { BlogFilters } from './components/BlogFilters';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ sort?: string; tag?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps) {
@@ -20,10 +22,28 @@ export async function generateMetadata({ params }: PageProps) {
   };
 }
 
-async function BlogPostsGrid({ locale, noPostsText }: { locale: string; noPostsText: string }) {
-  const response = await getBlogPosts({ per_page: 12, locale });
-  const posts = response.data;
+interface BlogPost {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  featuredImage: string | null;
+  tags: string[];
+  readTimeMinutes: number;
+  publishedAt: string;
+  author: { name: string };
+  category: { name: string; color: string } | null;
+}
 
+function BlogPostsGrid({
+  posts,
+  locale,
+  noPostsText,
+}: {
+  posts: BlogPost[];
+  locale: string;
+  noPostsText: string;
+}) {
   if (!posts || posts.length === 0) {
     return (
       <div className="text-center py-20">
@@ -81,18 +101,50 @@ async function BlogPostsGrid({ locale, noPostsText }: { locale: string; noPostsT
   );
 }
 
-export default async function BlogPage({ params }: PageProps) {
+export default async function BlogPage({ params, searchParams }: PageProps) {
   const { locale } = await params;
+  const { sort = 'newest', tag = '' } = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations('blog');
 
-  // Fetch posts to get featured images for carousel
-  const response = await getBlogPosts({ per_page: 12, locale });
-  const posts = response.data || [];
+  // Fetch posts with tag filter if provided
+  const response = await getBlogPosts({
+    per_page: 50,
+    locale,
+    tag: tag || undefined,
+  });
+  let posts = (response.data || []) as BlogPost[];
+
+  // Extract unique tags from all posts for the filter dropdown
+  const allTags = [...new Set(posts.flatMap((post) => post.tags || []))].sort();
+
+  // Sort posts by date
+  if (sort === 'oldest') {
+    posts = [...posts].sort(
+      (a, b) => new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime()
+    );
+  } else {
+    // Default: newest first
+    posts = [...posts].sort(
+      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    );
+  }
+
+  // Get hero images from posts
   const heroImages = posts
     .filter((post) => post.featuredImage)
     .map((post) => post.featuredImage as string)
-    .slice(0, 5); // Limit to 5 images for carousel
+    .slice(0, 5);
+
+  // Filter translations for the BlogFilters component
+  const filterTranslations = {
+    filterByDate: t('filter_by_date'),
+    filterByTag: t('filter_by_tag'),
+    allTags: t('all_tags'),
+    newestFirst: t('newest_first'),
+    oldestFirst: t('oldest_first'),
+    clearFilters: t('clear_filters'),
+  };
 
   return (
     <MainLayout locale={locale}>
@@ -118,9 +170,13 @@ export default async function BlogPage({ params }: PageProps) {
       />
 
       <section className="container mx-auto px-4 py-16">
-        <Suspense fallback={<div className="text-center">Loading...</div>}>
-          <BlogPostsGrid locale={locale} noPostsText={t('no_posts')} />
+        {/* Filters */}
+        <Suspense fallback={null}>
+          <BlogFilters locale={locale} tags={allTags} translations={filterTranslations} />
         </Suspense>
+
+        {/* Posts Grid */}
+        <BlogPostsGrid posts={posts} locale={locale} noPostsText={t('no_posts')} />
       </section>
     </MainLayout>
   );
