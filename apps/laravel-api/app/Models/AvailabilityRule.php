@@ -139,7 +139,7 @@ class AvailabilityRule extends Model
             return false;
         }
 
-        // For weekly and daily rules, check day of week if days_of_week is set
+        // For weekly and daily rules, check day of week
         if ($this->rule_type === AvailabilityRuleType::WEEKLY ||
             $this->rule_type === AvailabilityRuleType::DAILY) {
             $daysOfWeek = $this->days_of_week ?? [];
@@ -148,8 +148,18 @@ class AvailabilityRule extends Model
             if (! empty($daysOfWeek)) {
                 $dayOfWeek = $date->dayOfWeek;
 
-                return in_array($dayOfWeek, $daysOfWeek);
+                // Use strict comparison to handle both int and string values
+                return in_array($dayOfWeek, array_map('intval', $daysOfWeek), true);
             }
+
+            // For WEEKLY rules without days_of_week: no slots (must select days)
+            if ($this->rule_type === AvailabilityRuleType::WEEKLY) {
+                return false;
+            }
+
+            // For DAILY rules without days_of_week: all days are valid
+            // (This is the "available every day" behavior)
+            return true;
         }
 
         return true;
