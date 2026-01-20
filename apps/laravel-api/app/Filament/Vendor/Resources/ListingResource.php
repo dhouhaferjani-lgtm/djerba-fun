@@ -173,28 +173,25 @@ class ListingResource extends Resource
                     // Step 2: Media & Gallery
                     Forms\Components\Wizard\Step::make('Media & Gallery')
                         ->icon('heroicon-o-photo')
-                        ->description('Upload your listing photos')
+                        ->description('Upload up to 5 photos for your listing')
                         ->schema([
-                            Forms\Components\Section::make('Listing Photos')
-                                ->description('Select how many photos you need, then upload to each slot. The layout adjusts automatically.')
+                            Forms\Components\Section::make('Gallery Photos')
+                                ->description('Upload 1-5 photos. The first photo will be your cover image. The layout on your listing page adjusts automatically based on the number of photos.')
                                 ->schema([
-                                    Forms\Components\ViewField::make('bento_slot_mapper')
-                                        ->view('filament.forms.components.bento-slot-mapper')
-                                        ->dehydrated(false)
-                                        ->columnSpanFull(),
-
-                                    // Hidden FileUpload to handle actual file storage
                                     Forms\Components\FileUpload::make('gallery_images')
                                         ->label('Photos')
                                         ->image()
                                         ->multiple()
                                         ->reorderable()
+                                        ->minFiles(1)
                                         ->maxFiles(5)
                                         ->maxSize(5120)
                                         ->directory('listing-galleries')
                                         ->imageResizeMode('cover')
+                                        ->imageResizeTargetWidth('1920')
+                                        ->imageResizeTargetHeight('1080')
                                         ->panelLayout('grid')
-                                        ->live()
+                                        ->helperText('Drag to reorder. First image = cover photo.')
                                         ->columnSpanFull(),
                                 ]),
                         ]),
