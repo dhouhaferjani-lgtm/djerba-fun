@@ -1144,7 +1144,11 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
               ? listing.galleryImages.map((path: string, i: number) => ({
                   id: `gallery-${i}`,
                   url: path,
-                  alt: null,
+                  alt: '',
+                  type: 'image' as const,
+                  order: i,
+                  thumbnailUrl: null,
+                  category: 'gallery' as const,
                 }))
               : listing.media || []
           }
