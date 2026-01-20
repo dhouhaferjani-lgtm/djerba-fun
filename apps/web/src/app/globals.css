@@ -392,9 +392,13 @@ i {
   transform: scale(0.98);
 }
 
-/* Hide RichEditor's default file metadata captions (filename + size) */
+/* Style figcaptions for image captions */
 .prose figure figcaption {
-  display: none;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+  font-style: italic;
 }
 
 /* Ensure images in prose content are responsive */
