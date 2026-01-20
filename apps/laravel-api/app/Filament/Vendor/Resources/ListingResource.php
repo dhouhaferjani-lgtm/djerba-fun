@@ -176,14 +176,20 @@ class ListingResource extends Resource
                         ->description('Upload up to 5 photos for your listing')
                         ->schema([
                             Forms\Components\Section::make('Gallery Photos')
-                                ->description('Upload 1-5 photos. The first photo will be your cover image. The layout on your listing page adjusts automatically based on the number of photos.')
+                                ->description('Select how many photos, then upload below. First photo = cover image.')
                                 ->schema([
+                                    // Visual bento layout preview
+                                    Forms\Components\ViewField::make('bento_preview')
+                                        ->view('filament.forms.components.bento-slot-mapper')
+                                        ->dehydrated(false)
+                                        ->columnSpanFull(),
+
+                                    // Standard FileUpload handles actual storage
                                     Forms\Components\FileUpload::make('gallery_images')
-                                        ->label('Photos')
+                                        ->label('Upload Photos')
                                         ->image()
                                         ->multiple()
                                         ->reorderable()
-                                        ->minFiles(1)
                                         ->maxFiles(5)
                                         ->maxSize(5120)
                                         ->directory('listing-galleries')
@@ -191,6 +197,7 @@ class ListingResource extends Resource
                                         ->imageResizeTargetWidth('1920')
                                         ->imageResizeTargetHeight('1080')
                                         ->panelLayout('grid')
+                                        ->live()
                                         ->helperText('Drag to reorder. First image = cover photo.')
                                         ->columnSpanFull(),
                                 ]),
