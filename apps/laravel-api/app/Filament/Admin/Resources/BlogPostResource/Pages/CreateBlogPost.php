@@ -6,6 +6,7 @@ use App\Filament\Admin\Resources\BlogPostResource;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
+use Illuminate\Support\HtmlString;
 
 class CreateBlogPost extends CreateRecord
 {
@@ -24,12 +25,14 @@ class CreateBlogPost extends CreateRecord
                 ->modalWidth('7xl')
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel(__('filament.actions.close'))
-                ->modalContent(fn () => view('filament.pages.blog-preview', [
-                    'title' => $this->data['title'] ?? '',
-                    'content' => $this->data['content'] ?? '',
-                    'featuredImage' => $this->data['featured_image'] ?? null,
-                    'excerpt' => $this->data['excerpt'] ?? '',
-                ])),
+                ->modalContent(fn () => new HtmlString(
+                    view('filament.pages.blog-preview', [
+                        'title' => $this->data['title'] ?? '',
+                        'content' => $this->data['content'] ?? '',
+                        'featuredImage' => $this->data['featured_image'] ?? null,
+                        'excerpt' => $this->data['excerpt'] ?? '',
+                    ])->render()
+                )),
             Actions\LocaleSwitcher::make(),
         ];
     }

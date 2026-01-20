@@ -173,6 +173,7 @@ class BlogPostResource extends Resource
 
                         Forms\Components\Toggle::make('is_featured')
                             ->label(__('filament.labels.feature_on_homepage'))
+                            ->visible(fn (Forms\Get $get) => in_array($get('status'), ['published', 'scheduled']))
                             ->disabled(function (?BlogPost $record) {
                                 // If this post is already featured, allow toggling off
                                 if ($record?->is_featured) {
