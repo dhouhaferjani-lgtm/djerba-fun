@@ -47,7 +47,7 @@ function CategoryCard({ id, nameKey, count, images, href, icon }: CategoryCardPr
 
   return (
     <Link
-      href={href}
+      href={href as any}
       className="green-click-shadow group block overflow-hidden rounded-2xl transition-all duration-300 hover:shadow-xl bg-white border border-neutral-200"
     >
       {/* Image Area */}
