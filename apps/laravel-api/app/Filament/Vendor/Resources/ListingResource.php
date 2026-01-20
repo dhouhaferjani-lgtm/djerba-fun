@@ -178,28 +178,15 @@ class ListingResource extends Resource
                             Forms\Components\Section::make('Gallery Photos')
                                 ->description('Click each slot in the grid to upload your photos.')
                                 ->schema([
-                                    // Interactive bento uploader
+                                    // Interactive bento uploader with clickable slots
                                     Forms\Components\ViewField::make('bento_uploader')
                                         ->view('filament.forms.components.bento-slot-mapper')
                                         ->dehydrated(false)
                                         ->columnSpanFull(),
 
-                                    // FileUpload handles actual storage
-                                    Forms\Components\FileUpload::make('gallery_images')
-                                        ->label('Or drag & drop here')
-                                        ->image()
-                                        ->multiple()
-                                        ->reorderable()
-                                        ->maxFiles(5)
-                                        ->maxSize(5120)
-                                        ->directory('listing-galleries')
-                                        ->imageResizeMode('cover')
-                                        ->imageResizeTargetWidth('1920')
-                                        ->imageResizeTargetHeight('1080')
-                                        ->panelLayout('grid')
-                                        ->live()
-                                        ->helperText('Drag to reorder. First image = cover photo.')
-                                        ->columnSpanFull(),
+                                    // Hidden field stores the uploaded images array
+                                    Forms\Components\Hidden::make('gallery_images')
+                                        ->default([]),
                                 ]),
                         ]),
 
