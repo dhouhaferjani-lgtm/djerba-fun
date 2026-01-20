@@ -1317,4 +1317,29 @@ export const customTripApi = {
   },
 };
 
+// ============================================================================
+// CATEGORY STATS API
+// ============================================================================
+
+export interface CategoryStats {
+  tours: {
+    count: number;
+    images: string[];
+  };
+  events: {
+    count: number;
+    images: string[];
+  };
+}
+
+export const categoryStatsApi = {
+  /**
+   * Get category statistics for homepage
+   * Returns counts and images for tours and events
+   */
+  getStats: async (): Promise<{ data: CategoryStats }> => {
+    return fetchApi<{ data: CategoryStats }>('/category-stats');
+  },
+};
+
 export { ApiError };

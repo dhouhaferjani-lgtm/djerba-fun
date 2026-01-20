@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 
@@ -123,6 +124,17 @@ class Listing extends Model
                 // Don't let notification errors break listing creation
                 \Log::warning('Failed to send new listing notification', ['error' => $e->getMessage()]);
             }
+        });
+
+        // Clear category stats cache when listing status changes
+        static::saved(function (Listing $listing) {
+            if ($listing->isDirty('status') || $listing->wasRecentlyCreated) {
+                Cache::forget('category_stats');
+            }
+        });
+
+        static::deleted(function (Listing $listing) {
+            Cache::forget('category_stats');
         });
     }
 

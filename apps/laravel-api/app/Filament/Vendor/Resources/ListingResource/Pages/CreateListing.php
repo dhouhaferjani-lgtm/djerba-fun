@@ -307,7 +307,7 @@ class CreateListing extends CreateRecord
             AvailabilityRule::create([
                 'listing_id' => $this->record->id,
                 'rule_type' => 'daily',
-                'days_of_week' => null, // daily applies to all days
+                'days_of_week' => [0, 1, 2, 3, 4, 5, 6], // all days of week
                 'start_time' => now()->setTime(9, 0, 0),
                 'end_time' => now()->setTime(17, 0, 0),
                 'capacity' => $this->record->max_group_size ?? 10,

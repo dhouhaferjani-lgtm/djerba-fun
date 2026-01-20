@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PlatformSettingsController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\TravelTipController;
+use App\Http\Controllers\Api\V1\CategoryStatsController;
 use App\Http\Controllers\Api\V1\ContactController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\VoucherController;
@@ -96,6 +97,9 @@ Route::prefix('v1')->group(function () {
 
     // Travel tips routes (public - for hero section rotating tips)
     Route::get('/travel-tips', [TravelTipController::class, 'index']);
+
+    // Category stats routes (public - for homepage category cards)
+    Route::get('/category-stats', [CategoryStatsController::class, 'index']);
 
     // Custom trip request routes (public - anyone can submit a request)
     Route::post('/custom-trip-requests', [CustomTripRequestController::class, 'store']);

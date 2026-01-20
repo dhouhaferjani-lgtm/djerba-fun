@@ -54,7 +54,7 @@ export function TripBasicsStep({ initialData, onComplete }: TripBasicsStepProps)
       startDate: initialData?.travelDates.start || '',
       endDate: initialData?.travelDates.end || '',
       datesFlexible: initialData?.datesFlexible || false,
-      adults: initialData?.adults || 2,
+      adults: initialData?.adults || 1,
       children: initialData?.children || 0,
       durationDays: initialData?.durationDays || 7,
     },

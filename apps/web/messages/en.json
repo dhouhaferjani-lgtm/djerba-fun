@@ -119,6 +119,8 @@
     "wellness_desc": "Rejuvenate mind and body"
   },
   "categories": {
+    "tours": "Tours & Activities",
+    "events": "Events",
     "trail-running": "Trail Running",
     "hiking": "Hiking & Trekking",
     "cycling": "Cycling Tours",

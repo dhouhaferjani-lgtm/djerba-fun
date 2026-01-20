@@ -119,6 +119,8 @@
     "wellness_desc": "Ressourcez-vous corps et âme"
   },
   "categories": {
+    "tours": "Circuits & Activités",
+    "events": "Événements",
     "trail-running": "Trail",
     "hiking": "Randonnée",
     "cycling": "Vélo",

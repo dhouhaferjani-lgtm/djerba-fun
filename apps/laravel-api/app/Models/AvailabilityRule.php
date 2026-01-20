@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AvailabilityRuleType;
 use App\Jobs\CalculateAvailabilityJob;
+use App\Models\AvailabilitySlot;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,9 +20,10 @@ class AvailabilityRule extends Model
         // Generate availability slots when a rule is created or updated
         static::saved(function (AvailabilityRule $rule) {
             if ($rule->is_active && $rule->listing) {
-                // IMPORTANT: First delete existing slots for this rule
-                // This ensures invalid slots (e.g., for days not in days_of_week) are removed
-                $rule->slots()->delete();
+                // IMPORTANT: Delete ALL slots for the listing (not just this rule)
+                // because the job regenerates slots from ALL rules, so we need a clean slate
+                // This ensures outdated slots from other rules don't persist
+                AvailabilitySlot::where('listing_id', $rule->listing_id)->delete();
 
                 // Generate slots for the next 90 days
                 $startDate = Carbon::today();
@@ -152,14 +154,10 @@ class AvailabilityRule extends Model
                 return in_array($dayOfWeek, array_map('intval', $daysOfWeek), true);
             }
 
-            // For WEEKLY rules without days_of_week: no slots (must select days)
-            if ($this->rule_type === AvailabilityRuleType::WEEKLY) {
-                return false;
-            }
-
-            // For DAILY rules without days_of_week: all days are valid
-            // (This is the "available every day" behavior)
-            return true;
+            // Both WEEKLY and DAILY rules require days_of_week to be set
+            // If no days selected, no slots should be created
+            // This prevents default/empty rules from creating unwanted slots
+            return false;
         }
 
         return true;

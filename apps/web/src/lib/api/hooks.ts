@@ -12,6 +12,7 @@ import {
   platformApi,
   userApi,
   locationsApi,
+  categoryStatsApi,
   type ProcessPaymentRequest,
   type Cart,
   type UpdateParticipantData,
@@ -928,5 +929,25 @@ export function useDeleteAccount() {
         localStorage.removeItem('auth_token');
       }
     },
+  });
+}
+
+// ============================================================================
+// CATEGORY STATS HOOKS
+// ============================================================================
+
+/**
+ * Fetch category statistics for homepage
+ * Returns counts and images for tours and events
+ */
+export function useCategoryStats() {
+  return useQuery({
+    queryKey: ['category-stats'],
+    queryFn: async () => {
+      const response = await categoryStatsApi.getStats();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes - matches backend cache
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
   });
 }
