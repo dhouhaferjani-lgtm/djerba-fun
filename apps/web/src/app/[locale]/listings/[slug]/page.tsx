@@ -44,7 +44,8 @@ export async function generateMetadata({
 
   const title = resolveTranslation(listing.title, locale);
   const description = resolveTranslation(listing.description, locale);
-  const firstImage = listing.media?.[0]?.url;
+  // Prefer galleryImages (from vendor upload), fall back to media
+  const firstImage = listing.galleryImages?.[0] || listing.media?.[0]?.url;
 
   // Truncate description to 160 characters for meta
   const metaDescription =
@@ -103,10 +104,13 @@ export default async function ListingDetailPage({
   const description = resolveTranslation(listing.description, locale);
 
   // Include up to 5 images for richer search results
+  // Prefer galleryImages (from vendor upload), fall back to media
   const images =
-    listing.media && listing.media.length > 0
-      ? listing.media.slice(0, 5).map((m: any) => m.url)
-      : undefined;
+    listing.galleryImages && listing.galleryImages.length > 0
+      ? listing.galleryImages.slice(0, 5)
+      : listing.media && listing.media.length > 0
+        ? listing.media.slice(0, 5).map((m: any) => m.url)
+        : undefined;
 
   // Get price from pricing with proper currency handling
   const priceTnd = listing.pricing?.tndPrice || 0;

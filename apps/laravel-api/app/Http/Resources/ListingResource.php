@@ -37,6 +37,8 @@ class ListingResource extends BaseResource
             ] : null,
             'meetingPoint' => is_array($this->meeting_point) ? $this->toCamelCase($this->meeting_point) : $this->meeting_point,
             'media' => MediaResource::collection($this->whenLoaded('media')),
+            'galleryImages' => $this->gallery_images,
+            'galleryLayout' => $this->gallery_layout ?? 'bento-1-4',
             'pricing' => $this->formatPricing($request),
             'cancellationPolicy' => $this->formatCancellationPolicy(),
             'faqs' => ListingFaqResource::collection($this->whenLoaded('faqs')),

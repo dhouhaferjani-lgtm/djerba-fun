@@ -728,56 +728,70 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                 )}
               </div>
 
-              {/* Bento Gallery */}
-              {listing.media && listing.media.length > 0 && (
-                <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[400px]">
-                  {/* Large image - takes 2x2 */}
-                  {listing.media[0] && (
-                    <button
-                      onClick={() => {
-                        setLightboxIndex(0);
-                        setLightboxOpen(true);
-                      }}
-                      className="col-span-2 row-span-2 relative overflow-hidden rounded-lg group"
-                    >
-                      <Image
-                        src={normalizeMediaUrl(listing.media[0].url)}
-                        alt={tr(listing.media[0].alt) || title}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        priority
-                      />
-                    </button>
-                  )}
-                  {/* Small images - 4 images in 2x2 grid on the right */}
-                  {listing.media.slice(1, 5).map((media, index) => (
-                    <button
-                      key={media.id}
-                      onClick={() => {
-                        setLightboxIndex(index + 1);
-                        setLightboxOpen(true);
-                      }}
-                      className="relative overflow-hidden rounded-lg group"
-                    >
-                      <Image
-                        src={normalizeMediaUrl(media.url)}
-                        alt={tr(media.alt) || title}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                      {/* "View all" overlay on last image */}
-                      {index === 3 && listing.media.length > 5 && (
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-semibold">
-                          <div className="text-center">
-                            <Camera className="h-6 w-6 mx-auto mb-2" />
-                            <div>View all {listing.media.length}</div>
+              {/* Bento Gallery - use galleryImages if available, fall back to media */}
+              {(() => {
+                // Prefer galleryImages (new field), fall back to media (old relationship)
+                const galleryImages =
+                  listing.galleryImages && listing.galleryImages.length > 0
+                    ? listing.galleryImages.map((path: string, i: number) => ({
+                        id: `gallery-${i}`,
+                        url: path,
+                        alt: null,
+                      }))
+                    : listing.media || [];
+
+                if (galleryImages.length === 0) return null;
+
+                return (
+                  <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[400px]">
+                    {/* Large image - takes 2x2 */}
+                    {galleryImages[0] && (
+                      <button
+                        onClick={() => {
+                          setLightboxIndex(0);
+                          setLightboxOpen(true);
+                        }}
+                        className="col-span-2 row-span-2 relative overflow-hidden rounded-lg group"
+                      >
+                        <Image
+                          src={normalizeMediaUrl(galleryImages[0].url)}
+                          alt={tr(galleryImages[0].alt) || title}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          priority
+                        />
+                      </button>
+                    )}
+                    {/* Small images - 4 images in 2x2 grid on the right */}
+                    {galleryImages.slice(1, 5).map((media: any, index: number) => (
+                      <button
+                        key={media.id}
+                        onClick={() => {
+                          setLightboxIndex(index + 1);
+                          setLightboxOpen(true);
+                        }}
+                        className="relative overflow-hidden rounded-lg group"
+                      >
+                        <Image
+                          src={normalizeMediaUrl(media.url)}
+                          alt={tr(media.alt) || title}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        {/* "View all" overlay on last image */}
+                        {index === 3 && galleryImages.length > 5 && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-semibold">
+                            <div className="text-center">
+                              <Camera className="h-6 w-6 mx-auto mb-2" />
+                              <div>View all {galleryImages.length}</div>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {/* Main Content Sections */}
               <div className="border-t border-neutral-200 pt-12 mt-8">
@@ -1125,7 +1139,15 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       {/* Image Lightbox */}
       {lightboxOpen && (
         <ImageLightbox
-          images={listing.media}
+          images={
+            listing.galleryImages && listing.galleryImages.length > 0
+              ? listing.galleryImages.map((path: string, i: number) => ({
+                  id: `gallery-${i}`,
+                  url: path,
+                  alt: null,
+                }))
+              : listing.media || []
+          }
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
           onClose={() => setLightboxOpen(false)}
