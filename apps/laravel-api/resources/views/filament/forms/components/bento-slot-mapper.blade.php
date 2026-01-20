@@ -2,237 +2,261 @@
     <div
         wire:ignore
         x-data="{
+            imageCount: 5,
             images: [],
-            slots: [],
-            selectedSlot: null,
+            uploading: {},
 
             init() {
-                // Get images from the gallery_images field
-                const galleryImages = $wire.get('data.gallery_images') || [];
-                // Convert to array of paths (handle both string paths and temp upload objects)
-                this.images = this.normalizeImages(galleryImages);
-                this.slots = [...this.images];
+                // Load existing images from gallery_images field
+                const existingImages = $wire.get('data.gallery_images') || [];
+                this.images = this.normalizeImages(existingImages);
+                this.imageCount = Math.max(this.images.length, 1);
 
-                // Watch for changes to gallery_images from FileUpload
-                this.$watch('$wire.data.gallery_images', (value) => {
-                    const normalized = this.normalizeImages(value || []);
-                    // Only update if images actually changed (not just reorder)
-                    if (JSON.stringify(normalized.sort()) !== JSON.stringify(this.images.sort())) {
-                        this.images = normalized;
-                        this.slots = [...this.images];
-                    }
-                });
-
-                // Update gallery_images when slots change
-                this.$watch('slots', (value) => {
-                    const filtered = value.filter(img => img !== null && img !== undefined);
-                    $wire.set('data.gallery_images', filtered);
-                });
+                // Pad array to match count
+                while (this.images.length < this.imageCount) {
+                    this.images.push(null);
+                }
             },
 
             normalizeImages(images) {
                 if (!images || !Array.isArray(images)) return [];
                 return images.map(img => {
-                    // If it's a string, use as-is
                     if (typeof img === 'string') return img;
-                    // If it's an object with a path, use the path
                     if (img && img.path) return img.path;
-                    // Otherwise return the value
                     return img;
                 }).filter(Boolean);
             },
 
-            get visibleSlotCount() {
-                return Math.min(Math.max(this.images.length, 1), 5);
-            },
-
-            get unassignedImages() {
-                return this.images.filter(img => !this.slots.slice(0, 5).includes(img));
-            },
-
-            get additionalImages() {
-                return this.slots.slice(5);
-            },
-
-            selectSlot(index) {
-                this.selectedSlot = this.selectedSlot === index ? null : index;
-            },
-
-            assignImage(image) {
-                if (this.selectedSlot !== null) {
-                    // If slot already has an image, swap or move
-                    const currentImage = this.slots[this.selectedSlot];
-                    const imageCurrentIndex = this.slots.indexOf(image);
-
-                    if (imageCurrentIndex !== -1) {
-                        // Image is already in a slot, swap
-                        this.slots[imageCurrentIndex] = currentImage;
-                    }
-
-                    this.slots[this.selectedSlot] = image;
-                    this.selectedSlot = null;
+            onCountChange() {
+                // Resize images array
+                const newArray = [];
+                for (let i = 0; i < this.imageCount; i++) {
+                    newArray.push(this.images[i] || null);
                 }
+                this.images = newArray;
+                this.syncToWire();
             },
 
-            clearSlot(index) {
-                // Move image to end of array (becomes additional image)
-                const image = this.slots[index];
-                this.slots.splice(index, 1);
-                this.slots.push(image);
-            },
+            async uploadToSlot(index, event) {
+                const file = event.target.files[0];
+                if (!file) return;
 
-            setAsCover(image) {
-                const currentIndex = this.slots.indexOf(image);
-                if (currentIndex > 0) {
-                    // Swap with current cover
-                    const currentCover = this.slots[0];
-                    this.slots[0] = image;
-                    this.slots[currentIndex] = currentCover;
+                this.uploading[index] = true;
+
+                // Create FormData for upload
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    // Use Livewire's upload mechanism
+                    const tempPath = await new Promise((resolve, reject) => {
+                        $wire.upload(
+                            'gallery_upload_temp',
+                            file,
+                            (uploadedFilename) => {
+                                resolve(uploadedFilename);
+                            },
+                            (error) => {
+                                reject(error);
+                            }
+                        );
+                    });
+
+                    // Update images array
+                    this.images[index] = 'listing-galleries/' + tempPath;
+                    this.syncToWire();
+                } catch (error) {
+                    console.error('Upload failed:', error);
+                    alert('Upload failed. Please try again.');
+                } finally {
+                    this.uploading[index] = false;
                 }
+
+                // Reset the input
+                event.target.value = '';
+            },
+
+            removeFromSlot(index) {
+                this.images[index] = null;
+                this.syncToWire();
+            },
+
+            syncToWire() {
+                const filtered = this.images.filter(img => img !== null && img !== undefined);
+                $wire.set('data.gallery_images', filtered);
             },
 
             getImageUrl(path) {
                 if (!path) return '';
                 if (path.startsWith('http')) return path;
-                return '/storage/' + path;
+                if (path.startsWith('blob:')) return path;
+                if (path.startsWith('data:')) return path;
+                // For temporary uploads, use livewire temp URL
+                if (path.includes('livewire-tmp')) {
+                    return '/storage/' + path;
+                }
+                return '{{ config('app.url') }}/storage/' + path;
+            },
+
+            getGridClass() {
+                const grids = {
+                    1: 'grid-cols-1',
+                    2: 'grid-cols-2',
+                    3: 'grid-cols-2 grid-rows-2',
+                    4: 'grid-cols-2 grid-rows-2',
+                    5: 'grid-cols-4 grid-rows-2'
+                };
+                return grids[this.imageCount] || 'grid-cols-1';
+            },
+
+            getSlotClass(index) {
+                const count = parseInt(this.imageCount);
+                if (count === 1) return 'col-span-1 aspect-video';
+                if (count === 2) return 'col-span-1 aspect-[4/3]';
+                if (count === 3) {
+                    return index === 0 ? 'col-span-1 row-span-2 aspect-auto h-full' : 'col-span-1 aspect-[4/3]';
+                }
+                if (count === 4) return 'col-span-1 aspect-square';
+                if (count === 5) {
+                    return index === 0 ? 'col-span-2 row-span-2 aspect-auto h-full' : 'col-span-1 aspect-square';
+                }
+                return 'col-span-1 aspect-square';
+            },
+
+            getSlotLabel(index) {
+                if (index === 0) return 'Cover Photo';
+                return 'Photo ' + (index + 1);
             }
         }"
         class="space-y-4"
     >
-        <!-- Instructions -->
-        <div class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            <p><strong>How to use:</strong> Click a slot, then click an image below to assign it. The first slot is your cover photo.</p>
+        <!-- Image Count Selector -->
+        <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                How many photos do you want to upload?
+            </label>
+            <select
+                x-model="imageCount"
+                @change="onCountChange()"
+                class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500"
+            >
+                <option value="1">1 photo</option>
+                <option value="2">2 photos</option>
+                <option value="3">3 photos</option>
+                <option value="4">4 photos</option>
+                <option value="5">5 photos</option>
+            </select>
         </div>
 
-        <!-- Bento Grid Preview -->
+        <!-- Dynamic Grid -->
         <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
-            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Gallery Preview</h4>
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Gallery Preview
+                </h4>
+                <span class="text-xs text-gray-500">This is exactly how it will appear on your listing</span>
+            </div>
 
             <div
-                class="grid gap-2"
-                :class="{
-                    'grid-cols-1': visibleSlotCount === 1,
-                    'grid-cols-2': visibleSlotCount === 2,
-                    'grid-cols-3 grid-rows-2': visibleSlotCount >= 3
-                }"
-                style="max-width: 500px;"
+                :class="'grid gap-2 ' + getGridClass()"
+                :style="imageCount >= 3 ? 'height: 400px;' : ''"
             >
-                <!-- Cover Slot (always first, larger) -->
-                <div
-                    @click="selectSlot(0)"
-                    :class="{
-                        'col-span-1 row-span-2': visibleSlotCount >= 3,
-                        'col-span-1': visibleSlotCount < 3,
-                        'ring-2 ring-primary-500': selectedSlot === 0
-                    }"
-                    class="relative aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer transition-all hover:ring-2 hover:ring-primary-300"
-                >
-                    <template x-if="slots[0]">
-                        <div class="relative w-full h-full">
-                            <img :src="getImageUrl(slots[0])" class="w-full h-full object-cover" alt="Cover">
-                            <button
-                                @click.stop="clearSlot(0)"
-                                class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                            >×</button>
-                            <span class="absolute bottom-1 left-1 bg-primary-500 text-white text-xs px-2 py-1 rounded">COVER</span>
-                        </div>
-                    </template>
-                    <template x-if="!slots[0]">
-                        <div class="w-full h-full flex flex-col items-center justify-center text-gray-400">
-                            <svg class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            <span class="text-xs font-medium">COVER PHOTO</span>
-                            <span class="text-xs">Click to select</span>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- Gallery Slots 2-5 -->
-                <template x-for="i in [1, 2, 3, 4]" :key="i">
+                <template x-for="index in parseInt(imageCount)" :key="index - 1">
                     <div
-                        x-show="visibleSlotCount > i"
-                        @click="selectSlot(i)"
-                        :class="{ 'ring-2 ring-primary-500': selectedSlot === i }"
-                        class="relative aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer transition-all hover:ring-2 hover:ring-primary-300"
+                        :class="getSlotClass(index - 1)"
+                        class="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700 transition-all hover:border-primary-400"
                     >
-                        <template x-if="slots[i]">
-                            <div class="relative w-full h-full">
-                                <img :src="getImageUrl(slots[i])" class="w-full h-full object-cover" :alt="'Gallery ' + i">
-                                <button
-                                    @click.stop="clearSlot(i)"
-                                    class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                                >×</button>
-                                <button
-                                    @click.stop="setAsCover(slots[i])"
-                                    class="absolute bottom-1 left-1 bg-gray-800/70 text-white text-xs px-1.5 py-0.5 rounded hover:bg-gray-800"
-                                    title="Set as cover"
-                                >★</button>
+                        <!-- Has Image -->
+                        <template x-if="images[index - 1]">
+                            <div class="relative w-full h-full group">
+                                <img
+                                    :src="getImageUrl(images[index - 1])"
+                                    class="w-full h-full object-cover"
+                                    :alt="getSlotLabel(index - 1)"
+                                >
+                                <!-- Hover overlay with actions -->
+                                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                    <!-- Replace button -->
+                                    <label class="cursor-pointer p-2 bg-white rounded-full hover:bg-gray-100 transition" title="Replace image">
+                                        <input
+                                            type="file"
+                                            @change="uploadToSlot(index - 1, $event)"
+                                            class="hidden"
+                                            accept="image/*"
+                                        >
+                                        <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                    </label>
+                                    <!-- Remove button -->
+                                    <button
+                                        @click="removeFromSlot(index - 1)"
+                                        class="p-2 bg-white rounded-full hover:bg-red-100 transition"
+                                        title="Remove image"
+                                    >
+                                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <!-- Cover badge -->
+                                <span
+                                    x-show="index === 1"
+                                    class="absolute top-2 left-2 bg-primary-600 text-white text-xs font-medium px-2 py-1 rounded"
+                                >
+                                    COVER
+                                </span>
                             </div>
                         </template>
-                        <template x-if="!slots[i]">
-                            <div class="w-full h-full flex flex-col items-center justify-center text-gray-400">
-                                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                </svg>
-                                <span class="text-xs">Slot <span x-text="i + 1"></span></span>
-                            </div>
+
+                        <!-- Empty Slot (upload area) -->
+                        <template x-if="!images[index - 1]">
+                            <label class="flex flex-col items-center justify-center w-full h-full min-h-[120px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                <input
+                                    type="file"
+                                    @change="uploadToSlot(index - 1, $event)"
+                                    class="hidden"
+                                    accept="image/*"
+                                    :disabled="uploading[index - 1]"
+                                >
+                                <!-- Loading state -->
+                                <template x-if="uploading[index - 1]">
+                                    <div class="flex flex-col items-center">
+                                        <svg class="animate-spin w-8 h-8 text-primary-500 mb-2" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span class="text-xs text-gray-500">Uploading...</span>
+                                    </div>
+                                </template>
+                                <!-- Normal state -->
+                                <template x-if="!uploading[index - 1]">
+                                    <div class="flex flex-col items-center">
+                                        <svg class="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                        </svg>
+                                        <span
+                                            class="text-sm font-medium text-gray-600 dark:text-gray-300"
+                                            x-text="getSlotLabel(index - 1)"
+                                        ></span>
+                                        <span class="text-xs text-gray-400 mt-1">Click to upload</span>
+                                    </div>
+                                </template>
+                            </label>
                         </template>
                     </div>
                 </template>
             </div>
         </div>
 
-        <!-- Image Pool (unassigned images) -->
-        <div x-show="unassignedImages.length > 0" class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Available Images
-                <span class="text-gray-400" x-show="selectedSlot !== null">(Click to assign to selected slot)</span>
-            </h4>
-            <div class="flex flex-wrap gap-2">
-                <template x-for="(img, index) in unassignedImages" :key="index">
-                    <div
-                        @click="assignImage(img)"
-                        :class="{ 'ring-2 ring-primary-500 scale-105': selectedSlot !== null }"
-                        class="relative w-20 h-20 rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-105"
-                    >
-                        <img :src="getImageUrl(img)" class="w-full h-full object-cover" alt="Available image">
-                    </div>
-                </template>
-            </div>
-        </div>
-
-        <!-- Additional Images (6-10) -->
-        <div x-show="additionalImages.length > 0" class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-            <h4 class="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
-                Additional Photos (<span x-text="additionalImages.length"></span>) - Shown in lightbox only
-            </h4>
-            <p class="text-xs text-blue-600 dark:text-blue-400 mb-3">These images appear when visitors open the full gallery.</p>
-            <div class="flex flex-wrap gap-2">
-                <template x-for="(img, index) in additionalImages" :key="index">
-                    <div class="relative w-16 h-16 rounded-lg overflow-hidden">
-                        <img :src="getImageUrl(img)" class="w-full h-full object-cover" alt="Additional image">
-                        <button
-                            @click="setAsCover(img)"
-                            class="absolute bottom-0.5 left-0.5 bg-gray-800/70 text-white text-xs px-1 py-0.5 rounded hover:bg-gray-800"
-                            title="Move to bento grid"
-                        >↑</button>
-                    </div>
-                </template>
-            </div>
-        </div>
-
-        <!-- Empty State -->
-        <div x-show="images.length === 0" class="text-center py-8 text-gray-400">
-            <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <p>Upload images above to see the gallery preview</p>
-        </div>
-
-        <!-- Image Count -->
-        <div class="text-sm text-gray-500 dark:text-gray-400 text-right">
-            <span x-text="images.length"></span> / 10 photos
+        <!-- Help text -->
+        <div class="text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+            <p class="font-medium text-blue-700 dark:text-blue-300 mb-1">Tips:</p>
+            <ul class="list-disc list-inside text-blue-600 dark:text-blue-400 space-y-1">
+                <li>The first photo is your cover image - shown in search results</li>
+                <li>Hover over any image to replace or remove it</li>
+                <li>Use high-quality images (recommended: 1920x1080 or larger)</li>
+            </ul>
         </div>
     </div>
 </x-dynamic-component>

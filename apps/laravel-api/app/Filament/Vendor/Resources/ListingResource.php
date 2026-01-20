@@ -173,41 +173,28 @@ class ListingResource extends Resource
                     // Step 2: Media & Gallery
                     Forms\Components\Wizard\Step::make('Media & Gallery')
                         ->icon('heroicon-o-photo')
-                        ->description('Upload photos and choose layout')
+                        ->description('Upload your listing photos')
                         ->schema([
                             Forms\Components\Section::make('Listing Photos')
-                                ->description('Upload up to 10 photos. Drag to reorder. First photo is the cover.')
+                                ->description('Select how many photos you need, then upload to each slot. The layout adjusts automatically.')
                                 ->schema([
-                                    Forms\Components\Select::make('gallery_layout')
-                                        ->label('Gallery Layout')
-                                        ->options([
-                                            'bento-1-4' => 'Hero + 4 Grid (1 large left, 4 small right)',
-                                            'bento-2-3' => '2 Medium + 3 Small',
-                                            'bento-1-2-2' => '1 Large + 2 Medium + 2 Small',
-                                            'grid-3' => '3 Column Grid',
-                                            'masonry' => 'Masonry Layout',
-                                        ])
-                                        ->default('bento-1-4')
-                                        ->live()
-                                        ->helperText('Choose how photos display on your listing page'),
+                                    Forms\Components\ViewField::make('bento_slot_mapper')
+                                        ->view('filament.forms.components.bento-slot-mapper')
+                                        ->dehydrated(false)
+                                        ->columnSpanFull(),
 
+                                    // Hidden FileUpload to handle actual file storage
                                     Forms\Components\FileUpload::make('gallery_images')
                                         ->label('Photos')
                                         ->image()
                                         ->multiple()
                                         ->reorderable()
-                                        ->maxFiles(10)
+                                        ->maxFiles(5)
                                         ->maxSize(5120)
                                         ->directory('listing-galleries')
                                         ->imageResizeMode('cover')
                                         ->panelLayout('grid')
                                         ->live()
-                                        ->helperText('Upload up to 10 photos. Use the visual mapper below to arrange your gallery.')
-                                        ->columnSpanFull(),
-
-                                    Forms\Components\ViewField::make('bento_slot_mapper')
-                                        ->view('filament.forms.components.bento-slot-mapper')
-                                        ->dehydrated(false)
                                         ->columnSpanFull(),
                                 ]),
                         ]),
