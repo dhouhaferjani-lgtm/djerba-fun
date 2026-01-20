@@ -347,6 +347,18 @@ return [
         'approve' => 'Approuver',
         'complete' => 'Terminer',
         'fail' => 'Échouer',
+        'preview' => 'Aperçu',
+        'close' => 'Fermer',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Preview
+    |--------------------------------------------------------------------------
+    */
+    'preview' => [
+        'no_title' => 'Pas encore de titre',
+        'no_content' => 'Pas encore de contenu. Commencez à écrire pour voir l\'aperçu.',
     ],
 
     /*

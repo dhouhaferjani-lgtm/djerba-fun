@@ -16,6 +16,20 @@ class CreateBlogPost extends CreateRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('preview')
+                ->label(__('filament.actions.preview'))
+                ->icon('heroicon-o-eye')
+                ->color('info')
+                ->modalHeading(__('filament.actions.preview'))
+                ->modalWidth('7xl')
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel(__('filament.actions.close'))
+                ->modalContent(fn () => view('filament.pages.blog-preview', [
+                    'title' => $this->data['title'] ?? '',
+                    'content' => $this->data['content'] ?? '',
+                    'featuredImage' => $this->data['featured_image'] ?? null,
+                    'excerpt' => $this->data['excerpt'] ?? '',
+                ])),
             Actions\LocaleSwitcher::make(),
         ];
     }
