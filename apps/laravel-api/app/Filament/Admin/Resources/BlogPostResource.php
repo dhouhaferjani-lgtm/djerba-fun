@@ -190,7 +190,19 @@ class BlogPostResource extends Resource
                                     return __('filament.helpers.featured_limit_reached');
                                 }
                                 return __('filament.helpers.show_on_homepage');
-                            }),
+                            })
+                            ->rules([
+                                function (?BlogPost $record) {
+                                    return function (string $attribute, $value, \Closure $fail) use ($record) {
+                                        if ($value && !$record?->is_featured) {
+                                            $featuredCount = BlogPost::where('is_featured', true)->count();
+                                            if ($featuredCount >= 3) {
+                                                $fail(__('filament.helpers.featured_limit_reached'));
+                                            }
+                                        }
+                                    };
+                                },
+                            ]),
                     ])
                     ->columns(3),
 
