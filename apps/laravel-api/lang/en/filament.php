@@ -322,6 +322,7 @@ return [
         'description_rich' => 'Rich description for destination landing pages',
         'image_url_helper' => 'Full URL to destination hero image (e.g., from Unsplash or uploaded to MinIO)',
         'listings_count_helper' => 'Auto-calculated based on published listings',
+        'featured_limit_reached' => 'Maximum 3 featured posts reached. Unfeature another post first.',
     ],
 
     /*

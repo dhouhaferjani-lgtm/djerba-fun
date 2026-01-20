@@ -322,6 +322,7 @@ return [
         'description_rich' => 'Description complète pour les pages de destination',
         'image_url_helper' => 'URL complète de l\'image principale (par ex. Unsplash ou téléchargée sur MinIO)',
         'listings_count_helper' => 'Calculé automatiquement selon les annonces publiées',
+        'featured_limit_reached' => 'Maximum 3 articles en vedette atteint. Retirez d\'abord un autre article.',
     ],
 
     /*

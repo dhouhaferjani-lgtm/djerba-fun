@@ -173,7 +173,24 @@ class BlogPostResource extends Resource
 
                         Forms\Components\Toggle::make('is_featured')
                             ->label(__('filament.labels.feature_on_homepage'))
-                            ->helperText(__('filament.helpers.show_on_homepage')),
+                            ->disabled(function (?BlogPost $record) {
+                                // If this post is already featured, allow toggling off
+                                if ($record?->is_featured) {
+                                    return false;
+                                }
+                                // Check if 3 posts are already featured
+                                return BlogPost::where('is_featured', true)->count() >= 3;
+                            })
+                            ->helperText(function (?BlogPost $record) {
+                                if ($record?->is_featured) {
+                                    return __('filament.helpers.show_on_homepage');
+                                }
+                                $featuredCount = BlogPost::where('is_featured', true)->count();
+                                if ($featuredCount >= 3) {
+                                    return __('filament.helpers.featured_limit_reached');
+                                }
+                                return __('filament.helpers.show_on_homepage');
+                            }),
                     ])
                     ->columns(3),
 
