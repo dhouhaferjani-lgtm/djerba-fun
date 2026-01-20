@@ -31,12 +31,12 @@ export function Footer({ locale }: FooterProps) {
       <div className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Logo & Description */}
-          <div className="lg:col-span-1">
-            <div className="mb-6 ml-2">
-              <Logo variant="light" />
+          <div className="lg:col-span-1 text-center">
+            <div className="mb-6 flex justify-center">
+              <Logo variant="light" className="scale-125" />
             </div>
             <p className="text-white/80 leading-relaxed mb-6">{tagline}</p>
-            <div className="flex gap-4">
+            <div className="flex gap-4 justify-center">
               <a
                 href={socialLinks.facebook}
                 target="_blank"
