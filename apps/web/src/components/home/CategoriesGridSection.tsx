@@ -85,7 +85,7 @@ function CategoryCard({ id, nameKey, count, images, href, icon }: CategoryCardPr
       </div>
 
       {/* Content Footer */}
-      <div className="bg-cream p-5">
+      <div className="bg-cream p-5 text-center">
         <h3 className="font-display font-bold text-xl text-neutral-900 mb-1">{t(nameKey)}</h3>
         <p className="text-sm text-neutral-600">
           {count} {count === 1 ? tCommon('package') : tCommon('packages')}
@@ -100,7 +100,7 @@ function CategoryCardSkeleton() {
   return (
     <div className="overflow-hidden rounded-2xl bg-white border border-neutral-200 animate-pulse">
       <div className="h-56 bg-neutral-200" />
-      <div className="p-5 bg-cream">
+      <div className="p-5 bg-cream flex flex-col items-center">
         <div className="h-6 bg-neutral-300 rounded w-32 mb-2" />
         <div className="h-4 bg-neutral-200 rounded w-20" />
       </div>
