@@ -27,13 +27,10 @@ echo "[2/6] Running migrations..."
 php artisan migrate --force
 echo "Migrations complete!"
 
-# Cache configuration for performance
-echo "[3/6] Caching configuration..."
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan event:cache
-echo "Configuration cached!"
+# Publish Filament assets FIRST (before caching, so TinyEditor views are registered)
+echo "[3/6] Publishing Filament assets..."
+php artisan filament:assets
+echo "Filament assets published!"
 
 # Create storage symlink if not exists
 echo "[4/6] Setting up storage..."
@@ -48,10 +45,13 @@ fi
 chown -R www-data:www-data /var/www/html/storage
 chmod -R 775 /var/www/html/storage
 
-# Publish Filament assets (including TinyEditor)
-echo "[5/6] Publishing Filament assets..."
-php artisan filament:assets
-echo "Filament assets published!"
+# Cache configuration for performance (AFTER assets are published)
+echo "[5/6] Caching configuration..."
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan event:cache
+echo "Configuration cached!"
 
 # Start services
 echo "[6/6] Starting services..."
