@@ -92,7 +92,7 @@ class BlogPostResource extends Resource
                             ->fileAttachmentsDisk('public')
                             ->fileAttachmentsDirectory('blog-attachments')
                             ->fileAttachmentsVisibility('public')
-                            ->options(['imageAdvtab' => true])
+                            ->options(['imageAdvtab' => true, 'image_caption' => true])
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
