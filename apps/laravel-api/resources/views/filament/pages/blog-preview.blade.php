@@ -3,7 +3,7 @@
     @if($featuredImage)
         <div class="w-full h-64 bg-gray-200 dark:bg-gray-700 overflow-hidden">
             <img
-                src="{{ Storage::disk('public')->url($featuredImage) }}"
+                src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($featuredImage) }}"
                 alt="{{ $title }}"
                 class="w-full h-full object-cover"
             />
