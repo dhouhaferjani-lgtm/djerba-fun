@@ -201,43 +201,14 @@ class ListingResource extends Resource
                                         ->directory('listing-galleries')
                                         ->imageResizeMode('cover')
                                         ->panelLayout('grid')
-                                        ->helperText('Upload up to 10 photos. Drag to reorder. First image is your cover photo.')
+                                        ->live()
+                                        ->helperText('Upload up to 10 photos. Use the visual mapper below to arrange your gallery.')
                                         ->columnSpanFull(),
 
-                                    Forms\Components\Placeholder::make('layout_preview')
-                                        ->label('Layout Preview')
-                                        ->content(function (Get $get) {
-                                            $layout = $get('gallery_layout') ?? 'bento-1-4';
-                                            $images = $get('gallery_images') ?? [];
-                                            $imageCount = is_array($images) ? count($images) : 0;
-
-                                            $layoutDescriptions = [
-                                                'bento-1-4' => '1 large hero image on the left, 4 smaller images on the right (requires 5 photos for full effect)',
-                                                'bento-2-3' => '2 medium images on top, 3 smaller images below (requires 5 photos for full effect)',
-                                                'bento-1-2-2' => '1 large image, 2 medium below, 2 small at bottom (requires 5 photos for full effect)',
-                                                'grid-3' => 'Uniform 3-column grid layout (works with any number of photos)',
-                                                'masonry' => 'Pinterest-style masonry layout (works with any number of photos)',
-                                            ];
-
-                                            $description = $layoutDescriptions[$layout] ?? '';
-
-                                            return new \Illuminate\Support\HtmlString(sprintf(
-                                                '<div class="p-4 bg-gray-50 rounded-lg">
-                                                    <div class="text-sm text-gray-600 mb-2">
-                                                        <strong>Selected Layout:</strong> %s
-                                                    </div>
-                                                    <div class="text-sm text-gray-500 mb-2">%s</div>
-                                                    <div class="text-sm %s">
-                                                        <strong>Photos uploaded:</strong> %d / 10
-                                                    </div>
-                                                </div>',
-                                                e(ucwords(str_replace('-', ' ', $layout))),
-                                                e($description),
-                                                $imageCount > 0 ? 'text-green-600' : 'text-orange-600',
-                                                $imageCount
-                                            ));
-                                        })
-                                        ->dehydrated(false),
+                                    Forms\Components\ViewField::make('bento_slot_mapper')
+                                        ->view('filament.forms.components.bento-slot-mapper')
+                                        ->dehydrated(false)
+                                        ->columnSpanFull(),
                                 ]),
                         ]),
 
