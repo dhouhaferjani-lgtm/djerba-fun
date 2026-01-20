@@ -479,6 +479,15 @@
     "about": "À Propos",
     "contact": "Contact"
   },
+  "blog": {
+    "page_title": "Blog",
+    "meta_description": "Guides, histoires et inspiration des dunes de Tunisie",
+    "hero_label": "Notre Journal",
+    "hero_title": "Récits des Dunes",
+    "hero_subtitle": "Guides, histoires et inspiration pour votre aventure tunisienne",
+    "no_posts": "Aucun article trouvé. Revenez bientôt !",
+    "back_home": "Retour à l'accueil"
+  },
   "footer": {
     "tagline": "Vivez la Tunisie autrement. Des expériences authentiques avec des guides locaux passionnés",
     "company": "Entreprise",

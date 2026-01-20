@@ -4,24 +4,30 @@ import { MainLayout } from '@/components/templates/MainLayout';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { HeroCarousel } from './components/HeroCarousel';
 
 interface PageProps {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }
 
-export const metadata = {
-  title: 'Blog',
-  description: 'Guides, stories, and inspiration from the dunes of Tunisia',
-};
+export async function generateMetadata({ params }: PageProps) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'blog' });
+  return {
+    title: t('page_title'),
+    description: t('meta_description'),
+  };
+}
 
-async function BlogPostsGrid({ locale }: { locale: string }) {
+async function BlogPostsGrid({ locale, noPostsText }: { locale: string; noPostsText: string }) {
   const response = await getBlogPosts({ per_page: 12, locale });
   const posts = response.data;
 
   if (!posts || posts.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500 text-lg">No blog posts found. Check back soon!</p>
+        <p className="text-gray-500 text-lg">{noPostsText}</p>
       </div>
     );
   }
@@ -36,7 +42,12 @@ async function BlogPostsGrid({ locale }: { locale: string }) {
         >
           {post.featuredImage && (
             <div className="relative h-48 w-full overflow-hidden rounded-t-lg bg-gray-200">
-              {/* Image placeholder */}
+              <Image
+                src={post.featuredImage}
+                alt={post.title}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+              />
             </div>
           )}
 
@@ -72,6 +83,16 @@ async function BlogPostsGrid({ locale }: { locale: string }) {
 
 export default async function BlogPage({ params }: PageProps) {
   const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('blog');
+
+  // Fetch posts to get featured images for carousel
+  const response = await getBlogPosts({ per_page: 12, locale });
+  const posts = response.data || [];
+  const heroImages = posts
+    .filter((post) => post.featuredImage)
+    .map((post) => post.featuredImage as string)
+    .slice(0, 5); // Limit to 5 images for carousel
 
   return (
     <MainLayout locale={locale}>
@@ -83,28 +104,22 @@ export default async function BlogPage({ params }: PageProps) {
             className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            {locale === 'fr' ? "Retour à l'accueil" : 'Back to Home'}
+            {t('back_home')}
           </Link>
         </div>
       </div>
 
-      <section className="bg-primary py-16">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-secondary text-sm font-semibold uppercase tracking-wide mb-2">
-            Our Journal
-          </p>
-          <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-            Tales from the Dunes
-          </h1>
-          <p className="text-white/90 text-lg max-w-2xl mx-auto">
-            Guides, stories, and inspiration for your Tunisian adventure
-          </p>
-        </div>
-      </section>
+      {/* Hero with Image Carousel */}
+      <HeroCarousel
+        images={heroImages}
+        heroLabel={t('hero_label')}
+        heroTitle={t('hero_title')}
+        heroSubtitle={t('hero_subtitle')}
+      />
 
       <section className="container mx-auto px-4 py-16">
         <Suspense fallback={<div className="text-center">Loading...</div>}>
-          <BlogPostsGrid locale={locale} />
+          <BlogPostsGrid locale={locale} noPostsText={t('no_posts')} />
         </Suspense>
       </section>
     </MainLayout>
