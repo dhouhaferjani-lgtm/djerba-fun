@@ -11,6 +11,7 @@ use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use AmidEsfahani\FilamentTinyEditor\TinyEditor;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
@@ -84,28 +85,13 @@ class BlogPostResource extends Resource
                             ->helperText(__('filament.helpers.excerpt_auto_generated'))
                             ->columnSpanFull(),
 
-                        Forms\Components\RichEditor::make('content')
+                        TinyEditor::make('content')
                             ->label(__('filament.labels.content'))
                             ->required()
+                            ->profile('default')
                             ->fileAttachmentsDisk('public')
                             ->fileAttachmentsDirectory('blog-attachments')
                             ->fileAttachmentsVisibility('public')
-                            ->toolbarButtons([
-                                'attachFiles',
-                                'blockquote',
-                                'bold',
-                                'bulletList',
-                                'codeBlock',
-                                'h2',
-                                'h3',
-                                'italic',
-                                'link',
-                                'orderedList',
-                                'redo',
-                                'strike',
-                                'underline',
-                                'undo',
-                            ])
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
