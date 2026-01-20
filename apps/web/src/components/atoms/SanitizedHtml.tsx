@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import DOMPurify from 'dompurify';
 
 interface SanitizedHtmlProps {
@@ -20,55 +21,74 @@ function transformStorageUrls(html: string): string {
   return html.replace(/src="\/storage\//g, `src="${baseUrl}/storage/`);
 }
 
+const ALLOWED_TAGS = [
+  'p',
+  'br',
+  'strong',
+  'b',
+  'em',
+  'i',
+  'u',
+  'a',
+  'ul',
+  'ol',
+  'li',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'blockquote',
+  'code',
+  'pre',
+  'img',
+  'figure',
+  'figcaption',
+  'div',
+  'span',
+  'table',
+  'thead',
+  'tbody',
+  'tr',
+  'th',
+  'td',
+  'hr',
+];
+
+const ALLOWED_ATTR = ['href', 'src', 'alt', 'class', 'target', 'rel', 'title', 'width', 'height'];
+
 /**
  * Renders sanitized HTML content safely.
  * Use this component whenever rendering user-generated or CMS HTML content.
+ * DOMPurify only runs on client-side to ensure proper DOM handling.
  */
 export function SanitizedHtml({ html, className = '' }: SanitizedHtmlProps) {
+  const [sanitizedHtml, setSanitizedHtml] = useState<string>('');
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    if (html) {
+      // Transform relative storage URLs to absolute URLs pointing to API
+      const transformedHtml = transformStorageUrls(html);
+
+      // Sanitize HTML on client-side only (DOMPurify needs browser DOM)
+      const cleaned = DOMPurify.sanitize(transformedHtml, {
+        ALLOWED_TAGS,
+        ALLOWED_ATTR,
+        ADD_ATTR: ['target'],
+      });
+      setSanitizedHtml(cleaned);
+    }
+  }, [html]);
+
   if (!html) return null;
 
-  // Transform relative storage URLs to absolute URLs pointing to API
-  const transformedHtml = transformStorageUrls(html);
-
-  // Sanitize HTML to prevent XSS attacks
-  const sanitizedHtml = DOMPurify.sanitize(transformedHtml, {
-    ALLOWED_TAGS: [
-      'p',
-      'br',
-      'strong',
-      'b',
-      'em',
-      'i',
-      'u',
-      'a',
-      'ul',
-      'ol',
-      'li',
-      'h1',
-      'h2',
-      'h3',
-      'h4',
-      'h5',
-      'h6',
-      'blockquote',
-      'code',
-      'pre',
-      'img',
-      'figure',
-      'figcaption',
-      'div',
-      'span',
-      'table',
-      'thead',
-      'tbody',
-      'tr',
-      'th',
-      'td',
-      'hr',
-    ],
-    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel', 'title', 'width', 'height'],
-    ADD_ATTR: ['target'], // Allow target attribute for links
-  });
+  // Show loading placeholder during SSR, render sanitized content on client
+  if (!isClient) {
+    return <div className={className}>Loading...</div>;
+  }
 
   return <div className={className} dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
 }
