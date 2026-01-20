@@ -19,6 +19,10 @@ class AvailabilityRule extends Model
         // Generate availability slots when a rule is created or updated
         static::saved(function (AvailabilityRule $rule) {
             if ($rule->is_active && $rule->listing) {
+                // IMPORTANT: First delete existing slots for this rule
+                // This ensures invalid slots (e.g., for days not in days_of_week) are removed
+                $rule->slots()->delete();
+
                 // Generate slots for the next 90 days
                 $startDate = Carbon::today();
                 $endDate = Carbon::today()->addDays(90);
