@@ -360,7 +360,7 @@
     "contact": "Contact"
   },
   "footer": {
-    "tagline": "Discover authentic Tunisian adventures with eco-friendly practices and local expertise. Your journey to extraordinary experiences starts here.",
+    "tagline": "Discover authentic Tunisian adventures with eco-friendly practices and local expertise. Your journey to extraordinary experiences starts here",
     "company": "Company",
     "about": "About Us",
     "careers": "Careers",
@@ -381,7 +381,7 @@
     "copyright": "Go Adventure. All rights reserved.",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
-    "ppp_disclosure": "Prices may vary depending on country, currency, and billing address. We adapt pricing to ensure fair access across regions. The final price is confirmed at checkout."
+    "ppp_disclosure": "Prices may vary depending on country, currency, and billing address. We adapt pricing to ensure fair access across regions. The final price is confirmed at checkout"
   },
   "payment": {
     "select_method": "Select Payment Method",

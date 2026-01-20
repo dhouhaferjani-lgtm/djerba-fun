@@ -16,7 +16,11 @@ export function Logo({ variant = 'light', className = '', showText = false }: Lo
   const locale = useLocale();
   const { data: settings, isLoading } = usePlatformSettings(locale);
 
-  const logoUrl = variant === 'dark' ? settings?.branding?.logoDark : settings?.branding?.logoLight;
+  const defaultLogo = '/images/go-adventure-logo.png';
+  const logoUrl =
+    variant === 'dark'
+      ? settings?.branding?.logoDark || defaultLogo
+      : settings?.branding?.logoLight || defaultLogo;
 
   const platformName = settings?.platform?.name || 'Go Adventure';
 

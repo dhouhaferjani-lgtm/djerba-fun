@@ -480,7 +480,7 @@
     "contact": "Contact"
   },
   "footer": {
-    "tagline": "Vivez la Tunisie autrement. Des expériences authentiques avec des guides locaux passionnés.",
+    "tagline": "Vivez la Tunisie autrement. Des expériences authentiques avec des guides locaux passionnés",
     "company": "Entreprise",
     "about": "Qui sommes-nous",
     "blog": "Blog",
@@ -496,7 +496,7 @@
     "address": "10 rue du municipalité, Djerba, Tunisie",
     "copyright": "Go Adventure. Tous droits réservés.",
     "privacy": "Confidentialité",
-    "ppp_disclosure": "Les prix varient selon votre pays et votre devise. Le montant définitif s'affiche au moment du paiement."
+    "ppp_disclosure": "Les prix varient selon votre pays et votre devise. Le montant définitif s'affiche au moment du paiement"
   },
   "payment": {
     "select_method": "Sélectionnez le Mode de Paiement",
