@@ -3,6 +3,7 @@ import { getBlogPosts } from '@/lib/api/blog';
 import { MainLayout } from '@/components/templates/MainLayout';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ArrowLeft } from 'lucide-react';
 
 interface PageProps {
   params: { locale: string };
@@ -74,6 +75,19 @@ export default async function BlogPage({ params }: PageProps) {
 
   return (
     <MainLayout locale={locale}>
+      {/* Back to Home */}
+      <div className="bg-accent">
+        <div className="container mx-auto px-4 py-4">
+          <Link
+            href={`/${locale}`}
+            className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {locale === 'fr' ? "Retour à l'accueil" : 'Back to Home'}
+          </Link>
+        </div>
+      </div>
+
       <section className="bg-primary py-16">
         <div className="container mx-auto px-4 text-center">
           <p className="text-secondary text-sm font-semibold uppercase tracking-wide mb-2">
