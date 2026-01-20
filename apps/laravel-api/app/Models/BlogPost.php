@@ -178,6 +178,15 @@ class BlogPost extends Model
             return null;
         }
 
-        return Storage::disk('public')->url($this->featured_image);
+        // Handle case where featured_image might be an array (from older uploads)
+        $imagePath = is_array($this->featured_image)
+            ? ($this->featured_image[0] ?? null)
+            : $this->featured_image;
+
+        if (! $imagePath) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($imagePath);
     }
 }
