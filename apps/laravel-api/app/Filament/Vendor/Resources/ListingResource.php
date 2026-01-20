@@ -176,17 +176,17 @@ class ListingResource extends Resource
                         ->description('Upload up to 5 photos for your listing')
                         ->schema([
                             Forms\Components\Section::make('Gallery Photos')
-                                ->description('Select how many photos, then upload below. First photo = cover image.')
+                                ->description('Click each slot in the grid to upload your photos.')
                                 ->schema([
-                                    // Visual bento layout preview
-                                    Forms\Components\ViewField::make('bento_preview')
+                                    // Interactive bento uploader
+                                    Forms\Components\ViewField::make('bento_uploader')
                                         ->view('filament.forms.components.bento-slot-mapper')
                                         ->dehydrated(false)
                                         ->columnSpanFull(),
 
-                                    // Standard FileUpload handles actual storage
+                                    // FileUpload handles actual storage
                                     Forms\Components\FileUpload::make('gallery_images')
-                                        ->label('Upload Photos')
+                                        ->label('Or drag & drop here')
                                         ->image()
                                         ->multiple()
                                         ->reorderable()
