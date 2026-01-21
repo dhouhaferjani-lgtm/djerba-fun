@@ -815,7 +815,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
               <div className="border-t border-neutral-200 pt-12 mt-8">
                 <div className="space-y-16">
                   {/* Description Section - only show if description exists */}
-                  {description && description.trim() !== '' && (
+                  {typeof description === 'string' && description.trim() !== '' && (
                     <section>
                       <h2 className="font-display text-4xl font-bold text-heading mb-6 tracking-tight">
                         About This Experience

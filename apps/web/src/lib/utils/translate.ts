@@ -25,7 +25,9 @@ export function resolveTranslation(
 
   // If it's an object, try to get the translation for the current locale
   if (typeof field === 'object') {
-    return field[locale] || field[fallbackLocale] || Object.values(field)[0] || '';
+    const value = field[locale] || field[fallbackLocale] || Object.values(field)[0];
+    // Ensure we always return a string, even if the value is a number or other type
+    return typeof value === 'string' ? value : String(value ?? '');
   }
 
   return '';
