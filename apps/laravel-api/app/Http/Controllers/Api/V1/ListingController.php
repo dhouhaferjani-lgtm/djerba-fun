@@ -20,8 +20,10 @@ class ListingController extends Controller
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        // Build cache key from request parameters
-        $cacheKey = 'listings:index:' . md5(json_encode($request->all()));
+        // Build cache key from request parameters AND user currency
+        // Currency must be part of cache key to avoid serving TND prices to EUR users
+        $userCurrency = $request->attributes->get('user_currency', 'EUR');
+        $cacheKey = 'listings:index:' . $userCurrency . ':' . md5(json_encode($request->all()));
 
         // Cache listings for 5 minutes (popular searches)
         $cacheTtl = 300; // 5 minutes
