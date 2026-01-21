@@ -137,14 +137,20 @@ class BlogPostResource extends Resource
 
                 Forms\Components\Section::make(__('filament.sections.media'))
                     ->schema([
-                        Forms\Components\FileUpload::make('featured_image')
-                            ->label(__('filament.labels.featured_image'))
+                        Forms\Components\FileUpload::make('hero_images')
+                            ->label(__('filament.labels.hero_images'))
                             ->image()
+                            ->multiple()
+                            ->minFiles(1)
+                            ->maxFiles(5)
+                            ->reorderable()
                             ->disk('public')
                             ->directory('blog-images')
                             ->visibility('public')
                             ->imageEditor()
-                            ->maxSize(10240),
+                            ->maxSize(10240)
+                            ->helperText(__('filament.helpers.hero_images_help'))
+                            ->columnSpanFull(),
                     ]),
 
                 Forms\Components\Section::make(__('filament.sections.publishing'))
@@ -228,9 +234,11 @@ class BlogPostResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('featured_image')
+                Tables\Columns\ImageColumn::make('hero_images')
                     ->label(__('filament.labels.image'))
                     ->square()
+                    ->stacked()
+                    ->limit(3)
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('title')

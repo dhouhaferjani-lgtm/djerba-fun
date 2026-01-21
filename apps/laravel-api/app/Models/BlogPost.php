@@ -35,6 +35,7 @@ class BlogPost extends Model
         'excerpt',
         'content',
         'featured_image',
+        'hero_images',
         'tags',
         'seo_title',
         'seo_description',
@@ -47,6 +48,7 @@ class BlogPost extends Model
 
     protected $casts = [
         'tags' => 'array',
+        'hero_images' => 'array',
         'is_featured' => 'boolean',
         'published_at' => 'datetime',
         'created_at' => 'datetime',
@@ -170,23 +172,57 @@ class BlogPost extends Model
     }
 
     /**
-     * Get the full URL for the featured image.
+     * Get the full URL for the featured image (first hero image for backward compatibility).
      */
     public function getFeaturedImageUrlAttribute(): ?string
     {
-        if (! $this->featured_image) {
-            return null;
+        // Prefer hero_images, fallback to legacy featured_image
+        $images = $this->hero_images ?? [];
+        if (! empty($images)) {
+            $imagePath = $images[0];
+        } else {
+            // Legacy support for featured_image field
+            if (! $this->featured_image) {
+                return null;
+            }
+            $imagePath = is_array($this->featured_image)
+                ? ($this->featured_image[0] ?? null)
+                : $this->featured_image;
         }
-
-        // Handle case where featured_image might be an array (from older uploads)
-        $imagePath = is_array($this->featured_image)
-            ? ($this->featured_image[0] ?? null)
-            : $this->featured_image;
 
         if (! $imagePath) {
             return null;
         }
 
+        // Return as-is if already a full URL
+        if (str_starts_with($imagePath, 'http')) {
+            return $imagePath;
+        }
+
         return Storage::disk('public')->url($imagePath);
+    }
+
+    /**
+     * Get full URLs for all hero images.
+     */
+    public function getHeroImageUrlsAttribute(): array
+    {
+        $images = $this->hero_images ?? [];
+
+        // Fallback to legacy featured_image if hero_images is empty
+        if (empty($images) && $this->featured_image) {
+            $legacyImage = is_array($this->featured_image)
+                ? $this->featured_image
+                : [$this->featured_image];
+            $images = array_filter($legacyImage);
+        }
+
+        return array_map(function ($image) {
+            if (str_starts_with($image, 'http')) {
+                return $image;
+            }
+
+            return Storage::disk('public')->url($image);
+        }, $images);
     }
 }

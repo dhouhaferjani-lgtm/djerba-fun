@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation';
 import { getBlogPost, getRelatedBlogPosts } from '@/lib/api/blog';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { SanitizedHtml } from '@/components/atoms/SanitizedHtml';
+import { BlogHeroSection } from './components/BlogHeroSection';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
 
 interface PageProps {
@@ -43,40 +43,21 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
     notFound();
   }
 
+  // Get hero images - prefer heroImages array, fallback to featuredImage for backward compatibility
+  const heroImages =
+    post.heroImages?.length > 0 ? post.heroImages : post.featuredImage ? [post.featuredImage] : [];
+
   return (
     <>
-      {/* Article Header with Hero Image */}
-      <div className="relative min-h-[60vh] flex items-center justify-center">
-        {/* Background Image */}
-        {post.featuredImage && (
-          <Image src={post.featuredImage} alt={post.title} fill className="object-cover" priority />
-        )}
-
-        {/* Dark Overlay for text readability */}
-        <div className="absolute inset-0 bg-black/50" />
-
-        {/* Content */}
-        <div className="relative z-10 container mx-auto px-4 max-w-4xl text-center text-white py-20">
-          {post.category && (
-            <span
-              className="inline-block px-4 py-2 rounded-full text-sm font-semibold mb-4"
-              style={{ backgroundColor: post.category.color }}
-            >
-              {post.category.name}
-            </span>
-          )}
-
-          <h1 className="text-4xl md:text-5xl font-display font-bold mb-6">{post.title}</h1>
-
-          <div className="flex items-center justify-center gap-6 text-sm text-gray-200">
-            <span>{post.author.name}</span>
-            <span>•</span>
-            <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
-            <span>•</span>
-            <span>{post.readTimeMinutes} min read</span>
-          </div>
-        </div>
-      </div>
+      {/* Article Header with Hero Carousel */}
+      <BlogHeroSection
+        images={heroImages}
+        title={post.title}
+        category={post.category}
+        author={post.author}
+        publishedAt={post.publishedAt}
+        readTimeMinutes={post.readTimeMinutes}
+      />
 
       {/* Article Content */}
       <div className="container mx-auto px-4 py-16">

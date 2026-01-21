@@ -7,6 +7,8 @@ export interface BlogPost {
   excerpt: string;
   content: string;
   featuredImage: string | null;
+  heroImages: string[];
+  heroImageCount: number;
   tags: string[];
   readTimeMinutes: number;
   viewsCount: number;
