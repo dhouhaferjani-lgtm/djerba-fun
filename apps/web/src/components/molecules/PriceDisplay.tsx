@@ -23,7 +23,7 @@ interface PriceDisplayProps {
 }
 
 const currencySymbols: Record<string, string> = {
-  TND: 'د.ت',
+  TND: 'TND',
   EUR: '€',
   USD: '$',
   GBP: '£',
