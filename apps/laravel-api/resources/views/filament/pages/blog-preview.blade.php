@@ -1,4 +1,4 @@
-<div class="blog-preview bg-white dark:bg-gray-900"
+<div class="blog-preview bg-white dark:bg-gray-900 h-[calc(100vh-5rem)] overflow-y-auto"
      x-data="{
         current: 0,
         images: {{ Js::from($heroImages ?? []) }},

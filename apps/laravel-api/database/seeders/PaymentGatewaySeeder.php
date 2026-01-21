@@ -60,17 +60,17 @@ class PaymentGatewaySeeder extends Seeder
             [
                 'name' => 'click_to_pay',
                 'slug' => 'click-to-pay',
-                'display_name' => 'Click to Pay',
-                'description' => 'Fast and secure payments with Visa Click to Pay (Tunisian payment processor).',
+                'display_name' => 'Clictopay (Carte bancaire)',
+                'description' => 'Paiement sécurisé par carte bancaire via Clictopay SMT. Accepte les cartes tunisiennes et internationales.',
                 'driver' => 'clicktopay',
-                'is_enabled' => false,
+                'is_enabled' => false, // Keep disabled until credentials are added
                 'is_default' => false,
                 'priority' => 30,
                 'test_mode' => true,
                 'configuration' => [
-                    'merchant_id' => '',
-                    'api_key' => '',
-                    'shared_secret' => '',
+                    'username' => '',    // Clictopay merchant username
+                    'password' => '',    // Clictopay merchant password
+                    'language' => 'fr',  // Payment page language (en/fr/ar)
                 ],
             ],
             [

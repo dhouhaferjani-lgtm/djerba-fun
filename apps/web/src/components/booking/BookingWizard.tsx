@@ -157,6 +157,24 @@ export function BookingWizard({
             sessionId,
           },
         });
+
+        // Check if this is a redirect-based payment (Clictopay)
+        if (paymentResponse.requires_redirect && paymentResponse.redirect_url) {
+          // Store booking info in sessionStorage for post-redirect recovery
+          sessionStorage.setItem(
+            'pending_payment',
+            JSON.stringify({
+              bookingId: booking.id,
+              bookingNumber: booking.bookingNumber,
+              intentId: paymentResponse.payment_intent?.id,
+            })
+          );
+
+          // Redirect to Clictopay payment page
+          window.location.href = paymentResponse.redirect_url;
+          return; // Don't continue - browser will redirect
+        }
+
         setCompletedBooking(paymentResponse.data);
       } else {
         setCompletedBooking(booking);

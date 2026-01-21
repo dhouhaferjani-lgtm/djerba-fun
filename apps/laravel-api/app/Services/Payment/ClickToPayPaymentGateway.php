@@ -12,192 +12,440 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
+/**
+ * Clictopay SMT Payment Gateway for Tunisia.
+ *
+ * Integrates with Monétique Tunisie's Clictopay payment processor.
+ * Supports both local Tunisian cards (CIB) and international Visa/Mastercard.
+ *
+ * @see https://mczen-technologies.github.io/clictopay-api/
+ */
 class ClickToPayPaymentGateway implements PaymentGateway
 {
+    private const TEST_BASE_URL = 'https://test.clictopay.com/payment/rest';
+    private const PROD_BASE_URL = 'https://ipay.clictopay.com/payment/rest';
+    private const TND_CURRENCY_CODE = 788; // ISO 4217 numeric code for TND
+
     /**
-     * Configuration for the Click to Pay gateway.
+     * Configuration loaded from database.
      */
     private ?array $config = null;
 
     /**
-     * Create a payment intent for the booking.
+     * Create a payment intent and register with Clictopay.
+     *
+     * This method:
+     * 1. Creates a local PaymentIntent record
+     * 2. Calls Clictopay's register.do API
+     * 3. Stores the formUrl for frontend redirect
      */
     public function createIntent(Booking $booking, array $options = []): PaymentIntent
     {
         $this->loadConfiguration();
 
-        return PaymentIntent::create([
+        // Convert amount to millimes (1 TND = 1000 millimes)
+        $amountInMillimes = (int) round($booking->total_amount * 1000);
+
+        // Generate unique order number
+        $orderNumber = $this->generateOrderNumber($booking);
+
+        // Create pending payment intent
+        $intent = PaymentIntent::create([
             'booking_id' => $booking->id,
             'amount' => $booking->total_amount,
-            'currency' => $booking->currency,
-            'payment_method' => $options['payment_method'] ?? 'card',
+            'currency' => $booking->currency ?? 'TND',
+            'payment_method' => $options['payment_method'] ?? 'click_to_pay',
             'status' => PaymentStatus::PENDING,
             'gateway' => 'clicktopay',
-            'gateway_id' => 'ctp_' . Str::random(20),
-            'metadata' => array_merge($options['metadata'] ?? [], [
-                'created_at' => now()->toIso8601String(),
-                'merchant_id' => $this->config['merchant_id'] ?? null,
+            'gateway_id' => null, // Will be set after register.do call
+            'metadata' => [
+                'order_number' => $orderNumber,
+                'amount_in_millimes' => $amountInMillimes,
                 'test_mode' => $this->isTestMode(),
-            ]),
+                'created_at' => now()->toIso8601String(),
+            ],
         ]);
+
+        // Call Clictopay register.do API
+        try {
+            $response = $this->registerPayment($intent, $orderNumber, $amountInMillimes);
+
+            if (isset($response['orderId']) && isset($response['formUrl'])) {
+                // Registration successful
+                $intent->update([
+                    'gateway_id' => $response['orderId'],
+                    'metadata' => array_merge($intent->metadata ?? [], [
+                        'form_url' => $response['formUrl'],
+                        'clictopay_order_id' => $response['orderId'],
+                        'registered_at' => now()->toIso8601String(),
+                    ]),
+                ]);
+
+                Log::info('Clictopay payment registered successfully', [
+                    'intent_id' => $intent->id,
+                    'booking_id' => $booking->id,
+                    'clictopay_order_id' => $response['orderId'],
+                    'amount' => $booking->total_amount,
+                    'test_mode' => $this->isTestMode(),
+                ]);
+            } else {
+                // Registration failed
+                $errorMessage = $response['errorMessage'] ?? 'Unknown error from Clictopay';
+                $errorCode = $response['errorCode'] ?? null;
+
+                $intent->update([
+                    'status' => PaymentStatus::FAILED,
+                    'failed_at' => now(),
+                    'metadata' => array_merge($intent->metadata ?? [], [
+                        'registration_error' => $errorMessage,
+                        'error_code' => $errorCode,
+                        'failed_at' => now()->toIso8601String(),
+                    ]),
+                ]);
+
+                Log::error('Clictopay registration failed', [
+                    'intent_id' => $intent->id,
+                    'booking_id' => $booking->id,
+                    'error_message' => $errorMessage,
+                    'error_code' => $errorCode,
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Clictopay registration exception', [
+                'intent_id' => $intent->id,
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            $intent->update([
+                'status' => PaymentStatus::FAILED,
+                'failed_at' => now(),
+                'metadata' => array_merge($intent->metadata ?? [], [
+                    'registration_error' => $e->getMessage(),
+                    'failed_at' => now()->toIso8601String(),
+                ]),
+            ]);
+        }
+
+        return $intent->fresh();
     }
 
     /**
-     * Process payment for the intent.
+     * Process payment - verify status after redirect from Clictopay.
      *
-     * This method integrates with the Click to Pay (Visa) API.
-     * Current implementation is a placeholder for future API integration.
+     * Called when user is redirected back from Clictopay payment page.
+     * Verifies the payment status with Clictopay API.
      */
     public function processPayment(PaymentIntent $intent, array $data): PaymentIntent
     {
         $this->loadConfiguration();
 
+        // Get order ID from intent or callback data
+        $orderId = $intent->gateway_id ?? $data['orderId'] ?? null;
+
+        if (! $orderId) {
+            $intent->update([
+                'status' => PaymentStatus::FAILED,
+                'failed_at' => now(),
+                'metadata' => array_merge($intent->metadata ?? [], [
+                    'error' => 'No Clictopay order ID available for verification',
+                    'failed_at' => now()->toIso8601String(),
+                ]),
+            ]);
+
+            Log::error('Clictopay verification failed - no order ID', [
+                'intent_id' => $intent->id,
+            ]);
+
+            return $intent->fresh();
+        }
+
         try {
-            // TODO: Integrate with Click to Pay API
-            // This is a placeholder implementation until the actual API is integrated
-            //
-            // Expected flow:
-            // 1. Create payment session with Click to Pay API
-            // 2. Get payment URL or session ID
-            // 3. Handle redirect or modal for user payment
-            // 4. Process webhook callback
-            // 5. Verify payment signature
-            // 6. Update payment intent status
+            $statusResponse = $this->getOrderStatus($orderId);
 
-            if ($this->isTestMode()) {
-                // Test mode: simulate successful payment after delay
-                sleep(1);
+            // Parse Clictopay orderStatus:
+            // 0 = Registered (payment not started)
+            // 1 = Pre-authorized only
+            // 2 = Deposited/Paid (SUCCESS)
+            // 3 = Reversed
+            // 4 = Refunded
+            // 5 = Declined
+            // 6 = ACS pending
+            $orderStatus = $statusResponse['orderStatus'] ?? -1;
 
+            Log::info('Clictopay status check', [
+                'intent_id' => $intent->id,
+                'order_id' => $orderId,
+                'order_status' => $orderStatus,
+                'response' => $statusResponse,
+            ]);
+
+            if ($orderStatus === 2) {
+                // Payment successful (deposited)
                 $intent->update([
                     'status' => PaymentStatus::SUCCEEDED,
                     'paid_at' => now(),
                     'metadata' => array_merge($intent->metadata ?? [], [
-                        'processed_at' => now()->toIso8601String(),
-                        'test_transaction_id' => 'ctp_test_' . Str::random(24),
-                        'payment_method_type' => $data['payment_method_type'] ?? 'visa',
-                        'last_4_digits' => $data['card_last_4'] ?? '4242',
+                        'verified_at' => now()->toIso8601String(),
+                        'clictopay_status' => $statusResponse,
+                        'auth_code' => $statusResponse['authCode'] ?? null,
+                        'card_pan' => $statusResponse['Pan'] ?? null,
+                        'approval_code' => $statusResponse['approvalCode'] ?? null,
                     ]),
                 ]);
 
-                Log::info('Click to Pay test payment processed', [
+                Log::info('Clictopay payment verified as successful', [
                     'intent_id' => $intent->id,
                     'booking_id' => $intent->booking_id,
-                    'amount' => $intent->amount,
+                    'auth_code' => $statusResponse['authCode'] ?? null,
                 ]);
-            } else {
-                // Production mode placeholder
-                // In production, this would call the actual Click to Pay API
+            } elseif ($orderStatus === 1) {
+                // Pre-authorized only - payment in progress
+                $intent->update([
+                    'status' => PaymentStatus::PROCESSING,
+                    'metadata' => array_merge($intent->metadata ?? [], [
+                        'preauthorized_at' => now()->toIso8601String(),
+                        'clictopay_status' => $statusResponse,
+                    ]),
+                ]);
+
+                Log::info('Clictopay payment pre-authorized', [
+                    'intent_id' => $intent->id,
+                ]);
+            } elseif ($orderStatus === 0) {
+                // Still registered but not paid - user might have cancelled
                 $intent->update([
                     'status' => PaymentStatus::PENDING,
                     'metadata' => array_merge($intent->metadata ?? [], [
-                        'pending_reason' => 'Click to Pay API integration pending',
-                        'requested_at' => now()->toIso8601String(),
+                        'pending_reason' => 'Payment not completed by user',
+                        'clictopay_status' => $statusResponse,
                     ]),
                 ]);
 
-                Log::warning('Click to Pay production API not yet implemented', [
+                Log::info('Clictopay payment still pending (not completed)', [
                     'intent_id' => $intent->id,
-                    'booking_id' => $intent->booking_id,
+                ]);
+            } else {
+                // Failed, declined, or other non-success status
+                $intent->update([
+                    'status' => PaymentStatus::FAILED,
+                    'failed_at' => now(),
+                    'metadata' => array_merge($intent->metadata ?? [], [
+                        'verification_failed_at' => now()->toIso8601String(),
+                        'clictopay_status' => $statusResponse,
+                        'order_status_code' => $orderStatus,
+                        'action_code' => $statusResponse['actionCode'] ?? null,
+                        'action_code_description' => $statusResponse['actionCodeDescription'] ?? null,
+                    ]),
+                ]);
+
+                Log::warning('Clictopay payment failed or declined', [
+                    'intent_id' => $intent->id,
+                    'order_status' => $orderStatus,
+                    'action_code' => $statusResponse['actionCode'] ?? null,
                 ]);
             }
-
-            return $intent->fresh();
         } catch (\Exception $e) {
-            Log::error('Click to Pay payment processing failed', [
+            Log::error('Clictopay status verification exception', [
                 'intent_id' => $intent->id,
+                'order_id' => $orderId,
                 'error' => $e->getMessage(),
             ]);
 
             $intent->update([
                 'status' => PaymentStatus::FAILED,
+                'failed_at' => now(),
                 'metadata' => array_merge($intent->metadata ?? [], [
-                    'error' => $e->getMessage(),
+                    'verification_error' => $e->getMessage(),
                     'failed_at' => now()->toIso8601String(),
                 ]),
             ]);
-
-            return $intent->fresh();
         }
+
+        return $intent->fresh();
     }
 
     /**
      * Refund a payment intent.
      *
-     * @param  PaymentIntent  $intent  The payment intent to refund
-     * @param  int|null  $amount  Amount to refund in cents (null for full refund)
+     * Note: Clictopay refunds may require manual processing or contacting
+     * Monétique Tunisie directly. This implementation marks the intent
+     * as pending refund for manual follow-up.
      */
     public function refund(PaymentIntent $intent, ?int $amount = null): PaymentIntent
     {
         $this->loadConfiguration();
 
-        $refundAmount = $amount ?? (int) ($intent->amount * 100);
+        // Calculate refund amount in millimes
+        $refundAmountInMillimes = $amount ?? (int) ($intent->amount * 1000);
+        $totalAmountInMillimes = (int) ($intent->amount * 1000);
 
-        try {
-            // TODO: Integrate with Click to Pay refund API
-            // Expected flow:
-            // 1. Call Click to Pay refund endpoint
-            // 2. Verify refund request
-            // 3. Process refund (may take several days)
-            // 4. Update payment intent status
+        // Mark as pending refund - requires manual processing with Clictopay
+        $intent->update([
+            'status' => PaymentStatus::PENDING,
+            'metadata' => array_merge($intent->metadata ?? [], [
+                'refund_requested_at' => now()->toIso8601String(),
+                'refund_amount_millimes' => $refundAmountInMillimes,
+                'refund_amount' => $refundAmountInMillimes / 1000,
+                'refund_status' => 'pending_manual_processing',
+                'refund_type' => $refundAmountInMillimes === $totalAmountInMillimes ? 'full' : 'partial',
+            ]),
+        ]);
 
-            if ($this->isTestMode()) {
-                // Test mode: simulate successful refund
-                $intent->update([
-                    'status' => $refundAmount === (int) ($intent->amount * 100)
-                        ? PaymentStatus::REFUNDED
-                        : PaymentStatus::PARTIALLY_REFUNDED,
-                    'metadata' => array_merge($intent->metadata ?? [], [
-                        'refunded_at' => now()->toIso8601String(),
-                        'refund_amount' => $refundAmount / 100,
-                        'test_refund_id' => 'ctp_rfnd_test_' . Str::random(24),
-                        'refund_status' => 'completed',
-                    ]),
-                ]);
+        Log::info('Clictopay refund requested - requires manual processing', [
+            'intent_id' => $intent->id,
+            'booking_id' => $intent->booking_id,
+            'refund_amount' => $refundAmountInMillimes / 1000,
+            'currency' => $intent->currency,
+        ]);
 
-                Log::info('Click to Pay test refund processed', [
-                    'intent_id' => $intent->id,
-                    'refund_amount' => $refundAmount / 100,
-                ]);
-            } else {
-                // Production mode placeholder
-                $intent->update([
-                    'status' => PaymentStatus::PENDING,
-                    'metadata' => array_merge($intent->metadata ?? [], [
-                        'refund_requested_at' => now()->toIso8601String(),
-                        'refund_amount' => $refundAmount / 100,
-                        'refund_status' => 'pending',
-                    ]),
-                ]);
-
-                Log::warning('Click to Pay production refund API not yet implemented', [
-                    'intent_id' => $intent->id,
-                    'refund_amount' => $refundAmount / 100,
-                ]);
-            }
-
-            return $intent->fresh();
-        } catch (\Exception $e) {
-            Log::error('Click to Pay refund failed', [
-                'intent_id' => $intent->id,
-                'error' => $e->getMessage(),
-            ]);
-
-            throw $e;
-        }
+        return $intent->fresh();
     }
 
     /**
      * Get the current status of a payment intent.
+     *
+     * Optionally refreshes status from Clictopay API for pending payments.
      */
     public function getStatus(PaymentIntent $intent): PaymentStatus
     {
-        // TODO: Query Click to Pay API for current payment status
-        // This would be useful for checking payment status asynchronously
+        // For pending payments with a gateway ID, refresh from Clictopay
+        if ($intent->gateway_id && $intent->status === PaymentStatus::PENDING) {
+            try {
+                $statusResponse = $this->getOrderStatus($intent->gateway_id);
+                $orderStatus = $statusResponse['orderStatus'] ?? -1;
+
+                if ($orderStatus === 2) {
+                    return PaymentStatus::SUCCEEDED;
+                } elseif ($orderStatus === 1) {
+                    return PaymentStatus::PROCESSING;
+                } elseif (in_array($orderStatus, [3, 4, 5], true)) {
+                    return PaymentStatus::FAILED;
+                }
+            } catch (\Exception $e) {
+                Log::warning('Failed to refresh Clictopay status', [
+                    'intent_id' => $intent->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         return $intent->status;
     }
 
     /**
-     * Load configuration from the database.
+     * Get the payment form URL for frontend redirect.
+     *
+     * Returns the Clictopay hosted payment page URL where the user
+     * should be redirected to complete their payment.
+     */
+    public function getPaymentUrl(PaymentIntent $intent): ?string
+    {
+        return $intent->metadata['form_url'] ?? null;
+    }
+
+    /**
+     * Register a payment with Clictopay API.
+     *
+     * Calls the register.do endpoint to create a payment session.
+     *
+     * @param  PaymentIntent  $intent  The payment intent
+     * @param  string  $orderNumber  Unique order reference
+     * @param  int  $amount  Amount in millimes
+     * @return array API response
+     *
+     * @throws \Exception If API call fails
+     */
+    private function registerPayment(PaymentIntent $intent, string $orderNumber, int $amount): array
+    {
+        $returnUrl = route('payment.clictopay.callback', ['intent' => $intent->id]);
+
+        $params = [
+            'userName' => $this->config['username'] ?? '',
+            'password' => $this->config['password'] ?? '',
+            'orderNumber' => $orderNumber,
+            'amount' => $amount,
+            'currency' => self::TND_CURRENCY_CODE,
+            'returnUrl' => $returnUrl,
+            'language' => $this->config['language'] ?? 'en',
+        ];
+
+        Log::debug('Clictopay register.do request', [
+            'url' => $this->getBaseUrl() . '/register.do',
+            'order_number' => $orderNumber,
+            'amount' => $amount,
+            'return_url' => $returnUrl,
+        ]);
+
+        $response = Http::timeout(30)
+            ->asForm()
+            ->post($this->getBaseUrl() . '/register.do', $params);
+
+        if ($response->failed()) {
+            throw new \Exception('Clictopay API request failed: HTTP ' . $response->status());
+        }
+
+        return $response->json() ?? [];
+    }
+
+    /**
+     * Get order status from Clictopay API.
+     *
+     * Calls the getOrderStatus.do endpoint to check payment status.
+     *
+     * @param  string  $orderId  Clictopay order ID
+     * @return array API response
+     *
+     * @throws \Exception If API call fails
+     */
+    private function getOrderStatus(string $orderId): array
+    {
+        $params = [
+            'userName' => $this->config['username'] ?? '',
+            'password' => $this->config['password'] ?? '',
+            'orderId' => $orderId,
+            'language' => $this->config['language'] ?? 'en',
+        ];
+
+        Log::debug('Clictopay getOrderStatus.do request', [
+            'url' => $this->getBaseUrl() . '/getOrderStatus.do',
+            'order_id' => $orderId,
+        ]);
+
+        $response = Http::timeout(30)
+            ->get($this->getBaseUrl() . '/getOrderStatus.do', $params);
+
+        if ($response->failed()) {
+            throw new \Exception('Clictopay status check failed: HTTP ' . $response->status());
+        }
+
+        return $response->json() ?? [];
+    }
+
+    /**
+     * Get the base URL for API calls based on test mode.
+     */
+    private function getBaseUrl(): string
+    {
+        return $this->isTestMode() ? self::TEST_BASE_URL : self::PROD_BASE_URL;
+    }
+
+    /**
+     * Generate a unique order number for Clictopay.
+     *
+     * Format: GA-{booking_number}-{timestamp}
+     * Max 32 characters as per Clictopay spec.
+     */
+    private function generateOrderNumber(Booking $booking): string
+    {
+        $base = 'GA-' . substr($booking->booking_number, -8) . '-' . time();
+
+        return substr($base, 0, 32);
+    }
+
+    /**
+     * Load configuration from the database PaymentGateway model.
      */
     private function loadConfiguration(): void
     {
@@ -218,166 +466,25 @@ class ClickToPayPaymentGateway implements PaymentGateway
     }
 
     /**
-     * Verify webhook signature from Click to Pay.
-     * This method should be called in the webhook controller.
+     * Verify webhook signature from Clictopay (if implemented).
      *
-     * @param  string  $payload  The raw webhook payload
-     * @param  string  $signature  The signature from the webhook headers
+     * Note: Clictopay primarily uses redirect-based callbacks rather than webhooks.
+     * This method is provided for potential future webhook support.
      */
     public function verifyWebhookSignature(string $payload, string $signature): bool
     {
         $this->loadConfiguration();
 
-        // TODO: Implement actual Click to Pay signature verification
-        // Expected flow:
-        // 1. Get shared secret from configuration
-        // 2. Compute HMAC signature of payload
-        // 3. Compare with provided signature
-        // 4. Return true if valid, false otherwise
-
         $sharedSecret = $this->config['shared_secret'] ?? '';
 
         if (empty($sharedSecret)) {
-            Log::warning('Click to Pay shared secret not configured');
+            Log::warning('Clictopay shared secret not configured for webhook verification');
 
             return false;
         }
 
-        // Placeholder signature verification
         $expectedSignature = hash_hmac('sha256', $payload, $sharedSecret);
 
         return hash_equals($expectedSignature, $signature);
-    }
-
-    /**
-     * Handle webhook from Click to Pay.
-     * This method should be called in the webhook controller.
-     *
-     * @param  array  $payload  The decoded webhook payload
-     */
-    public function handleWebhook(array $payload): void
-    {
-        // TODO: Implement Click to Pay webhook handling
-        // Expected events:
-        // - payment.succeeded
-        // - payment.failed
-        // - refund.completed
-        // - refund.failed
-
-        $eventType = $payload['event_type'] ?? null;
-        $transactionId = $payload['transaction_id'] ?? null;
-
-        if (! $eventType || ! $transactionId) {
-            Log::warning('Invalid Click to Pay webhook payload', ['payload' => $payload]);
-
-            return;
-        }
-
-        // Find the payment intent by gateway_id
-        $intent = PaymentIntent::where('gateway_id', $transactionId)->first();
-
-        if (! $intent) {
-            Log::warning('Payment intent not found for Click to Pay webhook', [
-                'transaction_id' => $transactionId,
-            ]);
-
-            return;
-        }
-
-        match ($eventType) {
-            'payment.succeeded' => $this->handlePaymentSucceeded($intent, $payload),
-            'payment.failed' => $this->handlePaymentFailed($intent, $payload),
-            'refund.completed' => $this->handleRefundCompleted($intent, $payload),
-            'refund.failed' => $this->handleRefundFailed($intent, $payload),
-            default => Log::info('Unhandled Click to Pay webhook event', [
-                'event_type' => $eventType,
-                'transaction_id' => $transactionId,
-            ]),
-        };
-    }
-
-    /**
-     * Handle payment succeeded webhook event.
-     */
-    private function handlePaymentSucceeded(PaymentIntent $intent, array $payload): void
-    {
-        $intent->update([
-            'status' => PaymentStatus::SUCCEEDED,
-            'paid_at' => now(),
-            'metadata' => array_merge($intent->metadata ?? [], [
-                'webhook_received_at' => now()->toIso8601String(),
-                'transaction_details' => $payload,
-            ]),
-        ]);
-
-        Log::info('Click to Pay payment succeeded via webhook', [
-            'intent_id' => $intent->id,
-            'booking_id' => $intent->booking_id,
-        ]);
-    }
-
-    /**
-     * Handle payment failed webhook event.
-     */
-    private function handlePaymentFailed(PaymentIntent $intent, array $payload): void
-    {
-        $intent->update([
-            'status' => PaymentStatus::FAILED,
-            'metadata' => array_merge($intent->metadata ?? [], [
-                'webhook_received_at' => now()->toIso8601String(),
-                'failure_reason' => $payload['reason'] ?? 'Unknown',
-                'failure_details' => $payload,
-            ]),
-        ]);
-
-        Log::error('Click to Pay payment failed via webhook', [
-            'intent_id' => $intent->id,
-            'booking_id' => $intent->booking_id,
-            'reason' => $payload['reason'] ?? 'Unknown',
-        ]);
-    }
-
-    /**
-     * Handle refund completed webhook event.
-     */
-    private function handleRefundCompleted(PaymentIntent $intent, array $payload): void
-    {
-        $refundAmount = $payload['refund_amount'] ?? 0;
-        $totalAmount = (int) ($intent->amount * 100);
-
-        $intent->update([
-            'status' => $refundAmount >= $totalAmount
-                ? PaymentStatus::REFUNDED
-                : PaymentStatus::PARTIALLY_REFUNDED,
-            'metadata' => array_merge($intent->metadata ?? [], [
-                'refund_completed_at' => now()->toIso8601String(),
-                'refund_amount' => $refundAmount / 100,
-                'refund_details' => $payload,
-            ]),
-        ]);
-
-        Log::info('Click to Pay refund completed via webhook', [
-            'intent_id' => $intent->id,
-            'refund_amount' => $refundAmount / 100,
-        ]);
-    }
-
-    /**
-     * Handle refund failed webhook event.
-     */
-    private function handleRefundFailed(PaymentIntent $intent, array $payload): void
-    {
-        $intent->update([
-            'metadata' => array_merge($intent->metadata ?? [], [
-                'refund_failed_at' => now()->toIso8601String(),
-                'refund_failure_reason' => $payload['reason'] ?? 'Unknown',
-                'refund_failure_details' => $payload,
-            ]),
-        ]);
-
-        Log::error('Click to Pay refund failed via webhook', [
-            'intent_id' => $intent->id,
-            'reason' => $payload['reason'] ?? 'Unknown',
-        ]);
     }
 }
