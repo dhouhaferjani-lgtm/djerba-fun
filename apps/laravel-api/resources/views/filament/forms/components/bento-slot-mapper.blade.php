@@ -3,6 +3,7 @@
         x-data="{
             imageCount: 5,
             images: {},
+            files: {},
             uploading: {},
             progress: {},
 
@@ -56,6 +57,9 @@
                 const file = event.target.files[0];
                 if (!file) return;
 
+                // Store file reference to prevent garbage collection of blob URL
+                this.files[index] = file;
+
                 // Show local preview immediately
                 this.images[index] = URL.createObjectURL(file);
                 this.uploading[index] = true;
@@ -65,15 +69,17 @@
                 $wire.upload(
                     'data.gallery_images.' + index,
                     file,
-                    () => {
-                        // Success
+                    (uploadedFilename) => {
+                        // Success - blob URL remains valid because we kept file reference
                         this.uploading[index] = false;
                         delete this.progress[index];
+                        console.log('Upload success for slot ' + index);
                     },
                     () => {
-                        // Error
+                        // Error - clean up
                         this.uploading[index] = false;
                         delete this.images[index];
+                        delete this.files[index];
                         alert('Upload failed. Please try again.');
                     },
                     (event) => {
@@ -84,7 +90,12 @@
             },
 
             removeImage(index) {
+                // Clean up blob URL and file reference
+                if (this.images[index] && this.images[index].startsWith('blob:')) {
+                    URL.revokeObjectURL(this.images[index]);
+                }
                 delete this.images[index];
+                delete this.files[index];
                 $wire.set('data.gallery_images.' + index, null);
             }
         }"
