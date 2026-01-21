@@ -1,4 +1,4 @@
-<div class="blog-preview bg-white dark:bg-gray-900 overflow-y-auto max-h-[90vh]"
+<div class="blog-preview bg-white dark:bg-gray-900"
      x-data="{
         current: 0,
         images: {{ Js::from($heroImages ?? []) }},
