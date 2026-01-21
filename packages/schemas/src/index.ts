@@ -835,6 +835,7 @@ export const bookingSchema = z.object({
   quantity: z.number().int().positive(),
   guests: z.number().int().positive().optional(), // Alias for quantity
   totalAmount: z.number().nonnegative(),
+  tndAmount: z.number().nonnegative().optional(), // TND equivalent for currency notice modal
   discountAmount: z.number().nonnegative().default(0),
   currency: z.string().length(3),
   status: z.string(),

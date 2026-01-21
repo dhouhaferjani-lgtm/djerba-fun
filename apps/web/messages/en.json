@@ -820,7 +820,13 @@
     "error_verification_error": "We could not verify your payment. Please contact support.",
     "error_processing_error": "An error occurred while processing your payment.",
     "error_payment_failed": "Your payment could not be processed. Please try again.",
-    "clictopay_redirect_info": "You will be redirected to Clictopay to complete your payment securely."
+    "clictopay_redirect_info": "You will be redirected to Clictopay to complete your payment securely.",
+    "currency_notice_title": "Secure Payment Confirmation",
+    "currency_notice_explanation": "On the next page, you'll see the amount displayed in Tunisian Dinar (TND). This is normal - Clictopay processes payments in the local currency.",
+    "currency_notice_tnd_equivalent": "The TND amount shown ({tndAmount}) is the exact equivalent of your payment.",
+    "currency_notice_guarantee": "Your card will be charged exactly the amount shown above",
+    "continue_to_payment": "Continue to Payment",
+    "go_back": "Go Back"
   },
   "cookies": {
     "banner_title": "Cookie Preferences",

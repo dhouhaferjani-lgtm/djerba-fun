@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Services\CurrencyConversionService;
 use Illuminate\Http\Request;
 
 class BookingResource extends BaseResource
@@ -23,6 +24,7 @@ class BookingResource extends BaseResource
             'availabilitySlotId' => $this->availability_slot_id,
             'quantity' => $this->quantity,
             'totalAmount' => (float) $this->total_amount,
+            'tndAmount' => $this->getTndAmount(),
             'discountAmount' => (float) $this->discount_amount,
             'currency' => $this->currency,
             'status' => $this->status->value,
@@ -60,5 +62,36 @@ class BookingResource extends BaseResource
             'guests' => $this->quantity,
             'startsAt' => $this->whenLoaded('availabilitySlot', fn () => $this->availabilitySlot?->date?->copy()->setTimeFrom($this->availabilitySlot->start_time)->toIso8601String()),
         ];
+    }
+
+    /**
+     * Get the TND equivalent amount for currency notice modal.
+     * Used when booking is in foreign currency (EUR/USD) and user is redirected to Clictopay.
+     */
+    protected function getTndAmount(): float
+    {
+        // If already in TND, return the total amount
+        if ($this->currency === CurrencyConversionService::BASE_CURRENCY) {
+            return (float) $this->total_amount;
+        }
+
+        // Convert from booking currency to TND
+        try {
+            $conversionService = app(CurrencyConversionService::class);
+            $result = $conversionService->convertToTND((float) $this->total_amount, $this->currency);
+
+            return $result['amount'];
+        } catch (\Exception $e) {
+            // Fallback: use approximate rate if conversion fails
+            // ~1 EUR = 3.22 TND, ~1 USD = 3.12 TND (Dec 2024 approximation)
+            $fallbackRates = [
+                'EUR' => 3.22,
+                'USD' => 3.12,
+            ];
+
+            $rate = $fallbackRates[$this->currency] ?? 1.0;
+
+            return round((float) $this->total_amount * $rate, 2);
+        }
     }
 }

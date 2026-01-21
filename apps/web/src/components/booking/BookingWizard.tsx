@@ -7,6 +7,7 @@ import { BookingReview } from './BookingReview';
 import { PaymentMethodSelector, type PaymentMethod } from './PaymentMethodSelector';
 import { BookingConfirmation } from './BookingConfirmation';
 import { CheckoutContactForm, type ContactInfo } from './CheckoutContactForm';
+import { CurrencyNoticeModal } from './CurrencyNoticeModal';
 import CheckoutConsents from '@/components/consent/CheckoutConsents';
 import HoldTimer from '@/components/availability/HoldTimer';
 import { useCreateBooking, useProcessPayment } from '@/lib/api/hooks';
@@ -57,6 +58,12 @@ export function BookingWizard({
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [marketingAccepted, setMarketingAccepted] = useState(false);
   const [termsError, setTermsError] = useState<string | undefined>();
+
+  // Currency notice modal state (for Clictopay redirect)
+  const [showCurrencyNotice, setShowCurrencyNotice] = useState(false);
+  const [pendingRedirectUrl, setPendingRedirectUrl] = useState<string | null>(null);
+  const [pendingPaymentAmount, setPendingPaymentAmount] = useState<number>(0);
+  const [pendingTndAmount, setPendingTndAmount] = useState<number>(0);
 
   const createBookingMutation = useCreateBooking();
   const processPaymentMutation = useProcessPayment();
@@ -170,9 +177,17 @@ export function BookingWizard({
             })
           );
 
-          // Redirect to Clictopay payment page
-          window.location.href = paymentResponse.redirect_url;
-          return; // Don't continue - browser will redirect
+          // Calculate TND equivalent for the currency notice modal
+          const bookingAmount = paymentResponse.data.totalAmount || 0;
+          const tndEquivalent = paymentResponse.data.tndAmount || bookingAmount * 3.1; // Fallback rate ~1 EUR = 3.1 TND
+
+          // Store redirect info and show currency notice modal
+          setPendingRedirectUrl(paymentResponse.redirect_url);
+          setPendingPaymentAmount(bookingAmount);
+          setPendingTndAmount(tndEquivalent);
+          setShowCurrencyNotice(true);
+
+          return; // Don't continue - wait for user to confirm in modal
         }
 
         setCompletedBooking(paymentResponse.data);
@@ -202,6 +217,20 @@ export function BookingWizard({
         };
       })
       .filter((e): e is NonNullable<typeof e> => e !== null);
+  };
+
+  // Handler for currency notice modal confirmation
+  const handleCurrencyNoticeConfirm = () => {
+    if (pendingRedirectUrl) {
+      window.location.href = pendingRedirectUrl;
+    }
+  };
+
+  // Handler for currency notice modal cancel
+  const handleCurrencyNoticeCancel = () => {
+    setShowCurrencyNotice(false);
+    setPendingRedirectUrl(null);
+    // User can choose a different payment method
   };
 
   const renderStepContent = () => {
@@ -382,6 +411,16 @@ export function BookingWizard({
           </p>
         </div>
       )}
+
+      {/* Currency Notice Modal - shown before Clictopay redirect */}
+      <CurrencyNoticeModal
+        isOpen={showCurrencyNotice}
+        onConfirm={handleCurrencyNoticeConfirm}
+        onCancel={handleCurrencyNoticeCancel}
+        amount={pendingPaymentAmount}
+        currency={slot.currency}
+        tndAmount={pendingTndAmount}
+      />
     </div>
   );
 }
