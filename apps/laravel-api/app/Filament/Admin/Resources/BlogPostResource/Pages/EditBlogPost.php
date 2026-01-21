@@ -62,7 +62,9 @@ class EditBlogPost extends EditRecord
                 return [];
             }
 
-            return array_map(function ($image) {
+            // Use array_values to ensure sequential numeric keys (0, 1, 2...)
+            // Livewire file uploads use UUID keys which cause "non-numeric value" errors
+            return array_values(array_filter(array_map(function ($image) {
                 if (! is_string($image)) {
                     return null;
                 }
@@ -71,7 +73,7 @@ class EditBlogPost extends EditRecord
                 }
 
                 return Storage::disk('public')->url($image);
-            }, array_filter($images));
+            }, $images)));
         } catch (\Exception $e) {
             return [];
         }
