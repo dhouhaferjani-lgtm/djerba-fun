@@ -377,7 +377,13 @@ export const bookingsApi = {
   },
 
   processPayment: async (bookingId: string, request: ProcessPaymentRequest) => {
-    return fetchApi<{ data: Booking }>(`/bookings/${bookingId}/pay`, {
+    return fetchApi<{
+      data: Booking;
+      payment_intent?: { id: string; status: string };
+      redirect_url?: string;
+      requires_redirect?: boolean;
+      message?: string;
+    }>(`/bookings/${bookingId}/pay`, {
       method: 'POST',
       body: JSON.stringify({
         payment_method: request.paymentMethod,

@@ -17,6 +17,7 @@ export function PaymentMethodSelector({
   selectedMethod,
 }: PaymentMethodSelectorProps) {
   const t = useTranslations('payment');
+  const tCheckout = useTranslations('checkout');
   const [selected, setSelected] = useState<PaymentMethod | undefined>(selectedMethod);
 
   const handleSelect = (method: PaymentMethod) => {
@@ -43,9 +44,9 @@ export function PaymentMethodSelector({
       icon: '🏦',
     },
     click_to_pay: {
-      label: t('cash'),
-      description: t('cash_description'),
-      icon: '💵',
+      label: t('clictopay'),
+      description: t('clictopay_description'),
+      icon: '💳',
     },
     stripe: {
       label: t('card'),
@@ -118,9 +119,9 @@ export function PaymentMethodSelector({
       )}
 
       {selected === 'click_to_pay' && (
-        <div className="mt-4 p-4 bg-warning-light border border-warning/20 rounded-lg">
-          <h4 className="font-medium text-warning-dark mb-2">{t('cash_instructions')}</h4>
-          <p className="text-sm text-warning-dark">{t('cash_info')}</p>
+        <div className="mt-4 p-4 bg-info-light border border-info/20 rounded-lg">
+          <h4 className="font-medium text-info-dark mb-2">{t('secure_payment')}</h4>
+          <p className="text-sm text-info-dark">{tCheckout('clictopay_redirect_info')}</p>
         </div>
       )}
 
