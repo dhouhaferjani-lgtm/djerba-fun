@@ -25,8 +25,9 @@ export function BlogHeroSection({
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   // Convert string URLs to Media format for ImageLightbox
+  // Using crypto.randomUUID() to generate valid UUIDs as required by Media schema
   const mediaImages: Media[] = images.map((url, index) => ({
-    id: `hero-${index}`,
+    id: crypto.randomUUID(),
     url,
     alt: `${title} - Image ${index + 1}`,
     type: 'image' as const,
