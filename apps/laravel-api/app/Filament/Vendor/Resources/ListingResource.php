@@ -184,6 +184,10 @@ class ListingResource extends Resource
                                         ->dehydrated(false)
                                         ->columnSpanFull(),
 
+                                    // Hidden field stores the layout selection (1-5 photos)
+                                    Forms\Components\Hidden::make('gallery_layout')
+                                        ->default(5),
+
                                     // Hidden field stores the uploaded images array
                                     Forms\Components\Hidden::make('gallery_images')
                                         ->default([]),

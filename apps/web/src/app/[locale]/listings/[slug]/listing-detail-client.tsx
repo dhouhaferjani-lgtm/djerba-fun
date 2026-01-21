@@ -742,44 +742,62 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
 
                 if (galleryImages.length === 0) return null;
 
+                // Get layout count from galleryLayout or default to actual image count
+                // Use type assertion since galleryLayout may not be in all Listing type variants
+                const galleryLayout = (listing as any).galleryLayout;
+                const layoutCount = galleryLayout
+                  ? parseInt(String(galleryLayout))
+                  : galleryImages.length;
+
+                // Limit to actual available images
+                const displayCount = Math.min(layoutCount, galleryImages.length);
+                const displayImages = galleryImages.slice(0, displayCount);
+
+                // Helper function to get grid classes based on layout
+                const getBentoGridClasses = (count: number): string => {
+                  switch (count) {
+                    case 1:
+                      return 'grid-cols-1 h-[300px]';
+                    case 2:
+                      return 'grid-cols-2 h-[300px]';
+                    case 3:
+                      return 'grid-cols-2 grid-rows-2 h-[400px]';
+                    case 4:
+                      return 'grid-cols-2 grid-rows-2 h-[400px]';
+                    default:
+                      return 'grid-cols-4 grid-rows-2 h-[400px]'; // 5+ images
+                  }
+                };
+
+                // Helper function to get slot-specific classes
+                const getSlotClasses = (index: number, count: number): string => {
+                  // For 3-image layout, first image spans 2 rows
+                  if (count === 3 && index === 0) return 'row-span-2';
+                  // For 5-image layout, first image spans 2 cols and 2 rows
+                  if (count >= 5 && index === 0) return 'col-span-2 row-span-2';
+                  return '';
+                };
+
                 return (
-                  <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[400px]">
-                    {/* Large image - takes 2x2 */}
-                    {galleryImages[0] && (
-                      <button
-                        onClick={() => {
-                          setLightboxIndex(0);
-                          setLightboxOpen(true);
-                        }}
-                        className="col-span-2 row-span-2 relative overflow-hidden rounded-lg group"
-                      >
-                        <Image
-                          src={normalizeMediaUrl(galleryImages[0].url)}
-                          alt={tr(galleryImages[0].alt) || title}
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          priority
-                        />
-                      </button>
-                    )}
-                    {/* Small images - 4 images in 2x2 grid on the right */}
-                    {galleryImages.slice(1, 5).map((media: any, index: number) => (
+                  <div className={`grid gap-2 ${getBentoGridClasses(displayCount)}`}>
+                    {displayImages.map((media: any, index: number) => (
                       <button
                         key={media.id}
                         onClick={() => {
-                          setLightboxIndex(index + 1);
+                          setLightboxIndex(index);
                           setLightboxOpen(true);
                         }}
-                        className="relative overflow-hidden rounded-lg group"
+                        className={`relative overflow-hidden rounded-lg group ${getSlotClasses(index, displayCount)}`}
                       >
                         <Image
                           src={normalizeMediaUrl(media.url)}
                           alt={tr(media.alt) || title}
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          priority={index === 0}
                         />
-                        {/* "View all" overlay on last image */}
-                        {index === 3 && galleryImages.length > 5 && (
+                        {/* "View all" overlay on last image if there are more images */}
+                        {index === displayCount - 1 && galleryImages.length > displayCount && (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-semibold">
                             <div className="text-center">
                               <Camera className="h-6 w-6 mx-auto mb-2" />

@@ -385,7 +385,10 @@ const listingBaseFields = {
   media: z.array(mediaSchema),
   galleryImages: z.array(z.string()).nullable().optional(),
   galleryLayout: z
-    .enum(['bento-1-4', 'bento-2-3', 'bento-1-2-2', 'grid-3', 'masonry'])
+    .union([
+      z.number().int().min(1).max(5),
+      z.string(), // Accept string representation of number
+    ])
     .nullable()
     .optional(),
   pricing: pricingSchema,

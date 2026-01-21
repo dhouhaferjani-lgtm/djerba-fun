@@ -304,6 +304,26 @@ class EditListing extends EditRecord
         return '';
     }
 
+    /**
+     * Get temporary preview URL for an uploaded image.
+     * Called from the bento-slot-mapper blade component via $wire.getTemporaryUploadUrl().
+     */
+    public function getTemporaryUploadUrl(int $index): ?string
+    {
+        $image = $this->data['gallery_images'][$index] ?? null;
+
+        if ($image instanceof TemporaryUploadedFile) {
+            return $image->temporaryUrl();
+        }
+
+        // If it's already a string URL, return it
+        if (is_string($image) && ! empty($image)) {
+            return $image;
+        }
+
+        return null;
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

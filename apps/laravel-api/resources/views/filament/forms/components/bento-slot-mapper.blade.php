@@ -3,15 +3,20 @@
         x-data="{
             imageCount: 5,
             images: {},
-            files: {},
             uploading: {},
             progress: {},
 
             init() {
+                // Load existing layout count from Livewire
+                const savedLayout = $wire.get('data.gallery_layout');
+                if (savedLayout) {
+                    this.imageCount = parseInt(savedLayout);
+                }
+
                 // Load existing images from Livewire state
                 this.loadExistingImages();
 
-                // Watch for external changes
+                // Watch for external changes (but don't overwrite during upload)
                 $watch('$wire.data.gallery_images', () => this.loadExistingImages());
             },
 
@@ -19,6 +24,9 @@
                 const galleryImages = $wire.get('data.gallery_images') || [];
                 if (Array.isArray(galleryImages)) {
                     galleryImages.forEach((img, i) => {
+                        // Skip if we're currently uploading to this slot
+                        if (this.uploading[i]) return;
+
                         if (img && typeof img === 'string') {
                             // Build URL for existing images
                             this.images[i] = img.startsWith('http') ? img : '/storage/' + img;
@@ -57,9 +65,6 @@
                 const file = event.target.files[0];
                 if (!file) return;
 
-                // Store file reference to prevent garbage collection of blob URL
-                this.files[index] = file;
-
                 // Show local preview immediately
                 this.images[index] = URL.createObjectURL(file);
                 this.uploading[index] = true;
@@ -70,16 +75,22 @@
                     'data.gallery_images.' + index,
                     file,
                     (uploadedFilename) => {
-                        // Success - blob URL remains valid because we kept file reference
+                        // Success - get server preview URL from Livewire
                         this.uploading[index] = false;
                         delete this.progress[index];
                         console.log('Upload success for slot ' + index);
+
+                        // Request the temporary URL from Livewire to replace blob URL
+                        $wire.getTemporaryUploadUrl(index).then(url => {
+                            if (url) {
+                                this.images[index] = url;
+                            }
+                        });
                     },
                     () => {
                         // Error - clean up
                         this.uploading[index] = false;
                         delete this.images[index];
-                        delete this.files[index];
                         alert('Upload failed. Please try again.');
                     },
                     (event) => {
@@ -89,14 +100,30 @@
                 );
             },
 
+            handleImageError(index) {
+                // Try to recover by requesting URL from Livewire
+                $wire.getTemporaryUploadUrl(index).then(url => {
+                    if (url) {
+                        this.images[index] = url;
+                    } else {
+                        // If no URL available, remove the broken image
+                        delete this.images[index];
+                    }
+                });
+            },
+
             removeImage(index) {
-                // Clean up blob URL and file reference
+                // Clean up blob URL if it exists
                 if (this.images[index] && this.images[index].startsWith('blob:')) {
                     URL.revokeObjectURL(this.images[index]);
                 }
                 delete this.images[index];
-                delete this.files[index];
                 $wire.set('data.gallery_images.' + index, null);
+            },
+
+            onLayoutChange() {
+                // Sync the layout selection with Livewire
+                $wire.set('data.gallery_layout', this.imageCount);
             }
         }"
         class="space-y-4"
@@ -106,7 +133,11 @@
             <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
                 How many photos?
             </label>
-            <select x-model="imageCount" class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500">
+            <select
+                x-model="imageCount"
+                @change="onLayoutChange()"
+                class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500"
+            >
                 <option value="1">1 photo</option>
                 <option value="2">2 photos</option>
                 <option value="3">3 photos</option>
@@ -136,7 +167,11 @@
                     <!-- Image preview -->
                     <template x-if="images[i - 1]">
                         <div class="absolute inset-0">
-                            <img :src="images[i - 1]" class="w-full h-full object-cover" />
+                            <img
+                                :src="images[i - 1]"
+                                class="w-full h-full object-cover"
+                                @error="handleImageError(i - 1)"
+                            />
                             <button
                                 @click.stop="removeImage(i - 1)"
                                 class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 shadow-lg"
