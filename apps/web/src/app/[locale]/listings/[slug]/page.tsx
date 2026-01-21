@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { headers } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 import { EventJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 import { resolveTranslation } from '@/lib/utils/translate';
 import ListingDetailClient from './listing-detail-client';
@@ -8,21 +8,27 @@ import ListingDetailClient from './listing-detail-client';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
-// Fetch listing with user's IP forwarded for correct currency detection
-// Using cache: 'no-store' because currency is user-specific (based on IP)
+// Fetch listing with user's currency preference forwarded
+// Using cache: 'no-store' because currency is user-specific
 async function fetchListing(slug: string) {
   try {
-    // Get user's IP from incoming request headers
+    // Get user's IP from incoming request headers (fallback for first-time visitors)
     const headersList = await headers();
     const forwardedFor = headersList.get('x-forwarded-for');
     const realIp = headersList.get('x-real-ip');
     const cfConnectingIp = headersList.get('cf-connecting-ip'); // Cloudflare
     const userIp = forwardedFor?.split(',')[0]?.trim() || realIp || cfConnectingIp || '';
 
+    // Get user's detected currency from cookie (set by client-side list page)
+    // This ensures consistent currency between client-side (list) and server-side (detail) pages
+    const cookieStore = await cookies();
+    const userCurrency = cookieStore.get('user_currency')?.value || '';
+
     const response = await fetch(`${API_URL}/listings/${slug}`, {
       cache: 'no-store', // Disable cache - currency is user-specific
       headers: {
         'X-Forwarded-For': userIp,
+        ...(userCurrency && { 'X-User-Currency': userCurrency }),
       },
     });
 

@@ -95,7 +95,20 @@ export function useLogout() {
 export function useListings(params: ListingSearchParams) {
   return useQuery({
     queryKey: ['listings', 'search', params],
-    queryFn: () => listingsApi.search(params),
+    queryFn: async () => {
+      const result = await listingsApi.search(params);
+
+      // Store the detected currency in a cookie for server-side requests
+      // This ensures consistent currency across client-side (list page) and server-side (detail page) rendering
+      if (typeof window !== 'undefined' && result.data && result.data.length > 0) {
+        const detectedCurrency = result.data[0]?.pricing?.displayCurrency;
+        if (detectedCurrency && (detectedCurrency === 'TND' || detectedCurrency === 'EUR')) {
+          document.cookie = `user_currency=${detectedCurrency}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
+        }
+      }
+
+      return result;
+    },
     staleTime: 15 * 1000, // 15 seconds - faster updates for newly approved listings
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
