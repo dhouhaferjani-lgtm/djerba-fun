@@ -11,6 +11,7 @@ use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class EditListing extends EditRecord
@@ -234,30 +235,37 @@ class EditListing extends EditRecord
     }
 
     /**
-     * Process gallery images - convert TemporaryUploadedFile objects to permanent paths.
+     * Process gallery images - convert TemporaryUploadedFile objects to permanent URLs.
      *
      * @param  array  $images  Array that may contain TemporaryUploadedFile objects, strings, or nulls
-     * @return array Array of string paths only
+     * @return array Array of full URL strings
      */
     protected function processGalleryImages(array $images): array
     {
         $processed = [];
+        $disk = env('FILESYSTEM_DISK', 'public') === 'minio' ? 'minio' : 'public';
 
         foreach ($images as $index => $image) {
             if ($image === null) {
                 continue;
             }
 
-            // If it's a TemporaryUploadedFile, store it permanently
+            // If it's a TemporaryUploadedFile, store it permanently and get full URL
             if ($image instanceof TemporaryUploadedFile) {
-                $path = $image->store('listing-galleries', 'public');
+                $path = $image->store('listing-galleries', $disk);
                 if ($path) {
-                    $processed[$index] = $path;
+                    // Store full URL for consistent frontend access
+                    $processed[$index] = Storage::disk($disk)->url($path);
                 }
             }
-            // If it's already a string path, keep it
+            // If it's already a full URL (http/https), keep it
             elseif (is_string($image) && ! empty($image)) {
-                $processed[$index] = $image;
+                if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+                    $processed[$index] = $image;
+                } else {
+                    // Convert relative path to full URL
+                    $processed[$index] = Storage::disk($disk)->url($image);
+                }
             }
         }
 
