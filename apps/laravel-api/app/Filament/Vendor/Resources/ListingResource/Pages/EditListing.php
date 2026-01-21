@@ -11,6 +11,7 @@ use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class EditListing extends EditRecord
 {
@@ -226,7 +227,42 @@ class EditListing extends EditRecord
             }
         }
 
+        // Process gallery_images: convert TemporaryUploadedFile to permanent storage paths
+        $data['gallery_images'] = $this->processGalleryImages($data['gallery_images'] ?? []);
+
         return $data;
+    }
+
+    /**
+     * Process gallery images - convert TemporaryUploadedFile objects to permanent paths.
+     *
+     * @param  array  $images  Array that may contain TemporaryUploadedFile objects, strings, or nulls
+     * @return array Array of string paths only
+     */
+    protected function processGalleryImages(array $images): array
+    {
+        $processed = [];
+
+        foreach ($images as $index => $image) {
+            if ($image === null) {
+                continue;
+            }
+
+            // If it's a TemporaryUploadedFile, store it permanently
+            if ($image instanceof TemporaryUploadedFile) {
+                $path = $image->store('listing-galleries', 'public');
+                if ($path) {
+                    $processed[$index] = $path;
+                }
+            }
+            // If it's already a string path, keep it
+            elseif (is_string($image) && ! empty($image)) {
+                $processed[$index] = $image;
+            }
+        }
+
+        // Re-index array to remove gaps
+        return array_values($processed);
     }
 
     /**
