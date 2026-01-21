@@ -94,8 +94,11 @@ export function CartCheckoutSummary({ cart, currency }: CartCheckoutSummaryProps
                 {/* Item Price */}
                 <div className="mt-3 flex justify-between text-sm font-medium">
                   <span className="text-neutral-600">{tBooking('subtotal')}</span>
-                  <span className="text-neutral-900">
-                    {currency} {(item.subtotal || 0).toFixed(2)}
+                  <span className="flex items-baseline gap-1">
+                    <span className="text-xs font-medium text-neutral-600">{currency}</span>
+                    <span className="font-bold text-neutral-900">
+                      {(item.subtotal || 0).toFixed(2)}
+                    </span>
                   </span>
                 </div>
               </div>
@@ -110,16 +113,18 @@ export function CartCheckoutSummary({ cart, currency }: CartCheckoutSummaryProps
           {/* Subtotal */}
           <div className="flex justify-between text-sm">
             <span className="text-neutral-600">{tBooking('subtotal')}</span>
-            <span className="font-medium text-neutral-900">
-              {currency} {(cart.subtotal || 0).toFixed(2)}
+            <span className="flex items-baseline gap-1">
+              <span className="text-xs font-medium text-neutral-600">{currency}</span>
+              <span className="font-bold text-neutral-900">{(cart.subtotal || 0).toFixed(2)}</span>
             </span>
           </div>
 
           {/* Total */}
           <div className="flex justify-between text-base font-bold text-neutral-900 border-t border-neutral-200 pt-3">
             <span>{tBooking('total')}</span>
-            <span>
-              {currency} {(cart.subtotal || 0).toFixed(2)}
+            <span className="flex items-baseline gap-1">
+              <span className="text-sm font-semibold">{currency}</span>
+              <span className="text-lg font-bold">{(cart.subtotal || 0).toFixed(2)}</span>
             </span>
           </div>
         </div>

@@ -30,10 +30,18 @@ const currencySymbols: Record<string, string> = {
   CAD: '$',
 };
 
+// Size classes for the price amount (larger, bold)
 const sizeClasses = {
-  sm: 'text-lg',
+  sm: 'text-xl',
   md: 'text-2xl',
-  lg: 'text-3xl',
+  lg: 'text-4xl',
+};
+
+// Size classes for currency symbol (smaller, semibold)
+const symbolSizeClasses = {
+  sm: 'text-sm font-semibold text-primary',
+  md: 'text-base font-semibold text-primary',
+  lg: 'text-xl font-semibold text-primary',
 };
 
 function PriceDisplayComponent({
@@ -54,10 +62,8 @@ function PriceDisplayComponent({
     <div className={`flex flex-col ${className}`}>
       <div className="flex items-baseline gap-1">
         {showFrom && <span className="text-sm font-normal text-neutral-600">{t('from')}</span>}
-        <span className={`font-bold text-primary ${sizeClasses[size]}`}>
-          {symbol}
-          {formattedAmount}
-        </span>
+        <span className={symbolSizeClasses[size]}>{symbol}</span>
+        <span className={`font-bold text-primary ${sizeClasses[size]}`}>{formattedAmount}</span>
       </div>
       {perPerson && <span className="text-xs text-neutral-500">{t('per_person')}</span>}
     </div>

@@ -111,8 +111,9 @@ export function CartSummary({ cart, locale }: CartSummaryProps) {
       <div className="space-y-3 mb-6">
         <div className="flex justify-between text-gray-600">
           <span>{t('items', { count: cart.itemCount })}</span>
-          <span>
-            {cart.currency} {cart.subtotal.toFixed(2)}
+          <span className="flex items-baseline gap-1">
+            <span className="text-xs font-medium">{cart.currency}</span>
+            <span className="font-semibold text-gray-900">{cart.subtotal.toFixed(2)}</span>
           </span>
         </div>
 
@@ -120,8 +121,9 @@ export function CartSummary({ cart, locale }: CartSummaryProps) {
 
         <div className="flex justify-between text-lg font-bold pt-3 border-t border-gray-200">
           <span>{t('total')}</span>
-          <span>
-            {cart.currency} {cart.subtotal.toFixed(2)}
+          <span className="flex items-baseline gap-1">
+            <span className="text-sm font-semibold">{cart.currency}</span>
+            <span className="text-xl font-bold">{cart.subtotal.toFixed(2)}</span>
           </span>
         </div>
       </div>
