@@ -154,7 +154,7 @@ export default async function ListingDetailPage({
   const priceEur = listing.pricing?.eurPrice || 0;
   const displayPrice = listing.pricing?.displayPrice || priceEur || priceTnd || 0;
   const numericPrice = typeof displayPrice === 'string' ? parseFloat(displayPrice) : displayPrice;
-  const currency = listing.pricing?.currency || listing.pricing?.displayCurrency || 'TND';
+  const currency = listing.pricing?.displayCurrency || 'TND';
 
   // Get location information
   const locationName =

@@ -390,7 +390,7 @@ function BookingFlowContent({
             personTypes={personTypes}
             value={personTypeBreakdown}
             onChange={onPersonTypeChange}
-            currency={selectedSlot.currency || listing.pricing?.currency || 'EUR'}
+            currency={listing.pricing?.displayCurrency || 'TND'}
             maxCapacity={maxCapacity}
             locale={locale}
           />
