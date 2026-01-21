@@ -16,7 +16,7 @@ class CurrencySeeder extends Seeder
             [
                 'code' => 'TND',
                 'name' => 'Tunisian Dinar',
-                'symbol' => 'د.ت',
+                'symbol' => 'TND',
                 'is_active' => true,
             ],
             [

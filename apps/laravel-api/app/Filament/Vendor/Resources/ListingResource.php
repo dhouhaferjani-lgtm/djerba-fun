@@ -917,7 +917,7 @@ class ListingResource extends Resource
                                             Forms\Components\Grid::make(2)->schema([
                                                 Forms\Components\TextInput::make('tnd_price')
                                                     ->label('Price in Tunisian Dinar')
-                                                    ->prefix('د.ت')
+                                                    ->prefix('TND')
                                                     ->numeric()
                                                     ->step(0.01)
                                                     ->minValue(0)

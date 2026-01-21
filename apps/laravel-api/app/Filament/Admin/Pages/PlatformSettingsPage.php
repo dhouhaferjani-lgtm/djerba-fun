@@ -779,12 +779,12 @@ class PlatformSettingsPage extends Page implements HasForms
                         Forms\Components\TextInput::make('min_booking_amount')
                             ->label('Minimum Booking Amount')
                             ->numeric()
-                            ->prefix('د.ت')
+                            ->prefix('TND')
                             ->default(10.00),
                         Forms\Components\TextInput::make('max_booking_amount')
                             ->label('Maximum Booking Amount')
                             ->numeric()
-                            ->prefix('د.ت')
+                            ->prefix('TND')
                             ->default(50000.00),
                     ])
                     ->columns(2),
@@ -1095,7 +1095,7 @@ class PlatformSettingsPage extends Page implements HasForms
                         Forms\Components\TextInput::make('vendor_payout_minimum')
                             ->label('Minimum Payout')
                             ->numeric()
-                            ->prefix('د.ت')
+                            ->prefix('TND')
                             ->default(50.00),
                         Forms\Components\Select::make('vendor_payout_currency')
                             ->label('Payout Currency')

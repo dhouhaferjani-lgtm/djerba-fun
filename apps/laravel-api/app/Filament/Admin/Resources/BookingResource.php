@@ -93,7 +93,7 @@ class BookingResource extends Resource
                             ->numeric()
                             ->required()
                             ->prefix(fn ($record) => match ($record?->currency ?? 'TND') {
-                                'TND' => 'د.ت',
+                                'TND' => 'TND',
                                 'EUR' => '€',
                                 'USD' => '$',
                                 default => '',
