@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { cache } from 'react';
+import { headers } from 'next/headers';
 import { EventJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 import { resolveTranslation } from '@/lib/utils/translate';
 import ListingDetailClient from './listing-detail-client';
@@ -8,11 +8,22 @@ import ListingDetailClient from './listing-detail-client';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
-// Use React cache() to deduplicate fetch requests between generateMetadata() and page component
-const fetchListing = cache(async (slug: string) => {
+// Fetch listing with user's IP forwarded for correct currency detection
+// Using cache: 'no-store' because currency is user-specific (based on IP)
+async function fetchListing(slug: string) {
   try {
+    // Get user's IP from incoming request headers
+    const headersList = await headers();
+    const forwardedFor = headersList.get('x-forwarded-for');
+    const realIp = headersList.get('x-real-ip');
+    const cfConnectingIp = headersList.get('cf-connecting-ip'); // Cloudflare
+    const userIp = forwardedFor?.split(',')[0]?.trim() || realIp || cfConnectingIp || '';
+
     const response = await fetch(`${API_URL}/listings/${slug}`, {
-      next: { revalidate: 60 }, // Revalidate every minute for faster updates
+      cache: 'no-store', // Disable cache - currency is user-specific
+      headers: {
+        'X-Forwarded-For': userIp,
+      },
     });
 
     if (!response.ok) {
@@ -25,7 +36,7 @@ const fetchListing = cache(async (slug: string) => {
     console.error('Error fetching listing:', error);
     return null;
   }
-});
+}
 
 export async function generateMetadata({
   params,
