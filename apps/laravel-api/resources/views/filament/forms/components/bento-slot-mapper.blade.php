@@ -170,7 +170,7 @@
                             <img
                                 :src="images[i - 1]"
                                 class="w-full h-full object-cover"
-                                @error="handleImageError(i - 1)"
+                                x-on:error="handleImageError(i - 1)"
                             />
                             <button
                                 @click.stop="removeImage(i - 1)"
