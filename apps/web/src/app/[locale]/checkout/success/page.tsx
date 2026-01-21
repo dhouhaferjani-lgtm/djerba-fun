@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import type { Route } from 'next';
 import { useEffect } from 'react';
 
 /**
@@ -63,13 +64,13 @@ export default function CheckoutSuccessPage() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href="/dashboard/bookings"
+            href={'/dashboard/bookings' as Route}
             className="inline-flex items-center justify-center px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors"
           >
             {t('view_my_bookings')}
           </Link>
           <Link
-            href="/"
+            href={'/' as Route}
             className="inline-flex items-center justify-center px-6 py-3 bg-neutral-100 text-neutral-700 font-medium rounded-lg hover:bg-neutral-200 transition-colors"
           >
             {t('return_home')}

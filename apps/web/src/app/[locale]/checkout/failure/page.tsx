@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { XCircle, RefreshCw, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
+import type { Route } from 'next';
 import { useEffect } from 'react';
 
 /**
@@ -85,14 +86,14 @@ export default function CheckoutFailurePage() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href="/"
+            href={'/' as Route}
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
             {t('try_again')}
           </Link>
           <Link
-            href="/contact"
+            href={'/contact' as Route}
             className="inline-flex items-center justify-center px-6 py-3 bg-neutral-100 text-neutral-700 font-medium rounded-lg hover:bg-neutral-200 transition-colors"
           >
             {t('contact_support')}
@@ -101,7 +102,10 @@ export default function CheckoutFailurePage() {
 
         {/* Return Home Link */}
         <div className="mt-6">
-          <Link href="/" className="text-sm text-neutral-500 hover:text-neutral-700 underline">
+          <Link
+            href={'/' as Route}
+            className="text-sm text-neutral-500 hover:text-neutral-700 underline"
+          >
             {t('return_home')}
           </Link>
         </div>
