@@ -214,7 +214,7 @@ class CreateListing extends CreateRecord
     protected function processGalleryImages(array $images): array
     {
         $processed = [];
-        $disk = env('FILESYSTEM_DISK', 'public') === 'minio' ? 'minio' : 'public';
+        $disk = config('filesystems.default') === 'minio' ? 'minio' : 'public';
 
         foreach ($images as $index => $image) {
             if ($image === null) {
