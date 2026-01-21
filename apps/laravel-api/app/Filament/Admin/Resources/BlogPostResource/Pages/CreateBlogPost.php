@@ -52,19 +52,26 @@ class CreateBlogPost extends CreateRecord
      */
     protected function getHeroImageUrls(): array
     {
-        $images = $this->data['hero_images'] ?? [];
+        try {
+            $images = $this->data['hero_images'] ?? [];
 
-        if (empty($images)) {
-            return [];
-        }
-
-        return array_map(function ($image) {
-            if (str_starts_with($image, 'http')) {
-                return $image;
+            if (empty($images) || ! is_array($images)) {
+                return [];
             }
 
-            return Storage::disk('public')->url($image);
-        }, $images);
+            return array_map(function ($image) {
+                if (! is_string($image)) {
+                    return null;
+                }
+                if (str_starts_with($image, 'http')) {
+                    return $image;
+                }
+
+                return Storage::disk('public')->url($image);
+            }, array_filter($images));
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**
@@ -72,13 +79,17 @@ class CreateBlogPost extends CreateRecord
      */
     protected function getCategory(): ?BlogCategory
     {
-        $categoryId = $this->data['blog_category_id'] ?? null;
+        try {
+            $categoryId = $this->data['blog_category_id'] ?? null;
 
-        if (! $categoryId) {
+            if (! $categoryId) {
+                return null;
+            }
+
+            return BlogCategory::find($categoryId);
+        } catch (\Exception $e) {
             return null;
         }
-
-        return BlogCategory::find($categoryId);
     }
 
     /**
@@ -102,16 +113,20 @@ class CreateBlogPost extends CreateRecord
      */
     protected function getRelatedPosts(): Collection
     {
-        $categoryId = $this->data['blog_category_id'] ?? null;
+        try {
+            $categoryId = $this->data['blog_category_id'] ?? null;
 
-        if (! $categoryId) {
+            if (! $categoryId) {
+                return collect();
+            }
+
+            return BlogPost::where('blog_category_id', $categoryId)
+                ->where('status', 'published')
+                ->latest('published_at')
+                ->take(3)
+                ->get();
+        } catch (\Exception $e) {
             return collect();
         }
-
-        return BlogPost::where('blog_category_id', $categoryId)
-            ->where('status', 'published')
-            ->latest('published_at')
-            ->take(3)
-            ->get();
     }
 }

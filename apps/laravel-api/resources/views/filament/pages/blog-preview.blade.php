@@ -162,7 +162,7 @@
     </div>
 
     {{-- Related Posts Section --}}
-    @if($relatedPosts->isNotEmpty())
+    @if(isset($relatedPosts) && $relatedPosts instanceof \Illuminate\Support\Collection && $relatedPosts->isNotEmpty())
         <div class="bg-gray-50 dark:bg-gray-800 py-12">
             <div class="container mx-auto px-4 max-w-6xl">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">
@@ -174,7 +174,11 @@
                             {{-- Post Image --}}
                             <div class="aspect-video bg-gray-200 dark:bg-gray-700 overflow-hidden">
                                 @php
-                                    $postImage = $post->hero_image_urls[0] ?? null;
+                                    try {
+                                        $postImage = $post->hero_image_urls[0] ?? null;
+                                    } catch (\Exception $e) {
+                                        $postImage = null;
+                                    }
                                 @endphp
                                 @if($postImage)
                                     <img src="{{ $postImage }}" alt="{{ $post->title }}" class="w-full h-full object-cover">
