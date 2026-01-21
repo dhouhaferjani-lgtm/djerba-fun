@@ -362,6 +362,11 @@ return [
     'preview' => [
         'no_title' => 'No title yet',
         'no_content' => 'No content yet. Start writing to see the preview.',
+        'view_photos' => 'View :count Photos',
+        'tags' => 'Tags',
+        'about_author' => 'About the Author',
+        'related_posts' => 'Related Posts',
+        'related_posts_hint' => 'Related posts will appear here when you select a category.',
     ],
 
     /*

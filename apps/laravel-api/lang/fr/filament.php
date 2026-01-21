@@ -362,6 +362,11 @@ return [
     'preview' => [
         'no_title' => 'Pas encore de titre',
         'no_content' => 'Pas encore de contenu. Commencez à écrire pour voir l\'aperçu.',
+        'view_photos' => 'Voir :count Photos',
+        'tags' => 'Tags',
+        'about_author' => 'À propos de l\'auteur',
+        'related_posts' => 'Articles Connexes',
+        'related_posts_hint' => 'Les articles connexes apparaîtront ici lorsque vous sélectionnerez une catégorie.',
     ],
 
     /*
