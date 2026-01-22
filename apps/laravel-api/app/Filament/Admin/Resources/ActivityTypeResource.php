@@ -258,17 +258,25 @@ class ActivityTypeResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return (string) static::getModel()::count();
+        try {
+            return (string) static::getModel()::count();
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public static function getNavigationBadgeColor(): ?string
     {
-        $count = static::getModel()::count();
+        try {
+            $count = static::getModel()::count();
 
-        return match (true) {
-            $count === 0 => 'gray',
-            $count < 5 => 'warning',
-            default => 'success',
-        };
+            return match (true) {
+                $count === 0 => 'gray',
+                $count < 5 => 'warning',
+                default => 'success',
+            };
+        } catch (\Exception $e) {
+            return 'gray';
+        }
     }
 }
