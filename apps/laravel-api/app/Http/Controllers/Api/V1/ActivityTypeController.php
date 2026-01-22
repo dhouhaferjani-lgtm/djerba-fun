@@ -24,12 +24,17 @@ class ActivityTypeController extends Controller
         $cacheKey = 'activity_types_list';
         $cacheTtl = 60 * 30; // 30 minutes
 
-        $activityTypes = Cache::remember($cacheKey, $cacheTtl, function () {
-            return ActivityType::query()
-                ->active()
-                ->ordered()
-                ->get();
-        });
+        try {
+            $activityTypes = Cache::remember($cacheKey, $cacheTtl, function () {
+                return ActivityType::query()
+                    ->active()
+                    ->ordered()
+                    ->get();
+            });
+        } catch (\Exception $e) {
+            // Return empty collection if table doesn't exist yet
+            $activityTypes = collect([]);
+        }
 
         return ActivityTypeResource::collection($activityTypes);
     }
