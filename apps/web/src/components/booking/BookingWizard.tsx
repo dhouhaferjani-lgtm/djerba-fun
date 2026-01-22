@@ -104,19 +104,28 @@ export function BookingWizard({
     setCurrentStep('review');
   };
 
-  // Calculate total for modal display (uses same price source as BookingReview for consistency)
+  // Calculate total for modal display (must match BookingReview calculation)
   const calculateTotalForModal = () => {
-    // Use displayPrice first (user's currency), then fallback to tndPrice or eurPrice
-    const unitPrice =
-      slot.displayPrice ||
-      slot.tndPrice ||
-      slot.eurPrice ||
-      listing.pricing?.displayPrice ||
-      listing.pricing?.tndPrice ||
-      0;
+    let total = 0;
 
-    const quantity = hold.quantity || 1;
-    let total = unitPrice * quantity;
+    // Use personTypeBreakdown if available (handles Adult/Child/etc pricing)
+    if (hold.personTypeBreakdown && hold.personTypeBreakdown.length > 0) {
+      hold.personTypeBreakdown.forEach((breakdown) => {
+        const price = breakdown.displayPrice || breakdown.tndPrice || breakdown.pricePerPerson || 0;
+        total += price * breakdown.quantity;
+      });
+    } else {
+      // Fallback: simple quantity × unit price
+      const unitPrice =
+        slot.displayPrice ||
+        slot.tndPrice ||
+        slot.eurPrice ||
+        listing.pricing?.displayPrice ||
+        listing.pricing?.tndPrice ||
+        0;
+      const quantity = hold.quantity || 1;
+      total = unitPrice * quantity;
+    }
 
     // Add extras using the appropriate price for the display currency
     selectedExtras.forEach((selected) => {
@@ -133,9 +142,20 @@ export function BookingWizard({
 
   // Calculate TND total for modal display (actual TND prices, not converted)
   const calculateTndTotal = () => {
-    const tndUnitPrice = slot.tndPrice || slot.displayPrice || 0;
-    const quantity = hold.quantity || 1;
-    let tndTotal = tndUnitPrice * quantity;
+    let tndTotal = 0;
+
+    // Use personTypeBreakdown if available (handles Adult/Child/etc pricing)
+    if (hold.personTypeBreakdown && hold.personTypeBreakdown.length > 0) {
+      hold.personTypeBreakdown.forEach((breakdown) => {
+        const tndPrice = breakdown.tndPrice || breakdown.pricePerPerson || 0;
+        tndTotal += tndPrice * breakdown.quantity;
+      });
+    } else {
+      // Fallback: simple quantity × unit price
+      const tndUnitPrice = slot.tndPrice || slot.displayPrice || 0;
+      const quantity = hold.quantity || 1;
+      tndTotal = tndUnitPrice * quantity;
+    }
 
     // Add extras in TND
     selectedExtras.forEach((selected) => {
