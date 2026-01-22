@@ -513,8 +513,8 @@ class ListingResource extends Resource
                                                 try {
                                                     $parser = app(GpxParserService::class);
 
-                                                    // Handle different upload formats (string path or array)
-                                                    $gpxPath = is_array($gpxUpload) ? ($gpxUpload[0] ?? null) : $gpxUpload;
+                                                    // Handle different upload formats (string path or array with UUID keys)
+                                                    $gpxPath = is_array($gpxUpload) ? reset($gpxUpload) : $gpxUpload;
 
                                                     if (! $gpxPath) {
                                                         throw new \Exception('Could not determine GPX file path');
