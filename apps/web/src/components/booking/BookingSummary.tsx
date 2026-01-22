@@ -79,7 +79,7 @@ export function BookingSummary({
             ? type.label
             : type.label?.[locale] || type.label?.en || type.key,
         quantity: breakdown[type.key] || 0,
-        price: type.displayPrice ?? type.tndPrice ?? type.price ?? 0,
+        price: Number(type.displayPrice ?? type.tndPrice ?? type.price ?? 0),
       }));
   };
 
