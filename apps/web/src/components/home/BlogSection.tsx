@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getFeaturedBlogPosts, BlogPost } from '@/lib/api/blog';
+import { resolveTranslation, type TranslatableField } from '@/lib/utils/translate';
 
 interface BlogSectionProps {
   locale: string;
@@ -9,6 +10,9 @@ interface BlogSectionProps {
 
 export async function BlogSection({ locale }: BlogSectionProps) {
   const t = await getTranslations('home');
+
+  // Helper to resolve translations with fallback
+  const tr = (field: TranslatableField) => resolveTranslation(field, locale);
 
   // Fetch featured blog posts from API
   let posts: BlogPost[] = [];
@@ -61,7 +65,7 @@ export async function BlogSection({ locale }: BlogSectionProps) {
                   {post.featuredImage ? (
                     <Image
                       src={post.featuredImage}
-                      alt={post.title}
+                      alt={tr(post.title)}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-110"
                     />
@@ -85,7 +89,7 @@ export async function BlogSection({ locale }: BlogSectionProps) {
 
                 <Link href={`/${locale}/blog/${post.slug}`}>
                   <h3 className="font-bold text-xl text-neutral-900 mb-3 group-hover:text-primary transition-colors line-clamp-2">
-                    {post.title}
+                    {tr(post.title)}
                   </h3>
                 </Link>
 
