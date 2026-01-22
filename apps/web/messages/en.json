@@ -825,6 +825,9 @@
     "currency_notice_explanation": "On the next page, you'll see the amount displayed in Tunisian Dinar (TND). This is normal - Clictopay processes payments in the local currency.",
     "currency_notice_tnd_equivalent": "The TND amount shown ({tndAmount}) is the exact equivalent of your payment.",
     "currency_notice_guarantee": "Your card will be charged exactly the amount shown above",
+    "currency_notice_tnd_simple": "You will be securely redirected to Clictopay to complete your payment.",
+    "you_will_pay": "You will pay",
+    "secure_payment_note": "Your payment is secured by Clictopay SMT",
     "continue_to_payment": "Continue to Payment",
     "go_back": "Go Back"
   },

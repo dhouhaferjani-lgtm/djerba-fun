@@ -800,6 +800,9 @@
     "currency_notice_explanation": "Sur la page suivante, vous verrez le montant affiché en Dinar Tunisien (TND). C'est normal - Clictopay traite les paiements en monnaie locale.",
     "currency_notice_tnd_equivalent": "Le montant en TND affiché ({tndAmount}) est l'équivalent exact de votre paiement.",
     "currency_notice_guarantee": "Votre carte sera débitée exactement du montant indiqué ci-dessus",
+    "currency_notice_tnd_simple": "Vous serez redirigé en toute sécurité vers Clictopay pour finaliser votre paiement.",
+    "you_will_pay": "Vous allez payer",
+    "secure_payment_note": "Votre paiement est sécurisé par Clictopay SMT",
     "continue_to_payment": "Continuer vers le Paiement",
     "go_back": "Retour"
   },

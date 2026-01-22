@@ -39,14 +39,8 @@ export function CurrencyNoticeModal({
     }).format(value);
   };
 
-  // Don't show modal if paying in TND (local currency)
-  if (currency === 'TND') {
-    // Auto-confirm for TND payments
-    if (isOpen) {
-      onConfirm();
-    }
-    return null;
-  }
+  // Show modal for all currencies - it confirms redirect to external payment page
+  const isTndPayment = currency === 'TND';
 
   return (
     <Dialog isOpen={isOpen} onClose={onCancel} size="md" showCloseButton={false}>
@@ -65,20 +59,31 @@ export function CurrencyNoticeModal({
           <p className="text-3xl font-bold text-primary">{formatCurrency(amount, currency)}</p>
         </div>
 
-        {/* Explanation box */}
-        <div className="bg-neutral-50 rounded-xl p-4 mb-5 text-left">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm text-neutral-700 mb-2">{t('currency_notice_explanation')}</p>
-              <p className="text-sm text-neutral-500">
-                {t('currency_notice_tnd_equivalent', {
-                  tndAmount: formatCurrency(tndAmount, 'TND'),
-                })}
-              </p>
+        {/* Explanation box - different content for TND vs foreign currencies */}
+        {isTndPayment ? (
+          // Simple confirmation for TND payments
+          <div className="bg-neutral-50 rounded-xl p-4 mb-5 text-left">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-neutral-700">{t('currency_notice_tnd_simple')}</p>
             </div>
           </div>
-        </div>
+        ) : (
+          // Currency conversion explanation for EUR/USD
+          <div className="bg-neutral-50 rounded-xl p-4 mb-5 text-left">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-neutral-700 mb-2">{t('currency_notice_explanation')}</p>
+                <p className="text-sm text-neutral-500">
+                  {t('currency_notice_tnd_equivalent', {
+                    tndAmount: formatCurrency(tndAmount, 'TND'),
+                  })}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Guarantee badge */}
         <div className="flex items-center gap-2 justify-center text-success mb-6">
