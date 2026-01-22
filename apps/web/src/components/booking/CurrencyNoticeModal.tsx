@@ -88,7 +88,9 @@ export function CurrencyNoticeModal({
         {/* Guarantee badge */}
         <div className="flex items-center gap-2 justify-center text-success mb-6">
           <CheckCircle className="w-5 h-5" />
-          <span className="text-sm font-medium">{t('currency_notice_guarantee')}</span>
+          <span className="text-sm font-medium">
+            {t('currency_notice_guarantee', { amount: formatCurrency(amount, currency) })}
+          </span>
         </div>
 
         {/* Action buttons */}

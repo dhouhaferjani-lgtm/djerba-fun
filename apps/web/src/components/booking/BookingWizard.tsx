@@ -104,13 +104,21 @@ export function BookingWizard({
     setCurrentStep('review');
   };
 
-  // Calculate total for modal display
+  // Calculate total for modal display (uses same price source as BookingReview for consistency)
   const calculateTotalForModal = () => {
-    const basePrice = slot.displayPrice || slot.basePrice || 0;
-    const quantity = hold.quantity || 1;
-    let total = basePrice * quantity;
+    // Use displayPrice first (user's currency), then fallback to tndPrice or eurPrice
+    const unitPrice =
+      slot.displayPrice ||
+      slot.tndPrice ||
+      slot.eurPrice ||
+      listing.pricing?.displayPrice ||
+      listing.pricing?.tndPrice ||
+      0;
 
-    // Add extras
+    const quantity = hold.quantity || 1;
+    let total = unitPrice * quantity;
+
+    // Add extras using the appropriate price for the display currency
     selectedExtras.forEach((selected) => {
       const extra = availableExtras.find((e) => e.id === selected.id);
       if (extra) {
@@ -121,6 +129,23 @@ export function BookingWizard({
     });
 
     return total;
+  };
+
+  // Calculate TND total for modal display (actual TND prices, not converted)
+  const calculateTndTotal = () => {
+    const tndUnitPrice = slot.tndPrice || slot.displayPrice || 0;
+    const quantity = hold.quantity || 1;
+    let tndTotal = tndUnitPrice * quantity;
+
+    // Add extras in TND
+    selectedExtras.forEach((selected) => {
+      const extra = availableExtras.find((e) => e.id === selected.id);
+      if (extra) {
+        tndTotal += (extra.priceTnd || 0) * selected.quantity;
+      }
+    });
+
+    return tndTotal;
   };
 
   const handleConfirmBooking = async () => {
@@ -137,7 +162,8 @@ export function BookingWizard({
     // This allows users to confirm they want to proceed with the redirect-based payment
     if (paymentMethod === 'click_to_pay') {
       const bookingAmount = calculateTotalForModal();
-      const tndEquivalent = slot.currency === 'TND' ? bookingAmount : bookingAmount * 3.1; // Fallback rate
+      // Use actual TND price from slot, not a hardcoded conversion rate
+      const tndEquivalent = calculateTndTotal();
 
       setPendingPaymentAmount(bookingAmount);
       setPendingTndAmount(tndEquivalent);
