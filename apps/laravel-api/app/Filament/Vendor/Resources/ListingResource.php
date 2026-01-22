@@ -486,8 +486,9 @@ class ListingResource extends Resource
                                         ->label('GPX File')
                                         ->acceptedFileTypes(['.gpx', 'application/gpx+xml', 'text/xml', 'application/xml'])
                                         ->maxSize(10240)
+                                        ->disk('public')
                                         ->directory('gpx-uploads')
-                                        ->visibility('private')
+                                        ->visibility('public')
                                         ->helperText('Upload a GPX file from your GPS device or mapping app (Strava, Garmin, etc.)')
                                         ->dehydrated(false),
 
@@ -497,9 +498,9 @@ class ListingResource extends Resource
                                             ->icon('heroicon-o-arrow-path')
                                             ->color('primary')
                                             ->action(function (Get $get, Set $set) {
-                                                $gpxPath = $get('gpx_upload');
+                                                $gpxUpload = $get('gpx_upload');
 
-                                                if (! $gpxPath) {
+                                                if (! $gpxUpload) {
                                                     Notification::make()
                                                         ->title('No GPX file uploaded')
                                                         ->body('Please upload a GPX file first.')
@@ -511,6 +512,14 @@ class ListingResource extends Resource
 
                                                 try {
                                                     $parser = app(GpxParserService::class);
+
+                                                    // Handle different upload formats (string path or array)
+                                                    $gpxPath = is_array($gpxUpload) ? ($gpxUpload[0] ?? null) : $gpxUpload;
+
+                                                    if (! $gpxPath) {
+                                                        throw new \Exception('Could not determine GPX file path');
+                                                    }
+
                                                     $fullPath = Storage::disk('public')->path($gpxPath);
                                                     $parsed = $parser->parse($fullPath);
 
