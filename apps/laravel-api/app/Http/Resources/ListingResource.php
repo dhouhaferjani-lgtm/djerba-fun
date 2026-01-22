@@ -172,10 +172,45 @@ class ListingResource extends BaseResource
             return null;
         }
 
+        // Use custom rules if provided, otherwise generate defaults based on type
+        $rules = $policy['rules'] ?? $this->getDefaultCancellationRules($type);
+
         return $this->toCamelCase([
             'type' => $type,
-            'rules' => $policy['rules'] ?? [],
+            'rules' => $rules,
             'description' => $policy['description'] ?? null,
         ]);
+    }
+
+    /**
+     * Get default cancellation rules based on policy type.
+     * These match the descriptions shown in the vendor form.
+     * Returns camelCase keys to match frontend expectations.
+     */
+    protected function getDefaultCancellationRules(string $type): array
+    {
+        return match ($type) {
+            'flexible' => [
+                // Full refund up to 24 hours before
+                ['hoursBeforeStart' => 24, 'refundPercent' => 100],
+                ['hoursBeforeStart' => 0, 'refundPercent' => 0],
+            ],
+            'moderate' => [
+                // Full refund up to 5 days (120 hours) before
+                ['hoursBeforeStart' => 120, 'refundPercent' => 100],
+                ['hoursBeforeStart' => 24, 'refundPercent' => 50],
+                ['hoursBeforeStart' => 0, 'refundPercent' => 0],
+            ],
+            'strict' => [
+                // 50% refund up to 1 week (168 hours) before
+                ['hoursBeforeStart' => 168, 'refundPercent' => 50],
+                ['hoursBeforeStart' => 0, 'refundPercent' => 0],
+            ],
+            'non_refundable' => [
+                // No refund at any time
+                ['hoursBeforeStart' => 0, 'refundPercent' => 0],
+            ],
+            default => [],
+        };
     }
 }
