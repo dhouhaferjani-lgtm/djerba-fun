@@ -266,12 +266,18 @@ class ListingResource extends Resource
                                 ->schema([
                                     Forms\Components\Select::make('activity_type_id')
                                         ->label(__('filament.labels.activity_type'))
-                                        ->options(fn () => \App\Models\ActivityType::where('is_active', true)
-                                            ->orderBy('display_order')
-                                            ->get()
-                                            ->mapWithKeys(fn ($type) => [
-                                                $type->id => $type->getTranslation('name', app()->getLocale()),
-                                            ]))
+                                        ->options(function () {
+                                            try {
+                                                return \App\Models\ActivityType::where('is_active', true)
+                                                    ->orderBy('display_order')
+                                                    ->get()
+                                                    ->mapWithKeys(fn ($type) => [
+                                                        $type->id => $type->getTranslation('name', app()->getLocale()),
+                                                    ]);
+                                            } catch (\Exception $e) {
+                                                return [];
+                                            }
+                                        })
                                         ->searchable()
                                         ->preload()
                                         ->helperText(__('filament.helpers.activity_type') ?? 'Select the type of activity for this tour'),
