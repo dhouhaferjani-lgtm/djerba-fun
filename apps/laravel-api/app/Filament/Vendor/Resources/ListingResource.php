@@ -24,6 +24,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use AmidEsfahani\FilamentTinyEditor\TinyEditor;
 
 class ListingResource extends Resource
@@ -513,14 +514,21 @@ class ListingResource extends Resource
                                                 try {
                                                     $parser = app(GpxParserService::class);
 
-                                                    // Handle different upload formats (string path or array with UUID keys)
-                                                    $gpxPath = is_array($gpxUpload) ? reset($gpxUpload) : $gpxUpload;
+                                                    // Handle different upload formats (TemporaryUploadedFile, string, or array)
+                                                    $gpxFile = is_array($gpxUpload) ? reset($gpxUpload) : $gpxUpload;
 
-                                                    if (! $gpxPath) {
-                                                        throw new \Exception('Could not determine GPX file path');
+                                                    if (! $gpxFile) {
+                                                        throw new \Exception('Could not determine GPX file');
                                                     }
 
-                                                    $fullPath = Storage::disk('public')->path($gpxPath);
+                                                    // Get the actual file path - handle TemporaryUploadedFile or string
+                                                    if ($gpxFile instanceof TemporaryUploadedFile) {
+                                                        $fullPath = $gpxFile->getRealPath();
+                                                    } else {
+                                                        // It's a string path on disk
+                                                        $fullPath = Storage::disk('public')->path($gpxFile);
+                                                    }
+
                                                     $parsed = $parser->parse($fullPath);
 
                                                     if (empty($parsed['trackPoints'])) {
