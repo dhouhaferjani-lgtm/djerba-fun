@@ -104,20 +104,43 @@ export function BookingWizard({
     setCurrentStep('review');
   };
 
+  // Helper function to get person types with proper fallbacks (matches BookingReview)
+  const getPersonTypesForModal = () => {
+    const pricing = listing.pricing || {};
+    const personTypes = pricing.personTypes;
+
+    // Get base price for fallback (same as BookingReview)
+    const basePrice =
+      pricing.displayPrice || pricing.tndPrice || slot.displayPrice || slot.tndPrice || 0;
+    const numericPrice = typeof basePrice === 'string' ? parseFloat(basePrice) : basePrice;
+
+    if (personTypes && Array.isArray(personTypes) && personTypes.length > 0) {
+      // Use actual prices from API with fallback to numericPrice
+      return personTypes.map((pt) => ({
+        ...pt,
+        price: Number(pt.displayPrice ?? pt.tndPrice ?? pt.price ?? numericPrice),
+        tndPrice: Number(pt.tndPrice ?? pt.price ?? numericPrice),
+      }));
+    }
+
+    // Fallback: return adult-only with base price (matches BookingReview)
+    return [{ key: 'adult', price: numericPrice, tndPrice: numericPrice }];
+  };
+
   // Calculate total for modal display (must match BookingReview calculation)
   const calculateTotalForModal = () => {
     let total = 0;
 
-    // Use personTypeBreakdown if available (handles Adult/Child/etc pricing)
-    // personTypeBreakdown is Record<string, number> like { "adult": 2, "child": 1 }
+    // personTypeBreakdown is Record<string, number> like { "adult": 1, "child": 1 }
     if (hold.personTypeBreakdown && Object.keys(hold.personTypeBreakdown).length > 0) {
-      const personTypes = listing.pricing?.personTypes || [];
+      const personTypes = getPersonTypesForModal();
 
       for (const [typeKey, qty] of Object.entries(hold.personTypeBreakdown)) {
         if (qty > 0) {
           // Find the person type definition to get the price
           const personType = personTypes.find((pt) => pt.key === typeKey);
-          const price = personType?.price ?? slot.displayPrice ?? slot.tndPrice ?? 0;
+          // personType will always exist because getPersonTypesForModal returns fallback
+          const price = personType?.price ?? personTypes[0]?.price ?? 0;
           total += price * qty;
         }
       }
@@ -151,17 +174,14 @@ export function BookingWizard({
   const calculateTndTotal = () => {
     let tndTotal = 0;
 
-    // Use personTypeBreakdown if available (handles Adult/Child/etc pricing)
-    // personTypeBreakdown is Record<string, number> like { "adult": 2, "child": 1 }
+    // personTypeBreakdown is Record<string, number> like { "adult": 1, "child": 1 }
     if (hold.personTypeBreakdown && Object.keys(hold.personTypeBreakdown).length > 0) {
-      const personTypes = listing.pricing?.personTypes || [];
+      const personTypes = getPersonTypesForModal();
 
       for (const [typeKey, qty] of Object.entries(hold.personTypeBreakdown)) {
         if (qty > 0) {
-          // Find the person type definition to get the TND price
           const personType = personTypes.find((pt) => pt.key === typeKey);
-          // Use tndPrice from personType if available, otherwise fall back to price or slot.tndPrice
-          const tndPrice = personType?.tndPrice ?? personType?.price ?? slot.tndPrice ?? 0;
+          const tndPrice = personType?.tndPrice ?? personTypes[0]?.tndPrice ?? 0;
           tndTotal += tndPrice * qty;
         }
       }
