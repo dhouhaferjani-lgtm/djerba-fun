@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { Dialog } from '@go-adventure/ui';
-import { CreditCard, CheckCircle, ShieldCheck } from 'lucide-react';
+import { CreditCard, CheckCircle, ShieldCheck, Globe } from 'lucide-react';
+import Image from 'next/image';
 
 interface CurrencyNoticeModalProps {
   isOpen: boolean;
@@ -17,8 +18,10 @@ interface CurrencyNoticeModalProps {
  * Currency Notice Modal
  *
  * Shown before redirecting to Clictopay to explain currency conversion.
- * Reassures international travelers that the TND amount on Clictopay
- * is the equivalent of their EUR amount.
+ * Enhanced UX for international travelers with:
+ * - Dual currency display (user's currency + TND equivalent)
+ * - Visa/Mastercard logos for trust
+ * - Clear explanation of why TND appears on payment page
  */
 export function CurrencyNoticeModal({
   isOpen,
@@ -39,8 +42,8 @@ export function CurrencyNoticeModal({
     }).format(value);
   };
 
-  // Show modal for all currencies - it confirms redirect to external payment page
   const isTndPayment = currency === 'TND';
+  const isForeignCurrency = currency !== 'TND';
 
   return (
     <Dialog isOpen={isOpen} onClose={onCancel} size="md" showCloseButton={false}>
@@ -53,34 +56,66 @@ export function CurrencyNoticeModal({
         {/* Title */}
         <h2 className="text-xl font-bold text-neutral-900 mb-2">{t('currency_notice_title')}</h2>
 
-        {/* Main amount - what user will pay */}
+        {/* ENHANCEMENT 1: Dual Currency Display */}
         <div className="mb-4">
           <p className="text-sm text-neutral-500 mb-1">{t('you_will_pay')}</p>
           <p className="text-3xl font-bold text-primary">{formatCurrency(amount, currency)}</p>
+
+          {/* Show TND equivalent below for foreign currencies */}
+          {isForeignCurrency && (
+            <p className="text-sm text-neutral-500 mt-1">
+              {t('currency_notice_payment_page_amount', {
+                tndAmount: formatCurrency(tndAmount, 'TND'),
+              })}
+            </p>
+          )}
         </div>
 
-        {/* Explanation box - different content for TND vs foreign currencies */}
-        {isTndPayment ? (
-          // Simple confirmation for TND payments
+        {/* ENHANCEMENT 2: Payment Card Logos */}
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <Image
+            src="/images/payment/visa.svg"
+            alt="Visa"
+            width={48}
+            height={32}
+            className="h-8 w-auto"
+          />
+          <Image
+            src="/images/payment/mastercard.svg"
+            alt="Mastercard"
+            width={48}
+            height={32}
+            className="h-8 w-auto"
+          />
+        </div>
+
+        {/* ENHANCEMENT 3: Contextual Explanation */}
+        {isForeignCurrency ? (
+          // For EUR/USD: Explain the TND display on payment page
+          <div className="bg-neutral-50 rounded-xl p-4 mb-5 text-left">
+            <div className="flex items-start gap-3">
+              <Globe className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-neutral-800 mb-1">
+                  {t('currency_notice_why_tnd_title')}
+                </p>
+                <p className="text-sm text-neutral-600 mb-2">
+                  {t('currency_notice_why_tnd_explanation')}
+                </p>
+                <p className="text-xs text-neutral-500">
+                  {t('currency_notice_card_charge', {
+                    amount: formatCurrency(amount, currency),
+                  })}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          // For TND: Simple confirmation
           <div className="bg-neutral-50 rounded-xl p-4 mb-5 text-left">
             <div className="flex items-start gap-3">
               <ShieldCheck className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
               <p className="text-sm text-neutral-700">{t('currency_notice_tnd_simple')}</p>
-            </div>
-          </div>
-        ) : (
-          // Currency conversion explanation for EUR/USD
-          <div className="bg-neutral-50 rounded-xl p-4 mb-5 text-left">
-            <div className="flex items-start gap-3">
-              <ShieldCheck className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm text-neutral-700 mb-2">{t('currency_notice_explanation')}</p>
-                <p className="text-sm text-neutral-500">
-                  {t('currency_notice_tnd_equivalent', {
-                    tndAmount: formatCurrency(tndAmount, 'TND'),
-                  })}
-                </p>
-              </div>
             </div>
           </div>
         )}
@@ -109,8 +144,8 @@ export function CurrencyNoticeModal({
           </button>
         </div>
 
-        {/* Security note */}
-        <p className="text-xs text-neutral-400 mt-4">{t('secure_payment_note')}</p>
+        {/* Security note with gateway explanation */}
+        <p className="text-xs text-neutral-400 mt-4">{t('secure_payment_note_extended')}</p>
       </div>
     </Dialog>
   );
