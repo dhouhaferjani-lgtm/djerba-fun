@@ -109,11 +109,18 @@ export function BookingWizard({
     let total = 0;
 
     // Use personTypeBreakdown if available (handles Adult/Child/etc pricing)
-    if (hold.personTypeBreakdown && hold.personTypeBreakdown.length > 0) {
-      hold.personTypeBreakdown.forEach((breakdown) => {
-        const price = breakdown.displayPrice || breakdown.tndPrice || breakdown.pricePerPerson || 0;
-        total += price * breakdown.quantity;
-      });
+    // personTypeBreakdown is Record<string, number> like { "adult": 2, "child": 1 }
+    if (hold.personTypeBreakdown && Object.keys(hold.personTypeBreakdown).length > 0) {
+      const personTypes = listing.pricing?.personTypes || [];
+
+      for (const [typeKey, qty] of Object.entries(hold.personTypeBreakdown)) {
+        if (qty > 0) {
+          // Find the person type definition to get the price
+          const personType = personTypes.find((pt) => pt.key === typeKey);
+          const price = personType?.price ?? slot.displayPrice ?? slot.tndPrice ?? 0;
+          total += price * qty;
+        }
+      }
     } else {
       // Fallback: simple quantity × unit price
       const unitPrice =
@@ -145,11 +152,19 @@ export function BookingWizard({
     let tndTotal = 0;
 
     // Use personTypeBreakdown if available (handles Adult/Child/etc pricing)
-    if (hold.personTypeBreakdown && hold.personTypeBreakdown.length > 0) {
-      hold.personTypeBreakdown.forEach((breakdown) => {
-        const tndPrice = breakdown.tndPrice || breakdown.pricePerPerson || 0;
-        tndTotal += tndPrice * breakdown.quantity;
-      });
+    // personTypeBreakdown is Record<string, number> like { "adult": 2, "child": 1 }
+    if (hold.personTypeBreakdown && Object.keys(hold.personTypeBreakdown).length > 0) {
+      const personTypes = listing.pricing?.personTypes || [];
+
+      for (const [typeKey, qty] of Object.entries(hold.personTypeBreakdown)) {
+        if (qty > 0) {
+          // Find the person type definition to get the TND price
+          const personType = personTypes.find((pt) => pt.key === typeKey);
+          // Use tndPrice from personType if available, otherwise fall back to price or slot.tndPrice
+          const tndPrice = personType?.tndPrice ?? personType?.price ?? slot.tndPrice ?? 0;
+          tndTotal += tndPrice * qty;
+        }
+      }
     } else {
       // Fallback: simple quantity × unit price
       const tndUnitPrice = slot.tndPrice || slot.displayPrice || 0;
