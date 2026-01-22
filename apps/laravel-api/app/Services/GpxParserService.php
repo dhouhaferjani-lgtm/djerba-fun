@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Service for parsing GPX (GPS Exchange Format) files.
@@ -189,11 +190,21 @@ class GpxParserService
     public function waypointsToItinerary(array $waypoints): array
     {
         $itinerary = [];
+        $totalWaypoints = count($waypoints);
 
         foreach ($waypoints as $index => $waypoint) {
+            // Determine pin type based on position
+            $pinType = 'waypoint';
+            if ($index === 0) {
+                $pinType = 'start';
+            } elseif ($index === $totalWaypoints - 1) {
+                $pinType = 'end';
+            }
+
             $itinerary[] = [
-                'order' => $index + 1,
-                'name' => [
+                'id' => (string) Str::uuid(),
+                'order' => $index,  // 0-based indexing
+                'title' => [
                     'en' => $waypoint['name'] ?: 'Stop ' . ($index + 1),
                     'fr' => $waypoint['name'] ?: 'Arrêt ' . ($index + 1),
                 ],
@@ -201,12 +212,11 @@ class GpxParserService
                     'en' => $waypoint['description'] ?? '',
                     'fr' => '',
                 ],
-                'coordinates' => [
-                    'lat' => $waypoint['lat'],
-                    'lng' => $waypoint['lng'],
-                ],
-                'elevation' => $waypoint['elevation'],
-                'duration_minutes' => 15, // Default stop duration
+                'lat' => $waypoint['lat'],
+                'lng' => $waypoint['lng'],
+                'elevationMeters' => $waypoint['elevation'],
+                'durationMinutes' => 15, // Default stop duration
+                'pinType' => $pinType,
             ];
         }
 
@@ -239,9 +249,18 @@ class GpxParserService
                 $point = $trackPoints[$totalPoints - 1];
             }
 
+            // Determine pin type based on position
+            $pinType = 'waypoint';
+            if ($stopNumber === 1) {
+                $pinType = 'start';
+            } elseif ($stopNumber === $numberOfStops) {
+                $pinType = 'end';
+            }
+
             $itinerary[] = [
-                'order' => $stopNumber,
-                'name' => [
+                'id' => (string) Str::uuid(),
+                'order' => $stopNumber - 1,  // 0-based indexing
+                'title' => [
                     'en' => $stopNumber === 1 ? 'Start Point' : ($stopNumber === $numberOfStops ? 'End Point' : 'Checkpoint ' . $stopNumber),
                     'fr' => $stopNumber === 1 ? 'Point de départ' : ($stopNumber === $numberOfStops ? 'Point d\'arrivée' : 'Point de contrôle ' . $stopNumber),
                 ],
@@ -249,12 +268,11 @@ class GpxParserService
                     'en' => '',
                     'fr' => '',
                 ],
-                'coordinates' => [
-                    'lat' => $point['lat'],
-                    'lng' => $point['lng'],
-                ],
-                'elevation' => $point['elevation'] ?? null,
-                'duration_minutes' => $stopNumber === 1 || $stopNumber === $numberOfStops ? 0 : 10,
+                'lat' => $point['lat'],
+                'lng' => $point['lng'],
+                'elevationMeters' => $point['elevation'] ?? null,
+                'durationMinutes' => $stopNumber === 1 || $stopNumber === $numberOfStops ? 0 : 10,
+                'pinType' => $pinType,
             ];
 
             $stopNumber++;
