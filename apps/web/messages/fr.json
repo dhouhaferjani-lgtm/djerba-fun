@@ -154,7 +154,8 @@
     "cancellation_message": {
       "flexible": "Annulation gratuite jusqu'à 24h avant",
       "moderate": "Annulation gratuite jusqu'à 48h avant",
-      "strict": "Annulation avec restrictions"
+      "strict": "Annulation avec restrictions",
+      "non_refundable": "Réservation non remboursable"
     },
     "faqs": {
       "title": "Questions Fréquentes"

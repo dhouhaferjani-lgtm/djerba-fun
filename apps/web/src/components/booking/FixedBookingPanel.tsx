@@ -37,6 +37,8 @@ function getCancellationMessageKey(listing: Listing): string | null {
     return 'cancellation_message.moderate';
   } else if (policy.type === 'strict') {
     return 'cancellation_message.strict';
+  } else if (policy.type === 'non_refundable') {
+    return 'cancellation_message.non_refundable';
   }
 
   return null;
