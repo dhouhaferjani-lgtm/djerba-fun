@@ -72,6 +72,10 @@ class ListingResource extends BaseResource
             'distance' => $this->when($this->isTour(), $this->distance),
             'itinerary' => $this->when($this->isTour(), is_array($this->itinerary) ? $this->toCamelCase($this->itinerary) : $this->itinerary),
             'hasElevationProfile' => $this->when($this->isTour(), $this->has_elevation_profile),
+            'elevationProfile' => $this->when(
+                $this->isTour() && $this->has_elevation_profile && $this->elevation_profile,
+                fn () => is_array($this->elevation_profile) ? $this->toCamelCase($this->elevation_profile) : $this->elevation_profile
+            ),
 
             // Event-specific fields
             'eventType' => $this->when($this->isEvent(), $this->event_type),

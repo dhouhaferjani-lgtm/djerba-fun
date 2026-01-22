@@ -204,6 +204,7 @@ class Listing extends Model
         'distance',
         'itinerary',
         'has_elevation_profile',
+        'elevation_profile',
         // Event fields
         'event_type',
         'start_date',
@@ -262,6 +263,7 @@ class Listing extends Model
             'venue' => 'array',
             'agenda' => 'array',
             'has_elevation_profile' => 'boolean',
+            'elevation_profile' => 'array',
             'require_traveler_names' => 'boolean',
             'traveler_names_timing' => 'string',
             'start_date' => 'datetime',

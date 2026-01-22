@@ -322,6 +322,10 @@ class ListingResource extends Resource
                                     Forms\Components\Toggle::make('has_elevation_profile')
                                         ->label('Has Elevation Profile')
                                         ->helperText('Enable if this tour has elevation/altitude data'),
+
+                                    // Hidden field to persist elevation profile data from GPX parsing
+                                    Forms\Components\Hidden::make('elevation_profile')
+                                        ->dehydrateStateUsing(fn ($state) => is_array($state) ? $state : null),
                                 ])
                                 ->visible(fn (Get $get): bool => $get('service_type') === ServiceType::TOUR->value),
 
