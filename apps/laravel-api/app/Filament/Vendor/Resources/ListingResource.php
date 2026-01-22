@@ -1148,8 +1148,7 @@ class ListingResource extends Resource
                                 ->label('Skip for Now')
                                 ->helperText('You can add availability rules later from the Availability menu')
                                 ->default(false)
-                                ->live()
-                                ->dehydrated(false),
+                                ->live(),
 
                             Forms\Components\Repeater::make('_quick_availability_rules')
                                 ->label('Quick Availability Rules')
@@ -1202,7 +1201,6 @@ class ListingResource extends Resource
                                 ])
                                 ->maxItems(3)
                                 ->visible(fn ($get) => ! $get('_skip_availability'))
-                                ->dehydrated(false)
                                 ->collapsible()
                                 ->itemLabel(
                                     fn (array $state): ?string => isset($state['rule_type'])
