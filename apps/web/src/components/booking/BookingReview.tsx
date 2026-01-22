@@ -89,10 +89,10 @@ export function BookingReview({
     });
 
     if (personTypes && Array.isArray(personTypes) && personTypes.length > 0) {
-      // Fill in missing prices with the base price
+      // Use actual prices from API (displayPrice, tndPrice, or price)
       const typesWithPrices = personTypes.map((pt) => ({
         ...pt,
-        price: pt.price !== undefined && pt.price !== null ? pt.price : numericPrice,
+        price: Number(pt.displayPrice ?? pt.tndPrice ?? pt.price ?? numericPrice),
       }));
 
       console.log('DEBUG using person types with filled prices:', typesWithPrices);
