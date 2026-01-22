@@ -104,6 +104,25 @@ export function BookingWizard({
     setCurrentStep('review');
   };
 
+  // Calculate total for modal display
+  const calculateTotalForModal = () => {
+    const basePrice = slot.displayPrice || slot.basePrice || 0;
+    const quantity = hold.quantity || 1;
+    let total = basePrice * quantity;
+
+    // Add extras
+    selectedExtras.forEach((selected) => {
+      const extra = availableExtras.find((e) => e.id === selected.id);
+      if (extra) {
+        const price =
+          extra.displayPrice ?? (slot.currency === 'TND' ? extra.priceTnd : extra.priceEur);
+        total += (price || 0) * selected.quantity;
+      }
+    });
+
+    return total;
+  };
+
   const handleConfirmBooking = async () => {
     if (!contactInfo) return;
 
@@ -113,6 +132,26 @@ export function BookingWizard({
       return;
     }
     setTermsError(undefined);
+
+    // For click_to_pay (Clictopay), show confirmation modal BEFORE processing
+    // This allows users to confirm they want to proceed with the redirect-based payment
+    if (paymentMethod === 'click_to_pay') {
+      const bookingAmount = calculateTotalForModal();
+      const tndEquivalent = slot.currency === 'TND' ? bookingAmount : bookingAmount * 3.1; // Fallback rate
+
+      setPendingPaymentAmount(bookingAmount);
+      setPendingTndAmount(tndEquivalent);
+      setShowCurrencyNotice(true);
+      return; // Wait for user to confirm in modal
+    }
+
+    // For other payment methods, proceed directly
+    await processBookingAndPayment();
+  };
+
+  // Extracted booking and payment processing logic
+  const processBookingAndPayment = async () => {
+    if (!contactInfo) return;
 
     try {
       // Get session ID for guest checkout (from hold or local storage)
@@ -165,7 +204,7 @@ export function BookingWizard({
           },
         });
 
-        // Check if this is a redirect-based payment (Clictopay)
+        // Check if this is a redirect-based payment (Clictopay with real credentials)
         if (paymentResponse.requires_redirect && paymentResponse.redirect_url) {
           // Store booking info in sessionStorage for post-redirect recovery
           sessionStorage.setItem(
@@ -177,17 +216,9 @@ export function BookingWizard({
             })
           );
 
-          // Calculate TND equivalent for the currency notice modal
-          const bookingAmount = paymentResponse.data.totalAmount || 0;
-          const tndEquivalent = paymentResponse.data.tndAmount || bookingAmount * 3.1; // Fallback rate ~1 EUR = 3.1 TND
-
-          // Store redirect info and show currency notice modal
-          setPendingRedirectUrl(paymentResponse.redirect_url);
-          setPendingPaymentAmount(bookingAmount);
-          setPendingTndAmount(tndEquivalent);
-          setShowCurrencyNotice(true);
-
-          return; // Don't continue - wait for user to confirm in modal
+          // Redirect immediately (modal was already shown before API call)
+          window.location.href = paymentResponse.redirect_url;
+          return;
         }
 
         setCompletedBooking(paymentResponse.data);
@@ -220,10 +251,11 @@ export function BookingWizard({
   };
 
   // Handler for currency notice modal confirmation
-  const handleCurrencyNoticeConfirm = () => {
-    if (pendingRedirectUrl) {
-      window.location.href = pendingRedirectUrl;
-    }
+  // When user clicks "Continue to Payment", process the booking and payment
+  const handleCurrencyNoticeConfirm = async () => {
+    setShowCurrencyNotice(false);
+    // Now actually create the booking and process payment
+    await processBookingAndPayment();
   };
 
   // Handler for currency notice modal cancel
