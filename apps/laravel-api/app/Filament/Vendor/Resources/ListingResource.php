@@ -550,7 +550,7 @@ class ListingResource extends Resource
                                                     $set('itinerary', $itinerary);
                                                     $set('has_elevation_profile', ! empty($elevationProfile));
                                                     $set('show_elevation_profile', ! empty($elevationProfile));
-                                                    $set('gpx_file_path', $gpxPath);
+                                                    $set('gpx_file_path', $fullPath);
 
                                                     Notification::make()
                                                         ->title('GPX Parsed Successfully')
