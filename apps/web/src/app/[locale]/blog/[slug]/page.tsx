@@ -6,6 +6,7 @@ import { SanitizedHtml } from '@/components/atoms/SanitizedHtml';
 import { BlogHeroSection } from './components/BlogHeroSection';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { resolveTranslation, type TranslatableField } from '@/lib/utils/translate';
 
 interface PageProps {
   params: { slug: string; locale: string };
@@ -16,9 +17,12 @@ export async function generateMetadata({ params }: PageProps) {
     const { slug, locale } = await params;
     const { data: post } = await getBlogPost(slug, locale);
 
+    // Resolve translations for SEO fields
+    const tr = (field: TranslatableField) => resolveTranslation(field, locale);
+
     return {
-      title: post?.seo?.title ?? 'Blog Post',
-      description: post?.seo?.description ?? '',
+      title: tr(post?.seo?.title) || tr(post?.title) || 'Blog Post',
+      description: tr(post?.seo?.description) || tr(post?.excerpt) || '',
     };
   } catch {
     return {
@@ -43,6 +47,9 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
     notFound();
   }
 
+  // Helper to resolve translations with fallback
+  const tr = (field: TranslatableField) => resolveTranslation(field, locale);
+
   // Get hero images - prefer heroImages array, fallback to featuredImage for backward compatibility
   const heroImages =
     post.heroImages?.length > 0 ? post.heroImages : post.featuredImage ? [post.featuredImage] : [];
@@ -52,7 +59,7 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
       {/* Article Header with Hero Carousel */}
       <BlogHeroSection
         images={heroImages}
-        title={post.title}
+        title={tr(post.title)}
         category={post.category}
         author={post.author}
         publishedAt={post.publishedAt}
@@ -63,14 +70,14 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto">
           {/* Main Content - Sanitized to prevent XSS */}
-          <SanitizedHtml html={post.content} className="prose prose-lg max-w-none" />
+          <SanitizedHtml html={tr(post.content)} className="prose prose-lg max-w-none" />
 
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (
             <div className="mt-12 pt-8 border-t">
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-4">Tags</h3>
               <div className="flex flex-wrap gap-2">
-                {post.tags.map((tag) => (
+                {post.tags.map((tag: string) => (
                   <span
                     key={tag}
                     className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
@@ -94,20 +101,27 @@ async function BlogPostContent({ slug, locale }: { slug: string; locale: string 
           <div className="max-w-6xl mx-auto mt-20">
             <h2 className="text-3xl font-display font-bold mb-8">Related Stories</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {relatedPosts.data.map((related) => (
-                <Link
-                  key={related.id}
-                  href={`/${locale}/blog/${related.slug}`}
-                  className="group block"
-                >
-                  <div className="bg-white rounded-lg shadow-sm hover:shadow-xl transition-all p-6">
-                    <h3 className="font-display font-bold text-lg mb-2 group-hover:text-primary transition-colors">
-                      {related.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm line-clamp-2">{related.excerpt}</p>
-                  </div>
-                </Link>
-              ))}
+              {relatedPosts.data.map(
+                (related: {
+                  id: number;
+                  slug: string;
+                  title: TranslatableField;
+                  excerpt: TranslatableField;
+                }) => (
+                  <Link
+                    key={related.id}
+                    href={`/${locale}/blog/${related.slug}`}
+                    className="group block"
+                  >
+                    <div className="bg-white rounded-lg shadow-sm hover:shadow-xl transition-all p-6">
+                      <h3 className="font-display font-bold text-lg mb-2 group-hover:text-primary transition-colors">
+                        {tr(related.title)}
+                      </h3>
+                      <p className="text-gray-600 text-sm line-clamp-2">{tr(related.excerpt)}</p>
+                    </div>
+                  </Link>
+                )
+              )}
             </div>
           </div>
         )}

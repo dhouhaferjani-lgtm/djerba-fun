@@ -15,10 +15,10 @@ class BlogPostResource extends BaseResource
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
+            'title' => $this->getTranslations('title'),
             'slug' => $this->slug,
-            'excerpt' => $this->excerpt,
-            'content' => $this->content,
+            'excerpt' => $this->getTranslations('excerpt'),
+            'content' => $this->getTranslations('content'),
             'featuredImage' => $this->featured_image_url,
             'heroImages' => $this->hero_image_urls,
             'heroImageCount' => count($this->hero_images ?? []),
@@ -46,10 +46,10 @@ class BlogPostResource extends BaseResource
                 ];
             }),
 
-            // SEO
+            // SEO - use translations with fallback
             'seo' => [
-                'title' => $this->seo_title ?? $this->title,
-                'description' => $this->seo_description ?? $this->excerpt,
+                'title' => $this->getTranslations('seo_title') ?: $this->getTranslations('title'),
+                'description' => $this->getTranslations('seo_description') ?: $this->getTranslations('excerpt'),
             ],
         ];
     }

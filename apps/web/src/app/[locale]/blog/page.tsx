@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { HeroCarousel } from './components/HeroCarousel';
 import { BlogFilters } from './components/BlogFilters';
+import { resolveTranslation, type TranslatableField } from '@/lib/utils/translate';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -24,9 +25,9 @@ export async function generateMetadata({ params }: PageProps) {
 
 interface BlogPost {
   id: number;
-  title: string;
+  title: TranslatableField;
   slug: string;
-  excerpt: string;
+  excerpt: TranslatableField;
   featuredImage: string | null;
   tags: string[];
   readTimeMinutes: number;
@@ -44,6 +45,9 @@ function BlogPostsGrid({
   locale: string;
   noPostsText: string;
 }) {
+  // Helper to resolve translations with fallback
+  const tr = (field: TranslatableField) => resolveTranslation(field, locale);
+
   if (!posts || posts.length === 0) {
     return (
       <div className="text-center py-20">
@@ -64,7 +68,7 @@ function BlogPostsGrid({
             <div className="relative h-48 w-full overflow-hidden rounded-t-lg bg-gray-200">
               <Image
                 src={post.featuredImage}
-                alt={post.title}
+                alt={tr(post.title)}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
@@ -85,10 +89,10 @@ function BlogPostsGrid({
             )}
 
             <h3 className="text-xl font-display font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">
-              {post.title}
+              {tr(post.title)}
             </h3>
 
-            <p className="text-gray-600 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
+            <p className="text-gray-600 text-sm mb-4 line-clamp-3">{tr(post.excerpt)}</p>
 
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>{post.author.name}</span>
