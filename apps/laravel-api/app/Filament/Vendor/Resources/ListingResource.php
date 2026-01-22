@@ -24,6 +24,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use AmidEsfahani\FilamentTinyEditor\TinyEditor;
 
 class ListingResource extends Resource
 {
@@ -157,15 +158,12 @@ class ListingResource extends Resource
                                 ->helperText('Required for publishing')
                                 ->columnSpanFull(),
 
-                            Forms\Components\RichEditor::make('description')
+                            TinyEditor::make('description')
                                 ->label('Description')
-                                ->toolbarButtons([
-                                    'bold',
-                                    'italic',
-                                    'bulletList',
-                                    'orderedList',
-                                    'link',
-                                ])
+                                ->profile('default')
+                                ->fileAttachmentsDisk('public')
+                                ->fileAttachmentsDirectory('listing-attachments')
+                                ->fileAttachmentsVisibility('public')
                                 ->helperText('Required for publishing')
                                 ->columnSpanFull(),
                         ]),
