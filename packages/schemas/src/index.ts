@@ -451,6 +451,9 @@ export const tourSchema = z.object({
     })
   ),
   hasElevationProfile: z.boolean().default(false),
+  // Activity type for tour categorization
+  activityType: activityTypeSchema.nullable().optional(),
+  activityTypeId: z.string().uuid().nullable().optional(),
 });
 
 export const eventSchema = z.object({
