@@ -101,6 +101,8 @@ export function BookingReview({
 
     console.log('DEBUG using fallback person types with basePrice:', numericPrice);
 
+    // Fallback: only return adult with base price (don't invent child/infant pricing)
+    // This matches the backend's fallback behavior in PriceCalculationService.php
     return [
       {
         key: 'adult',
@@ -108,24 +110,6 @@ export function BookingReview({
         price: numericPrice,
         minAge: 18,
         maxAge: null,
-        minQuantity: 0,
-        maxQuantity: null,
-      },
-      {
-        key: 'child',
-        label: { en: 'Child', fr: 'Enfant' },
-        price: Math.round(numericPrice * 0.5),
-        minAge: 4,
-        maxAge: 17,
-        minQuantity: 0,
-        maxQuantity: null,
-      },
-      {
-        key: 'infant',
-        label: { en: 'Infant', fr: 'Bébé' },
-        price: 0,
-        minAge: 0,
-        maxAge: 3,
         minQuantity: 0,
         maxQuantity: null,
       },

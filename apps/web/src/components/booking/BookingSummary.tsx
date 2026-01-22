@@ -53,7 +53,35 @@ export function BookingSummary({
     pricing.displayPrice || pricing.tndPrice || slot.displayPrice || slot.tndPrice || 0;
   const basePrice = typeof rawBasePrice === 'string' ? parseFloat(rawBasePrice) : rawBasePrice;
   const quantity = hold.quantity || 1;
-  const subtotal = basePrice * quantity;
+
+  // Use backend-calculated priceSnapshot if available, else fallback to simple calculation
+  const subtotal =
+    (hold as any).priceSnapshot != null
+      ? Number((hold as any).priceSnapshot)
+      : basePrice * quantity;
+
+  // Get breakdown details from listing.pricing.personTypes + hold.personTypeBreakdown
+  const getBreakdownDetails = () => {
+    const breakdown = (hold as any).personTypeBreakdown;
+    const personTypes = (pricing as any).personTypes;
+
+    // Only show breakdown if BOTH are available
+    if (!breakdown || !personTypes || !Array.isArray(personTypes) || personTypes.length === 0) {
+      return null;
+    }
+
+    return personTypes
+      .filter((type: any) => (breakdown[type.key] || 0) > 0)
+      .map((type: any) => ({
+        key: type.key,
+        label:
+          typeof type.label === 'string'
+            ? type.label
+            : type.label?.[locale] || type.label?.en || type.key,
+        quantity: breakdown[type.key] || 0,
+        price: type.displayPrice ?? type.tndPrice ?? type.price ?? 0,
+      }));
+  };
 
   const extrasTotal = selectedExtras.reduce((total, extra) => {
     return total + extra.price * extra.quantity;
@@ -123,7 +151,14 @@ export function BookingSummary({
             <div>
               <div className="text-sm font-medium text-neutral-900">{t('guests')}</div>
               <div className="text-sm text-neutral-600">
-                {quantity} {quantity === 1 ? t('guest') : t('guests')}
+                {getBreakdownDetails()
+                  ? getBreakdownDetails()!.map((item, idx, arr) => (
+                      <span key={item.key}>
+                        {item.quantity} {item.label}
+                        {idx < arr.length - 1 ? ', ' : ''}
+                      </span>
+                    ))
+                  : `${quantity} ${quantity === 1 ? t('guest') : t('guests')}`}
               </div>
             </div>
           </div>
@@ -133,15 +168,33 @@ export function BookingSummary({
         <div className="space-y-3 border-t border-neutral-200 pt-4">
           <h4 className="font-semibold text-neutral-900">{t('price_breakdown')}</h4>
 
-          {/* Base price */}
-          <div className="flex justify-between text-sm">
-            <span className="text-neutral-600">
-              {currency} {basePrice.toFixed(2)} × {quantity}
-            </span>
-            <span className="font-medium text-neutral-900">
-              {currency} {subtotal.toFixed(2)}
-            </span>
-          </div>
+          {/* Price breakdown by person type OR simple display */}
+          {getBreakdownDetails() ? (
+            getBreakdownDetails()!.map((item) => (
+              <div key={item.key} className="flex justify-between text-sm">
+                <span className="text-neutral-600">
+                  {item.label} × {item.quantity}
+                  {item.price > 0 && (
+                    <span className="text-neutral-400 ml-1">
+                      @ {currency} {item.price.toFixed(2)}
+                    </span>
+                  )}
+                </span>
+                <span className="font-medium text-neutral-900">
+                  {currency} {(item.price * item.quantity).toFixed(2)}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="flex justify-between text-sm">
+              <span className="text-neutral-600">
+                {currency} {basePrice.toFixed(2)} × {quantity}
+              </span>
+              <span className="font-medium text-neutral-900">
+                {currency} {subtotal.toFixed(2)}
+              </span>
+            </div>
+          )}
 
           {/* Extras */}
           {selectedExtras.map((extra) => (
