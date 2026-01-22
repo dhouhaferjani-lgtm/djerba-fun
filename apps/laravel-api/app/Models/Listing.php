@@ -39,16 +39,22 @@ class Listing extends Model
                 // CRITICAL: Validate required fields before allowing publish
                 $errors = [];
 
-                // Check title - must have at least English translation
-                $title = $listing->getTranslation('title', 'en');
-                if (empty($title) || (is_array($title) && empty(array_filter($title)))) {
-                    $errors[] = 'English title is required';
+                // Check title - must have at least one translation (English OR French)
+                $titleEn = $listing->getTranslation('title', 'en');
+                $titleFr = $listing->getTranslation('title', 'fr');
+                $hasEnglishTitle = ! empty($titleEn) && ! (is_array($titleEn) && empty(array_filter($titleEn)));
+                $hasFrenchTitle = ! empty($titleFr) && ! (is_array($titleFr) && empty(array_filter($titleFr)));
+                if (! $hasEnglishTitle && ! $hasFrenchTitle) {
+                    $errors[] = 'Title is required (English or French)';
                 }
 
-                // Check summary
-                $summary = $listing->getTranslation('summary', 'en');
-                if (empty($summary) || (is_array($summary) && empty(array_filter($summary)))) {
-                    $errors[] = 'English summary is required';
+                // Check summary - must have at least one translation (English OR French)
+                $summaryEn = $listing->getTranslation('summary', 'en');
+                $summaryFr = $listing->getTranslation('summary', 'fr');
+                $hasEnglishSummary = ! empty($summaryEn) && ! (is_array($summaryEn) && empty(array_filter($summaryEn)));
+                $hasFrenchSummary = ! empty($summaryFr) && ! (is_array($summaryFr) && empty(array_filter($summaryFr)));
+                if (! $hasEnglishSummary && ! $hasFrenchSummary) {
+                    $errors[] = 'Summary is required (English or French)';
                 }
 
                 // Check pricing - must have pricing data (new or old format)
@@ -99,10 +105,13 @@ class Listing extends Model
                 $admins = User::where('role', UserRole::ADMIN)->get();
                 $vendorName = $listing->vendor?->display_name ?? 'Unknown Vendor';
 
-                // Safely get title - handle potential nested arrays from form submission
+                // Safely get title - try English first, fallback to French
                 $titleValue = $listing->getTranslation('title', 'en');
+                if (empty($titleValue) || (is_array($titleValue) && empty(array_filter($titleValue)))) {
+                    $titleValue = $listing->getTranslation('title', 'fr');
+                }
                 if (is_array($titleValue)) {
-                    $listingTitle = $titleValue['en'] ?? reset($titleValue) ?: 'Untitled';
+                    $listingTitle = $titleValue['en'] ?? $titleValue['fr'] ?? reset($titleValue) ?: 'Untitled';
                 } else {
                     $listingTitle = $titleValue ?: 'Untitled';
                 }
