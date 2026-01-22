@@ -216,17 +216,16 @@ export function FixedBookingPanel({
                   </div>
                 )}
 
-                {(listing as any).minAdvanceBookingHours &&
-                  (listing as any).minAdvanceBookingHours > 0 && (
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-warning flex-shrink-0" />
-                      <span className="text-neutral-800">
-                        {t('trust_signals.book_advance', {
-                          hours: (listing as any).minAdvanceBookingHours,
-                        })}
-                      </span>
-                    </div>
-                  )}
+                {(listing as any).minAdvanceBookingHours > 0 && (
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-warning flex-shrink-0" />
+                    <span className="text-neutral-800">
+                      {t('trust_signals.book_advance', {
+                        hours: (listing as any).minAdvanceBookingHours,
+                      })}
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-2">
                   <Smartphone className="h-4 w-4 text-primary flex-shrink-0" />
