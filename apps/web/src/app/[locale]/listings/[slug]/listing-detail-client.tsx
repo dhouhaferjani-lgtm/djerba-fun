@@ -690,9 +690,27 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
             <div className="space-y-3">
               {/* Badge */}
               <div>
-                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-semibold uppercase tracking-wider">
-                  <span className="w-2 h-2 bg-secondary rounded-full"></span>
-                  {listing.serviceType === 'tour' ? 'Guided Tour' : 'Special Event'}
+                <span
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-sm font-semibold uppercase tracking-wider"
+                  style={
+                    listing.serviceType === 'tour' && listing.activityType?.color
+                      ? { color: listing.activityType.color }
+                      : { color: 'var(--color-primary)' }
+                  }
+                >
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={
+                      listing.serviceType === 'tour' && listing.activityType?.color
+                        ? { backgroundColor: listing.activityType.color }
+                        : { backgroundColor: 'var(--color-secondary)' }
+                    }
+                  ></span>
+                  {listing.serviceType === 'tour'
+                    ? listing.activityType
+                      ? tr(listing.activityType.name)
+                      : 'Guided Tour'
+                    : 'Special Event'}
                 </span>
               </div>
 

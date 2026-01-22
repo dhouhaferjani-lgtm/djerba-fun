@@ -172,6 +172,7 @@ class Listing extends Model
     protected $fillable = [
         'vendor_id',
         'location_id',
+        'activity_type_id',
         'service_type',
         'status',
         'title',
@@ -305,6 +306,14 @@ class Listing extends Model
     public function location(): BelongsTo
     {
         return $this->belongsTo(Location::class);
+    }
+
+    /**
+     * Get the activity type for the listing (tours only).
+     */
+    public function activityType(): BelongsTo
+    {
+        return $this->belongsTo(ActivityType::class);
     }
 
     /**

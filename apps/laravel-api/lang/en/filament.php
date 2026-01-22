@@ -50,6 +50,8 @@ return [
         'custom_trip_requests' => 'Custom Trip Requests',
         'data_deletion_requests' => 'Data Deletion Requests',
         'payment_gateways' => 'Payment Gateways',
+        'activity_types' => 'Activity Types',
+        'activity_type' => 'Activity Type',
     ],
 
     /*
@@ -87,6 +89,7 @@ return [
         'geographic_information' => 'Geographic Information',
         'map_coordinates' => 'Map Coordinates',
         'statistics' => 'Statistics',
+        'display_settings' => 'Display Settings',
     ],
 
     /*
@@ -225,6 +228,12 @@ return [
         'longitude' => 'Longitude',
         'number_of_listings' => 'Number of Listings',
         'listings' => 'Listings',
+        'activity_type' => 'Activity Type',
+        'icon' => 'Icon',
+        'color' => 'Color',
+        'display_order' => 'Display Order',
+        'is_active' => 'Active',
+        'order' => 'Order',
     ],
 
     /*
@@ -325,6 +334,11 @@ return [
         'image_url_helper' => 'Full URL to destination hero image (e.g., from Unsplash or uploaded to MinIO)',
         'listings_count_helper' => 'Auto-calculated based on published listings',
         'featured_limit_reached' => 'Maximum 3 featured posts reached. Unfeature another post first.',
+        'activity_type' => 'Select the type of activity for this tour',
+        'activity_type_description' => 'A brief description of this activity type',
+        'badge_color' => 'Color used for the activity badge on listings',
+        'display_order' => 'Lower numbers appear first in dropdowns and lists',
+        'activity_type_active' => 'Only active activity types will be shown to vendors',
     ],
 
     /*
@@ -463,6 +477,8 @@ return [
     'empty_states' => [
         'no_locations' => 'No locations yet',
         'create_first_location' => 'Create your first destination/location to organize listings',
+        'no_activity_types' => 'No activity types yet',
+        'create_first_activity_type' => 'Create your first activity type to categorize tours',
     ],
 
     /*

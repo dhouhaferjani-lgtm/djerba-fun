@@ -53,6 +53,22 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
               <MapPin className="h-12 w-12" />
             </div>
           )}
+
+          {/* Activity Type Badge (Tours only) */}
+          {listing.serviceType === 'tour' && listing.activityType && (
+            <div className="absolute top-3 left-3">
+              <span
+                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/95 backdrop-blur-sm shadow-sm"
+                style={
+                  listing.activityType.color
+                    ? { color: listing.activityType.color }
+                    : { color: '#0D642E' }
+                }
+              >
+                {t(listing.activityType.name)}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Content */}

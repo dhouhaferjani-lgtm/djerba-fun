@@ -39,7 +39,7 @@ class ListingController extends Controller
             ->published()
             // Performance: Select only needed columns to reduce data transfer
             ->select([
-                'id', 'uuid', 'vendor_id', 'location_id', 'service_type', 'status',
+                'id', 'uuid', 'vendor_id', 'location_id', 'activity_type_id', 'service_type', 'status',
                 'title', 'slug', 'summary', 'description', 'highlights', 'included',
                 'not_included', 'requirements', 'meeting_point', 'pricing',
                 'cancellation_policy', 'safety_info', 'accessibility_info',
@@ -55,6 +55,7 @@ class ListingController extends Controller
             ->with([
                 'vendor:id,uuid',
                 'location:id,uuid,name,slug,city,latitude,longitude',
+                'activityType:id,uuid,name,slug,icon,color',
                 'media:id,uuid,mediable_id,mediable_type,url,thumbnail_url,alt,type,order,category',
                 'faqs:id,listing_id,question,answer,order'
             ]);
@@ -87,6 +88,13 @@ class ListingController extends Controller
         // Filter by difficulty (only if non-empty value provided)
         if ($request->filled('difficulty')) {
             $query->where('difficulty', $request->difficulty);
+        }
+
+        // Filter by activity type (only if non-empty value provided, tours only)
+        if ($request->filled('activity_type')) {
+            $query->whereHas('activityType', function ($q) use ($request) {
+                $q->where('slug', $request->activity_type);
+            });
         }
 
         // Filter by price range
@@ -190,6 +198,7 @@ class ListingController extends Controller
             return $listing->load([
                 'vendor:id,uuid',
                 'location:id,uuid,name,slug,city,country,latitude,longitude',
+                'activityType:id,uuid,name,slug,icon,color',
                 'media:id,uuid,mediable_id,mediable_type,url,thumbnail_url,alt,type,order,category',
                 'faqs:id,listing_id,question,answer,order'
             ]);

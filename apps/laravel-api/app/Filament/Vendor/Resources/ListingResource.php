@@ -264,6 +264,18 @@ class ListingResource extends Resource
                             // Tour-specific fields
                             Forms\Components\Section::make('Tour Details')
                                 ->schema([
+                                    Forms\Components\Select::make('activity_type_id')
+                                        ->label(__('filament.labels.activity_type'))
+                                        ->options(fn () => \App\Models\ActivityType::where('is_active', true)
+                                            ->orderBy('display_order')
+                                            ->get()
+                                            ->mapWithKeys(fn ($type) => [
+                                                $type->id => $type->getTranslation('name', app()->getLocale()),
+                                            ]))
+                                        ->searchable()
+                                        ->preload()
+                                        ->helperText(__('filament.helpers.activity_type') ?? 'Select the type of activity for this tour'),
+
                                     Forms\Components\Grid::make(3)
                                         ->schema([
                                             Forms\Components\TextInput::make('duration.value')

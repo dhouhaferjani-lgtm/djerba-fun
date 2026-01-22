@@ -259,6 +259,24 @@ export const mediaSchema = z.object({
 export type MediaCategory = z.infer<typeof mediaCategorySchema>;
 
 // ============================================================================
+// ACTIVITY TYPES (Tour Subtypes)
+// ============================================================================
+
+export const activityTypeSchema = z.object({
+  id: z.string().uuid(),
+  name: translatableSchema,
+  slug: z.string(),
+  description: translatableSchema.nullable(),
+  icon: z.string().nullable(),
+  color: z.string().nullable(),
+  displayOrder: z.number().int().nonnegative().default(0),
+  isActive: z.boolean().default(true),
+  listingsCount: z.number().int().nonnegative().default(0),
+});
+
+export type ActivityType = z.infer<typeof activityTypeSchema>;
+
+// ============================================================================
 // LISTINGS
 // ============================================================================
 
@@ -490,6 +508,9 @@ export const listingSummarySchema = z.object({
       unit: z.enum(['hours', 'days']),
     })
     .nullable(),
+  // Activity type for tours (null for events or unassigned tours)
+  activityType: activityTypeSchema.nullable().optional(),
+  activityTypeId: z.string().uuid().nullable().optional(),
 });
 
 // ============================================================================
@@ -1018,6 +1039,7 @@ export const vendorPublicProfileSchema = z.object({
 export const listingSearchParamsSchema = z.object({
   serviceType: serviceTypeSchema.optional(),
   location: z.string().optional(),
+  activityType: z.string().optional(), // Activity type slug for tour filtering
   startDate: z.string().date().optional(),
   endDate: z.string().date().optional(),
   guests: z.number().int().positive().optional(),

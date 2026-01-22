@@ -50,6 +50,8 @@ return [
         'custom_trip_requests' => 'Demandes de Voyage Sur Mesure',
         'data_deletion_requests' => 'Demandes de Suppression',
         'payment_gateways' => 'Passerelles de Paiement',
+        'activity_types' => 'Types d\'Activités',
+        'activity_type' => 'Type d\'Activité',
     ],
 
     /*
@@ -87,6 +89,7 @@ return [
         'geographic_information' => 'Informations Géographiques',
         'map_coordinates' => 'Coordonnées de la Carte',
         'statistics' => 'Statistiques',
+        'display_settings' => 'Paramètres d\'Affichage',
     ],
 
     /*
@@ -225,6 +228,12 @@ return [
         'longitude' => 'Longitude',
         'number_of_listings' => 'Nombre d\'Annonces',
         'listings' => 'Annonces',
+        'activity_type' => 'Type d\'Activité',
+        'icon' => 'Icône',
+        'color' => 'Couleur',
+        'display_order' => 'Ordre d\'Affichage',
+        'is_active' => 'Actif',
+        'order' => 'Ordre',
     ],
 
     /*
@@ -325,6 +334,11 @@ return [
         'image_url_helper' => 'URL complète de l\'image principale (par ex. Unsplash ou téléchargée sur MinIO)',
         'listings_count_helper' => 'Calculé automatiquement selon les annonces publiées',
         'featured_limit_reached' => 'Maximum 3 articles en vedette atteint. Retirez d\'abord un autre article.',
+        'activity_type' => 'Sélectionnez le type d\'activité pour cette excursion',
+        'activity_type_description' => 'Une brève description de ce type d\'activité',
+        'badge_color' => 'Couleur utilisée pour le badge d\'activité sur les annonces',
+        'display_order' => 'Les numéros plus bas apparaissent en premier dans les listes',
+        'activity_type_active' => 'Seuls les types d\'activité actifs seront visibles pour les vendeurs',
     ],
 
     /*
@@ -463,6 +477,8 @@ return [
     'empty_states' => [
         'no_locations' => 'Aucun emplacement pour l\'instant',
         'create_first_location' => 'Créez votre première destination pour organiser les annonces',
+        'no_activity_types' => 'Aucun type d\'activité pour l\'instant',
+        'create_first_activity_type' => 'Créez votre premier type d\'activité pour catégoriser les excursions',
     ],
 
     /*

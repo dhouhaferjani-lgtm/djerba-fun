@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Partner\PartnerListingController;
 use App\Http\Controllers\Api\Partner\PartnerPaymentController;
 use App\Http\Controllers\Api\Partner\PartnerSearchController;
 use App\Http\Controllers\Api\Partner\PartnerTransactionController;
+use App\Http\Controllers\Api\V1\ActivityTypeController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\BlogPostController;
@@ -75,6 +76,10 @@ Route::prefix('v1')->group(function () {
     // Public location/destination routes
     Route::get('/locations', [LocationController::class, 'index']);
     Route::get('/locations/{slug}', [LocationController::class, 'show']);
+
+    // Public activity type routes (for tour categorization)
+    Route::get('/activity-types', [ActivityTypeController::class, 'index']);
+    Route::get('/activity-types/{activityType:slug}', [ActivityTypeController::class, 'show']);
 
     // Public review routes
     Route::get('/listings/{listing:slug}/reviews', [ReviewController::class, 'index']);
