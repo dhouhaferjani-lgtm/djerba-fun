@@ -438,13 +438,25 @@ class ListingResource extends Resource
                                             Forms\Components\Toggle::make('show_itinerary')
                                                 ->label('Show Route Map & Itinerary')
                                                 ->helperText('Display interactive map with checkpoints')
-                                                ->default(fn ($record) => !empty($record?->itinerary))
+                                                ->default(false)
+                                                ->afterStateHydrated(function (Forms\Components\Toggle $component, $record) {
+                                                    // Auto-enable when editing a listing that has itinerary data
+                                                    if ($record && !empty($record->itinerary)) {
+                                                        $component->state(true);
+                                                    }
+                                                })
                                                 ->live(),
 
                                             Forms\Components\Toggle::make('show_elevation_profile')
                                                 ->label('Show Elevation Profile')
                                                 ->helperText('Display elevation chart (requires elevation data)')
-                                                ->default(fn ($record) => $record?->has_elevation_profile ?? false),
+                                                ->default(false)
+                                                ->afterStateHydrated(function (Forms\Components\Toggle $component, $record) {
+                                                    // Auto-enable when editing a listing that has elevation data
+                                                    if ($record && $record->has_elevation_profile) {
+                                                        $component->state(true);
+                                                    }
+                                                }),
                                         ]),
                                 ])
                                 ->collapsed(false),
