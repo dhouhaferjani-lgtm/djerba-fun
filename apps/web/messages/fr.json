@@ -833,7 +833,8 @@
     "equivalent_to": "équivalent à",
     "currency_notice_message": "La page de paiement affichera le montant en TND ({tndAmount}). Ne vous inquiétez pas - votre carte sera débitée exactement de {eurAmount} dans votre devise.",
     "no_hidden_fees": "Sans frais cachés",
-    "confirm_and_pay": "Confirmer et Payer"
+    "confirm_and_pay": "Confirmer et Payer",
+    "redirect_notice_tnd": "Vous serez redirigé en toute sécurité vers Clictopay, la passerelle de paiement officielle de Tunisie, pour finaliser votre paiement. Votre carte sera débitée exactement du montant affiché ci-dessus."
   },
   "cookies": {
     "banner_title": "Préférences de Cookies",

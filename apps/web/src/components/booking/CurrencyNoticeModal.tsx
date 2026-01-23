@@ -60,20 +60,20 @@ export function CurrencyNoticeModal({
           )}
         </div>
 
-        {/* Currency Notice - Only for foreign currencies */}
-        {isForeignCurrency && (
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-left">
-            <div className="flex gap-3">
-              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-blue-800">
-                {t('currency_notice_message', {
-                  eurAmount: formattedAmount,
-                  tndAmount: formattedTnd,
-                })}
-              </p>
-            </div>
+        {/* Payment Notice - Always show */}
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-left">
+          <div className="flex gap-3">
+            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-blue-800">
+              {isForeignCurrency
+                ? t('currency_notice_message', {
+                    eurAmount: formattedAmount,
+                    tndAmount: formattedTnd,
+                  })
+                : t('redirect_notice_tnd')}
+            </p>
           </div>
-        )}
+        </div>
 
         {/* Trust indicators */}
         <div className="flex items-center justify-center gap-3 mb-6">

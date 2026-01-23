@@ -843,6 +843,7 @@
     "currency_notice_message": "The payment page will display the amount in TND ({tndAmount}). Don't worry - your card will be charged exactly {eurAmount} in your currency.",
     "no_hidden_fees": "No hidden fees",
     "confirm_and_pay": "Confirm & Pay",
+    "redirect_notice_tnd": "You will be securely redirected to Clictopay, Tunisia's official payment gateway, to complete your payment. Your card will be charged exactly the amount shown above.",
     "approx_tnd": "≈ {tndAmount}",
     "trust_ssl": "SSL Encrypted",
     "trust_3ds": "3D Secure",
