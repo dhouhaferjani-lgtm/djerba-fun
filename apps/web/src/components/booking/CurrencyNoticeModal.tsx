@@ -39,7 +39,6 @@ export function CurrencyNoticeModal({
     }).format(value);
   };
 
-  const isForeignCurrency = currency !== 'TND';
   const formattedAmount = formatCurrency(amount, currency);
   const formattedTnd = formatCurrency(tndAmount, 'TND');
 
@@ -53,24 +52,20 @@ export function CurrencyNoticeModal({
         <div className="mb-6">
           <p className="text-sm text-neutral-500 mb-2">{t('you_will_be_charged')}</p>
           <p className="text-4xl font-bold text-primary mb-1">{formattedAmount}</p>
-          {isForeignCurrency && (
-            <p className="text-sm text-neutral-500">
-              ({t('equivalent_to')} {formattedTnd})
-            </p>
-          )}
+          <p className="text-sm text-neutral-500">
+            ({t('equivalent_to')} {formattedTnd})
+          </p>
         </div>
 
-        {/* Payment Notice - Always show */}
+        {/* Payment Notice - Always show same message */}
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-left">
           <div className="flex gap-3">
             <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-blue-800">
-              {isForeignCurrency
-                ? t('currency_notice_message', {
-                    eurAmount: formattedAmount,
-                    tndAmount: formattedTnd,
-                  })
-                : t('redirect_notice_tnd')}
+              {t('currency_notice_message', {
+                eurAmount: formattedAmount,
+                tndAmount: formattedTnd,
+              })}
             </p>
           </div>
         </div>
