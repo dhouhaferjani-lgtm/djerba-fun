@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Dialog } from '@go-adventure/ui';
-import { Lock, ShieldCheck, CheckCircle, CreditCard } from 'lucide-react';
+import { Lock, CheckCircle, Info } from 'lucide-react';
 import Image from 'next/image';
 
 interface CurrencyNoticeModalProps {
@@ -15,17 +15,10 @@ interface CurrencyNoticeModalProps {
 }
 
 /**
- * Currency Notice Modal - Enhanced for European Users
+ * Payment Confirmation Modal
  *
- * Designed to build trust and confidence for European visitors (99% of users)
- * who may be unfamiliar with Clictopay (Tunisia's national payment gateway).
- *
- * Features:
- * - Prominent EUR display with TND as secondary
- * - Trust badges (SSL, 3D Secure, GDPR)
- * - Comparison to familiar EU payment systems (iDEAL, Bancontact, SOFORT)
- * - Clear step-by-step "What happens next" flow
- * - Enhanced security guarantees
+ * Clean, professional design that reassures users about currency conversion.
+ * Shows EUR amount prominently with TND equivalent and a clear explanation.
  */
 export function CurrencyNoticeModal({
   isOpen,
@@ -53,125 +46,82 @@ export function CurrencyNoticeModal({
   return (
     <Dialog isOpen={isOpen} onClose={onCancel} size="md" showCloseButton={true}>
       <div className="text-center">
-        {/* Header with lock icon */}
-        <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CreditCard className="w-7 h-7 text-primary" />
-        </div>
+        {/* Header */}
+        <h2 className="text-xl font-bold text-neutral-900 mb-6">{t('confirm_payment_title')}</h2>
 
-        <h2 className="text-xl font-bold text-neutral-900 mb-1">{t('secure_payment_title')}</h2>
-
-        {/* Amount Display - EUR prominent, TND secondary */}
-        <div className="bg-neutral-50 rounded-xl p-4 mb-4">
-          <p className="text-sm text-neutral-500 mb-1">{t('you_will_pay')}</p>
-          <p className="text-3xl font-bold text-primary">{formattedAmount}</p>
+        {/* Amount Display */}
+        <div className="mb-6">
+          <p className="text-sm text-neutral-500 mb-2">{t('you_will_be_charged')}</p>
+          <p className="text-4xl font-bold text-primary mb-1">{formattedAmount}</p>
           {isForeignCurrency && (
-            <p className="text-sm text-neutral-400 mt-1">
-              {t('approx_tnd', { tndAmount: formattedTnd })}
+            <p className="text-sm text-neutral-500">
+              ({t('equivalent_to')} {formattedTnd})
             </p>
           )}
         </div>
 
-        {/* Trust Badges Row */}
-        <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-neutral-100 rounded-lg">
-            <Lock className="w-3.5 h-3.5 text-neutral-600" />
-            <span className="text-xs font-medium text-neutral-600">{t('trust_ssl')}</span>
+        {/* Currency Notice - Only for foreign currencies */}
+        {isForeignCurrency && (
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-left">
+            <div className="flex gap-3">
+              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-blue-800">
+                {t('currency_notice_message', {
+                  eurAmount: formattedAmount,
+                  tndAmount: formattedTnd,
+                })}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-neutral-100 rounded-lg">
-            <ShieldCheck className="w-3.5 h-3.5 text-neutral-600" />
-            <span className="text-xs font-medium text-neutral-600">{t('trust_3ds')}</span>
+        )}
+
+        {/* Trust indicators */}
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="flex items-center gap-1.5 text-neutral-500">
+            <Lock className="w-4 h-4" />
+            <span className="text-xs">{t('trust_ssl')}</span>
           </div>
+          <span className="text-neutral-300">|</span>
           <Image
             src="/images/payment/visa.svg"
             alt="Visa"
-            width={36}
-            height={24}
-            className="h-6 w-auto"
+            width={32}
+            height={20}
+            className="h-5 w-auto"
           />
           <Image
             src="/images/payment/mastercard.svg"
             alt="Mastercard"
-            width={36}
-            height={24}
-            className="h-6 w-auto"
+            width={32}
+            height={20}
+            className="h-5 w-auto"
           />
         </div>
 
-        {/* How it works */}
-        <div className="bg-blue-50 rounded-xl p-4 mb-4 text-left">
-          <p className="text-sm font-semibold text-blue-900 mb-1.5">{t('how_it_works_title')}</p>
-          <p className="text-sm text-blue-800">{t('how_it_works_general')}</p>
-        </div>
-
-        {/* What happens next - Step by step */}
-        <div className="bg-neutral-50 rounded-xl p-4 mb-4 text-left">
-          <p className="text-sm font-semibold text-neutral-800 mb-2">
-            {t('what_happens_next_title')}
-          </p>
-          <ol className="space-y-1.5">
-            <li className="flex items-start gap-2 text-sm text-neutral-600">
-              <span className="flex-shrink-0 w-5 h-5 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-medium">
-                1
-              </span>
-              <span>{t('step_1')}</span>
-            </li>
-            <li className="flex items-start gap-2 text-sm text-neutral-600">
-              <span className="flex-shrink-0 w-5 h-5 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-medium">
-                2
-              </span>
-              <span>{t('step_2')}</span>
-            </li>
-            <li className="flex items-start gap-2 text-sm text-neutral-600">
-              <span className="flex-shrink-0 w-5 h-5 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-medium">
-                3
-              </span>
-              <span>{t('step_3')}</span>
-            </li>
-            <li className="flex items-start gap-2 text-sm text-neutral-600">
-              <span className="flex-shrink-0 w-5 h-5 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-medium">
-                4
-              </span>
-              <span>{t('step_4')}</span>
-            </li>
-          </ol>
-        </div>
-
-        {/* Guarantees */}
-        <div className="space-y-1.5 mb-5">
-          <div className="flex items-center gap-2 justify-center text-success">
-            <CheckCircle className="w-4 h-4" />
-            <span className="text-sm font-medium">
-              {t('guarantee_charge', { amount: formattedAmount })}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 justify-center text-neutral-600">
-            <CheckCircle className="w-4 h-4" />
-            <span className="text-sm">{t('guarantee_official')}</span>
-          </div>
+        {/* Guarantee */}
+        <div className="flex items-center justify-center gap-2 text-success mb-6">
+          <CheckCircle className="w-4 h-4" />
+          <span className="text-sm font-medium">{t('no_hidden_fees')}</span>
         </div>
 
         {/* Action buttons */}
         <div className="space-y-3">
           <button
             onClick={onConfirm}
-            className="w-full px-4 py-3.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
+            className="w-full px-4 py-3.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors"
           >
-            <Lock className="w-4 h-4" />
-            {t('pay_securely_button', { amount: formattedAmount })}
+            {t('confirm_and_pay')}
           </button>
           <button
             onClick={onCancel}
-            className="w-full px-4 py-2.5 text-neutral-600 font-medium hover:text-neutral-800 transition-colors"
+            className="w-full px-4 py-2.5 text-neutral-500 font-medium hover:text-neutral-700 transition-colors"
           >
             {t('go_back')}
           </button>
         </div>
 
-        {/* Security footer */}
-        <p className="text-xs text-neutral-400 mt-4 flex items-center justify-center gap-1">
-          <Lock className="w-3 h-3" />
-          {t('secured_by_smt')}
-        </p>
+        {/* Footer */}
+        <p className="text-xs text-neutral-400 mt-4">{t('secured_by_smt')}</p>
       </div>
     </Dialog>
   );

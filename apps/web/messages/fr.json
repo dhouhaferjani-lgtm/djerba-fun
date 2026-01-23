@@ -827,7 +827,13 @@
     "guarantee_charge": "Montant garanti : {amount} - sans frais cachés",
     "guarantee_official": "Passerelle de paiement officielle certifiée de Tunisie",
     "pay_securely_button": "Payer {amount} en sécurité",
-    "secured_by_smt": "SSL 256-bit • Sécurisé par Société Monétique Tunisie"
+    "secured_by_smt": "Sécurisé par Société Monétique Tunisie",
+    "confirm_payment_title": "Confirmer le Paiement",
+    "you_will_be_charged": "Vous serez débité de",
+    "equivalent_to": "équivalent à",
+    "currency_notice_message": "La page de paiement affichera le montant en TND ({tndAmount}). Ne vous inquiétez pas - votre carte sera débitée exactement de {eurAmount} dans votre devise.",
+    "no_hidden_fees": "Sans frais cachés",
+    "confirm_and_pay": "Confirmer et Payer"
   },
   "cookies": {
     "banner_title": "Préférences de Cookies",

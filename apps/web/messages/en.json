@@ -837,6 +837,12 @@
     "continue_to_payment": "Continue to Payment",
     "go_back": "Go Back",
     "secure_payment_title": "Secure Payment",
+    "confirm_payment_title": "Confirm Payment",
+    "you_will_be_charged": "You will be charged",
+    "equivalent_to": "equivalent to",
+    "currency_notice_message": "The payment page will display the amount in TND ({tndAmount}). Don't worry - your card will be charged exactly {eurAmount} in your currency.",
+    "no_hidden_fees": "No hidden fees",
+    "confirm_and_pay": "Confirm & Pay",
     "approx_tnd": "≈ {tndAmount}",
     "trust_ssl": "SSL Encrypted",
     "trust_3ds": "3D Secure",
@@ -852,7 +858,7 @@
     "guarantee_charge": "Guaranteed charge: {amount} - no hidden fees",
     "guarantee_official": "Tunisia's official certified payment gateway",
     "pay_securely_button": "Pay {amount} Securely",
-    "secured_by_smt": "256-bit SSL • Secured by Société Monétique Tunisie"
+    "secured_by_smt": "Secured by Société Monétique Tunisie"
   },
   "cookies": {
     "banner_title": "Cookie Preferences",
