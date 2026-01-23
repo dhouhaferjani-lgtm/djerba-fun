@@ -818,6 +818,7 @@
     "trust_gdpr": "Conforme RGPD",
     "how_it_works_title": "Comment ça marche",
     "how_it_works_description": "Comme iDEAL, Bancontact ou SOFORT - vous serez redirigé vers une page de paiement sécurisée. Votre carte sera débitée dans votre devise locale ({amount}).",
+    "how_it_works_general": "Comme iDEAL, Bancontact ou SOFORT - vous serez redirigé vers la page de paiement sécurisée de Clictopay pour finaliser votre transaction en toute sécurité.",
     "what_happens_next_title": "Prochaines étapes",
     "step_1": "Redirection vers la page sécurisée Clictopay",
     "step_2": "Saisissez vos coordonnées carte (Visa/Mastercard)",

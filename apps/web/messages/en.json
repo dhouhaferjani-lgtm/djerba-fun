@@ -843,6 +843,7 @@
     "trust_gdpr": "GDPR Compliant",
     "how_it_works_title": "How it works",
     "how_it_works_description": "Similar to iDEAL, Bancontact, or SOFORT - you'll be redirected to a secure payment page. Your card will be charged in your local currency ({amount}).",
+    "how_it_works_general": "Similar to iDEAL, Bancontact, or SOFORT - you'll be redirected to Clictopay's secure payment page to complete your transaction safely.",
     "what_happens_next_title": "What happens next",
     "step_1": "Redirect to secure Clictopay page",
     "step_2": "Enter your card details (Visa/Mastercard)",

@@ -97,15 +97,11 @@ export function CurrencyNoticeModal({
           />
         </div>
 
-        {/* How it works - EU payment comparison */}
-        {isForeignCurrency && (
-          <div className="bg-blue-50 rounded-xl p-4 mb-4 text-left">
-            <p className="text-sm font-semibold text-blue-900 mb-1.5">{t('how_it_works_title')}</p>
-            <p className="text-sm text-blue-800">
-              {t('how_it_works_description', { amount: formattedAmount })}
-            </p>
-          </div>
-        )}
+        {/* How it works */}
+        <div className="bg-blue-50 rounded-xl p-4 mb-4 text-left">
+          <p className="text-sm font-semibold text-blue-900 mb-1.5">{t('how_it_works_title')}</p>
+          <p className="text-sm text-blue-800">{t('how_it_works_general')}</p>
+        </div>
 
         {/* What happens next - Step by step */}
         <div className="bg-neutral-50 rounded-xl p-4 mb-4 text-left">
