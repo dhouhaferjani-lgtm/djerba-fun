@@ -29,7 +29,11 @@ interface ListingCardProps {
 }
 
 function ListingCardComponent({ listing, locale }: ListingCardProps) {
-  const mainImage = listing.media[0];
+  // Prefer galleryImages (from vendor upload), fall back to media
+  const galleryImage = listing.galleryImages?.[0];
+  const mediaImage = listing.media?.[0];
+  const mainImageUrl = galleryImage || mediaImage?.url;
+  const mainImageAlt = mediaImage?.alt;
   const href = getListingUrl(listing.slug, listing.location, locale as Locale) as any;
   const t = (field: any) => resolveTranslation(field, locale);
 
@@ -38,15 +42,15 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
       <Card variant="interactive" padding="none" className="overflow-hidden h-full">
         {/* Image */}
         <div className="relative h-48 w-full bg-neutral-100">
-          {mainImage ? (
+          {mainImageUrl ? (
             <Image
-              src={normalizeMediaUrl(mainImage.url)}
-              alt={t(mainImage.alt) || t(listing.title)}
+              src={normalizeMediaUrl(mainImageUrl)}
+              alt={t(mainImageAlt) || t(listing.title)}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               loading="lazy"
-              unoptimized={shouldUnoptimizeImage(normalizeMediaUrl(mainImage.url))}
+              unoptimized={shouldUnoptimizeImage(normalizeMediaUrl(mainImageUrl))}
             />
           ) : (
             <div className="flex items-center justify-center h-full text-neutral-400">

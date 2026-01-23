@@ -505,6 +505,8 @@ export const listingSummarySchema = z.object({
   }),
   pricing: pricingSchema,
   media: z.array(mediaSchema.pick({ url: true, alt: true })).max(5),
+  // Gallery images from Filament vendor upload (paths to storage)
+  galleryImages: z.array(z.string()).optional(),
   duration: z
     .object({
       value: z.number().positive(),
