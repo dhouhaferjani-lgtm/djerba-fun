@@ -733,6 +733,24 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                     </span>
                   </div>
                 )}
+                {listing.serviceType === 'tour' && listing.difficulty && (
+                  <div className="flex items-center gap-2">
+                    <svg
+                      className="h-4 w-4 text-primary"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                    <span className="capitalize">{listing.difficulty}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-primary" />
                   <span>Max {listing.maxGroupSize} guests</span>

@@ -14,6 +14,7 @@ class LocaleSwitchController extends Controller
     {
         if (in_array($locale, ['en', 'fr'])) {
             session(['filament_locale' => $locale]);
+            session()->save(); // Explicitly save session before redirect
         }
 
         return redirect()->back();
