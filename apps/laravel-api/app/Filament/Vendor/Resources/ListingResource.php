@@ -438,13 +438,13 @@ class ListingResource extends Resource
                                             Forms\Components\Toggle::make('show_itinerary')
                                                 ->label('Show Route Map & Itinerary')
                                                 ->helperText('Display interactive map with checkpoints')
-                                                ->default(false)
+                                                ->default(fn ($record) => !empty($record?->itinerary))
                                                 ->live(),
 
                                             Forms\Components\Toggle::make('show_elevation_profile')
                                                 ->label('Show Elevation Profile')
                                                 ->helperText('Display elevation chart (requires elevation data)')
-                                                ->default(false),
+                                                ->default(fn ($record) => $record?->has_elevation_profile ?? false),
                                         ]),
                                 ])
                                 ->collapsed(false),
