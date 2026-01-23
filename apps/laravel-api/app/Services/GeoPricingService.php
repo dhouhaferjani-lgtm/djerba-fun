@@ -13,42 +13,19 @@ class GeoPricingService
     /**
      * Detect the appropriate currency for the user.
      *
-     * Priority:
+     * IMPORTANT: Always return EUR for all users.
+     * The platform targets European visitors (99% of traffic).
+     * TND detection was causing confusion in the checkout flow.
+     *
+     * Previous behavior (disabled):
      * 1. User's billing address country (if logged in)
      * 2. IP geolocation
      * 3. Default to EUR
      */
     public function detectUserCurrency(Request $request, ?User $user = null): string
     {
-        // Priority 1: Check user's billing country
-        if ($user) {
-            $billingCountry = $this->getUserBillingCountry($user);
-
-            if ($billingCountry === 'TN') {
-                return 'TND';
-            }
-
-            if ($billingCountry !== null) {
-                return 'EUR'; // Any other country gets EUR
-            }
-        }
-
-        // Priority 2: Check IP geolocation
-        $ip = $request->ip();
-
-        if ($ip && $ip !== '127.0.0.1' && ! $this->isPrivateIP($ip)) {
-            $country = $this->getCountryFromIP($ip);
-
-            if ($country === 'TN') {
-                return 'TND';
-            }
-
-            if ($country !== null) {
-                return 'EUR';
-            }
-        }
-
-        // Priority 3: Default to EUR (international)
+        // Always use EUR for all users - platform targets European visitors
+        // TND pricing is only used internally for payment processing
         return 'EUR';
     }
 
