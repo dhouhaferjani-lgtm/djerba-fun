@@ -1,7 +1,6 @@
 'use client';
 
-/* eslint-disable @typescript-eslint/no-explicit-any -- next-intl requires typed routes, using any for dynamic paths */
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter, usePathname } from '@/i18n/navigation';
 import { useState, useEffect } from 'react';
 
 interface LocaleSwitcherProps {
@@ -13,9 +12,6 @@ const locales = [
   { code: 'fr', label: 'Français', flag: '🇫🇷' },
 ];
 
-const DEFAULT_LOCALE = 'fr';
-const SUPPORTED_LOCALES = ['en', 'fr', 'ar'];
-
 export function LocaleSwitcher({ locale }: LocaleSwitcherProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -26,31 +22,8 @@ export function LocaleSwitcher({ locale }: LocaleSwitcherProps) {
   }, []);
 
   const switchLocale = (newLocale: string) => {
-    // Get the path without the current locale prefix
-    let pathWithoutLocale = pathname;
-
-    // Check if current path starts with a locale prefix
-    for (const loc of SUPPORTED_LOCALES) {
-      if (pathname.startsWith(`/${loc}/`)) {
-        pathWithoutLocale = pathname.slice(loc.length + 1); // Remove "/{locale}"
-        break;
-      } else if (pathname === `/${loc}`) {
-        pathWithoutLocale = '/';
-        break;
-      }
-    }
-
-    // Build new path based on target locale
-    let newPath: string;
-    if (newLocale === DEFAULT_LOCALE) {
-      // French is default - no prefix needed
-      newPath = pathWithoutLocale || '/';
-    } else {
-      // Non-default locale - add prefix
-      newPath = `/${newLocale}${pathWithoutLocale}`;
-    }
-
-    router.push(newPath as any);
+    // next-intl's router handles locale switching automatically
+    router.replace(pathname, { locale: newLocale as 'en' | 'fr' | 'ar' });
   };
 
   const currentLocale = locales.find((l) => l.code === locale);
