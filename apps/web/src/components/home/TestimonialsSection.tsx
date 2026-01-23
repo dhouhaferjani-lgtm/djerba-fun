@@ -2,105 +2,151 @@
 
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
+import { useState, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 
 interface Testimonial {
   id: string;
   name: string;
-  location: string;
   avatar: string;
-  rating: number;
   text: string;
-  activity: string;
 }
 
 const testimonials: Testimonial[] = [
   {
     id: '1',
-    name: 'Sarah Mitchell',
-    location: 'London, UK',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-    rating: 5,
-    text: 'The Sahara desert experience was absolutely magical. Sleeping under the stars in the Berber camp and riding camels at sunset - it was like a dream come true. Our guide was incredibly knowledgeable and made us feel like family.',
-    activity: 'Sahara Desert Camel Trek',
+    name: 'Nathalie',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80',
+    text: "Merci à Seif de m'avoir accompagner à découvrir Djerba hors des sentiers battus en mobilité douce sans impact pour l'environnement ! Le ravitaillement traditionnel avec la Zomita accompagnée de fruits frais a été l'occasion de me rapprocher du mode de vie des Djerbiens !",
   },
   {
     id: '2',
-    name: 'Marc Dubois',
-    location: 'Paris, France',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    rating: 5,
-    text: "La visite de la médina de Tunis était exceptionnelle. Notre guide nous a fait découvrir des endroits que nous n'aurions jamais trouvés seuls. Une expérience authentique et enrichissante !",
-    activity: 'Medina of Tunis Walking Tour',
+    name: 'Pierre',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80',
+    text: "Une expérience incroyable dans le désert tunisien. L'organisation était parfaite et notre guide connaissait tous les secrets de la région. Je recommande vivement Go Adventure pour découvrir la Tunisie autrement !",
   },
   {
     id: '3',
-    name: 'Emma Thompson',
-    location: 'Sydney, Australia',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-    rating: 5,
-    text: 'The cooking class in Sidi Bou Said was the highlight of our trip! We learned to make couscous from scratch and the views from the terrace were stunning. Highly recommend for food lovers!',
-    activity: 'Tunisian Cooking Masterclass',
+    name: 'Marie',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&q=80',
+    text: "Le vélo dans les montagnes de Tunisie était magnifique. Paysages à couper le souffle et accueil chaleureux des locaux. Une aventure que je ne suis pas prête d'oublier !",
   },
 ];
 
 export function TestimonialsSection() {
   const t = useTranslations('home');
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const goToPrevious = useCallback(() => {
+    setCurrentIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
+  }, []);
+
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
+  }, []);
+
+  const currentTestimonial = testimonials[currentIndex];
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-16 md:py-20 bg-cream">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
-            {t('testimonials_title')}
-          </h2>
-          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">{t('testimonials_subtitle')}</p>
-        </div>
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+            {/* Left Side - Stats */}
+            <div>
+              <h2 className="text-2xl md:text-3xl font-display font-bold text-neutral-900 mb-3">
+                {t('testimonials_title')}
+              </h2>
+              <p className="text-neutral-600 mb-8">{t('testimonials_subtitle')}</p>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {testimonials.map((testimonial) => (
-            <div key={testimonial.id} className="bg-neutral-50 rounded-2xl p-8 relative">
-              {/* Quote icon */}
-              <div className="absolute top-6 right-6 text-[#0D642E]/10">
-                <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                </svg>
+              <div className="flex gap-12">
+                {/* Feedback Count */}
+                <div>
+                  <p className="text-4xl md:text-5xl font-display font-bold text-neutral-900">
+                    {t('testimonials_feedback_count')}
+                  </p>
+                  <p className="text-sm text-neutral-600 mt-1">
+                    {t('testimonials_feedback_label')}
+                  </p>
+                </div>
+
+                {/* Rating */}
+                <div>
+                  <p className="text-4xl md:text-5xl font-display font-bold text-neutral-900">
+                    {t('testimonials_rating')}
+                  </p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <p className="text-sm text-neutral-600 mr-2">
+                      {t('testimonials_rating_label')}
+                    </p>
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
 
-              <div className="flex items-center gap-1 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <svg
-                    key={i}
-                    className={`w-5 h-5 ${i < testimonial.rating ? 'text-secondary' : 'text-neutral-200'}`}
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                  </svg>
-                ))}
-              </div>
-
-              <p className="text-neutral-600 mb-6 leading-relaxed italic">"{testimonial.text}"</p>
-
-              <div className="flex items-center gap-4">
-                <div className="relative w-12 h-12 rounded-full overflow-hidden">
+            {/* Right Side - Testimonial Carousel */}
+            <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm">
+              {/* Avatar and Name */}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-primary/20">
                   <Image
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
+                    src={currentTestimonial.avatar}
+                    alt={currentTestimonial.name}
                     fill
                     className="object-cover"
                   />
                 </div>
-                <div>
-                  <p className="font-semibold text-neutral-900">{testimonial.name}</p>
-                  <p className="text-sm text-neutral-500">{testimonial.location}</p>
-                </div>
+                <p className="font-semibold text-lg text-neutral-900">{currentTestimonial.name}</p>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-neutral-200">
-                <p className="text-sm text-[#0D642E] font-medium">{testimonial.activity}</p>
+              {/* Testimonial Text */}
+              <blockquote className="text-neutral-700 leading-relaxed mb-8 min-h-[120px]">
+                {currentTestimonial.text}
+              </blockquote>
+
+              {/* Navigation */}
+              <div className="flex items-center justify-between">
+                {/* Page Indicator */}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-neutral-900">
+                    {String(currentIndex + 1).padStart(2, '0')}
+                  </span>
+                  <div className="w-24 h-0.5 bg-neutral-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-neutral-900 transition-all duration-300"
+                      style={{ width: `${((currentIndex + 1) / testimonials.length) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-sm text-neutral-400">
+                    {String(testimonials.length).padStart(2, '0')}
+                  </span>
+                </div>
+
+                {/* Arrow Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={goToPrevious}
+                    className="p-2 rounded-full border border-neutral-300 hover:border-neutral-400 hover:bg-neutral-50 transition-colors"
+                    aria-label="Previous testimonial"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-neutral-600" />
+                  </button>
+                  <button
+                    onClick={goToNext}
+                    className="p-2 rounded-full border border-neutral-300 hover:border-neutral-400 hover:bg-neutral-50 transition-colors"
+                    aria-label="Next testimonial"
+                  >
+                    <ChevronRight className="w-5 h-5 text-neutral-600" />
+                  </button>
+                </div>
               </div>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </section>

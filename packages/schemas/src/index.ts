@@ -424,6 +424,9 @@ const listingBaseFields = {
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   publishedAt: z.string().datetime().nullable(),
+  // Activity type for categorization (only used by tours, null for events)
+  activityType: activityTypeSchema.nullable().optional(),
+  activityTypeId: z.string().uuid().nullable().optional(),
 };
 
 export const tourSchema = z.object({
@@ -451,9 +454,6 @@ export const tourSchema = z.object({
     })
   ),
   hasElevationProfile: z.boolean().default(false),
-  // Activity type for tour categorization
-  activityType: activityTypeSchema.nullable().optional(),
-  activityTypeId: z.string().uuid().nullable().optional(),
 });
 
 export const eventSchema = z.object({

@@ -7,7 +7,7 @@ import { PromoBannerSection } from '@/components/home/PromoBannerSection';
 import { CategoriesGridSection } from '@/components/home/CategoriesGridSection';
 import { DestinationsBentoGrid } from '@/components/home/DestinationsBentoGrid';
 import { CTASectionWithBlobs } from '@/components/home/CTASectionWithBlobs';
-import { BlogSection } from '@/components/home';
+import { BlogSection, ExperienceCategoriesSection, TestimonialsSection } from '@/components/home';
 import { BlockRenderer } from '@/components/cms';
 import { getPageByCode } from '@/lib/api/cms';
 import { getBrandingUrls, getEventOfYearData, getFeaturedListings } from '@/lib/api/server';
@@ -34,6 +34,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         brandPillar3Url={branding.brandPillar3}
       />
 
+      {/* Experience Categories - showcases activity types */}
+      <ExperienceCategoriesSection />
+
       {/* CMS-managed middle sections OR hardcoded fallback */}
       {cmsPage && cmsPage.content_blocks && cmsPage.content_blocks.length > 0 ? (
         <BlockRenderer blocks={cmsPage.content_blocks} />
@@ -42,6 +45,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <FeaturedPackagesSection listings={featuredListings} locale={locale} />
           <PromoBannerSection locale={locale} eventOfYear={eventOfYear} />
           <CategoriesGridSection locale={locale} />
+          <TestimonialsSection />
           <DestinationsBentoGrid locale={locale} />
           <CTASectionWithBlobs locale={locale} />
         </>
