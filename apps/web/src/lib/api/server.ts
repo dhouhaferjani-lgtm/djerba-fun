@@ -3,7 +3,7 @@
  * These functions can be called from server contexts where localStorage is not available.
  */
 
-import type { PlatformSettingsResponse } from '@go-adventure/schemas';
+import type { PlatformSettingsResponse, ListingSummary } from '@go-adventure/schemas';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
@@ -82,4 +82,31 @@ export async function getEventOfYearData(locale?: string) {
     link: eventOfYear?.link ?? null,
     image: eventOfYear?.image ?? null,
   };
+}
+
+/**
+ * Fetch featured listings from the API (server-side).
+ * Returns top listings sorted by popularity for the home page.
+ */
+export async function getFeaturedListings(limit: number = 3): Promise<ListingSummary[]> {
+  try {
+    const response = await fetch(`${API_URL}/listings?limit=${limit}&sort=popularity`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      next: { revalidate: 300 }, // Cache for 5 minutes
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to fetch featured listings: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    return data.data || [];
+  } catch (error) {
+    console.error('Error fetching featured listings:', error);
+    return [];
+  }
 }

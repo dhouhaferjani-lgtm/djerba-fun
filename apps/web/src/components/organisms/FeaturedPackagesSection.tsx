@@ -8,12 +8,49 @@ import { useRouter } from 'next/navigation';
 import { Award, Leaf, Globe } from 'lucide-react';
 import { getListingUrl } from '@/lib/utils/urls';
 import type { Locale } from '@/i18n/routing';
+import type { ListingSummary } from '@go-adventure/schemas';
+import { ListingCard } from '@/components/molecules/ListingCard';
 
-export function FeaturedPackagesSection() {
+interface FeaturedPackagesSectionProps {
+  listings?: ListingSummary[];
+  locale?: string;
+}
+
+export function FeaturedPackagesSection({
+  listings,
+  locale: localeProp,
+}: FeaturedPackagesSectionProps) {
   const t = useTranslations('home');
-  const locale = useLocale() as Locale;
+  const localeFromHook = useLocale() as Locale;
+  const locale = (localeProp || localeFromHook) as Locale;
   const router = useRouter();
 
+  // If we have real listings from the API, use them
+  if (listings && listings.length > 0) {
+    return (
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          {/* Header with View All Link */}
+          <div className="flex justify-between items-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral-900">
+              {t('upcoming_adventures')}
+            </h2>
+            <Button variant="outline" onClick={() => router.push(`/${locale}/listings` as any)}>
+              {t('view_all_adventures')}
+            </Button>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {listings.slice(0, 3).map((listing) => (
+              <ListingCard key={listing.id} listing={listing} locale={locale} />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Fallback to hardcoded packages if no listings from API
   const featuredPackages = [
     {
       icon: <Award className="w-12 h-12" />,
