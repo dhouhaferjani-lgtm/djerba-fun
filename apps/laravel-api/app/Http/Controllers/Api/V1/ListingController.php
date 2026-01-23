@@ -46,6 +46,8 @@ class ListingController extends Controller
                 'difficulty_details', 'min_group_size', 'max_group_size',
                 'min_advance_booking_hours', 'rating', 'reviews_count', 'bookings_count',
                 'created_at', 'updated_at', 'published_at',
+                // Gallery images for listing cards
+                'gallery_images', 'gallery_layout',
                 // Tour-specific
                 'duration', 'difficulty', 'distance', 'itinerary', 'has_elevation_profile',
                 // Event-specific
