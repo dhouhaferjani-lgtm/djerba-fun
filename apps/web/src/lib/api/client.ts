@@ -196,6 +196,7 @@ export const listingsApi = {
     // Map frontend param names to backend param names (camelCase → snake_case)
     const paramMapping: Record<string, string> = {
       serviceType: 'service_type',
+      activityType: 'activity_type',
       priceMin: 'price_min',
       priceMax: 'price_max',
       startDate: 'start_date',

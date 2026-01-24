@@ -28,6 +28,7 @@ function ListingsContent({ locale }: { locale: string }) {
     serviceType: searchParams.get('type') as 'tour' | 'event' | undefined,
     location: searchParams.get('location') || undefined,
     search: searchParams.get('q') || undefined,
+    activityType: searchParams.get('activity_type') || undefined,
     sort: currentSort,
     limit: 20,
   };
@@ -60,7 +61,10 @@ function ListingsContent({ locale }: { locale: string }) {
   };
 
   const hasActiveFilters =
-    searchParams.get('type') || searchParams.get('location') || searchParams.get('q');
+    searchParams.get('type') ||
+    searchParams.get('location') ||
+    searchParams.get('q') ||
+    searchParams.get('activity_type');
 
   return (
     <MainLayout locale={locale}>

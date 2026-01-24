@@ -16,31 +16,31 @@ const categories: ExperienceCategory[] = [
     key: 'cultural',
     // Tunisian fort/medina style image
     image: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=80',
-    href: '/listings?tags=cultural',
+    href: '/listings?activity_type=cultural-expeditions',
   },
   {
     key: 'corporate',
     // Team building / group activities
     image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
-    href: '/listings?tags=corporate',
+    href: '/listings?activity_type=corporate-sports',
   },
   {
     key: 'cycling',
     // Road/mountain biking
     image: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80',
-    href: '/listings?tags=cycling',
+    href: '/listings?activity_type=mountain-biking',
   },
   {
     key: 'water_sports',
     // Sailing/nautical activities at sunset
     image: 'https://images.unsplash.com/photo-1500514966906-fe245eea9344?w=800&q=80',
-    href: '/listings?tags=water-sports',
+    href: '/listings?activity_type=water-activities',
   },
   {
     key: 'hiking',
     // Trail running / trekking in mountains
     image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80',
-    href: '/listings?tags=hiking,trekking',
+    href: '/listings?activity_type=trail-trekking',
   },
 ];
 
