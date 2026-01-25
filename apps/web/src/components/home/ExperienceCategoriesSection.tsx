@@ -19,6 +19,80 @@ const fallbackImages: Record<string, string> = {
 const defaultFallbackImage =
   'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80';
 
+// Fallback activity types when API is unavailable (matches database seeder)
+const fallbackActivityTypes: ActivityType[] = [
+  {
+    id: '00000000-0000-0000-0000-000000000001',
+    slug: 'cultural-expeditions',
+    name: { en: 'Cultural Expeditions', fr: 'Expéditions Culturelles' },
+    description: {
+      en: 'Discover local culture, heritage sites, and traditional customs',
+      fr: 'Découvrez la culture locale, les sites patrimoniaux et les coutumes traditionnelles',
+    },
+    icon: 'heroicon-o-building-library',
+    color: '#8B4513',
+    displayOrder: 1,
+    isActive: true,
+    listingsCount: 0,
+  },
+  {
+    id: '00000000-0000-0000-0000-000000000002',
+    slug: 'mountain-biking',
+    name: { en: 'Mountain Biking - Cycling', fr: 'VTT - Cyclisme' },
+    description: {
+      en: 'Explore scenic trails and paths on two wheels',
+      fr: 'Explorez des sentiers et des chemins pittoresques à vélo',
+    },
+    icon: 'heroicon-o-sparkles',
+    color: '#228B22',
+    displayOrder: 2,
+    isActive: true,
+    listingsCount: 0,
+  },
+  {
+    id: '00000000-0000-0000-0000-000000000003',
+    slug: 'water-activities',
+    name: { en: 'Water Activities', fr: 'Activités Nautiques' },
+    description: {
+      en: 'Enjoy water sports, diving, sailing, and coastal adventures',
+      fr: 'Profitez des sports nautiques, de la plongée, de la voile et des aventures côtières',
+    },
+    icon: 'heroicon-o-lifebuoy',
+    color: '#1E90FF',
+    displayOrder: 3,
+    isActive: true,
+    listingsCount: 0,
+  },
+  {
+    id: '00000000-0000-0000-0000-000000000004',
+    slug: 'corporate-sports',
+    name: { en: 'Corporate/Sports Stays', fr: 'Séjours Corporate/Sportifs' },
+    description: {
+      en: 'Team building, corporate retreats, and sports-focused group experiences',
+      fr: "Team building, séminaires d'entreprise et expériences de groupe axées sur le sport",
+    },
+    icon: 'heroicon-o-building-office',
+    color: '#4169E1',
+    displayOrder: 4,
+    isActive: true,
+    listingsCount: 0,
+  },
+  {
+    id: '00000000-0000-0000-0000-000000000005',
+    slug: 'trail-trekking',
+    name: { en: 'Trail - Trekking', fr: 'Trail - Trekking' },
+    description: {
+      en: 'Hiking adventures through mountains, deserts, and natural landscapes',
+      fr: 'Aventures de randonnée à travers les montagnes, les déserts et les paysages naturels',
+    },
+    icon: 'heroicon-o-map',
+    color: '#0D642E',
+    displayOrder: 5,
+    isActive: true,
+    listingsCount: 0,
+  },
+];
+
 interface CategoryCardProps {
   activityType: ActivityType;
   locale: string;
@@ -106,16 +180,14 @@ export function ExperienceCategoriesSection() {
     return <LoadingSkeleton />;
   }
 
-  // Don't render section if no activity types
-  if (!activityTypes || activityTypes.length === 0) {
-    return null;
-  }
+  // Use API data if available, otherwise use fallback (prevents regression when API is down)
+  const dataSource =
+    activityTypes && activityTypes.length > 0 ? activityTypes : fallbackActivityTypes;
 
   // Take first 5 activity types (ordered by displayOrder from API)
-  const categories = activityTypes.slice(0, 5);
+  const categories = dataSource.slice(0, 5);
 
-  // Ensure we have enough categories for the layout
-  // Layout requires at least 2 for top row, ideally 5 total
+  // Ensure we have enough categories for the layout (fallback guarantees 5)
   if (categories.length < 2) {
     return null;
   }
