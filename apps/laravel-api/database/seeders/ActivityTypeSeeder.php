@@ -15,6 +15,7 @@ class ActivityTypeSeeder extends Seeder
      */
     public function run(): void
     {
+        // Activity types matching go-adventure.net (old site)
         $activityTypes = [
             [
                 'name' => ['en' => 'Cultural Expeditions', 'fr' => 'Expéditions Culturelles'],
@@ -28,29 +29,7 @@ class ActivityTypeSeeder extends Seeder
                 'display_order' => 1,
             ],
             [
-                'name' => ['en' => 'Mountain Biking - Cycling', 'fr' => 'VTT - Cyclisme'],
-                'slug' => 'mountain-biking',
-                'description' => [
-                    'en' => 'Explore scenic trails and paths on two wheels',
-                    'fr' => 'Explorez des sentiers et des chemins pittoresques à vélo',
-                ],
-                'icon' => 'heroicon-o-sparkles',
-                'color' => '#228B22', // Forest Green
-                'display_order' => 2,
-            ],
-            [
-                'name' => ['en' => 'Water Activities', 'fr' => 'Activités Nautiques'],
-                'slug' => 'water-activities',
-                'description' => [
-                    'en' => 'Enjoy water sports, diving, sailing, and coastal adventures',
-                    'fr' => 'Profitez des sports nautiques, de la plongée, de la voile et des aventures côtières',
-                ],
-                'icon' => 'heroicon-o-lifebuoy',
-                'color' => '#1E90FF', // Dodger Blue
-                'display_order' => 3,
-            ],
-            [
-                'name' => ['en' => 'Corporate/Sports Stays', 'fr' => 'Séjours Corporate/Sportifs'],
+                'name' => ['en' => 'Corporate & Team Building Stays', 'fr' => 'Séjours Corporate & Team Building'],
                 'slug' => 'corporate-sports',
                 'description' => [
                     'en' => 'Team building, corporate retreats, and sports-focused group experiences',
@@ -58,10 +37,32 @@ class ActivityTypeSeeder extends Seeder
                 ],
                 'icon' => 'heroicon-o-building-office',
                 'color' => '#4169E1', // Royal Blue
+                'display_order' => 2,
+            ],
+            [
+                'name' => ['en' => 'Road & Mountain Biking', 'fr' => 'Vélo de Route & de Montagne'],
+                'slug' => 'mountain-biking',
+                'description' => [
+                    'en' => 'Explore scenic trails and paths on two wheels',
+                    'fr' => 'Explorez des sentiers et des chemins pittoresques à vélo',
+                ],
+                'icon' => 'heroicon-o-sparkles',
+                'color' => '#228B22', // Forest Green
+                'display_order' => 3,
+            ],
+            [
+                'name' => ['en' => 'Water Activities & Sports', 'fr' => 'Activités & Sports Nautiques'],
+                'slug' => 'water-activities',
+                'description' => [
+                    'en' => 'Enjoy water sports, diving, sailing, and coastal adventures',
+                    'fr' => 'Profitez des sports nautiques, de la plongée, de la voile et des aventures côtières',
+                ],
+                'icon' => 'heroicon-o-lifebuoy',
+                'color' => '#1E90FF', // Dodger Blue
                 'display_order' => 4,
             ],
             [
-                'name' => ['en' => 'Trail - Trekking', 'fr' => 'Trail - Trekking'],
+                'name' => ['en' => 'Trail Running, Hiking & Trekking', 'fr' => 'Trail Running, Randonnée & Trekking'],
                 'slug' => 'trail-trekking',
                 'description' => [
                     'en' => 'Hiking adventures through mountains, deserts, and natural landscapes',

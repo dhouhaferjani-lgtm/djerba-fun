@@ -19,7 +19,7 @@ const fallbackImages: Record<string, string> = {
 const defaultFallbackImage =
   'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80';
 
-// Fallback activity types when API is unavailable (matches database seeder)
+// Fallback activity types when API is unavailable (matches go-adventure.net old site)
 const fallbackActivityTypes: ActivityType[] = [
   {
     id: '00000000-0000-0000-0000-000000000001',
@@ -37,42 +37,42 @@ const fallbackActivityTypes: ActivityType[] = [
   },
   {
     id: '00000000-0000-0000-0000-000000000002',
-    slug: 'mountain-biking',
-    name: { en: 'Mountain Biking - Cycling', fr: 'VTT - Cyclisme' },
-    description: {
-      en: 'Explore scenic trails and paths on two wheels',
-      fr: 'Explorez des sentiers et des chemins pittoresques à vélo',
-    },
-    icon: 'heroicon-o-sparkles',
-    color: '#228B22',
-    displayOrder: 2,
-    isActive: true,
-    listingsCount: 0,
-  },
-  {
-    id: '00000000-0000-0000-0000-000000000003',
-    slug: 'water-activities',
-    name: { en: 'Water Activities', fr: 'Activités Nautiques' },
-    description: {
-      en: 'Enjoy water sports, diving, sailing, and coastal adventures',
-      fr: 'Profitez des sports nautiques, de la plongée, de la voile et des aventures côtières',
-    },
-    icon: 'heroicon-o-lifebuoy',
-    color: '#1E90FF',
-    displayOrder: 3,
-    isActive: true,
-    listingsCount: 0,
-  },
-  {
-    id: '00000000-0000-0000-0000-000000000004',
     slug: 'corporate-sports',
-    name: { en: 'Corporate/Sports Stays', fr: 'Séjours Corporate/Sportifs' },
+    name: { en: 'Corporate & Team Building Stays', fr: 'Séjours Corporate & Team Building' },
     description: {
       en: 'Team building, corporate retreats, and sports-focused group experiences',
       fr: "Team building, séminaires d'entreprise et expériences de groupe axées sur le sport",
     },
     icon: 'heroicon-o-building-office',
     color: '#4169E1',
+    displayOrder: 2,
+    isActive: true,
+    listingsCount: 0,
+  },
+  {
+    id: '00000000-0000-0000-0000-000000000003',
+    slug: 'mountain-biking',
+    name: { en: 'Road & Mountain Biking', fr: 'Vélo de Route & de Montagne' },
+    description: {
+      en: 'Explore scenic trails and paths on two wheels',
+      fr: 'Explorez des sentiers et des chemins pittoresques à vélo',
+    },
+    icon: 'heroicon-o-sparkles',
+    color: '#228B22',
+    displayOrder: 3,
+    isActive: true,
+    listingsCount: 0,
+  },
+  {
+    id: '00000000-0000-0000-0000-000000000004',
+    slug: 'water-activities',
+    name: { en: 'Water Activities & Sports', fr: 'Activités & Sports Nautiques' },
+    description: {
+      en: 'Enjoy water sports, diving, sailing, and coastal adventures',
+      fr: 'Profitez des sports nautiques, de la plongée, de la voile et des aventures côtières',
+    },
+    icon: 'heroicon-o-lifebuoy',
+    color: '#1E90FF',
     displayOrder: 4,
     isActive: true,
     listingsCount: 0,
@@ -80,7 +80,7 @@ const fallbackActivityTypes: ActivityType[] = [
   {
     id: '00000000-0000-0000-0000-000000000005',
     slug: 'trail-trekking',
-    name: { en: 'Trail - Trekking', fr: 'Trail - Trekking' },
+    name: { en: 'Trail Running, Hiking & Trekking', fr: 'Trail Running, Randonnée & Trekking' },
     description: {
       en: 'Hiking adventures through mountains, deserts, and natural landscapes',
       fr: 'Aventures de randonnée à travers les montagnes, les déserts et les paysages naturels',
