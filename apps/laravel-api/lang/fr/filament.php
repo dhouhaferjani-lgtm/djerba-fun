@@ -52,6 +52,7 @@ return [
         'payment_gateways' => 'Passerelles de Paiement',
         'activity_types' => 'Types d\'Activités',
         'activity_type' => 'Type d\'Activité',
+        'email_logs' => 'Journaux d\'Emails',
     ],
 
     /*

@@ -29,12 +29,12 @@ class EmailLogResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return __('filament.nav.system', default: 'System');
+        return __('filament.nav.system');
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('filament.resources.email_logs', default: 'Email Logs');
+        return __('filament.resources.email_logs');
     }
 
     public static function getModelLabel(): string

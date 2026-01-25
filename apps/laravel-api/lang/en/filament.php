@@ -52,6 +52,7 @@ return [
         'payment_gateways' => 'Payment Gateways',
         'activity_types' => 'Activity Types',
         'activity_type' => 'Activity Type',
+        'email_logs' => 'Email Logs',
     ],
 
     /*
