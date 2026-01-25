@@ -1,69 +1,51 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { useLocale } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useActivityTypes } from '@/lib/api/hooks';
+import type { ActivityType } from '@go-adventure/schemas';
 
-interface ExperienceCategory {
-  key: string;
-  image: string;
-  href: string;
-}
+// Fallback images by slug (until real images are provided)
+const fallbackImages: Record<string, string> = {
+  'cultural-expeditions': 'https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=80',
+  'corporate-sports': 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
+  'mountain-biking': 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80',
+  'water-activities': 'https://images.unsplash.com/photo-1500514966906-fe245eea9344?w=800&q=80',
+  'trail-trekking': 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80',
+};
 
-const categories: ExperienceCategory[] = [
-  {
-    key: 'cultural',
-    // Tunisian fort/medina style image
-    image: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=80',
-    href: '/listings?activity_type=cultural-expeditions',
-  },
-  {
-    key: 'corporate',
-    // Team building / group activities
-    image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
-    href: '/listings?activity_type=corporate-sports',
-  },
-  {
-    key: 'cycling',
-    // Road/mountain biking
-    image: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80',
-    href: '/listings?activity_type=mountain-biking',
-  },
-  {
-    key: 'water_sports',
-    // Sailing/nautical activities at sunset
-    image: 'https://images.unsplash.com/photo-1500514966906-fe245eea9344?w=800&q=80',
-    href: '/listings?activity_type=water-activities',
-  },
-  {
-    key: 'hiking',
-    // Trail running / trekking in mountains
-    image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80',
-    href: '/listings?activity_type=trail-trekking',
-  },
-];
+// Default fallback image if slug not in map
+const defaultFallbackImage =
+  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80';
 
 interface CategoryCardProps {
-  category: ExperienceCategory;
+  activityType: ActivityType;
   locale: string;
   size: 'large' | 'small';
 }
 
-function CategoryCard({ category, locale, size }: CategoryCardProps) {
-  const t = useTranslations('home');
+function CategoryCard({ activityType, locale, size }: CategoryCardProps) {
+  const image = fallbackImages[activityType.slug] || defaultFallbackImage;
+  // Extract localized name with proper typing for translatable field
+  const nameObj = activityType.name as {
+    en?: string;
+    fr?: string;
+    [key: string]: string | undefined;
+  };
+  const title = nameObj[locale] || nameObj.en || activityType.slug;
 
   return (
     <Link
-      href={`/${locale}${category.href}`}
+      href={`/${locale}/listings?activity_type=${activityType.slug}`}
       className={`group relative block overflow-hidden rounded-2xl ${
         size === 'large' ? 'h-72 md:h-80' : 'h-56 md:h-64'
       }`}
     >
       {/* Background Image */}
       <Image
-        src={category.image}
-        alt={t(`experience_${category.key}`)}
+        src={image}
+        alt={title}
         fill
         sizes={
           size === 'large' ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 100vw, 33vw'
@@ -77,7 +59,7 @@ function CategoryCard({ category, locale, size }: CategoryCardProps) {
       {/* Title */}
       <div className="absolute inset-0 flex items-center justify-center p-6">
         <h3 className="text-center font-display text-xl md:text-2xl font-bold text-white uppercase tracking-wide drop-shadow-lg">
-          {t(`experience_${category.key}`)}
+          {title}
         </h3>
       </div>
 
@@ -87,9 +69,56 @@ function CategoryCard({ category, locale, size }: CategoryCardProps) {
   );
 }
 
+function LoadingSkeleton() {
+  return (
+    <section className="py-16 md:py-20 bg-white">
+      <div className="container mx-auto px-4">
+        {/* Header Skeleton */}
+        <div className="text-center mb-10 md:mb-12">
+          <div className="h-10 w-64 bg-neutral-200 rounded-lg mx-auto mb-3 animate-pulse" />
+          <div className="h-6 w-80 bg-neutral-200 rounded-lg mx-auto animate-pulse" />
+        </div>
+
+        {/* Grid Skeleton */}
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
+            <div className="h-72 md:h-80 bg-neutral-200 rounded-2xl animate-pulse" />
+            <div className="h-72 md:h-80 bg-neutral-200 rounded-2xl animate-pulse" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div className="h-56 md:h-64 bg-neutral-200 rounded-2xl animate-pulse" />
+            <div className="h-56 md:h-64 bg-neutral-200 rounded-2xl animate-pulse" />
+            <div className="h-56 md:h-64 bg-neutral-200 rounded-2xl animate-pulse" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function ExperienceCategoriesSection() {
   const t = useTranslations('home');
   const locale = useLocale();
+  const { data: activityTypes, isLoading } = useActivityTypes();
+
+  // Show loading skeleton while fetching
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
+
+  // Don't render section if no activity types
+  if (!activityTypes || activityTypes.length === 0) {
+    return null;
+  }
+
+  // Take first 5 activity types (ordered by displayOrder from API)
+  const categories = activityTypes.slice(0, 5);
+
+  // Ensure we have enough categories for the layout
+  // Layout requires at least 2 for top row, ideally 5 total
+  if (categories.length < 2) {
+    return null;
+  }
 
   return (
     <section className="py-16 md:py-20 bg-white">
@@ -106,16 +135,28 @@ export function ExperienceCategoriesSection() {
         <div className="max-w-6xl mx-auto">
           {/* Top Row - 2 Large Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
-            <CategoryCard category={categories[0]} locale={locale} size="large" />
-            <CategoryCard category={categories[1]} locale={locale} size="large" />
+            {categories[0] && (
+              <CategoryCard activityType={categories[0]} locale={locale} size="large" />
+            )}
+            {categories[1] && (
+              <CategoryCard activityType={categories[1]} locale={locale} size="large" />
+            )}
           </div>
 
-          {/* Bottom Row - 3 Smaller Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            <CategoryCard category={categories[2]} locale={locale} size="small" />
-            <CategoryCard category={categories[3]} locale={locale} size="small" />
-            <CategoryCard category={categories[4]} locale={locale} size="small" />
-          </div>
+          {/* Bottom Row - Up to 3 Smaller Cards */}
+          {categories.length > 2 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+              {categories[2] && (
+                <CategoryCard activityType={categories[2]} locale={locale} size="small" />
+              )}
+              {categories[3] && (
+                <CategoryCard activityType={categories[3]} locale={locale} size="small" />
+              )}
+              {categories[4] && (
+                <CategoryCard activityType={categories[4]} locale={locale} size="small" />
+              )}
+            </div>
+          )}
         </div>
       </div>
     </section>

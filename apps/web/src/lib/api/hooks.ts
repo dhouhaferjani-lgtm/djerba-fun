@@ -12,6 +12,7 @@ import {
   platformApi,
   userApi,
   locationsApi,
+  activityTypesApi,
   categoryStatsApi,
   type ProcessPaymentRequest,
   type Cart,
@@ -208,6 +209,22 @@ export function useLocation(slug: string, locale?: string) {
     queryFn: () => locationsApi.getBySlug(slug, locale),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+// ============================================================================
+// ACTIVITY TYPES HOOKS
+// ============================================================================
+
+export function useActivityTypes() {
+  return useQuery({
+    queryKey: ['activityTypes'],
+    queryFn: async () => {
+      const response = await activityTypesApi.list();
+      return response.data;
+    },
+    staleTime: 60 * 60 * 1000, // 1 hour - activity types rarely change
+    gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 24 hours
   });
 }
 

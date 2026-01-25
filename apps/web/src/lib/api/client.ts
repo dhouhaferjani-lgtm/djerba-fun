@@ -17,6 +17,7 @@ import type {
   PlatformSettings,
   PlatformSettingsResponse,
   SchemaOrgData,
+  ActivityType,
 } from '@go-adventure/schemas';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
@@ -1346,6 +1347,20 @@ export const categoryStatsApi = {
    */
   getStats: async (): Promise<{ data: CategoryStats }> => {
     return fetchApi<{ data: CategoryStats }>('/category-stats');
+  },
+};
+
+// ============================================================================
+// ACTIVITY TYPES API
+// ============================================================================
+
+export const activityTypesApi = {
+  /**
+   * Get all active activity types for tour categorization
+   * Used for experience categories section on homepage
+   */
+  list: async (): Promise<{ data: ActivityType[] }> => {
+    return fetchApi<{ data: ActivityType[] }>('/activity-types');
   },
 };
 
