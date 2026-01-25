@@ -184,8 +184,8 @@ export function ExperienceCategoriesSection() {
   const dataSource =
     activityTypes && activityTypes.length > 0 ? activityTypes : fallbackActivityTypes;
 
-  // Take first 5 activity types (ordered by displayOrder from API)
-  const categories = dataSource.slice(0, 5);
+  // Explicitly sort by displayOrder and take first 5 (defensive - API should already be sorted)
+  const categories = [...dataSource].sort((a, b) => a.displayOrder - b.displayOrder).slice(0, 5);
 
   // Ensure we have enough categories for the layout (fallback guarantees 5)
   if (categories.length < 2) {
