@@ -23,8 +23,6 @@ class EmailLogResource extends Resource
 {
     protected static ?string $model = EmailLog::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-envelope';
-
     protected static ?int $navigationSort = 10;
 
     public static function getNavigationGroup(): ?string
