@@ -37,16 +37,9 @@ class EmailLogService
             $emailLog->update(['html_content' => $rendered]);
 
             // Queue the email
+            // The UpdateEmailLogOnSent listener will update the status to 'sent'
+            // when the email is actually processed by the queue worker
             Mail::to($to)->queue($mailable);
-
-            // Update status to sent (for sync queue driver, it's already sent)
-            // For async queue, the actual sending happens later
-            if (config('queue.default') === 'sync') {
-                $emailLog->update([
-                    'status' => EmailLogStatus::SENT,
-                    'sent_at' => now(),
-                ]);
-            }
 
             return $emailLog;
         } catch (\Throwable $e) {
