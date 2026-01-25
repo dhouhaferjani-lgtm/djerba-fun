@@ -959,4 +959,106 @@ return [
         // Helpers
         'required_for_publishing' => 'Required for publishing',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Email Log Resource
+    |--------------------------------------------------------------------------
+    */
+    'email_log' => [
+        // Navigation & Resource
+        'navigation_label' => 'Email Logs',
+        'navigation_group' => 'Bookings',
+        'model_label' => 'Email Log',
+        'plural_model_label' => 'Email Logs',
+
+        // Sections
+        'recipient_information' => 'Recipient Information',
+        'email_details' => 'Email Details',
+        'delivery_status' => 'Delivery Status',
+        'timestamps' => 'Timestamps',
+        'email_content' => 'Email Content',
+        'error_information' => 'Error Information',
+
+        // Labels
+        'recipient_email' => 'Email',
+        'recipient_name' => 'Name',
+        'recipient_phone' => 'Phone',
+        'email_type' => 'Type',
+        'subject' => 'Subject',
+        'status' => 'Status',
+        'booking' => 'Booking',
+        'listing' => 'Listing',
+        'vendor' => 'Vendor',
+        'error_message' => 'Error Message',
+        'mailgun_message_id' => 'Mailgun Message ID',
+        'html_content' => 'Email Content',
+        'sent_at' => 'Sent',
+        'created_at' => 'Created',
+
+        // Timestamps
+        'queued_at' => 'Queued At',
+        'delivered_at' => 'Delivered At',
+        'opened_at' => 'Opened At',
+        'bounced_at' => 'Bounced At',
+        'failed_at' => 'Failed At',
+        'complained_at' => 'Complained At',
+
+        // Status options
+        'status_queued' => 'Queued',
+        'status_sent' => 'Sent',
+        'status_delivered' => 'Delivered',
+        'status_opened' => 'Opened',
+        'status_bounced' => 'Bounced',
+        'status_failed' => 'Failed',
+        'status_complained' => 'Complained',
+
+        // Email type options
+        'type_booking_confirmation' => 'Booking Confirmation',
+        'type_booking_cancellation' => 'Booking Cancellation',
+        'type_booking_reminder' => 'Booking Reminder',
+        'type_voucher' => 'Voucher',
+        'type_review_request' => 'Review Request',
+        'type_payment_receipt' => 'Payment Receipt',
+        'type_vendor_notification' => 'Vendor Notification',
+        'type_other' => 'Other',
+
+        // Actions
+        'resend' => 'Resend',
+        'view' => 'View',
+
+        // Notifications
+        'resend_success' => 'Email Queued',
+        'resend_success_body' => 'The email has been queued for re-sending.',
+        'resend_failed' => 'Resend Failed',
+        'resend_failed_body' => 'Could not resend the email. Please try again.',
+
+        // Filters
+        'filter_status' => 'Status',
+        'filter_email_type' => 'Email Type',
+        'filter_date_from' => 'From Date',
+        'filter_date_until' => 'Until Date',
+        'filter_failed_only' => 'Failed/Bounced Only',
+        'filter_vendor' => 'Vendor',
+
+        // Empty state
+        'empty_heading' => 'No emails yet',
+        'empty_description' => 'Email logs will appear here once emails are sent.',
+
+        // Modals
+        'resend_heading' => 'Resend Email',
+        'resend_description' => 'Are you sure you want to resend this email to :email?',
+
+        // Table
+        'recipient' => 'Recipient',
+        'type' => 'Type',
+
+        // Badge counts
+        'failed_badge' => ':count failed',
+
+        // Helpers
+        'contact_traveler_hint' => 'If email delivery fails repeatedly, use the contact information below to reach the traveler directly.',
+        'no_phone' => 'No phone number provided',
+        'no_booking' => 'No associated booking',
+    ],
 ];

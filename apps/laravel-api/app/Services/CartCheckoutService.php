@@ -14,7 +14,6 @@ use App\Models\CartItem;
 use App\Models\CartPayment;
 use App\Services\Payment\PaymentGatewayManager;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class CartCheckoutService
@@ -23,7 +22,8 @@ class CartCheckoutService
         protected CartService $cartService,
         protected BookingService $bookingService,
         protected PaymentGatewayManager $gatewayManager,
-        protected PriceCalculationService $priceService
+        protected PriceCalculationService $priceService,
+        protected ?EmailLogService $emailLogService = null
     ) {}
 
     /**
@@ -282,7 +282,16 @@ class CartCheckoutService
             $email = $booking->getPrimaryEmail();
 
             if ($email) {
-                Mail::to($email)->queue(new BookingConfirmationMail($booking));
+                if ($this->emailLogService) {
+                    $this->emailLogService->queue(
+                        $email,
+                        new BookingConfirmationMail($booking),
+                        $booking
+                    );
+                } else {
+                    // Fallback for backward compatibility
+                    \Illuminate\Support\Facades\Mail::to($email)->queue(new BookingConfirmationMail($booking));
+                }
             }
         }
     }

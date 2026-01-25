@@ -13,13 +13,13 @@ use App\Models\BookingHold;
 use App\Models\BookingParticipant;
 use App\Models\PaymentIntent;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class BookingService
 {
     public function __construct(
-        private readonly ?ExtrasService $extrasService = null
+        private readonly ?ExtrasService $extrasService = null,
+        private readonly ?EmailLogService $emailLogService = null
     ) {}
 
     /**
@@ -238,7 +238,12 @@ class BookingService
         $email = $booking->getPrimaryEmail();
 
         if ($email) {
-            Mail::to($email)->queue(new BookingConfirmationMail($booking));
+            if ($this->emailLogService) {
+                $this->emailLogService->queue($email, new BookingConfirmationMail($booking), $booking);
+            } else {
+                // Fallback for backward compatibility
+                \Illuminate\Support\Facades\Mail::to($email)->queue(new BookingConfirmationMail($booking));
+            }
         }
 
         return $booking->fresh();
@@ -268,7 +273,12 @@ class BookingService
         $email = $booking->getPrimaryEmail();
 
         if ($email) {
-            Mail::to($email)->queue(new BookingCancellationMail($booking));
+            if ($this->emailLogService) {
+                $this->emailLogService->queue($email, new BookingCancellationMail($booking), $booking);
+            } else {
+                // Fallback for backward compatibility
+                \Illuminate\Support\Facades\Mail::to($email)->queue(new BookingCancellationMail($booking));
+            }
         }
 
         return $booking->fresh();

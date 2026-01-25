@@ -36,6 +36,7 @@ use App\Http\Controllers\Api\V1\ContactController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\VoucherController;
 use App\Http\Controllers\Api\Vendor\VendorVoucherController;
+use App\Http\Controllers\Api\Webhooks\MailgunWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -52,6 +53,11 @@ use Illuminate\Support\Facades\Route;
 // Health check endpoints (no auth required)
 Route::get('/health', [HealthController::class, 'index']);
 Route::get('/health/detailed', [HealthController::class, 'detailed'])->middleware('auth:sanctum');
+
+// Webhook endpoints (no auth, signature verified internally)
+Route::post('/webhooks/mailgun', [MailgunWebhookController::class, 'handle'])
+    ->name('webhooks.mailgun')
+    ->middleware('throttle:100,1'); // Rate limit: 100 requests per minute
 
 // Version prefix for API
 Route::prefix('v1')->group(function () {

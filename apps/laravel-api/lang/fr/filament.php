@@ -959,4 +959,106 @@ return [
         // Helpers
         'required_for_publishing' => 'Requis pour la publication',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Email Log Resource
+    |--------------------------------------------------------------------------
+    */
+    'email_log' => [
+        // Navigation & Resource
+        'navigation_label' => 'Journaux d\'Emails',
+        'navigation_group' => 'Réservations',
+        'model_label' => 'Journal d\'Email',
+        'plural_model_label' => 'Journaux d\'Emails',
+
+        // Sections
+        'recipient_information' => 'Informations du Destinataire',
+        'email_details' => 'Détails de l\'Email',
+        'delivery_status' => 'Statut de Livraison',
+        'timestamps' => 'Horodatages',
+        'email_content' => 'Contenu de l\'Email',
+        'error_information' => 'Informations d\'Erreur',
+
+        // Labels
+        'recipient_email' => 'Email',
+        'recipient_name' => 'Nom',
+        'recipient_phone' => 'Téléphone',
+        'email_type' => 'Type',
+        'subject' => 'Sujet',
+        'status' => 'Statut',
+        'booking' => 'Réservation',
+        'listing' => 'Annonce',
+        'vendor' => 'Vendeur',
+        'error_message' => 'Message d\'Erreur',
+        'mailgun_message_id' => 'ID Message Mailgun',
+        'html_content' => 'Contenu de l\'Email',
+        'sent_at' => 'Envoyé',
+        'created_at' => 'Créé',
+
+        // Timestamps
+        'queued_at' => 'Mis en File',
+        'delivered_at' => 'Livré le',
+        'opened_at' => 'Ouvert le',
+        'bounced_at' => 'Rebondi le',
+        'failed_at' => 'Échoué le',
+        'complained_at' => 'Signalé le',
+
+        // Status options
+        'status_queued' => 'En File',
+        'status_sent' => 'Envoyé',
+        'status_delivered' => 'Livré',
+        'status_opened' => 'Ouvert',
+        'status_bounced' => 'Rebondi',
+        'status_failed' => 'Échoué',
+        'status_complained' => 'Signalé',
+
+        // Email type options
+        'type_booking_confirmation' => 'Confirmation de Réservation',
+        'type_booking_cancellation' => 'Annulation de Réservation',
+        'type_booking_reminder' => 'Rappel de Réservation',
+        'type_voucher' => 'Voucher',
+        'type_review_request' => 'Demande d\'Avis',
+        'type_payment_receipt' => 'Reçu de Paiement',
+        'type_vendor_notification' => 'Notification Vendeur',
+        'type_other' => 'Autre',
+
+        // Actions
+        'resend' => 'Renvoyer',
+        'view' => 'Voir',
+
+        // Notifications
+        'resend_success' => 'Email en File',
+        'resend_success_body' => 'L\'email a été mis en file pour être renvoyé.',
+        'resend_failed' => 'Échec du Renvoi',
+        'resend_failed_body' => 'Impossible de renvoyer l\'email. Veuillez réessayer.',
+
+        // Filters
+        'filter_status' => 'Statut',
+        'filter_email_type' => 'Type d\'Email',
+        'filter_date_from' => 'Date de Début',
+        'filter_date_until' => 'Date de Fin',
+        'filter_failed_only' => 'Échoués/Rebondis Seulement',
+        'filter_vendor' => 'Vendeur',
+
+        // Empty state
+        'empty_heading' => 'Aucun email',
+        'empty_description' => 'Les journaux d\'emails apparaîtront ici une fois les emails envoyés.',
+
+        // Modals
+        'resend_heading' => 'Renvoyer l\'Email',
+        'resend_description' => 'Êtes-vous sûr de vouloir renvoyer cet email à :email?',
+
+        // Table
+        'recipient' => 'Destinataire',
+        'type' => 'Type',
+
+        // Badge counts
+        'failed_badge' => ':count échoués',
+
+        // Helpers
+        'contact_traveler_hint' => 'Si la livraison de l\'email échoue plusieurs fois, utilisez les coordonnées ci-dessous pour contacter directement le voyageur.',
+        'no_phone' => 'Aucun numéro de téléphone fourni',
+        'no_booking' => 'Aucune réservation associée',
+    ],
 ];
