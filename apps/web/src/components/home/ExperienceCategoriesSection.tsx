@@ -6,13 +6,14 @@ import Link from 'next/link';
 import { useActivityTypes } from '@/lib/api/hooks';
 import type { ActivityType } from '@go-adventure/schemas';
 
-// Fallback images by slug (until real images are provided)
+// Fallback images by slug (matching go-adventure.net production site)
 const fallbackImages: Record<string, string> = {
-  'cultural-expeditions': 'https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=80',
-  'corporate-sports': 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
-  'mountain-biking': 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80',
-  'water-activities': 'https://images.unsplash.com/photo-1500514966906-fe245eea9344?w=800&q=80',
-  'trail-trekking': 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80',
+  'cultural-expeditions':
+    'https://go-adventure.net/uploads/0000/7/2025/07/23/laventurierzip-47.png',
+  'corporate-sports': 'https://go-adventure.net/uploads/0000/7/2025/07/23/laventurierzip-49.png',
+  'mountain-biking': 'https://go-adventure.net/uploads/0000/7/2025/07/23/laventurierzip-46.png',
+  'water-activities': 'https://go-adventure.net/uploads/0000/7/2025/07/23/laventurierzip-48.png',
+  'trail-trekking': 'https://go-adventure.net/uploads/0000/7/2025/07/23/laventurierzip-50.png',
 };
 
 // Default fallback image if slug not in map
