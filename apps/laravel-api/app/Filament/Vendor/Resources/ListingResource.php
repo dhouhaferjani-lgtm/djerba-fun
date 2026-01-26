@@ -106,8 +106,8 @@ class ListingResource extends Resource
                                 ->preload()
                                 ->helperText('Required for publishing'),
 
-                            Forms\Components\TextInput::make('title')
-                                ->label('Title')
+                            Forms\Components\TextInput::make('title.en')
+                                ->label(__('filament.labels.title_english'))
                                 ->maxLength(200)
                                 ->live(debounce: 500)
                                 ->afterStateUpdated(function (Get $get, Set $set, ?string $state, $record) {
@@ -120,8 +120,6 @@ class ListingResource extends Resource
                                     $newSlug = Str::slug($state ?? '');
 
                                     // Check if user manually edited the slug
-                                    // by seeing if the current slug differs from what would be auto-generated
-                                    // from the previous title (stored in _auto_slug)
                                     $autoSlug = $get('_auto_slug');
 
                                     // If slug is empty, or matches the auto-generated slug, update it
@@ -130,7 +128,34 @@ class ListingResource extends Resource
                                         $set('_auto_slug', $newSlug);
                                     }
                                 })
-                                ->helperText('Required for publishing')
+                                ->helperText(__('filament.helpers.title_required'))
+                                ->columnSpanFull(),
+
+                            Forms\Components\TextInput::make('title.fr')
+                                ->label(__('filament.labels.title_french'))
+                                ->maxLength(200)
+                                ->live(debounce: 500)
+                                ->afterStateUpdated(function (Get $get, Set $set, ?string $state, $record) {
+                                    // Auto-generate slug from French if English is empty
+                                    if ($record !== null && $record->exists && $record->slug) {
+                                        return;
+                                    }
+
+                                    $englishTitle = $get('title.en');
+                                    if (! empty($englishTitle)) {
+                                        return; // Don't override if English title exists
+                                    }
+
+                                    $currentSlug = $get('slug');
+                                    $newSlug = Str::slug($state ?? '');
+                                    $autoSlug = $get('_auto_slug');
+
+                                    if (empty($currentSlug) || $currentSlug === $autoSlug) {
+                                        $set('slug', $newSlug);
+                                        $set('_auto_slug', $newSlug);
+                                    }
+                                })
+                                ->helperText(__('filament.helpers.title_required'))
                                 ->columnSpanFull(),
 
                             Forms\Components\Hidden::make('_auto_slug')
@@ -152,20 +177,36 @@ class ListingResource extends Resource
                                 })
                                 ->helperText('Auto-generated from title. Edit to customize.'),
 
-                            Forms\Components\Textarea::make('summary')
-                                ->label('Summary')
+                            Forms\Components\Textarea::make('summary.en')
+                                ->label(__('filament.labels.summary_english'))
                                 ->rows(2)
                                 ->maxLength(500)
-                                ->helperText('Required for publishing')
+                                ->helperText(__('filament.helpers.summary_required'))
                                 ->columnSpanFull(),
 
-                            TinyEditor::make('description')
-                                ->label('Description')
+                            Forms\Components\Textarea::make('summary.fr')
+                                ->label(__('filament.labels.summary_french'))
+                                ->rows(2)
+                                ->maxLength(500)
+                                ->helperText(__('filament.helpers.summary_required'))
+                                ->columnSpanFull(),
+
+                            TinyEditor::make('description.en')
+                                ->label(__('filament.labels.description_english'))
                                 ->profile('default')
                                 ->fileAttachmentsDisk('public')
                                 ->fileAttachmentsDirectory('listing-attachments')
                                 ->fileAttachmentsVisibility('public')
-                                ->helperText('Required for publishing')
+                                ->helperText(__('filament.helpers.description_optional'))
+                                ->columnSpanFull(),
+
+                            TinyEditor::make('description.fr')
+                                ->label(__('filament.labels.description_french'))
+                                ->profile('default')
+                                ->fileAttachmentsDisk('public')
+                                ->fileAttachmentsDirectory('listing-attachments')
+                                ->fileAttachmentsVisibility('public')
+                                ->helperText(__('filament.helpers.description_optional'))
                                 ->columnSpanFull(),
                         ]),
 

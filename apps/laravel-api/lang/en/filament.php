@@ -181,7 +181,9 @@ return [
         'title_english' => 'Title (English)',
         'title_french' => 'Title (French)',
         'summary_english' => 'Summary (English)',
+        'summary_french' => 'Summary (French)',
         'description_english' => 'Description (English)',
+        'description_french' => 'Description (French)',
         'base_price' => 'Base Price (cents)',
         'min_group_size' => 'Min Group Size',
         'max_group_size' => 'Max Group Size',
@@ -311,6 +313,9 @@ return [
     |--------------------------------------------------------------------------
     */
     'helpers' => [
+        'title_required' => 'Required for publishing (English or French)',
+        'summary_required' => 'Required for publishing (English or French)',
+        'description_optional' => 'Optional - provide details about your listing',
         'slug_auto_generated' => 'Auto-generated from title. Edit to customize.',
         'excerpt_auto_generated' => 'Short summary (auto-generated if left empty)',
         'show_on_homepage' => 'Show this post on the homepage',

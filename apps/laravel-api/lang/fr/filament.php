@@ -181,7 +181,9 @@ return [
         'title_english' => 'Titre (Anglais)',
         'title_french' => 'Titre (Français)',
         'summary_english' => 'Résumé (Anglais)',
+        'summary_french' => 'Résumé (Français)',
         'description_english' => 'Description (Anglais)',
+        'description_french' => 'Description (Français)',
         'base_price' => 'Prix de Base (centimes)',
         'min_group_size' => 'Taille Min du Groupe',
         'max_group_size' => 'Taille Max du Groupe',
@@ -311,6 +313,9 @@ return [
     |--------------------------------------------------------------------------
     */
     'helpers' => [
+        'title_required' => 'Requis pour la publication (Anglais ou Français)',
+        'summary_required' => 'Requis pour la publication (Anglais ou Français)',
+        'description_optional' => 'Optionnel - fournissez des détails sur votre annonce',
         'slug_auto_generated' => 'Généré automatiquement à partir du titre. Modifiez pour personnaliser.',
         'excerpt_auto_generated' => 'Résumé court (généré automatiquement si laissé vide)',
         'show_on_homepage' => 'Afficher cet article sur la page d\'accueil',

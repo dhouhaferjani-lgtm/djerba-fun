@@ -15,31 +15,33 @@ class ListingResource extends BaseResource
      */
     public function toArray(Request $request): array
     {
+        $locale = app()->getLocale();
+
         return [
             'id' => $this->uuid,
             'vendorId' => $this->vendor?->uuid,
             'serviceType' => $this->service_type?->value,
             'activityType' => $this->when($this->isTour() && $this->activityType, [
                 'id' => $this->activityType?->uuid,
-                'name' => $this->activityType?->getTranslations('name'),
+                'name' => $this->getTranslationWithFallback($this->activityType?->getTranslations('name') ?? [], $locale),
                 'slug' => $this->activityType?->slug,
                 'icon' => $this->activityType?->icon,
                 'color' => $this->activityType?->color,
             ]),
             'activityTypeId' => $this->when($this->isTour(), $this->activityType?->uuid),
             'status' => $this->status?->value,
-            'title' => $this->getTranslations('title'),
+            'title' => $this->getTranslationWithFallback($this->getTranslations('title'), $locale),
             'slug' => $this->slug,
-            'summary' => $this->getTranslations('summary'),
-            'description' => $this->getTranslations('description'),
-            'highlights' => is_array($this->highlights) ? $this->toCamelCase($this->highlights) : $this->highlights,
-            'included' => is_array($this->included) ? $this->toCamelCase($this->included) : $this->included,
-            'notIncluded' => is_array($this->not_included) ? $this->toCamelCase($this->not_included) : $this->not_included,
-            'requirements' => is_array($this->requirements) ? $this->toCamelCase($this->requirements) : $this->requirements,
+            'summary' => $this->getTranslationWithFallback($this->getTranslations('summary'), $locale),
+            'description' => $this->getTranslationWithFallback($this->getTranslations('description'), $locale),
+            'highlights' => $this->getArrayWithFallback($this->highlights, $locale),
+            'included' => $this->getArrayWithFallback($this->included, $locale),
+            'notIncluded' => $this->getArrayWithFallback($this->not_included, $locale),
+            'requirements' => $this->getArrayWithFallback($this->requirements, $locale),
             'locationId' => $this->location?->uuid,
             'location' => $this->location ? [
                 'id' => $this->location->uuid,
-                'name' => $this->location->name,
+                'name' => $this->getTranslationWithFallback($this->location->getTranslations('name'), $locale),
                 'latitude' => $this->location->latitude,
                 'longitude' => $this->location->longitude,
             ] : null,
@@ -212,5 +214,69 @@ class ListingResource extends BaseResource
             ],
             default => [],
         };
+    }
+
+    /**
+     * Get translation with fallback to alternate language.
+     * If the requested locale is empty, falls back to the other locale.
+     *
+     * @param  array<string, string>  $translations  Translation array {en: "...", fr: "..."}
+     * @param  string  $locale  Requested locale (en or fr)
+     * @return string|null The translated string with fallback
+     */
+    protected function getTranslationWithFallback(array $translations, string $locale): ?string
+    {
+        $alternateLocale = $locale === 'en' ? 'fr' : 'en';
+
+        // Try requested locale first
+        $value = $translations[$locale] ?? null;
+
+        // Handle malformed nested arrays
+        if (is_array($value)) {
+            $value = $value[$locale] ?? reset($value) ?: null;
+        }
+
+        // If empty, try alternate locale
+        if (empty($value)) {
+            $value = $translations[$alternateLocale] ?? null;
+
+            if (is_array($value)) {
+                $value = $value[$alternateLocale] ?? reset($value) ?: null;
+            }
+        }
+
+        return $value ?: null;
+    }
+
+    /**
+     * Get array field (highlights, included, etc.) with fallback logic.
+     * Each item has {en: "...", fr: "..."} structure.
+     *
+     * @param  array|null  $items  Array of items with en/fr keys
+     * @param  string  $locale  Requested locale
+     * @return array Processed array with fallback applied
+     */
+    protected function getArrayWithFallback(?array $items, string $locale): array
+    {
+        if (! is_array($items) || empty($items)) {
+            return [];
+        }
+
+        $alternateLocale = $locale === 'en' ? 'fr' : 'en';
+
+        return array_values(array_filter(array_map(function ($item) use ($locale, $alternateLocale) {
+            if (! is_array($item)) {
+                return $item;
+            }
+
+            // Get value for requested locale, fallback to alternate
+            $value = $item[$locale] ?? null;
+
+            if (empty($value)) {
+                $value = $item[$alternateLocale] ?? null;
+            }
+
+            return $value ?: null;
+        }, $items)));
     }
 }
