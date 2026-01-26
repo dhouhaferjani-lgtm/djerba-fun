@@ -63,7 +63,43 @@ export async function getBrandingUrls(locale?: string) {
     platformName: settings?.data?.platform?.name ?? 'Go Adventure',
     tagline: settings?.data?.platform?.tagline ?? null,
     description: settings?.data?.seo?.metaDescription ?? null,
+    // Analytics IDs from CMS
+    ga4MeasurementId: settings?.data?.analytics?.ga4MeasurementId ?? null,
+    gtmContainerId: settings?.data?.analytics?.gtmContainerId ?? null,
   };
+}
+
+/**
+ * Fetch Schema.org JSON-LD data from the API (server-side).
+ * Returns pre-formatted structured data for search engines.
+ */
+export async function getSchemaOrgData(locale?: string): Promise<Record<string, unknown> | null> {
+  try {
+    const params = new URLSearchParams();
+    if (locale) params.append('locale', locale);
+    const queryString = params.toString();
+
+    const response = await fetch(
+      `${API_URL}/platform/schema${queryString ? `?${queryString}` : ''}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        cache: 'no-store',
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`Failed to fetch schema.org data: ${response.status}`);
+      return null;
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching schema.org data:', error);
+    return null;
+  }
 }
 
 /**

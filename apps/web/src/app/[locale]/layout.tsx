@@ -7,11 +7,12 @@ import { Providers } from '@/lib/providers/Providers';
 import CookieConsentBanner from '@/components/consent/CookieConsentBanner';
 import { OrganizationJsonLd } from '@/components/seo/JsonLd';
 import { WebVitals } from '../web-vitals';
-import { getBrandingUrls } from '@/lib/api/server';
+import { getBrandingUrls, getSchemaOrgData } from '@/lib/api/server';
 import '../globals.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://goadventure.com';
-const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_ID;
+// Fallback GA ID from env (CMS value is preferred and fetched in layout)
+const FALLBACK_GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 // Force dynamic rendering for all routes under this layout
 // This prevents build-time API calls and enables server-side rendering
@@ -128,13 +129,20 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
 
+  // Fetch CMS data for analytics and schema
+  const branding = await getBrandingUrls(locale);
+  const schemaData = await getSchemaOrgData(locale);
+
+  // Use CMS analytics ID with env fallback
+  const gaTrackingId = branding.ga4MeasurementId || FALLBACK_GA_ID;
+
   return (
     <>
-      {/* Google Analytics 4 */}
-      {GA_TRACKING_ID && (
+      {/* Google Analytics 4 - CMS value with env fallback */}
+      {gaTrackingId && (
         <>
           <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+            src={`https://www.googletagmanager.com/gtag/js?id=${gaTrackingId}`}
             strategy="afterInteractive"
           />
           <Script id="google-analytics" strategy="afterInteractive">
@@ -142,7 +150,7 @@ export default async function LocaleLayout({
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', '${GA_TRACKING_ID}', {
+              gtag('config', '${gaTrackingId}', {
                 page_path: window.location.pathname,
               });
             `}
@@ -153,18 +161,28 @@ export default async function LocaleLayout({
       {/* Web Vitals Monitoring */}
       <WebVitals />
 
-      {/* Organization Schema for Go Adventure platform */}
-      <OrganizationJsonLd
-        name="Go Adventure"
-        url={SITE_URL}
-        logo={`${SITE_URL}/logo.png`}
-        description="Discover and book unique tours, activities, and events. Your trusted marketplace for unforgettable travel experiences."
-        sameAs={[
-          'https://facebook.com/goadventure',
-          'https://instagram.com/goadventure',
-          'https://twitter.com/goadventure',
-        ]}
-      />
+      {/* Organization Schema - dynamic from CMS API or fallback */}
+      {schemaData ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+        />
+      ) : (
+        <OrganizationJsonLd
+          name={branding.platformName || 'Go Adventure'}
+          url={SITE_URL}
+          logo={branding.logoLight || `${SITE_URL}/logo.png`}
+          description={
+            branding.description ||
+            'Discover and book unique tours, activities, and events. Your trusted marketplace for unforgettable travel experiences.'
+          }
+          sameAs={[
+            'https://facebook.com/goadventure',
+            'https://instagram.com/goadventure',
+            'https://twitter.com/goadventure',
+          ]}
+        />
+      )}
       <NextIntlClientProvider messages={messages}>
         <Providers>{children}</Providers>
         <CookieConsentBanner />
