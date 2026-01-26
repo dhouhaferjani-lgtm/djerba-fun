@@ -34,17 +34,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <MainLayout locale={locale}>
-      {/* Always show Hero and Marketing Mosaic - CMS text with translation fallbacks */}
+      {/* Hero section */}
       <HeroSection locale={locale} heroBannerUrl={branding.heroBanner} heroData={heroData} />
-      <MarketingMosaicSection
-        brandPillar1Url={branding.brandPillar1}
-        brandPillar2Url={branding.brandPillar2}
-        brandPillar3Url={branding.brandPillar3}
-        brandPillarsData={brandPillarsData}
-      />
 
-      {/* Experience Categories - showcases activity types */}
-      <ExperienceCategoriesSection />
+      {/* Event Banner - matches old site "Featured Event" position after hero */}
+      <PromoBannerSection locale={locale} eventOfYear={eventOfYear} />
+
+      {/* Destinations - matches old site position after event banner */}
+      <DestinationsBentoGrid locale={locale} />
 
       {/* CMS-managed middle sections OR hardcoded fallback */}
       {cmsPage && cmsPage.content_blocks && cmsPage.content_blocks.length > 0 ? (
@@ -52,9 +49,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       ) : (
         <>
           <FeaturedPackagesSection listings={featuredListings} locale={locale} />
-          <PromoBannerSection locale={locale} eventOfYear={eventOfYear} />
+          <ExperienceCategoriesSection />
+          <MarketingMosaicSection
+            brandPillar1Url={branding.brandPillar1}
+            brandPillar2Url={branding.brandPillar2}
+            brandPillar3Url={branding.brandPillar3}
+            brandPillarsData={brandPillarsData}
+          />
           <TestimonialsSection />
-          <DestinationsBentoGrid locale={locale} />
           <CTASectionWithBlobs locale={locale} />
         </>
       )}
