@@ -12,6 +12,8 @@ const destinations = [
     description: 'Cultural heart of Djerba',
     descriptionFr: 'Cœur culturel de Djerba',
     image: '/images/destinations/houmet-souk.jpg',
+    blurDataURL:
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAKCAYAAAC9vt6cAAAACXBIWXMAAAsTAAALEwEAmpwYAAABEklEQVQokY2RsU7DMBCGP9upEkICA0gsLEhsLIhnYGPgCXgTXoSFN2BhYWRkYGRAYkBCQkJCQuqktnNnBpMoStqe9Ov+s+67/05Uvd1KNBZjDcYYrLWICCLyq4H/NlX9jQMQEay1GGNYXyjQuxxy9fAeO/gkjiOsNQS+TxT4GGNYXyiWAlT1DzDWUq3V6HZ7dLs9arUa1loWF8NSQK1Ww/f9CUCtVgOg0WgQhiHtdptms0kYhtRqNQDq9fq/gGq1ShRFdDod2u02URRRrVYBaDab0wFJkvD+/o6I0Gq1aLVa9Pt9RIQkSQBoNBrTAVEU8fLyQpIkvL6+kiQJz8/PRCGJBAHI4xjyeDwmjuPZgB/yF+d+Af7rJwAAAABJRU5ErkJggg==',
   },
   {
     id: 'guellala',
@@ -19,6 +21,8 @@ const destinations = [
     description: 'Pottery village',
     descriptionFr: 'Village des potiers',
     image: '/images/destinations/guellala.jpg',
+    blurDataURL:
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAKCAYAAAC9vt6cAAAACXBIWXMAAAsTAAALEwEAmpwYAAABDklEQVQokY2RMU7DQBBF38yuHUdJQUEBEhUVEjcAiYKOgoqSC3AGrsANOAM34AZcgIqGgoKCAgkJCQkJydne3aFYJ44TJ4w0mv/1Z2Y0ouPzqxhjMcZgjMFay88G/9tU9TcOQEQwxmCMYX2hQO9iyOXje+zoizgKsdYQ+D5h4GOMYXWhWApQ1T/AWEu5UqbT6dDpdihXylhrWVoMSwHlchnf9ycApVIJgFqtRhAENJtNGo0GQRBQKBQA8H2/FFAsFomiiFarRbPZJIoiisUiAI1Go0RAu93m7e0NEaHRaNBoNOj1eogI7XYbAM/zpgPCMOTl5QURod1u0263eX5+JgxDPM+bDvA8j8fHR0SkFPAD09Dh/tKzf38AAAAASUVORK5CYII=',
   },
   {
     id: 'ile-flamants-roses',
@@ -26,6 +30,8 @@ const destinations = [
     description: 'Flamingo sanctuary',
     descriptionFr: 'Sanctuaire des flamants',
     image: '/images/destinations/ile-flamants-roses.jpg',
+    blurDataURL:
+      'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMCwsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAKABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABwgJ/8QAJBAAAgEDBAICAwAAAAAAAAAAAQIDBAURBgcSIQAIEzFBUWH/xAAVAQEBAAAAAAAAAAAAAAAAAAADBP/EABsRAAICAwEAAAAAAAAAAAAAAAECAAMEESFB/9oADAMBAAIRAxEAPwDU+4b0W+1brbRXyiqruaKoSeNYpfid3Q5XkSCQMj99Dz1i70bg7T+u9Gbj6R01a7ZqN6mspquCrimjqopY+DxSq6xgniyuuGI4n7U9HrnrHQW7VJYKHWFrq7hHaJXltzQ1jUzRO4AdSTG4dCQAN1YAMenw6ftytp9utldLbV6G0zbtOVV5t0lHeK+jqZqir+OSVDI8crOzPwUBDzyOMD9YGdM1iu2X0gRlLyKKbT3P/9k=',
   },
   {
     id: 'sidi-jmour',
@@ -33,6 +39,8 @@ const destinations = [
     description: 'Wild coastlines',
     descriptionFr: 'Côtes sauvages',
     image: '/images/destinations/sidi-jmour.jpg',
+    blurDataURL:
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAKCAIAAAAy3EnLAAAACXBIWXMAAAsTAAALEwEAmpwYAAABCklEQVQokWNgGAWMjIwMDAz//v0DAIb/DAxMTEz//v1jYGD4//8/E4gGsv/9+8fMzAzkMf3//x/IYGD4DxQA8v79+wdkMP3794+ZmZmRkfH///8MDAxAASD7379/LCwsQAYjIyOQzcDAwPTv3z9mZmYgzsjIyMDAwPj//39mZuZ///4xMTH9/fuXmZn5////TExMf//+ZWFhYWBgYGRkBCoA0kxMTEAe0///QBoI/v37B+T9/fsXKMvCwsLIyMjMzPznzx9mZuY/f/6wsbGBRAHibGxsf/78YWNj+/PnDwsLy58/fxgYGNjY2P78+cPGxsbAwMDOzv7792+gJhYWFgYGBjY2NgYGhj9//gD1AABwgHQcXbPo4wAAAABJRU5ErkJggg==',
   },
 ];
 
@@ -202,6 +210,8 @@ export function DestinationsBentoGrid({ locale }: DestinationsBentoGridProps) {
                     src={destination.image}
                     alt={destination.name}
                     fill
+                    placeholder="blur"
+                    blurDataURL={destination.blurDataURL}
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                     sizes={
                       position.isBig
@@ -288,6 +298,8 @@ export function DestinationsBentoGrid({ locale }: DestinationsBentoGridProps) {
                 src={destination.image}
                 alt={destination.name}
                 fill
+                placeholder="blur"
+                blurDataURL={destination.blurDataURL}
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
