@@ -3,8 +3,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
 
-// Create the next-intl middleware
-const intlMiddleware = createMiddleware(routing);
+// Create the next-intl middleware with locale detection disabled
+// This ensures the default URL (/) always shows French content
+// Users must explicitly switch languages via the language switcher
+const intlMiddleware = createMiddleware({
+  ...routing,
+  localeDetection: false,
+});
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
