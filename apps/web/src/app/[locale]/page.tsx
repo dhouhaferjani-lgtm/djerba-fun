@@ -10,28 +10,38 @@ import { CTASectionWithBlobs } from '@/components/home/CTASectionWithBlobs';
 import { BlogSection, ExperienceCategoriesSection, TestimonialsSection } from '@/components/home';
 import { BlockRenderer } from '@/components/cms';
 import { getPageByCode } from '@/lib/api/cms';
-import { getBrandingUrls, getEventOfYearData, getFeaturedListings } from '@/lib/api/server';
+import {
+  getBrandingUrls,
+  getEventOfYearData,
+  getFeaturedListings,
+  getHeroData,
+  getBrandPillarsData,
+} from '@/lib/api/server';
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // Fetch branding, event of year data, CMS content, and featured listings in parallel
-  const [branding, eventOfYear, cmsPage, featuredListings] = await Promise.all([
-    getBrandingUrls(locale),
-    getEventOfYearData(locale),
-    getPageByCode({ code: 'HOME', locale }).catch(() => null),
-    getFeaturedListings(3),
-  ]);
+  // Fetch branding, event of year, hero text, pillar text, CMS content, and featured listings in parallel
+  const [branding, eventOfYear, heroData, brandPillarsData, cmsPage, featuredListings] =
+    await Promise.all([
+      getBrandingUrls(locale),
+      getEventOfYearData(locale),
+      getHeroData(locale),
+      getBrandPillarsData(locale),
+      getPageByCode({ code: 'HOME', locale }).catch(() => null),
+      getFeaturedListings(3),
+    ]);
 
   return (
     <MainLayout locale={locale}>
-      {/* Always show hardcoded Hero and Marketing Mosaic */}
-      <HeroSection locale={locale} heroBannerUrl={branding.heroBanner} />
+      {/* Always show Hero and Marketing Mosaic - CMS text with translation fallbacks */}
+      <HeroSection locale={locale} heroBannerUrl={branding.heroBanner} heroData={heroData} />
       <MarketingMosaicSection
         brandPillar1Url={branding.brandPillar1}
         brandPillar2Url={branding.brandPillar2}
         brandPillar3Url={branding.brandPillar3}
+        brandPillarsData={brandPillarsData}
       />
 
       {/* Experience Categories - showcases activity types */}

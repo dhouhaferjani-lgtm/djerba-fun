@@ -176,6 +176,25 @@ class PlatformSettingsService
                 'link' => $s->event_of_year_link,
                 'image' => $s->event_of_year_image_url,
             ],
+            'hero' => [
+                'titleLine1' => $s->getTranslation('hero_title_line1', $locale),
+                'titleLine2' => $s->getTranslation('hero_title_line2', $locale),
+                'subtitle' => $s->getTranslation('hero_subtitle', $locale),
+            ],
+            'brandPillars' => [
+                'pillar1' => [
+                    'title' => $s->getTranslation('pillar_1_title', $locale),
+                    'description' => $s->getTranslation('pillar_1_description', $locale),
+                ],
+                'pillar2' => [
+                    'title' => $s->getTranslation('pillar_2_title', $locale),
+                    'description' => $s->getTranslation('pillar_2_description', $locale),
+                ],
+                'pillar3' => [
+                    'title' => $s->getTranslation('pillar_3_title', $locale),
+                    'description' => $s->getTranslation('pillar_3_description', $locale),
+                ],
+            ],
         ];
     }
 

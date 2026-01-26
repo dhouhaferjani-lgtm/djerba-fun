@@ -112,25 +112,39 @@ const defaultImages = {
   pillar3: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
 };
 
+interface BrandPillarText {
+  title: string | null;
+  description: string | null;
+}
+
+interface BrandPillarsData {
+  pillar1: BrandPillarText;
+  pillar2: BrandPillarText;
+  pillar3: BrandPillarText;
+}
+
 interface MarketingMosaicSectionProps {
   brandPillar1Url?: string | null;
   brandPillar2Url?: string | null;
   brandPillar3Url?: string | null;
+  brandPillarsData?: BrandPillarsData;
 }
 
 export function MarketingMosaicSection({
   brandPillar1Url,
   brandPillar2Url,
   brandPillar3Url,
+  brandPillarsData,
 }: MarketingMosaicSectionProps) {
   const t = useTranslations('home');
 
+  // Use CMS values with translation fallbacks
   const brandPillars = [
     {
       id: 'sustainable',
       image: brandPillar1Url || defaultImages.pillar1,
-      title: t('pillar_sustainable_title'),
-      description: t('pillar_sustainable_description'),
+      title: brandPillarsData?.pillar1?.title || t('pillar_sustainable_title'),
+      description: brandPillarsData?.pillar1?.description || t('pillar_sustainable_description'),
       overlayBg: 'rgba(13, 100, 46, 0.9)', // Dark green
       textColor: 'white',
       lineColor: '#8BC34A', // Lime green line
@@ -139,8 +153,8 @@ export function MarketingMosaicSection({
     {
       id: 'authentic',
       image: brandPillar2Url || defaultImages.pillar2,
-      title: t('pillar_authentic_title'),
-      description: t('pillar_authentic_description'),
+      title: brandPillarsData?.pillar2?.title || t('pillar_authentic_title'),
+      description: brandPillarsData?.pillar2?.description || t('pillar_authentic_description'),
       overlayBg: 'rgba(139, 195, 74, 0.9)', // Lime green
       textColor: '#0D642E', // Dark green text
       lineColor: '#0D642E', // Dark green line
@@ -149,8 +163,8 @@ export function MarketingMosaicSection({
     {
       id: 'adventure',
       image: brandPillar3Url || defaultImages.pillar3,
-      title: t('pillar_adventure_title'),
-      description: t('pillar_adventure_description'),
+      title: brandPillarsData?.pillar3?.title || t('pillar_adventure_title'),
+      description: brandPillarsData?.pillar3?.description || t('pillar_adventure_description'),
       overlayBg: 'rgba(13, 100, 46, 0.9)', // Dark green
       textColor: 'white',
       lineColor: '#8BC34A', // Lime green line

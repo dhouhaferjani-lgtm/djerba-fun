@@ -218,14 +218,26 @@ function RunningTraveler({ isRunning }: { isRunning: boolean }) {
   );
 }
 
+interface HeroData {
+  titleLine1: string | null;
+  titleLine2: string | null;
+  subtitle: string | null;
+}
+
 interface HeroSectionProps {
   locale: string;
   heroBannerUrl?: string | null;
+  heroData?: HeroData;
 }
 
-export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
+export function HeroSection({ locale, heroBannerUrl, heroData }: HeroSectionProps) {
   const t = useTranslations('home');
   const backgroundImage = heroBannerUrl || DEFAULT_HERO_IMAGE;
+
+  // Use CMS values with translation fallbacks
+  const titleLine1 = heroData?.titleLine1 || t('hero_title_line1');
+  const titleLine2 = heroData?.titleLine2 || t('hero_title_line2');
+  const subtitle = heroData?.subtitle || t('hero_subtitle');
 
   // Travel tips state
   const [tips, setTips] = useState<TravelTip[]>([]);
@@ -314,6 +326,7 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
       <div className="container mx-auto px-4 relative z-10 text-center">
         <div className="max-w-7xl mx-auto">
           {/* Hero Headline - Elegant serif style with text shadow */}
+          {/* CMS values with translation fallbacks */}
           <h1
             className="font-normal text-white mb-3 md:mb-4 leading-[1.1] tracking-normal"
             style={{
@@ -322,11 +335,11 @@ export function HeroSection({ locale, heroBannerUrl }: HeroSectionProps) {
               textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
             }}
           >
-            <span className="block whitespace-nowrap">{t('hero_title_line1')}</span>
-            <span className="block text-[#8BC34A] -mt-[0.15em]">{t('hero_title_line2')}</span>
+            <span className="block whitespace-nowrap">{titleLine1}</span>
+            <span className="block text-[#8BC34A] -mt-[0.15em]">{titleLine2}</span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-light text-white/90 mb-8 max-w-2xl mx-auto leading-[0.8]">
-            {t('hero_subtitle')}
+            {subtitle}
           </p>
 
           {/* Search Form - Floating with Glassmorphism */}

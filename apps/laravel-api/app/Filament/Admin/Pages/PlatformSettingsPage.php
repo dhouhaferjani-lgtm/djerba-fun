@@ -281,6 +281,55 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->helperText('Recommended: 1920x1080 or larger. Max 10MB. JPG/PNG/WebP.'),
                     ]),
 
+                Forms\Components\Section::make('Hero Section Text')
+                    ->description('Text displayed on the homepage hero section. Both English and French are required.')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                // English Column
+                                Forms\Components\Section::make('English')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('hero_title_line1.en')
+                                            ->label('Title Line 1')
+                                            ->required()
+                                            ->maxLength(100)
+                                            ->placeholder('Discover the Magic of'),
+                                        Forms\Components\TextInput::make('hero_title_line2.en')
+                                            ->label('Title Line 2 (Italic/Accent)')
+                                            ->required()
+                                            ->maxLength(100)
+                                            ->placeholder('Southern Tunisia'),
+                                        Forms\Components\Textarea::make('hero_subtitle.en')
+                                            ->label('Subtitle')
+                                            ->required()
+                                            ->rows(2)
+                                            ->maxLength(300)
+                                            ->placeholder('Discover authentic Tunisian adventures...'),
+                                    ]),
+
+                                // French Column
+                                Forms\Components\Section::make('Français')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('hero_title_line1.fr')
+                                            ->label('Titre Ligne 1')
+                                            ->required()
+                                            ->maxLength(100)
+                                            ->placeholder("Vivez l'Aventure"),
+                                        Forms\Components\TextInput::make('hero_title_line2.fr')
+                                            ->label('Titre Ligne 2 (Italique/Accent)')
+                                            ->required()
+                                            ->maxLength(100)
+                                            ->placeholder('au Cœur du Sahara'),
+                                        Forms\Components\Textarea::make('hero_subtitle.fr')
+                                            ->label('Sous-titre')
+                                            ->required()
+                                            ->rows(2)
+                                            ->maxLength(300)
+                                            ->placeholder('Des expériences inoubliables...'),
+                                    ]),
+                            ]),
+                    ]),
+
                 Forms\Components\Section::make('Brand Pillar Images')
                     ->description('Three square images displayed in the marketing mosaic section below the hero')
                     ->schema([
@@ -304,6 +353,103 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->helperText('Recommended: 1080x1080 square image'),
                     ])
                     ->columns(3),
+
+                Forms\Components\Section::make('Brand Pillar Text')
+                    ->description('Text displayed on each brand pillar card. Both English and French are required.')
+                    ->schema([
+                        // Pillar 1: Sustainable/Tourisme Responsable
+                        Forms\Components\Fieldset::make('Pillar 1: Sustainable Travel / Tourisme Responsable')
+                            ->schema([
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('pillar_1_title.en')
+                                            ->label('Title (English)')
+                                            ->required()
+                                            ->maxLength(50)
+                                            ->placeholder('Sustainable Travel'),
+                                        Forms\Components\TextInput::make('pillar_1_title.fr')
+                                            ->label('Titre (Français)')
+                                            ->required()
+                                            ->maxLength(50)
+                                            ->placeholder('Tourisme Responsable'),
+                                    ]),
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('pillar_1_description.en')
+                                            ->label('Description (English)')
+                                            ->required()
+                                            ->maxLength(150)
+                                            ->placeholder('Eco-conscious adventures that protect our planet'),
+                                        Forms\Components\TextInput::make('pillar_1_description.fr')
+                                            ->label('Description (Français)')
+                                            ->required()
+                                            ->maxLength(150)
+                                            ->placeholder('Des aventures qui préservent notre planète'),
+                                    ]),
+                            ]),
+
+                        // Pillar 2: Authentic/Authenticité Garantie
+                        Forms\Components\Fieldset::make('Pillar 2: Authentic Experiences / Authenticité Garantie')
+                            ->schema([
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('pillar_2_title.en')
+                                            ->label('Title (English)')
+                                            ->required()
+                                            ->maxLength(50)
+                                            ->placeholder('Authentic Experiences'),
+                                        Forms\Components\TextInput::make('pillar_2_title.fr')
+                                            ->label('Titre (Français)')
+                                            ->required()
+                                            ->maxLength(50)
+                                            ->placeholder('Authenticité Garantie'),
+                                    ]),
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('pillar_2_description.en')
+                                            ->label('Description (English)')
+                                            ->required()
+                                            ->maxLength(150)
+                                            ->placeholder('Connect with local cultures and traditions'),
+                                        Forms\Components\TextInput::make('pillar_2_description.fr')
+                                            ->label('Description (Français)')
+                                            ->required()
+                                            ->maxLength(150)
+                                            ->placeholder('Immersion dans les cultures et traditions locales'),
+                                    ]),
+                            ]),
+
+                        // Pillar 3: Adventure/Sensations Fortes
+                        Forms\Components\Fieldset::make('Pillar 3: Epic Adventures / Sensations Fortes')
+                            ->schema([
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('pillar_3_title.en')
+                                            ->label('Title (English)')
+                                            ->required()
+                                            ->maxLength(50)
+                                            ->placeholder('Epic Adventures'),
+                                        Forms\Components\TextInput::make('pillar_3_title.fr')
+                                            ->label('Titre (Français)')
+                                            ->required()
+                                            ->maxLength(50)
+                                            ->placeholder('Sensations Fortes'),
+                                    ]),
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('pillar_3_description.en')
+                                            ->label('Description (English)')
+                                            ->required()
+                                            ->maxLength(150)
+                                            ->placeholder('Unforgettable journeys in breathtaking landscapes'),
+                                        Forms\Components\TextInput::make('pillar_3_description.fr')
+                                            ->label('Description (Français)')
+                                            ->required()
+                                            ->maxLength(150)
+                                            ->placeholder('Des moments inoubliables dans des paysages grandioses'),
+                                    ]),
+                            ]),
+                    ]),
             ]);
     }
 
