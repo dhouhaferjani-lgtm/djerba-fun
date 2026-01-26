@@ -32,7 +32,7 @@ class EditListing extends EditRecord
     {
         // CRITICAL FIX: Remove empty arrays for disabled fields
         // Filament sends empty arrays for disabled fields which would overwrite existing data
-        $disabledFields = ['title', 'summary', 'description', 'pricing', 'slug', 'service_type', 'vendor_id',
+        $disabledFields = ['title', 'summary', 'description', 'pricing', 'slug', 'vendor_id',
                           'min_group_size', 'max_group_size'];
         foreach ($disabledFields as $field) {
             if (isset($data[$field]) && (is_array($data[$field]) && empty($data[$field]))) {

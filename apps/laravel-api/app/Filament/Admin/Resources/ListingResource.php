@@ -49,8 +49,7 @@ class ListingResource extends Resource
                             ->disabled(),
 
                         Forms\Components\Select::make('service_type')
-                            ->options(ServiceType::class)
-                            ->disabled(),
+                            ->options(ServiceType::class),
 
                         Forms\Components\Select::make('status')
                             ->options([
