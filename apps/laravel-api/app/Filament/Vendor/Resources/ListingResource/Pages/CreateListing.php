@@ -27,7 +27,6 @@ class CreateListing extends CreateRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\LocaleSwitcher::make(),
             Actions\Action::make('saveDraft')
                 ->label('Save Draft')
                 ->icon('heroicon-o-bookmark')

@@ -23,7 +23,6 @@ class EditListing extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\LocaleSwitcher::make(),
             Actions\Action::make('submit_for_review')
                 ->label('Submit for Review')
                 ->icon('heroicon-o-paper-airplane')
