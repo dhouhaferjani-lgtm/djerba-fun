@@ -34,7 +34,8 @@ class PlatformSettingsController extends Controller
                 'locale' => $locale,
                 'cached_at' => now()->toIso8601String(),
             ],
-        ]);
+        ])->header('Vary', 'Accept-Language')
+          ->header('Cache-Control', 'no-cache, no-store, must-revalidate');
     }
 
     /**

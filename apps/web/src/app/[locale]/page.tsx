@@ -1,5 +1,9 @@
 import { setRequestLocale } from 'next-intl/server';
 import { MainLayout } from '@/components/templates/MainLayout';
+
+// Force dynamic rendering to ensure locale-specific content is always fresh
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import { HeroSection } from '@/components/organisms/HeroSection';
 import { FeaturedPackagesSection } from '@/components/organisms/FeaturedPackagesSection';
 import { MarketingMosaicSection } from '@/components/home/MarketingMosaicSection';
