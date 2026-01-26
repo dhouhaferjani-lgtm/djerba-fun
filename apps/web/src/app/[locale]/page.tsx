@@ -4,7 +4,6 @@ import { HeroSection } from '@/components/organisms/HeroSection';
 import { FeaturedPackagesSection } from '@/components/organisms/FeaturedPackagesSection';
 import { MarketingMosaicSection } from '@/components/home/MarketingMosaicSection';
 import { PromoBannerSection } from '@/components/home/PromoBannerSection';
-import { CategoriesGridSection } from '@/components/home/CategoriesGridSection';
 import { DestinationsBentoGrid } from '@/components/home/DestinationsBentoGrid';
 import { CTASectionWithBlobs } from '@/components/home/CTASectionWithBlobs';
 import { BlogSection, ExperienceCategoriesSection, TestimonialsSection } from '@/components/home';
@@ -54,7 +53,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <>
           <FeaturedPackagesSection listings={featuredListings} locale={locale} />
           <PromoBannerSection locale={locale} eventOfYear={eventOfYear} />
-          <CategoriesGridSection locale={locale} />
           <TestimonialsSection />
           <DestinationsBentoGrid locale={locale} />
           <CTASectionWithBlobs locale={locale} />
