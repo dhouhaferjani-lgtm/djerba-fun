@@ -58,7 +58,8 @@ class PlatformSettingsController extends Controller
      */
     private function getLocale(Request $request): string
     {
-        $locale = $request->header('Accept-Language', $request->query('locale', config('app.locale')));
+        // Query param takes priority over browser's Accept-Language header
+        $locale = $request->query('locale', $request->header('Accept-Language', config('app.locale')));
 
         // Normalize locale (e.g., 'en-US' -> 'en')
         if (strlen($locale) > 2) {
