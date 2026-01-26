@@ -47,15 +47,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         brandPillarsData={brandPillarsData}
       />
 
-      {/* Experience Categories - showcases activity types */}
-      <ExperienceCategoriesSection />
+      {/* Featured Listings - À venir */}
+      <FeaturedPackagesSection listings={featuredListings} locale={locale} />
 
       {/* CMS-managed middle sections OR hardcoded fallback */}
       {cmsPage && cmsPage.content_blocks && cmsPage.content_blocks.length > 0 ? (
         <BlockRenderer blocks={cmsPage.content_blocks} />
       ) : (
         <>
-          <FeaturedPackagesSection listings={featuredListings} locale={locale} />
+          <ExperienceCategoriesSection />
           <PromoBannerSection locale={locale} eventOfYear={eventOfYear} />
           <TestimonialsSection />
           <DestinationsBentoGrid locale={locale} />
