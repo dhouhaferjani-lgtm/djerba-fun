@@ -1197,7 +1197,15 @@
     "team_desc": "Derrière Go Adventure, c'est toute une communauté de jeunes talents, de femmes artisanes, de guides sportifs, d'agriculteurs et de passionnés qui donnent vie à chaque aventure. Nous croyons que le tourisme peut devenir un moteur positif, pour les visiteurs mais aussi pour les habitants et le territoire.",
     "initiatives": "Initiatives solidaires",
     "initiatives_desc": "Au-delà des expériences de voyage, nous portons des actions concrètes pour soutenir la jeunesse locale, préserver notre patrimoine et encourager les talents djerbiens.",
-    "partners": "Ils nous ont fait confiance"
+    "partners": "Ils nous ont fait confiance",
+    "laventurier_heading": "Nous sommes L'Aventurier.",
+    "laventurier_intro": "L'Aventurier est une initiative de Jerba International Travel.",
+    "laventurier_desc1": "Ce projet est le fruit d'un rêve : faire découvrir la Tunisie autrement, à travers le sport, la nature et l'humain.",
+    "laventurier_desc2": "Nous imaginons des expériences immersives et éco-responsables, en valorisant notre territoire, ses artisans, ses paysages et son patrimoine vivant.",
+    "founder_title": "Le Fondateur - Seif Ben Helel",
+    "initiatives_bullet1": "Ateliers éducatifs & sportifs",
+    "initiatives_bullet2": "Journées de sensibilisation (écologie, patrimoine, artisanat)",
+    "initiatives_bullet3": "Mise en valeur d'acteurs de l'économie sociale et solidaire"
   },
   "contact_page": {
     "title": "Nous Contacter",

@@ -16,6 +16,70 @@ export async function generateMetadata({
   };
 }
 
+// Commitment icons as SVG components (cream/white line art style)
+const SustainableIcon = () => (
+  <svg
+    className="w-16 h-16"
+    viewBox="0 0 64 64"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+  >
+    <circle cx="32" cy="32" r="28" />
+    <path d="M32 4C20 14 14 24 14 32c0 10 8 18 18 18s18-8 18-18c0-8-6-18-18-28z" />
+    <path d="M32 14c-6 6-10 12-10 18 0 6 4 10 10 10s10-4 10-10c0-6-4-12-10-18z" />
+    <path d="M28 36c0-2 2-4 4-4s4 2 4 4" />
+  </svg>
+);
+
+const ActiveIcon = () => (
+  <svg
+    className="w-16 h-16"
+    viewBox="0 0 64 64"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+  >
+    <circle cx="32" cy="20" r="6" />
+    <circle cx="22" cy="44" r="10" />
+    <circle cx="44" cy="44" r="10" />
+    <path d="M32 26v8l-6 10" />
+    <path d="M32 34l10 10" />
+    <path d="M18 38l8-4" />
+    <path d="M48 38l-8-4" />
+  </svg>
+);
+
+const ImmersionIcon = () => (
+  <svg
+    className="w-16 h-16"
+    viewBox="0 0 64 64"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+  >
+    <path d="M12 32c6-4 12-6 20-6s14 2 20 6" />
+    <path d="M20 26c4-2 8-4 12-4s8 2 12 4" />
+    <path d="M16 44l8-8 8 8" />
+    <path d="M32 44l8-8 8 8" />
+    <circle cx="32" cy="22" r="4" />
+  </svg>
+);
+
+const PassionIcon = () => (
+  <svg
+    className="w-16 h-16"
+    viewBox="0 0 64 64"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+  >
+    <path d="M32 56c-12-8-20-16-20-26 0-8 6-14 14-14 4 0 6 2 6 2s2-2 6-2c8 0 14 6 14 14 0 10-8 18-20 26z" />
+    <circle cx="32" cy="34" r="8" />
+    <circle cx="32" cy="34" r="4" />
+  </svg>
+);
+
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -25,68 +89,22 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     {
       title: t('sustainable'),
       description: t('sustainable_desc'),
-      image: '/images/about/commitments/sustainable.jpg',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
+      Icon: SustainableIcon,
     },
     {
       title: t('active_lifestyle'),
       description: t('active_lifestyle_desc'),
-      image: '/images/about/commitments/active-lifestyle.jpg',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M13 10V3L4 14h7v7l9-11h-7z"
-          />
-        </svg>
-      ),
+      Icon: ActiveIcon,
     },
     {
       title: t('local_immersion'),
       description: t('local_immersion_desc'),
-      image: '/images/about/commitments/local-immersion.jpg',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-        </svg>
-      ),
+      Icon: ImmersionIcon,
     },
     {
       title: t('expertise'),
       description: t('expertise_desc'),
-      image: '/images/about/commitments/passion.jpg',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-          />
-        </svg>
-      ),
+      Icon: PassionIcon,
     },
   ];
 
@@ -108,137 +126,172 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
 
   return (
     <MainLayout locale={locale}>
-      <div className="bg-gray-50">
-        {/* Hero Section with Background Image */}
-        <section className="relative min-h-[400px] flex items-center justify-center">
-          <Image
-            src="/images/about/hero-banner.png"
-            alt="About Go Adventure"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-primary/80" />
-          <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 text-center text-white py-20">
-            <p className="text-primary-light text-lg mb-4 italic">{t('tagline')}</p>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">{t('hero_title')}</h1>
-            <p className="text-xl text-white/90 max-w-3xl mx-auto">{t('hero_subtitle')}</p>
-          </div>
-        </section>
+      {/* 1. Hero Section */}
+      <section className="relative min-h-[500px] flex items-center justify-center">
+        <Image
+          src="/images/about/hero-banner.png"
+          alt="About Go Adventure"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-primary/70" />
+        <div className="relative z-10 max-w-4xl mx-auto px-4 text-center text-white py-24">
+          <p className="text-primary-light text-lg mb-4 italic">{t('tagline')}</p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">{t('hero_title')}</h1>
+          <p className="text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
+            {t('hero_subtitle')}
+          </p>
+        </div>
+      </section>
 
-        {/* Our Story Section */}
-        <section className="py-16 bg-white">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('our_story')}</h2>
-            <div className="prose prose-lg max-w-none text-gray-700">
-              <p className="text-lg leading-relaxed mb-8">{t('founder_story')}</p>
-              <blockquote className="border-l-4 border-primary pl-6 italic text-gray-600 my-8">
-                "{t('founder_quote')}"
+      {/* 2. L'Aventurier Section */}
+      <section className="bg-primary py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <h2 className="text-primary-light text-2xl md:text-3xl font-bold text-center mb-12 uppercase tracking-wide">
+            {t('our_story')}
+          </h2>
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h3 className="text-4xl md:text-5xl font-bold text-white leading-tight">
+                {t('laventurier_heading')}
+              </h3>
+            </div>
+            <div className="text-white/90 space-y-6">
+              <p className="text-lg">{t('laventurier_intro')}</p>
+              <p className="text-lg">{t('laventurier_desc1')}</p>
+              <p className="text-lg">{t('laventurier_desc2')}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Founder Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Founder Photo with curved frame */}
+            <div className="relative">
+              <div className="relative w-full max-w-md mx-auto aspect-square overflow-hidden rounded-[0_50%_50%_0] bg-gray-200">
+                <Image
+                  src="/images/about/founder-seif.jpg"
+                  alt="Seif Ben Helel"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </div>
+            {/* Bio Text */}
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 uppercase">
+                {t('founder_title')}
+              </h2>
+              <div className="prose prose-lg text-gray-700 space-y-4">
+                <p>{t('founder_story')}</p>
+              </div>
+              <blockquote className="mt-8 bg-[#e8e4a8] p-6 rounded-lg border-l-4 border-primary">
+                <p className="text-gray-800 italic text-lg">"{t('founder_quote')}"</p>
               </blockquote>
             </div>
-            <div className="mt-8 text-center">
-              <p className="text-gray-900 font-semibold">— {t('founder_name')}</p>
-            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Commitments Section with Images */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">
-              {t('commitments')}
-            </h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              {commitments.map((commitment, index) => (
-                <div
-                  key={index}
-                  className="bg-primary rounded-lg shadow-sm hover:shadow-lg transition-shadow overflow-hidden"
-                >
-                  <div className="p-6 flex items-start gap-4">
-                    <div className="flex-shrink-0 w-20 h-20 relative">
-                      <Image
-                        src={commitment.image}
-                        alt={commitment.title}
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                    <div className="flex-1 text-white">
-                      <h3 className="text-xl font-semibold mb-2">{commitment.title}</h3>
-                      <p className="text-white/80 text-sm">{commitment.description}</p>
-                    </div>
-                  </div>
+      {/* 4. Nos Engagements Section */}
+      <section className="py-16 bg-primary">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#f5f0d1] text-center mb-12 uppercase">
+            {t('commitments')}
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {commitments.map((commitment, index) => (
+              <div key={index} className="text-center">
+                <div className="text-[#f5f0d1] mb-4 flex justify-center">
+                  <commitment.Icon />
                 </div>
-              ))}
+                <h3 className="text-lg font-bold text-white mb-3 uppercase">{commitment.title}</h3>
+                <p className="text-white/80 text-sm leading-relaxed">{commitment.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Team + Initiatives Side-by-Side */}
+      <section className="py-16 bg-gray-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Team Box - Cream */}
+            <div className="bg-[#f5f0d1] p-8 rounded-lg">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4 uppercase">{t('team')}</h3>
+              <p className="text-gray-700 leading-relaxed">{t('team_desc')}</p>
+            </div>
+            {/* Initiatives Box - Lime */}
+            <div className="bg-[#c4d600] p-8 rounded-lg">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4 uppercase">
+                {t('initiatives')}
+              </h3>
+              <p className="text-gray-800 mb-4 leading-relaxed">{t('initiatives_desc')}</p>
+              <ul className="space-y-2 text-gray-800">
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>{t('initiatives_bullet1')}</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>{t('initiatives_bullet2')}</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>{t('initiatives_bullet3')}</span>
+                </li>
+              </ul>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Impact Section */}
-        <section className="py-16 bg-primary text-white">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-            <h2 className="text-3xl font-bold mb-6">{t('impact')}</h2>
-            <p className="text-xl text-white/90 leading-relaxed">{t('impact_desc')}</p>
-          </div>
-        </section>
+      {/* 6. 1% Impact Banner */}
+      <section className="py-8 bg-primary">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <p className="text-xl md:text-2xl text-white italic">{t('impact_desc')}</p>
+        </div>
+      </section>
 
-        {/* Team Section */}
-        <section className="py-16 bg-white">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('team')}</h2>
-            <p className="text-lg text-gray-600 leading-relaxed">{t('team_desc')}</p>
-          </div>
-        </section>
-
-        {/* Initiatives Section with Images */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-              {t('initiatives')}
-            </h2>
-            <p className="text-lg text-gray-600 leading-relaxed text-center mb-12 max-w-3xl mx-auto">
-              {t('initiatives_desc')}
-            </p>
-            <div className="grid md:grid-cols-3 gap-6">
-              {initiatives.map((initiative, index) => (
-                <div
-                  key={index}
-                  className="relative h-64 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow"
-                >
-                  <Image
-                    src={initiative.image}
-                    alt={initiative.alt}
-                    fill
-                    className="object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              ))}
+      {/* 7. Initiative Images - Large, Full Width, Black & White */}
+      <section className="bg-white">
+        <div className="grid grid-cols-1 md:grid-cols-3">
+          {initiatives.map((initiative, index) => (
+            <div key={index} className="relative h-80 md:h-[400px] overflow-hidden">
+              <Image
+                src={initiative.image}
+                alt={initiative.alt}
+                fill
+                className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
+              />
             </div>
-          </div>
-        </section>
+          ))}
+        </div>
+      </section>
 
-        {/* Partners Section */}
-        <section className="py-16 bg-white">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">{t('partners')}</h2>
-            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
-              {partners.map((partner, index) => (
-                <div
-                  key={index}
-                  className="relative w-24 h-24 md:w-32 md:h-32 hover:scale-110 transition-transform duration-300"
-                >
-                  <Image
-                    src={partner}
-                    alt={`Partner ${index + 1}`}
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-              ))}
-            </div>
+      {/* 8. Partner Logos */}
+      <section className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-primary text-center mb-12 uppercase">
+            {t('partners')}
+          </h2>
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
+            {partners.map((partner, index) => (
+              <div
+                key={index}
+                className="relative w-24 h-24 md:w-32 md:h-32 hover:scale-110 transition-transform duration-300"
+              >
+                <Image src={partner} alt={`Partner ${index + 1}`} fill className="object-contain" />
+              </div>
+            ))}
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </MainLayout>
   );
 }
