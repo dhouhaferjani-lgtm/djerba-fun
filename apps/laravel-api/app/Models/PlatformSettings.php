@@ -34,6 +34,7 @@ class PlatformSettings extends Model implements HasMedia
         'description',
         'meta_title',
         'meta_description',
+        'event_of_year_tag',
         'event_of_year_title',
         'event_of_year_description',
         // Hero section text (single title with first word styled differently)

@@ -170,7 +170,7 @@ class PlatformSettingsService
             ],
             'eventOfYear' => [
                 'enabled' => $s->event_of_year_enabled ?? true,
-                'tag' => $s->event_of_year_tag ?? 'Event of the Year',
+                'tag' => $s->getTranslation('event_of_year_tag', $locale) ?: 'Event of the Year',
                 'title' => $s->getTranslation('event_of_year_title', $locale),
                 'description' => $s->getTranslation('event_of_year_description', $locale),
                 'link' => $s->event_of_year_link,

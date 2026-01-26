@@ -459,12 +459,6 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->default(true)
                             ->columnSpanFull(),
 
-                        Forms\Components\TextInput::make('event_of_year_tag')
-                            ->label('Tag / Badge Text')
-                            ->placeholder('Event of the Year')
-                            ->maxLength(50)
-                            ->helperText('Small tag displayed above the title (e.g., "Event of the Year", "Featured Event")'),
-
                         Forms\Components\TextInput::make('event_of_year_link')
                             ->label('Event URL')
                             ->url()
@@ -480,6 +474,11 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->tabs([
                                 Forms\Components\Tabs\Tab::make('English')
                                     ->schema([
+                                        Forms\Components\TextInput::make('event_of_year_tag.en')
+                                            ->label('Tag / Badge Text')
+                                            ->placeholder('Event of the Year')
+                                            ->maxLength(50)
+                                            ->helperText('Small tag displayed above the title'),
                                         Forms\Components\TextInput::make('event_of_year_title.en')
                                             ->label('Event Title')
                                             ->required()
@@ -493,6 +492,11 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ]),
                                 Forms\Components\Tabs\Tab::make('French')
                                     ->schema([
+                                        Forms\Components\TextInput::make('event_of_year_tag.fr')
+                                            ->label('Tag / Badge')
+                                            ->placeholder('Événement de l\'Année')
+                                            ->maxLength(50)
+                                            ->helperText('Petit badge affiché au-dessus du titre'),
                                         Forms\Components\TextInput::make('event_of_year_title.fr')
                                             ->label('Titre de l\'événement')
                                             ->maxLength(150)
@@ -504,6 +508,10 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ]),
                                 Forms\Components\Tabs\Tab::make('Arabic')
                                     ->schema([
+                                        Forms\Components\TextInput::make('event_of_year_tag.ar')
+                                            ->label('شارة / علامة')
+                                            ->maxLength(50)
+                                            ->helperText('علامة صغيرة تظهر فوق العنوان'),
                                         Forms\Components\TextInput::make('event_of_year_title.ar')
                                             ->label('عنوان الحدث')
                                             ->maxLength(150),
