@@ -55,8 +55,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <BlockRenderer blocks={cmsPage.content_blocks} />
       ) : (
         <>
-          <ExperienceCategoriesSection />
           <PromoBannerSection locale={locale} eventOfYear={eventOfYear} />
+          <ExperienceCategoriesSection />
           <TestimonialsSection />
           <DestinationsBentoGrid locale={locale} />
           <CTASectionWithBlobs locale={locale} />
