@@ -135,28 +135,104 @@ class ListingResource extends Resource
                 Tables\Columns\TextColumn::make('title')
                     ->label(__('filament.labels.title'))
                     ->formatStateUsing(function ($record) {
-                        $title = $record->getTranslation('title', app()->getLocale());
+                        $currentLocale = app()->getLocale();
+                        $alternateLocale = $currentLocale === 'en' ? 'fr' : 'en';
+
+                        // Try current locale first
+                        $title = $record->getTranslation('title', $currentLocale);
+                        $usedLocale = $currentLocale;
 
                         // Handle malformed nested arrays from earlier bug
                         if (is_array($title)) {
-                            $title = $title[app()->getLocale()] ?? $title['en'] ?? reset($title) ?: 'Untitled';
+                            $title = $title[$currentLocale] ?? $title['en'] ?? reset($title) ?: null;
 
                             while (is_array($title)) {
-                                $title = reset($title) ?: 'Untitled';
+                                $title = reset($title) ?: null;
                             }
                         }
 
-                        return $title ?: 'Untitled';
+                        // If empty, try alternate locale
+                        if (empty($title)) {
+                            $title = $record->getTranslation('title', $alternateLocale);
+                            $usedLocale = $alternateLocale;
+
+                            if (is_array($title)) {
+                                $title = $title[$alternateLocale] ?? $title['en'] ?? reset($title) ?: null;
+
+                                while (is_array($title)) {
+                                    $title = reset($title) ?: null;
+                                }
+                            }
+                        }
+
+                        if (empty($title)) {
+                            return 'Untitled';
+                        }
+
+                        // Add language indicator if using alternate locale
+                        if ($usedLocale !== $currentLocale) {
+                            $langLabel = strtoupper($usedLocale);
+
+                            return "[{$langLabel}] {$title}";
+                        }
+
+                        return $title;
                     })
-                    ->limit(30)
+                    ->limit(35)
+                    ->description(function ($record) {
+                        // Check which languages have content
+                        $titleEn = $record->getTranslation('title', 'en');
+                        $titleFr = $record->getTranslation('title', 'fr');
+
+                        // Handle malformed arrays
+                        if (is_array($titleEn)) {
+                            $titleEn = $titleEn['en'] ?? reset($titleEn) ?: null;
+                        }
+
+                        if (is_array($titleFr)) {
+                            $titleFr = $titleFr['fr'] ?? reset($titleFr) ?: null;
+                        }
+
+                        $hasEn = ! empty($titleEn);
+                        $hasFr = ! empty($titleFr);
+
+                        if ($hasEn && $hasFr) {
+                            return null; // Bilingual - no indicator needed
+                        }
+
+                        if ($hasEn) {
+                            return __('filament.labels.english_only');
+                        }
+
+                        if ($hasFr) {
+                            return __('filament.labels.french_only');
+                        }
+
+                        return null;
+                    })
                     ->tooltip(function ($record) {
-                        $title = $record->getTranslation('title', app()->getLocale());
+                        $currentLocale = app()->getLocale();
+                        $alternateLocale = $currentLocale === 'en' ? 'fr' : 'en';
+
+                        $title = $record->getTranslation('title', $currentLocale);
 
                         if (is_array($title)) {
-                            $title = $title[app()->getLocale()] ?? $title['en'] ?? reset($title) ?: 'Untitled';
+                            $title = $title[$currentLocale] ?? $title['en'] ?? reset($title) ?: null;
 
                             while (is_array($title)) {
-                                $title = reset($title) ?: 'Untitled';
+                                $title = reset($title) ?: null;
+                            }
+                        }
+
+                        if (empty($title)) {
+                            $title = $record->getTranslation('title', $alternateLocale);
+
+                            if (is_array($title)) {
+                                $title = $title[$alternateLocale] ?? $title['en'] ?? reset($title) ?: null;
+
+                                while (is_array($title)) {
+                                    $title = reset($title) ?: null;
+                                }
                             }
                         }
 
@@ -253,6 +329,46 @@ class ListingResource extends Resource
                     ->query(fn (Builder $query): Builder => $query->where('status', ListingStatus::PENDING_REVIEW))
                     ->toggle(),
 
+                Tables\Filters\SelectFilter::make('content_language')
+                    ->label(__('filament.filters.content_language'))
+                    ->options([
+                        'en_only' => __('filament.filters.english_only'),
+                        'fr_only' => __('filament.filters.french_only'),
+                        'bilingual' => __('filament.filters.bilingual'),
+                        'missing_en' => __('filament.filters.missing_english'),
+                        'missing_fr' => __('filament.filters.missing_french'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (empty($data['value'])) {
+                            return $query;
+                        }
+
+                        // PostgreSQL JSON syntax: title->>'en' extracts as text
+                        return match ($data['value']) {
+                            'en_only' => $query->whereRaw("(title->>'en') IS NOT NULL AND (title->>'en') != ''")
+                                ->where(function ($q) {
+                                    $q->whereRaw("(title->>'fr') IS NULL")
+                                        ->orWhereRaw("(title->>'fr') = ''");
+                                }),
+                            'fr_only' => $query->whereRaw("(title->>'fr') IS NOT NULL AND (title->>'fr') != ''")
+                                ->where(function ($q) {
+                                    $q->whereRaw("(title->>'en') IS NULL")
+                                        ->orWhereRaw("(title->>'en') = ''");
+                                }),
+                            'bilingual' => $query->whereRaw("(title->>'en') IS NOT NULL AND (title->>'en') != ''")
+                                ->whereRaw("(title->>'fr') IS NOT NULL AND (title->>'fr') != ''"),
+                            'missing_en' => $query->where(function ($q) {
+                                $q->whereRaw("(title->>'en') IS NULL")
+                                    ->orWhereRaw("(title->>'en') = ''");
+                            }),
+                            'missing_fr' => $query->where(function ($q) {
+                                $q->whereRaw("(title->>'fr') IS NULL")
+                                    ->orWhereRaw("(title->>'fr') = ''");
+                            }),
+                            default => $query,
+                        };
+                    }),
+
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
@@ -271,18 +387,24 @@ class ListingResource extends Resource
                             // Validate required fields before publishing
                             $errors = [];
 
-                            // Check title
-                            $title = $record->getTranslation('title', 'en');
+                            // Check title - must have at least one translation (English OR French)
+                            $titleEn = $record->getTranslation('title', 'en');
+                            $titleFr = $record->getTranslation('title', 'fr');
+                            $hasEnglishTitle = ! empty($titleEn) && ! (is_array($titleEn) && empty(array_filter($titleEn)));
+                            $hasFrenchTitle = ! empty($titleFr) && ! (is_array($titleFr) && empty(array_filter($titleFr)));
 
-                            if (empty($title) || (is_array($title) && empty(array_filter($title)))) {
-                                $errors[] = __('filament.validation.english_title_required');
+                            if (! $hasEnglishTitle && ! $hasFrenchTitle) {
+                                $errors[] = __('filament.validation.title_translation_required');
                             }
 
-                            // Check summary
-                            $summary = $record->getTranslation('summary', 'en');
+                            // Check summary - must have at least one translation (English OR French)
+                            $summaryEn = $record->getTranslation('summary', 'en');
+                            $summaryFr = $record->getTranslation('summary', 'fr');
+                            $hasEnglishSummary = ! empty($summaryEn) && ! (is_array($summaryEn) && empty(array_filter($summaryEn)));
+                            $hasFrenchSummary = ! empty($summaryFr) && ! (is_array($summaryFr) && empty(array_filter($summaryFr)));
 
-                            if (empty($summary) || (is_array($summary) && empty(array_filter($summary)))) {
-                                $errors[] = __('filament.validation.english_summary_required');
+                            if (! $hasEnglishSummary && ! $hasFrenchSummary) {
+                                $errors[] = __('filament.validation.summary_translation_required');
                             }
 
                             // Check pricing - accept new or old format

@@ -235,6 +235,9 @@ return [
         'display_order' => 'Ordre d\'Affichage',
         'is_active' => 'Actif',
         'order' => 'Ordre',
+        'english_only' => 'EN seul',
+        'french_only' => 'FR seul',
+        'target_language' => 'Langue Cible',
     ],
 
     /*
@@ -367,6 +370,7 @@ return [
         'fail' => 'Échouer',
         'preview' => 'Aperçu',
         'close' => 'Fermer',
+        'auto_translate' => 'Traduction Automatique',
     ],
 
     /*
@@ -399,6 +403,8 @@ return [
         'verify_vendor' => 'Vérifier le Vendeur',
         'verify_vendor_description' => 'Ceci marquera le vendeur comme vérifié et lui permettra de publier des annonces.',
         'reject_kyc' => 'Rejeter la Demande KYC',
+        'auto_translate' => 'Traduction Automatique du Contenu',
+        'auto_translate_description' => 'Cela traduira automatiquement le contenu manquant d\'une langue à l\'autre en utilisant DeepL. Les traductions existantes ne seront pas écrasées.',
     ],
 
     /*
@@ -431,6 +437,12 @@ return [
         'payout_completed_body' => 'Le paiement a été marqué comme terminé.',
         'payout_failed' => 'Paiement échoué',
         'payout_failed_body' => 'Le paiement a été marqué comme échoué.',
+        'translation_complete' => 'Traduction Terminée',
+        'translation_complete_body' => 'Les champs suivants ont été traduits en :language : :fields',
+        'no_translation_needed' => 'Pas de Traduction Nécessaire',
+        'no_translation_needed_body' => 'Tous les champs ont déjà du contenu dans la langue cible, ou il n\'y a pas de contenu source à traduire.',
+        'translation_not_configured' => 'Traduction Non Configurée',
+        'translation_not_configured_body' => 'Le service de traduction automatique n\'est pas configuré. Veuillez contacter l\'administrateur.',
     ],
 
     /*
@@ -443,6 +455,9 @@ return [
         'english_summary_required' => 'Le résumé anglais est requis',
         'pricing_required' => 'Les informations de tarification sont requises',
         'location_required' => 'L\'emplacement est requis',
+        'title_translation_required' => 'Le titre est requis (en anglais ou en français)',
+        'summary_translation_required' => 'Le résumé est requis (en anglais ou en français)',
+        'description_translation_required' => 'La description est requise (en anglais ou en français)',
     ],
 
     /*
@@ -468,6 +483,12 @@ return [
         'verified_only' => 'Vérifiés Uniquement',
         'has_listings' => 'Avec Annonces',
         'has_coordinates' => 'Avec Coordonnées',
+        'content_language' => 'Langue du Contenu',
+        'english_only' => 'Anglais Uniquement',
+        'french_only' => 'Français Uniquement',
+        'bilingual' => 'Bilingue',
+        'missing_english' => 'Sans Anglais',
+        'missing_french' => 'Sans Français',
     ],
 
     /*

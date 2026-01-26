@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Vendor\Resources;
 
+use AmidEsfahani\FilamentTinyEditor\TinyEditor;
 use App\Enums\DifficultyLevel;
 use App\Enums\ListingStatus;
 use App\Enums\ServiceType;
@@ -25,7 +26,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use AmidEsfahani\FilamentTinyEditor\TinyEditor;
 
 class ListingResource extends Resource
 {
@@ -441,7 +441,7 @@ class ListingResource extends Resource
                                                 ->default(false)
                                                 ->afterStateHydrated(function (Forms\Components\Toggle $component, $record) {
                                                     // Auto-enable when editing a listing that has itinerary data
-                                                    if ($record && !empty($record->itinerary)) {
+                                                    if ($record && ! empty($record->itinerary)) {
                                                         $component->state(true);
                                                     }
                                                 })
@@ -1265,22 +1265,81 @@ class ListingResource extends Resource
                 Tables\Columns\TextColumn::make('title')
                     ->label('Title')
                     ->formatStateUsing(function ($record) {
-                        $title = $record->getTranslation('title', app()->getLocale());
+                        $currentLocale = app()->getLocale();
+                        $alternateLocale = $currentLocale === 'en' ? 'fr' : 'en';
+
+                        // Try current locale first
+                        $title = $record->getTranslation('title', $currentLocale);
+                        $usedLocale = $currentLocale;
 
                         // Handle malformed nested arrays from earlier bug
                         if (is_array($title)) {
-                            // Try to extract the string value from nested arrays
-                            $title = $title[app()->getLocale()] ?? $title['en'] ?? reset($title) ?: 'Untitled';
+                            $title = $title[$currentLocale] ?? $title['en'] ?? reset($title) ?: null;
 
-                            // If still an array, keep drilling down
                             while (is_array($title)) {
-                                $title = reset($title) ?: 'Untitled';
+                                $title = reset($title) ?: null;
                             }
                         }
 
-                        return $title ?: 'Untitled';
+                        // If empty, try alternate locale
+                        if (empty($title)) {
+                            $title = $record->getTranslation('title', $alternateLocale);
+                            $usedLocale = $alternateLocale;
+
+                            if (is_array($title)) {
+                                $title = $title[$alternateLocale] ?? $title['en'] ?? reset($title) ?: null;
+
+                                while (is_array($title)) {
+                                    $title = reset($title) ?: null;
+                                }
+                            }
+                        }
+
+                        if (empty($title)) {
+                            return 'Untitled';
+                        }
+
+                        // Add language indicator if using alternate locale
+                        if ($usedLocale !== $currentLocale) {
+                            $langLabel = strtoupper($usedLocale);
+
+                            return "[{$langLabel}] {$title}";
+                        }
+
+                        return $title;
                     })
                     ->limit(40)
+                    ->description(function ($record) {
+                        // Check which languages have content
+                        $titleEn = $record->getTranslation('title', 'en');
+                        $titleFr = $record->getTranslation('title', 'fr');
+
+                        // Handle malformed arrays
+                        if (is_array($titleEn)) {
+                            $titleEn = $titleEn['en'] ?? reset($titleEn) ?: null;
+                        }
+
+                        if (is_array($titleFr)) {
+                            $titleFr = $titleFr['fr'] ?? reset($titleFr) ?: null;
+                        }
+
+                        $hasEn = ! empty($titleEn);
+                        $hasFr = ! empty($titleFr);
+
+                        if ($hasEn && $hasFr) {
+                            return null; // Bilingual - no indicator needed
+                        }
+
+                        if ($hasEn) {
+                            return __('filament.labels.english_only');
+                        }
+
+                        if ($hasFr) {
+                            return __('filament.labels.french_only');
+                        }
+
+                        return null;
+                    })
                     ->searchable(false),
 
                 Tables\Columns\TextColumn::make('service_type')
@@ -1351,6 +1410,46 @@ class ListingResource extends Resource
                         ListingStatus::ARCHIVED->value => ListingStatus::ARCHIVED->label(),
                         ListingStatus::REJECTED->value => ListingStatus::REJECTED->label(),
                     ]),
+
+                Tables\Filters\SelectFilter::make('content_language')
+                    ->label(__('filament.filters.content_language'))
+                    ->options([
+                        'en_only' => __('filament.filters.english_only'),
+                        'fr_only' => __('filament.filters.french_only'),
+                        'bilingual' => __('filament.filters.bilingual'),
+                        'missing_en' => __('filament.filters.missing_english'),
+                        'missing_fr' => __('filament.filters.missing_french'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (empty($data['value'])) {
+                            return $query;
+                        }
+
+                        // PostgreSQL JSON syntax: title->>'en' extracts as text
+                        return match ($data['value']) {
+                            'en_only' => $query->whereRaw("(title->>'en') IS NOT NULL AND (title->>'en') != ''")
+                                ->where(function ($q) {
+                                    $q->whereRaw("(title->>'fr') IS NULL")
+                                        ->orWhereRaw("(title->>'fr') = ''");
+                                }),
+                            'fr_only' => $query->whereRaw("(title->>'fr') IS NOT NULL AND (title->>'fr') != ''")
+                                ->where(function ($q) {
+                                    $q->whereRaw("(title->>'en') IS NULL")
+                                        ->orWhereRaw("(title->>'en') = ''");
+                                }),
+                            'bilingual' => $query->whereRaw("(title->>'en') IS NOT NULL AND (title->>'en') != ''")
+                                ->whereRaw("(title->>'fr') IS NOT NULL AND (title->>'fr') != ''"),
+                            'missing_en' => $query->where(function ($q) {
+                                $q->whereRaw("(title->>'en') IS NULL")
+                                    ->orWhereRaw("(title->>'en') = ''");
+                            }),
+                            'missing_fr' => $query->where(function ($q) {
+                                $q->whereRaw("(title->>'fr') IS NULL")
+                                    ->orWhereRaw("(title->>'fr') = ''");
+                            }),
+                            default => $query,
+                        };
+                    }),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -1373,16 +1472,34 @@ class ListingResource extends Resource
                             $errors[] = 'Location is required';
                         }
 
-                        if (empty($record->getTranslation('title', 'en'))) {
-                            $errors[] = 'English title is required';
+                        // Check title - must have at least one translation (English OR French)
+                        $titleEn = $record->getTranslation('title', 'en');
+                        $titleFr = $record->getTranslation('title', 'fr');
+                        $hasEnglishTitle = ! empty($titleEn) && ! (is_array($titleEn) && empty(array_filter($titleEn)));
+                        $hasFrenchTitle = ! empty($titleFr) && ! (is_array($titleFr) && empty(array_filter($titleFr)));
+
+                        if (! $hasEnglishTitle && ! $hasFrenchTitle) {
+                            $errors[] = __('filament.validation.title_translation_required');
                         }
 
-                        if (empty($record->getTranslation('summary', 'en'))) {
-                            $errors[] = 'English summary is required';
+                        // Check summary - must have at least one translation (English OR French)
+                        $summaryEn = $record->getTranslation('summary', 'en');
+                        $summaryFr = $record->getTranslation('summary', 'fr');
+                        $hasEnglishSummary = ! empty($summaryEn) && ! (is_array($summaryEn) && empty(array_filter($summaryEn)));
+                        $hasFrenchSummary = ! empty($summaryFr) && ! (is_array($summaryFr) && empty(array_filter($summaryFr)));
+
+                        if (! $hasEnglishSummary && ! $hasFrenchSummary) {
+                            $errors[] = __('filament.validation.summary_translation_required');
                         }
 
-                        if (empty($record->getTranslation('description', 'en'))) {
-                            $errors[] = 'English description is required';
+                        // Check description - must have at least one translation (English OR French)
+                        $descriptionEn = $record->getTranslation('description', 'en');
+                        $descriptionFr = $record->getTranslation('description', 'fr');
+                        $hasEnglishDescription = ! empty($descriptionEn) && ! (is_array($descriptionEn) && empty(array_filter($descriptionEn)));
+                        $hasFrenchDescription = ! empty($descriptionFr) && ! (is_array($descriptionFr) && empty(array_filter($descriptionFr)));
+
+                        if (! $hasEnglishDescription && ! $hasFrenchDescription) {
+                            $errors[] = __('filament.validation.description_translation_required');
                         }
 
                         // Service-specific validation

@@ -235,6 +235,9 @@ return [
         'display_order' => 'Display Order',
         'is_active' => 'Active',
         'order' => 'Order',
+        'english_only' => 'EN only',
+        'french_only' => 'FR only',
+        'target_language' => 'Target Language',
     ],
 
     /*
@@ -367,6 +370,7 @@ return [
         'fail' => 'Fail',
         'preview' => 'Preview',
         'close' => 'Close',
+        'auto_translate' => 'Auto-Translate',
     ],
 
     /*
@@ -399,6 +403,8 @@ return [
         'verify_vendor' => 'Verify Vendor',
         'verify_vendor_description' => 'This will mark the vendor as verified and allow them to publish listings.',
         'reject_kyc' => 'Reject KYC Application',
+        'auto_translate' => 'Auto-Translate Content',
+        'auto_translate_description' => 'This will automatically translate missing content from one language to another using DeepL. Existing translations will not be overwritten.',
     ],
 
     /*
@@ -431,6 +437,12 @@ return [
         'payout_completed_body' => 'The payout has been marked as completed.',
         'payout_failed' => 'Payout failed',
         'payout_failed_body' => 'The payout has been marked as failed.',
+        'translation_complete' => 'Translation Complete',
+        'translation_complete_body' => 'The following fields have been translated to :language: :fields',
+        'no_translation_needed' => 'No Translation Needed',
+        'no_translation_needed_body' => 'All fields already have content in the target language, or there is no source content to translate.',
+        'translation_not_configured' => 'Translation Not Configured',
+        'translation_not_configured_body' => 'The auto-translation service is not configured. Please contact the administrator.',
     ],
 
     /*
@@ -443,6 +455,9 @@ return [
         'english_summary_required' => 'English summary is required',
         'pricing_required' => 'Pricing information is required',
         'location_required' => 'Location is required',
+        'title_translation_required' => 'Title is required (in English or French)',
+        'summary_translation_required' => 'Summary is required (in English or French)',
+        'description_translation_required' => 'Description is required (in English or French)',
     ],
 
     /*
@@ -468,6 +483,12 @@ return [
         'verified_only' => 'Verified Only',
         'has_listings' => 'Has Listings',
         'has_coordinates' => 'Has Coordinates',
+        'content_language' => 'Content Language',
+        'english_only' => 'English Only',
+        'french_only' => 'French Only',
+        'bilingual' => 'Bilingual',
+        'missing_english' => 'Missing English',
+        'missing_french' => 'Missing French',
     ],
 
     /*

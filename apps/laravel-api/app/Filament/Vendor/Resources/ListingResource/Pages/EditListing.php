@@ -41,16 +41,34 @@ class EditListing extends EditRecord
                         $errors[] = 'Location is required';
                     }
 
-                    if (empty($record->getTranslation('title', 'en'))) {
-                        $errors[] = 'English title is required';
+                    // Check title - must have at least one translation (English OR French)
+                    $titleEn = $record->getTranslation('title', 'en');
+                    $titleFr = $record->getTranslation('title', 'fr');
+                    $hasEnglishTitle = ! empty($titleEn) && ! (is_array($titleEn) && empty(array_filter($titleEn)));
+                    $hasFrenchTitle = ! empty($titleFr) && ! (is_array($titleFr) && empty(array_filter($titleFr)));
+
+                    if (! $hasEnglishTitle && ! $hasFrenchTitle) {
+                        $errors[] = __('filament.validation.title_translation_required');
                     }
 
-                    if (empty($record->getTranslation('summary', 'en'))) {
-                        $errors[] = 'English summary is required';
+                    // Check summary - must have at least one translation (English OR French)
+                    $summaryEn = $record->getTranslation('summary', 'en');
+                    $summaryFr = $record->getTranslation('summary', 'fr');
+                    $hasEnglishSummary = ! empty($summaryEn) && ! (is_array($summaryEn) && empty(array_filter($summaryEn)));
+                    $hasFrenchSummary = ! empty($summaryFr) && ! (is_array($summaryFr) && empty(array_filter($summaryFr)));
+
+                    if (! $hasEnglishSummary && ! $hasFrenchSummary) {
+                        $errors[] = __('filament.validation.summary_translation_required');
                     }
 
-                    if (empty($record->getTranslation('description', 'en'))) {
-                        $errors[] = 'English description is required';
+                    // Check description - must have at least one translation (English OR French)
+                    $descriptionEn = $record->getTranslation('description', 'en');
+                    $descriptionFr = $record->getTranslation('description', 'fr');
+                    $hasEnglishDescription = ! empty($descriptionEn) && ! (is_array($descriptionEn) && empty(array_filter($descriptionEn)));
+                    $hasFrenchDescription = ! empty($descriptionFr) && ! (is_array($descriptionFr) && empty(array_filter($descriptionFr)));
+
+                    if (! $hasEnglishDescription && ! $hasFrenchDescription) {
+                        $errors[] = __('filament.validation.description_translation_required');
                     }
 
                     // Service-specific validation
@@ -127,6 +145,65 @@ class EditListing extends EditRecord
 
                     $this->redirect($this->getResource()::getUrl('index'));
                 }),
+
+            Actions\Action::make('auto_translate')
+                ->label(__('filament.actions.auto_translate'))
+                ->icon('heroicon-o-language')
+                ->color('info')
+                ->requiresConfirmation()
+                ->modalHeading(__('filament.modals.auto_translate'))
+                ->modalDescription(__('filament.modals.auto_translate_description'))
+                ->form([
+                    \Filament\Forms\Components\Select::make('target_language')
+                        ->label(__('filament.labels.target_language'))
+                        ->options([
+                            'en' => 'English (from French)',
+                            'fr' => 'French (from English)',
+                        ])
+                        ->required()
+                        ->default('en'),
+                ])
+                ->action(function (array $data) {
+                    $translationService = app(\App\Services\TranslationService::class);
+
+                    if (! $translationService->isEnabled()) {
+                        Notification::make()
+                            ->title(__('filament.notifications.translation_not_configured'))
+                            ->body(__('filament.notifications.translation_not_configured_body'))
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
+                    $result = $translationService->translateListing(
+                        $this->record,
+                        $data['target_language']
+                    );
+
+                    if (! empty($result['translated_fields'])) {
+                        $this->record->save();
+
+                        Notification::make()
+                            ->title(__('filament.notifications.translation_complete'))
+                            ->body(__('filament.notifications.translation_complete_body', [
+                                'fields' => implode(', ', $result['translated_fields']),
+                                'language' => $data['target_language'] === 'en' ? 'English' : 'French',
+                            ]))
+                            ->success()
+                            ->send();
+
+                        // Refresh the form data
+                        $this->fillForm();
+                    } else {
+                        Notification::make()
+                            ->title(__('filament.notifications.no_translation_needed'))
+                            ->body(__('filament.notifications.no_translation_needed_body'))
+                            ->info()
+                            ->send();
+                    }
+                })
+                ->visible(fn () => $this->record->exists),
 
             Actions\ViewAction::make(),
             Actions\DeleteAction::make(),
@@ -253,6 +330,7 @@ class EditListing extends EditRecord
             // If it's a TemporaryUploadedFile, store it permanently and get full URL
             if ($image instanceof TemporaryUploadedFile) {
                 $path = $image->store('listing-galleries', $disk);
+
                 if ($path) {
                     // Store full URL for consistent frontend access
                     $processed[$index] = Storage::disk($disk)->url($path);
