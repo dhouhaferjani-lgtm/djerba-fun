@@ -232,7 +232,6 @@ class BookingResource extends Resource
                         'claimed' => __('filament.options.claimed'),
                         default => __('filament.options.na'),
                     })
-                    ->visible(fn ($record) => $record->linked_at !== null)
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
