@@ -38,8 +38,12 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
   const t = (field: any) => resolveTranslation(field, locale);
 
   return (
-    <Link href={href}>
-      <Card variant="interactive" padding="none" className="overflow-hidden h-full">
+    <Link href={href} className="group">
+      <Card
+        variant="interactive"
+        padding="none"
+        className="overflow-hidden h-full green-click-shadow hover:shadow-xl hover:-translate-y-1"
+      >
         {/* Image */}
         <div className="relative h-48 w-full bg-neutral-100">
           {mainImageUrl ? (
@@ -47,7 +51,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
               src={normalizeMediaUrl(mainImageUrl)}
               alt={t(mainImageAlt) || t(listing.title)}
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-300 group-hover:scale-110"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               loading="lazy"
               unoptimized={shouldUnoptimizeImage(normalizeMediaUrl(mainImageUrl))}
@@ -79,7 +83,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
         <div className="p-4 flex flex-col gap-3">
           {/* Title and Rating */}
           <div>
-            <h3 className="font-semibold text-lg text-neutral-900 line-clamp-2 mb-1">
+            <h3 className="font-semibold text-lg text-neutral-900 line-clamp-2 mb-1 group-hover:text-primary transition-colors">
               {t(listing.title)}
             </h3>
             {listing.rating && (
