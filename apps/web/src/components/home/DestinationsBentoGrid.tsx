@@ -7,28 +7,32 @@ import { useState, useEffect, useRef } from 'react';
 
 const destinations = [
   {
-    id: 'tozeur',
-    name: 'Tozeur',
-    description: 'Gateway to the Sahara',
-    image: '/images/destinations/tozeur.jpg',
+    id: 'houmet-souk',
+    name: 'Houmet Souk',
+    description: 'Cultural heart of Djerba',
+    descriptionFr: 'Cœur culturel de Djerba',
+    image: '/images/destinations/houmet-souk.jpg',
   },
   {
-    id: 'douz',
-    name: 'Douz',
-    description: 'Door to the desert',
-    image: '/images/destinations/douz.webp',
+    id: 'guellala',
+    name: 'Guellala',
+    description: 'Pottery village',
+    descriptionFr: 'Village des potiers',
+    image: '/images/destinations/guellala.jpg',
   },
   {
-    id: 'djerba',
-    name: 'Djerba',
-    description: 'Island of dreams',
-    image: '/images/destinations/djerba.jpg',
+    id: 'ile-flamants-roses',
+    name: "L'île des flamants roses",
+    description: 'Flamingo sanctuary',
+    descriptionFr: 'Sanctuaire des flamants',
+    image: '/images/destinations/ile-flamants-roses.jpg',
   },
   {
-    id: 'tataouine',
-    name: 'Tataouine',
-    description: 'Land of the Ksour',
-    image: '/images/destinations/tataouine.jpg',
+    id: 'sidi-jmour',
+    name: 'Sidi Jmour',
+    description: 'Wild coastlines',
+    descriptionFr: 'Côtes sauvages',
+    image: '/images/destinations/sidi-jmour.jpg',
   },
 ];
 
@@ -237,7 +241,7 @@ export function DestinationsBentoGrid({ locale }: DestinationsBentoGridProps) {
                   </h3>
                   {position.isBig && (
                     <p className="text-white/90 text-lg mt-2 font-light">
-                      {destination.description}
+                      {locale === 'fr' ? destination.descriptionFr : destination.description}
                     </p>
                   )}
                 </div>
@@ -290,7 +294,9 @@ export function DestinationsBentoGrid({ locale }: DestinationsBentoGridProps) {
               <div className="absolute bottom-0 left-0 p-5">
                 <h3 className="text-2xl font-display font-bold text-white">{destination.name}</h3>
                 {index === 0 && (
-                  <p className="text-white/80 text-sm mt-1">{destination.description}</p>
+                  <p className="text-white/80 text-sm mt-1">
+                    {locale === 'fr' ? destination.descriptionFr : destination.description}
+                  </p>
                 )}
               </div>
             </Link>
