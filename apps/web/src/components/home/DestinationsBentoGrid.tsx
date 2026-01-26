@@ -33,27 +33,16 @@ const destinations = [
     blurDataURL:
       'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMCwsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAKABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABwgJ/8QAJBAAAgEDBAICAwAAAAAAAAAAAQIDBAURBgcSIQAIEzFBUWH/xAAVAQEBAAAAAAAAAAAAAAAAAAADBP/EABsRAAICAwEAAAAAAAAAAAAAAAECAAMEESFB/9oADAMBAAIRAxEAPwDU+4b0W+1brbRXyiqruaKoSeNYpfid3Q5XkSCQMj99Dz1i70bg7T+u9Gbj6R01a7ZqN6mspquCrimjqopY+DxSq6xgniyuuGI4n7U9HrnrHQW7VJYKHWFrq7hHaJXltzQ1jUzRO4AdSTG4dCQAN1YAMenw6ftytp9utldLbV6G0zbtOVV5t0lHeK+jqZqir+OSVDI8crOzPwUBDzyOMD9YGdM1iu2X0gRlLyKKbT3P/9k=',
   },
-  {
-    id: 'sidi-jmour',
-    name: 'Sidi Jmour',
-    description: 'Wild coastlines',
-    descriptionFr: 'Côtes sauvages',
-    image: '/images/destinations/sidi-jmour.jpg',
-    blurDataURL:
-      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAKCAIAAAAy3EnLAAAACXBIWXMAAAsTAAALEwEAmpwYAAABCklEQVQokWNgGAWMjIwMDAz//v0DAIb/DAxMTEz//v1jYGD4//8/E4gGsv/9+8fMzAzkMf3//x/IYGD4DxQA8v79+wdkMP3794+ZmZmRkfH///8MDAxAASD7379/LCwsQAYjIyOQzcDAwPTv3z9mZmYgzsjIyMDAwPj//39mZuZ///4xMTH9/fuXmZn5////TExMf//+ZWFhYWBgYGRkBCoA0kxMTEAe0///QBoI/v37B+T9/fsXKMvCwsLIyMjMzPznzx9mZuY/f/6wsbGBRAHibGxsf/78YWNj+/PnDwsLy58/fxgYGNjY2P78+cPGxsbAwMDOzv7792+gJhYWFgYGBjY2NgYGhj9//gD1AABwgHQcXbPo4wAAAABJRU5ErkJggg==',
-  },
 ];
 
 // Grid positions - defines the layout
-// Position 0: Big featured (top-left, 2x2)
+// Position 0: Big featured (left side, spans 2 rows)
 // Position 1: Top-right small (1x1)
-// Position 2: Middle-right small (1x1)
-// Position 3: Bottom wide (spans across)
+// Position 2: Bottom-right small (1x1)
 const gridPositions = [
   { gridArea: '1 / 1 / 3 / 3', isBig: true },
   { gridArea: '1 / 3 / 2 / 4', isBig: false },
   { gridArea: '2 / 3 / 3 / 4', isBig: false },
-  { gridArea: '3 / 1 / 4 / 4', isBig: false },
 ];
 
 const INITIAL_DELAY = 4000; // 4 seconds before first rotation
@@ -154,7 +143,7 @@ export function DestinationsBentoGrid({ locale }: DestinationsBentoGridProps) {
               {t('destinations_subtitle')}
             </p>
           </div>
-          <div className="hidden md:grid grid-cols-3 grid-rows-3 gap-4 h-[600px]">
+          <div className="hidden md:grid grid-cols-3 grid-rows-2 gap-4 h-[500px]">
             {gridPositions.map((position, posIndex) => {
               const destination = destinations[posIndex];
               return (
@@ -183,7 +172,7 @@ export function DestinationsBentoGrid({ locale }: DestinationsBentoGridProps) {
 
         {/* Desktop: Animated Bento Grid */}
         <div
-          className="hidden md:grid grid-cols-3 grid-rows-3 gap-4 h-[600px]"
+          className="hidden md:grid grid-cols-3 grid-rows-2 gap-4 h-[500px]"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
