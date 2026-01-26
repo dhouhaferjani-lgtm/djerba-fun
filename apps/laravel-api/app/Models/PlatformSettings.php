@@ -36,9 +36,8 @@ class PlatformSettings extends Model implements HasMedia
         'meta_description',
         'event_of_year_title',
         'event_of_year_description',
-        // Hero section text
-        'hero_title_line1',
-        'hero_title_line2',
+        // Hero section text (single title with first word styled differently)
+        'hero_title',
         'hero_subtitle',
         // Brand pillar text (Marketing Mosaic Section)
         'pillar_1_title',
@@ -214,8 +213,7 @@ class PlatformSettings extends Model implements HasMedia
         'event_of_year_enabled',
 
         // Hero Section Text (Homepage)
-        'hero_title_line1',
-        'hero_title_line2',
+        'hero_title',
         'hero_subtitle',
 
         // Brand Pillar Text (Marketing Mosaic Section)

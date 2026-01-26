@@ -19,9 +19,9 @@ return new class extends Migration
         Schema::table('platform_settings', function (Blueprint $table) {
             // Hero Section Text (Homepage)
             // Stored as JSON for Spatie Translatable (en/fr)
-            $table->json('hero_title_line1')->nullable()->after('event_of_year_enabled');
-            $table->json('hero_title_line2')->nullable()->after('hero_title_line1');
-            $table->json('hero_subtitle')->nullable()->after('hero_title_line2');
+            // Single title field - frontend will style first word in green, rest in white
+            $table->json('hero_title')->nullable()->after('event_of_year_enabled');
+            $table->json('hero_subtitle')->nullable()->after('hero_title');
 
             // Brand Pillar 1 (Sustainable/Tourisme Responsable)
             $table->json('pillar_1_title')->nullable()->after('hero_subtitle');
@@ -44,8 +44,7 @@ return new class extends Migration
     {
         Schema::table('platform_settings', function (Blueprint $table) {
             $table->dropColumn([
-                'hero_title_line1',
-                'hero_title_line2',
+                'hero_title',
                 'hero_subtitle',
                 'pillar_1_title',
                 'pillar_1_description',

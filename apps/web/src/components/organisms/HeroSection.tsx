@@ -219,8 +219,7 @@ function RunningTraveler({ isRunning }: { isRunning: boolean }) {
 }
 
 interface HeroData {
-  titleLine1: string | null;
-  titleLine2: string | null;
+  title: string | null;
   subtitle: string | null;
 }
 
@@ -235,9 +234,14 @@ export function HeroSection({ locale, heroBannerUrl, heroData }: HeroSectionProp
   const backgroundImage = heroBannerUrl || DEFAULT_HERO_IMAGE;
 
   // Use CMS values with translation fallbacks
-  const titleLine1 = heroData?.titleLine1 || t('hero_title_line1');
-  const titleLine2 = heroData?.titleLine2 || t('hero_title_line2');
+  // Fallback combines the two translation keys for backwards compatibility
+  const fullTitle = heroData?.title || `${t('hero_title_line1')} ${t('hero_title_line2')}`;
   const subtitle = heroData?.subtitle || t('hero_subtitle');
+
+  // Split title: first word is green, rest is white
+  const titleWords = fullTitle.split(' ');
+  const firstWord = titleWords[0] || '';
+  const restOfTitle = titleWords.slice(1).join(' ');
 
   // Travel tips state
   const [tips, setTips] = useState<TravelTip[]>([]);
@@ -325,7 +329,7 @@ export function HeroSection({ locale, heroBannerUrl, heroData }: HeroSectionProp
       {/* Content */}
       <div className="container mx-auto px-4 relative z-10 text-center">
         <div className="max-w-7xl mx-auto">
-          {/* Hero Headline - Elegant serif style with text shadow */}
+          {/* Hero Headline - First word in green, rest in white */}
           {/* CMS values with translation fallbacks */}
           <h1
             className="font-normal text-white mb-3 md:mb-4 leading-[1.1] tracking-normal"
@@ -335,8 +339,8 @@ export function HeroSection({ locale, heroBannerUrl, heroData }: HeroSectionProp
               textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
             }}
           >
-            <span className="block whitespace-nowrap">{titleLine1}</span>
-            <span className="block text-[#8BC34A] -mt-[0.15em]">{titleLine2}</span>
+            <span className="text-[#8BC34A]">{firstWord}</span>{' '}
+            <span className="text-white">{restOfTitle}</span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-light text-white/90 mb-8 max-w-2xl mx-auto leading-[0.8]">
             {subtitle}

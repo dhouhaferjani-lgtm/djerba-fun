@@ -282,23 +282,19 @@ class PlatformSettingsPage extends Page implements HasForms
                     ]),
 
                 Forms\Components\Section::make('Hero Section Text')
-                    ->description('Text displayed on the homepage hero section. Both English and French are required.')
+                    ->description('Text displayed on the homepage hero section. The first word of the title will be displayed in green, the rest in white. Both English and French are required.')
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
                                 // English Column
                                 Forms\Components\Section::make('English')
                                     ->schema([
-                                        Forms\Components\TextInput::make('hero_title_line1.en')
-                                            ->label('Title Line 1')
+                                        Forms\Components\TextInput::make('hero_title.en')
+                                            ->label('Title')
                                             ->required()
-                                            ->maxLength(100)
-                                            ->placeholder('Discover the Magic of'),
-                                        Forms\Components\TextInput::make('hero_title_line2.en')
-                                            ->label('Title Line 2 (Italic/Accent)')
-                                            ->required()
-                                            ->maxLength(100)
-                                            ->placeholder('Southern Tunisia'),
+                                            ->maxLength(150)
+                                            ->placeholder("Vivez l'Aventure au Cœur du Sahara")
+                                            ->helperText('First word will be green, rest will be white'),
                                         Forms\Components\Textarea::make('hero_subtitle.en')
                                             ->label('Subtitle')
                                             ->required()
@@ -310,16 +306,12 @@ class PlatformSettingsPage extends Page implements HasForms
                                 // French Column
                                 Forms\Components\Section::make('Français')
                                     ->schema([
-                                        Forms\Components\TextInput::make('hero_title_line1.fr')
-                                            ->label('Titre Ligne 1')
+                                        Forms\Components\TextInput::make('hero_title.fr')
+                                            ->label('Titre')
                                             ->required()
-                                            ->maxLength(100)
-                                            ->placeholder("Vivez l'Aventure"),
-                                        Forms\Components\TextInput::make('hero_title_line2.fr')
-                                            ->label('Titre Ligne 2 (Italique/Accent)')
-                                            ->required()
-                                            ->maxLength(100)
-                                            ->placeholder('au Cœur du Sahara'),
+                                            ->maxLength(150)
+                                            ->placeholder("Vivez l'Aventure au Cœur du Sahara")
+                                            ->helperText('Le premier mot sera en vert, le reste en blanc'),
                                         Forms\Components\Textarea::make('hero_subtitle.fr')
                                             ->label('Sous-titre')
                                             ->required()

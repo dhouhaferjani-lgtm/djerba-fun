@@ -177,8 +177,7 @@ class PlatformSettingsService
                 'image' => $s->event_of_year_image_url,
             ],
             'hero' => [
-                'titleLine1' => $s->getTranslation('hero_title_line1', $locale),
-                'titleLine2' => $s->getTranslation('hero_title_line2', $locale),
+                'title' => $s->getTranslation('hero_title', $locale),
                 'subtitle' => $s->getTranslation('hero_subtitle', $locale),
             ],
             'brandPillars' => [

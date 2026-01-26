@@ -123,14 +123,14 @@ export async function getEventOfYearData(locale?: string) {
 /**
  * Get Hero Section text from platform settings.
  * Returns null values if settings cannot be fetched (frontend will use translations as fallback).
+ * The title is a single sentence where the first word is styled in green, rest in white.
  */
 export async function getHeroData(locale?: string) {
   const settings = await getPlatformSettings(locale);
   const hero = (settings?.data as any)?.hero;
 
   return {
-    titleLine1: hero?.titleLine1 ?? null,
-    titleLine2: hero?.titleLine2 ?? null,
+    title: hero?.title ?? null,
     subtitle: hero?.subtitle ?? null,
   };
 }
