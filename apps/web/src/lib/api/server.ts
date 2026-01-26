@@ -161,11 +161,11 @@ export async function getBrandPillarsData(locale?: string) {
 
 /**
  * Fetch featured listings from the API (server-side).
- * Returns top listings sorted by popularity for the home page.
+ * Returns listings marked as featured by admin for the home page.
  */
 export async function getFeaturedListings(limit: number = 3): Promise<ListingSummary[]> {
   try {
-    const response = await fetch(`${API_URL}/listings?limit=${limit}&sort=popularity`, {
+    const response = await fetch(`${API_URL}/listings/featured?limit=${limit}`, {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',

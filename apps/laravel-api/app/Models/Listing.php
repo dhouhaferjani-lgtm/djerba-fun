@@ -216,6 +216,7 @@ class Listing extends Model
         'reviews_count',
         'bookings_count',
         'published_at',
+        'is_featured',
         // Booking settings
         'require_traveler_names',
         'traveler_names_timing',
@@ -276,6 +277,7 @@ class Listing extends Model
             'accessibility_info' => 'array',
             'difficulty_details' => 'array',
             'gallery_images' => 'array',
+            'is_featured' => 'boolean',
         ];
     }
 
@@ -502,6 +504,14 @@ class Listing extends Model
     public function scopeEvents($query)
     {
         return $query->where('service_type', ServiceType::EVENT);
+    }
+
+    /**
+     * Scope for featured listings
+     */
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
     }
 
     /**

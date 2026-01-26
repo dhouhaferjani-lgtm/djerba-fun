@@ -77,6 +77,7 @@ Route::prefix('v1')->group(function () {
 
     // Public listing routes
     Route::get('/listings', [ListingController::class, 'index']);
+    Route::get('/listings/featured', [ListingController::class, 'featured']);
     Route::get('/listings/{listing:slug}', [ListingController::class, 'show']);
 
     // Public location/destination routes

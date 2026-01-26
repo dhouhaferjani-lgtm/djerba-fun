@@ -125,6 +125,44 @@ class ListingResource extends Resource
                             ->visible(fn ($record) => $record?->status === ListingStatus::REJECTED)
                             ->columnSpanFull(),
                     ]),
+
+                Forms\Components\Section::make(__('filament.sections.homepage_display'))
+                    ->schema([
+                        Forms\Components\Toggle::make('is_featured')
+                            ->label(__('filament.labels.feature_on_homepage'))
+                            ->visible(fn ($record) => $record?->status === ListingStatus::PUBLISHED)
+                            ->disabled(function (?Listing $record) {
+                                // If this listing is already featured, allow toggling off
+                                if ($record?->is_featured) {
+                                    return false;
+                                }
+                                // Check if 3 listings are already featured
+                                return Listing::where('is_featured', true)->count() >= 3;
+                            })
+                            ->helperText(function (?Listing $record) {
+                                if ($record?->is_featured) {
+                                    return __('filament.helpers.show_on_homepage');
+                                }
+                                $featuredCount = Listing::where('is_featured', true)->count();
+                                if ($featuredCount >= 3) {
+                                    return __('filament.helpers.featured_limit_reached');
+                                }
+                                return __('filament.helpers.show_on_homepage');
+                            })
+                            ->rules([
+                                function (?Listing $record) {
+                                    return function (string $attribute, $value, \Closure $fail) use ($record) {
+                                        if ($value && !$record?->is_featured) {
+                                            $featuredCount = Listing::where('is_featured', true)->count();
+                                            if ($featuredCount >= 3) {
+                                                $fail(__('filament.helpers.featured_limit_reached'));
+                                            }
+                                        }
+                                    };
+                                },
+                            ]),
+                    ])
+                    ->visible(fn ($record) => $record?->status === ListingStatus::PUBLISHED),
             ]);
     }
 
@@ -261,6 +299,15 @@ class ListingResource extends Resource
                     ->badge()
                     ->color(fn (ListingStatus $state): string => $state->color()),
 
+                Tables\Columns\IconColumn::make('is_featured')
+                    ->label(__('filament.labels.featured'))
+                    ->boolean()
+                    ->trueIcon('heroicon-o-star')
+                    ->falseIcon('heroicon-o-minus')
+                    ->trueColor('warning')
+                    ->falseColor('gray')
+                    ->toggleable(),
+
                 Tables\Columns\TextColumn::make('location.name')
                     ->label(__('filament.sections.location'))
                     ->formatStateUsing(function ($record) {
@@ -327,6 +374,11 @@ class ListingResource extends Resource
                 Tables\Filters\Filter::make('pending_review')
                     ->label(__('filament.filters.pending_review'))
                     ->query(fn (Builder $query): Builder => $query->where('status', ListingStatus::PENDING_REVIEW))
+                    ->toggle(),
+
+                Tables\Filters\Filter::make('featured')
+                    ->label(__('filament.filters.featured'))
+                    ->query(fn (Builder $query): Builder => $query->where('is_featured', true))
                     ->toggle(),
 
                 Tables\Filters\SelectFilter::make('content_language')

@@ -208,4 +208,41 @@ class ListingController extends Controller
 
         return new ListingResource($cachedListing);
     }
+
+    /**
+     * Display featured listings for homepage
+     *
+     * Returns up to 3 featured listings that have been marked by admin.
+     * Results are cached for 5 minutes.
+     */
+    public function featured(Request $request): AnonymousResourceCollection
+    {
+        $limit = min((int) $request->input('limit', 3), 10);
+
+        // Cache featured listings for 5 minutes
+        $cacheKey = 'listings:featured:' . $limit;
+        $cacheTtl = 300;
+
+        $listings = cache()->remember($cacheKey, $cacheTtl, function () use ($limit) {
+            return Listing::query()
+                ->published()
+                ->featured()
+                ->select([
+                    'id', 'uuid', 'vendor_id', 'location_id', 'activity_type_id', 'service_type', 'status',
+                    'title', 'slug', 'summary', 'pricing', 'rating', 'reviews_count', 'bookings_count',
+                    'gallery_images', 'duration', 'difficulty', 'published_at', 'is_featured'
+                ])
+                ->with([
+                    'vendor:id,uuid',
+                    'location:id,uuid,name,slug,city,latitude,longitude',
+                    'activityType:id,uuid,name,slug,icon,color',
+                    'media:id,uuid,mediable_id,mediable_type,url,thumbnail_url,alt,type,order,category',
+                ])
+                ->orderBy('published_at', 'desc')
+                ->limit($limit)
+                ->get();
+        });
+
+        return ListingResource::collection($listings);
+    }
 }
