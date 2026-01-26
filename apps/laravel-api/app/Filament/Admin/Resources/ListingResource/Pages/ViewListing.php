@@ -239,16 +239,22 @@ class ViewListing extends ViewRecord
     {
         $errors = [];
 
-        // Check English title
-        $title = $this->record->getTranslation('title', 'en');
-        if (empty($title) || (is_array($title) && empty(array_filter($title)))) {
-            $errors[] = 'English title is required';
+        // Check title - must have at least one translation (English OR French)
+        $titleEn = $this->record->getTranslation('title', 'en');
+        $titleFr = $this->record->getTranslation('title', 'fr');
+        $hasEnTitle = ! empty($titleEn) && ! (is_array($titleEn) && empty(array_filter($titleEn)));
+        $hasFrTitle = ! empty($titleFr) && ! (is_array($titleFr) && empty(array_filter($titleFr)));
+        if (! $hasEnTitle && ! $hasFrTitle) {
+            $errors[] = __('filament.validation.title_translation_required');
         }
 
-        // Check English summary
-        $summary = $this->record->getTranslation('summary', 'en');
-        if (empty($summary) || (is_array($summary) && empty(array_filter($summary)))) {
-            $errors[] = 'English summary is required';
+        // Check summary - must have at least one translation (English OR French)
+        $summaryEn = $this->record->getTranslation('summary', 'en');
+        $summaryFr = $this->record->getTranslation('summary', 'fr');
+        $hasEnSummary = ! empty($summaryEn) && ! (is_array($summaryEn) && empty(array_filter($summaryEn)));
+        $hasFrSummary = ! empty($summaryFr) && ! (is_array($summaryFr) && empty(array_filter($summaryFr)));
+        if (! $hasEnSummary && ! $hasFrSummary) {
+            $errors[] = __('filament.validation.summary_translation_required');
         }
 
         // Check pricing
