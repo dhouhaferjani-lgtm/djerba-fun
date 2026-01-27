@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { ExtrasSelection } from './ExtrasSelection';
 import { BookingReview } from './BookingReview';
@@ -58,6 +58,8 @@ export function BookingWizard({
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [marketingAccepted, setMarketingAccepted] = useState(false);
   const [termsError, setTermsError] = useState<string | undefined>();
+  const [highlightConsents, setHighlightConsents] = useState(false);
+  const consentsRef = useRef<HTMLDivElement>(null);
 
   // Currency notice modal state (for Clictopay redirect)
   const [showCurrencyNotice, setShowCurrencyNotice] = useState(false);
@@ -209,9 +211,18 @@ export function BookingWizard({
     // Validate terms acceptance
     if (!termsAccepted) {
       setTermsError(t('terms_required') || 'You must accept the terms and conditions to continue.');
+
+      // Scroll to consents section and highlight it for visibility (especially for older users)
+      if (consentsRef.current) {
+        consentsRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setHighlightConsents(true);
+        // Remove highlight after 3 seconds
+        setTimeout(() => setHighlightConsents(false), 3000);
+      }
       return;
     }
     setTermsError(undefined);
+    setHighlightConsents(false);
 
     // For click_to_pay (Clictopay), show confirmation modal BEFORE processing
     // This allows users to confirm they want to proceed with the redirect-based payment
@@ -400,11 +411,19 @@ export function BookingWizard({
               />
             </div>
             <CheckoutConsents
+              ref={consentsRef}
               termsAccepted={termsAccepted}
-              onTermsChange={setTermsAccepted}
+              onTermsChange={(accepted) => {
+                setTermsAccepted(accepted);
+                if (accepted) {
+                  setHighlightConsents(false);
+                  setTermsError(undefined);
+                }
+              }}
               marketingAccepted={marketingAccepted}
               onMarketingChange={setMarketingAccepted}
               termsError={termsError}
+              highlight={highlightConsents}
             />
           </div>
         );
