@@ -160,6 +160,21 @@ export async function getBrandPillarsData(locale?: string) {
 }
 
 /**
+ * Get contact information from platform settings.
+ * Returns default values if settings cannot be fetched.
+ */
+export async function getContactInfo(locale?: string) {
+  const settings = await getPlatformSettings(locale);
+
+  return {
+    supportEmail: settings?.data?.contact?.supportEmail ?? 'contact@go-adventure.net',
+    generalEmail: settings?.data?.contact?.generalEmail ?? null,
+    phone: settings?.data?.contact?.phone ?? null,
+    whatsapp: settings?.data?.contact?.whatsapp ?? null,
+  };
+}
+
+/**
  * Get Featured Destinations from platform settings.
  * Returns empty array if settings cannot be fetched (frontend will use hardcoded defaults).
  */

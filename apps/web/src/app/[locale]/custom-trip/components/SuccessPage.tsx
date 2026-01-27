@@ -6,15 +6,36 @@ import { Link } from '@/i18n/navigation';
 import { Button } from '@go-adventure/ui';
 import { CheckCircle, Mail, Clock, Home, PhoneCall, MessageCircle } from 'lucide-react';
 
+interface ContactInfo {
+  supportEmail: string;
+  generalEmail: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+}
+
 interface SuccessPageProps {
   reference: string;
   email: string;
+  contactInfo: ContactInfo;
 }
 
-export function SuccessPage({ reference, email }: SuccessPageProps) {
+/**
+ * Format WhatsApp number for wa.me URL.
+ * Removes spaces, dashes, plus signs, and parentheses.
+ * Example: "+216 52 665 202" → "21652665202"
+ */
+function formatWhatsAppNumber(phone: string | null): string {
+  if (!phone) return '';
+  return phone.replace(/[\s\-\+\(\)]/g, '');
+}
+
+export function SuccessPage({ reference, email, contactInfo }: SuccessPageProps) {
   const params = useParams();
   const locale = params?.locale as string;
   const t = useTranslations('customTrip.success');
+
+  // Format WhatsApp number for wa.me URL
+  const whatsappNumber = formatWhatsAppNumber(contactInfo.whatsapp);
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center">
@@ -97,22 +118,24 @@ export function SuccessPage({ reference, email }: SuccessPageProps) {
               {t('back_home')}
             </Button>
           </Link>
-          <a href="https://wa.me/21600000000" target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" size="lg" className="w-full sm:w-auto">
-              <MessageCircle className="w-5 h-5 mr-2" />
-              {t('contact_whatsapp')}
-            </Button>
-          </a>
+          {whatsappNumber && (
+            <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                <MessageCircle className="w-5 h-5 mr-2" />
+                {t('contact_whatsapp')}
+              </Button>
+            </a>
+          )}
         </div>
 
         {/* Contact Info */}
         <div className="mt-8 pt-8 border-t border-gray-200">
           <p className="text-sm text-gray-500 mb-2">{t('questions')}</p>
           <a
-            href="mailto:contact@go-adventure.net"
+            href={`mailto:${contactInfo.supportEmail}`}
             className="text-primary hover:text-primary/80 font-medium"
           >
-            contact@go-adventure.net
+            {contactInfo.supportEmail}
           </a>
         </div>
       </div>

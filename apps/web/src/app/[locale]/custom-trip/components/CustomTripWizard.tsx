@@ -60,7 +60,18 @@ export interface SubmissionResult {
   email: string;
 }
 
-export function CustomTripWizard() {
+export interface ContactInfo {
+  supportEmail: string;
+  generalEmail: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+}
+
+interface CustomTripWizardProps {
+  contactInfo: ContactInfo;
+}
+
+export function CustomTripWizard({ contactInfo }: CustomTripWizardProps) {
   const params = useParams();
   const locale = (params?.locale as string) || 'en';
   const t = useTranslations('customTrip');
@@ -167,7 +178,13 @@ export function CustomTripWizard() {
   };
 
   if (currentStep === 'success' && submissionResult) {
-    return <SuccessPage reference={submissionResult.reference} email={submissionResult.email} />;
+    return (
+      <SuccessPage
+        reference={submissionResult.reference}
+        email={submissionResult.email}
+        contactInfo={contactInfo}
+      />
+    );
   }
 
   return (
