@@ -159,11 +159,12 @@ Route::prefix('v1')->group(function () {
     // Payment methods (public)
     Route::get('/payment/methods', [PaymentController::class, 'availableMethods']);
 
-    // Booking creation (supports both authenticated users and guest checkout)
+    // Booking creation and payment (supports both authenticated users and guest checkout)
     // Uses optional.auth middleware to link user_id when authenticated
     Route::post('/bookings', [BookingController::class, 'store'])
         ->middleware('optional.auth');
-    Route::post('/bookings/{booking}/pay', [PaymentController::class, 'processPayment']);
+    Route::post('/bookings/{booking}/pay', [PaymentController::class, 'processPayment'])
+        ->middleware('optional.auth');
     Route::get('/bookings/{booking}/payment-status', [PaymentController::class, 'paymentStatus']);
 
     // Guest booking access (via session_id header or query param)
