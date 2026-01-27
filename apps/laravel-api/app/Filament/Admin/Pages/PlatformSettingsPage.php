@@ -124,6 +124,7 @@ class PlatformSettingsPage extends Page implements HasForms
                         $this->platformIdentityTab(),
                         $this->logoBrandingTab(),
                         $this->eventOfYearTab(),
+                        $this->featuredDestinationsTab(),
                         $this->seoMetadataTab(),
                         $this->contactInformationTab(),
                         $this->physicalAddressTab(),
@@ -533,6 +534,46 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->image()
                             ->maxSize(5120)
                             ->helperText('Recommended: 1200x600 or 16:9 aspect ratio. Max 5MB.'),
+                    ]),
+            ]);
+    }
+
+    protected function featuredDestinationsTab(): Forms\Components\Tabs\Tab
+    {
+        return Forms\Components\Tabs\Tab::make('Destinations')
+            ->icon('heroicon-o-map')
+            ->schema([
+                Forms\Components\Section::make('Featured Destinations')
+                    ->description('Manage destinations displayed in the "La Tunisie vous attend" bento grid on the homepage. Add 3 destinations for best visual results.')
+                    ->schema([
+                        Forms\Components\Repeater::make('featured_destinations')
+                            ->label('Destinations')
+                            ->schema([
+                                Forms\Components\TextInput::make('id')
+                                    ->label('Slug/ID')
+                                    ->required()
+                                    ->helperText('Used in URL, e.g., houmet-souk'),
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Display Name')
+                                    ->required(),
+                                Forms\Components\TextInput::make('description_en')
+                                    ->label('Description (English)')
+                                    ->required(),
+                                Forms\Components\TextInput::make('description_fr')
+                                    ->label('Description (Français)')
+                                    ->required(),
+                                Forms\Components\TextInput::make('image')
+                                    ->label('Image Path')
+                                    ->required()
+                                    ->placeholder('/images/destinations/houmet-souk.jpg')
+                                    ->helperText('Path to image in public/images/destinations/'),
+                            ])
+                            ->columns(2)
+                            ->reorderable()
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                            ->defaultItems(0)
+                            ->maxItems(6),
                     ]),
             ]);
     }

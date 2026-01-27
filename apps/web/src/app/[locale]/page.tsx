@@ -19,22 +19,31 @@ import {
   getFeaturedListings,
   getHeroData,
   getBrandPillarsData,
+  getFeaturedDestinations,
 } from '@/lib/api/server';
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // Fetch branding, event of year, hero text, pillar text, CMS content, and featured listings in parallel
-  const [branding, eventOfYear, heroData, brandPillarsData, cmsPage, featuredListings] =
-    await Promise.all([
-      getBrandingUrls(locale),
-      getEventOfYearData(locale),
-      getHeroData(locale),
-      getBrandPillarsData(locale),
-      getPageByCode({ code: 'HOME', locale }).catch(() => null),
-      getFeaturedListings(3),
-    ]);
+  // Fetch branding, event of year, hero text, pillar text, CMS content, featured listings, and destinations in parallel
+  const [
+    branding,
+    eventOfYear,
+    heroData,
+    brandPillarsData,
+    cmsPage,
+    featuredListings,
+    featuredDestinations,
+  ] = await Promise.all([
+    getBrandingUrls(locale),
+    getEventOfYearData(locale),
+    getHeroData(locale),
+    getBrandPillarsData(locale),
+    getPageByCode({ code: 'HOME', locale }).catch(() => null),
+    getFeaturedListings(3),
+    getFeaturedDestinations(locale),
+  ]);
 
   return (
     <MainLayout locale={locale}>
@@ -58,7 +67,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <PromoBannerSection locale={locale} eventOfYear={eventOfYear} />
           <ExperienceCategoriesSection />
           <TestimonialsSection />
-          <DestinationsBentoGrid locale={locale} />
+          <DestinationsBentoGrid locale={locale} cmsDestinations={featuredDestinations} />
           <CTASectionWithBlobs locale={locale} />
         </>
       )}

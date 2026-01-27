@@ -5,7 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 
-const destinations = [
+// Default hardcoded destinations (fallback when CMS is empty)
+const defaultDestinations = [
   {
     id: 'houmet-souk',
     name: 'Houmet Souk',
@@ -35,6 +36,19 @@ const destinations = [
   },
 ];
 
+// Default blur placeholder for CMS images
+const DEFAULT_BLUR =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mN8/+H9fwYiAeOoQvoqABtS0HlJIZvxAAAAAElFTkSuQmCC';
+
+// CMS destination interface (from platform settings)
+interface CmsDestination {
+  id: string;
+  name: string;
+  description_en: string;
+  description_fr: string;
+  image: string;
+}
+
 // Grid positions - defines the layout
 // Position 0: Big featured (left side, spans 2 rows)
 // Position 1: Top-right small (1x1)
@@ -50,10 +64,24 @@ const ROTATION_INTERVAL = 3000; // 3 seconds between rotations
 
 interface DestinationsBentoGridProps {
   locale: string;
+  cmsDestinations?: CmsDestination[];
 }
 
-export function DestinationsBentoGrid({ locale }: DestinationsBentoGridProps) {
+export function DestinationsBentoGrid({ locale, cmsDestinations }: DestinationsBentoGridProps) {
   const t = useTranslations('home');
+
+  // Transform CMS data or use hardcoded defaults
+  const destinations =
+    cmsDestinations && cmsDestinations.length > 0
+      ? cmsDestinations.map((d) => ({
+          id: d.id,
+          name: d.name,
+          description: d.description_en,
+          descriptionFr: d.description_fr,
+          image: d.image,
+          blurDataURL: DEFAULT_BLUR,
+        }))
+      : defaultDestinations;
   const [rotationOffset, setRotationOffset] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const isPausedRef = useRef(false);

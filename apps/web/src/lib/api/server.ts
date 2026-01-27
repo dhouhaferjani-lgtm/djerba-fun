@@ -160,6 +160,24 @@ export async function getBrandPillarsData(locale?: string) {
 }
 
 /**
+ * Get Featured Destinations from platform settings.
+ * Returns empty array if settings cannot be fetched (frontend will use hardcoded defaults).
+ */
+export async function getFeaturedDestinations(locale?: string) {
+  const settings = await getPlatformSettings(locale);
+  const destinations = (settings?.data as Record<string, unknown>)?.featuredDestinations;
+  return (
+    (destinations as Array<{
+      id: string;
+      name: string;
+      description_en: string;
+      description_fr: string;
+      image: string;
+    }>) ?? []
+  );
+}
+
+/**
  * Fetch featured listings from the API (server-side).
  * Returns listings marked as featured by admin for the home page.
  */

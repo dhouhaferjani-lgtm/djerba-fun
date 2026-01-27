@@ -194,6 +194,7 @@ class PlatformSettingsService
                     'description' => $s->getTranslation('pillar_3_description', $locale),
                 ],
             ],
+            'featuredDestinations' => $s->featured_destinations ?? [],
         ];
     }
 
