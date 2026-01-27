@@ -594,11 +594,8 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->image()
                                     ->directory('destinations')
                                     ->disk('public')
-                                    ->imageResizeMode('cover')
-                                    ->imageCropAspectRatio('16:9')
-                                    ->imageResizeTargetWidth(1200)
-                                    ->imageResizeTargetHeight(675)
-                                    ->helperText('Recommended: 1200x675px (16:9 ratio)'),
+                                    ->maxSize(5120)
+                                    ->helperText('Recommended: 1200x675px (16:9 ratio). Max 5MB.'),
                             ])
                             ->columns(2)
                             ->reorderable()
