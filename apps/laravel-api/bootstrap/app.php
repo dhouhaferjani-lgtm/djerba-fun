@@ -15,10 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trust all proxies (required for signed URL validation behind reverse proxy)
         $middleware->trustProxies(at: '*');
 
-        // Register partner middleware aliases
+        // Register middleware aliases
         $middleware->alias([
             'partner.auth' => \App\Http\Middleware\PartnerAuthMiddleware::class,
             'partner.audit' => \App\Http\Middleware\PartnerAuditMiddleware::class,
+            'optional.auth' => \App\Http\Middleware\OptionalAuth::class,
         ]);
 
         // Apply SetLocaleFromHeader and DetectUserCurrency middleware to API routes
