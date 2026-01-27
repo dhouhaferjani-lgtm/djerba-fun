@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -39,7 +40,14 @@ class OptionalAuth
 
                     // Only set if user exists (could be deleted)
                     if ($user) {
+                        // Set user on the auth guard (makes auth()->user() and $request->user() work)
+                        Auth::guard('sanctum')->setUser($user);
+
+                        // Also set the user resolver on the request for compatibility
                         $request->setUserResolver(fn () => $user);
+
+                        // Update last_used_at on the token
+                        $accessToken->forceFill(['last_used_at' => now()])->save();
                     }
                 }
             } catch (\Throwable $e) {
