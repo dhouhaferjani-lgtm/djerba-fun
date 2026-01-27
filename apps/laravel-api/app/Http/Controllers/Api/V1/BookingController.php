@@ -30,14 +30,28 @@ class BookingController extends Controller
     /**
      * List user's bookings.
      *
+     * Includes both:
+     * - Bookings directly owned by user (user_id matches)
+     * - Guest bookings where billing email matches user's email
+     *
      * Performance optimizations:
      * - Eager loading relationships with specific column selection
      * - Select only required columns from bookings table
      */
     public function index(Request $request): JsonResponse
     {
+        $user = $request->user();
+
         $bookings = Booking::query()
-            ->forUser($request->user()->id)
+            ->where(function ($query) use ($user) {
+                // Direct ownership (user_id matches)
+                $query->where('user_id', $user->id)
+                    // OR email-based match for guest bookings
+                    ->orWhere(function ($q) use ($user) {
+                        $q->whereNull('user_id')
+                          ->whereRaw("LOWER(billing_contact->>'email') = ?", [strtolower($user->email)]);
+                    });
+            })
             ->selectApi() // Use model scope to prevent column mismatch issues
             // Performance: Eager load relationships with column selection to prevent N+1 queries
             ->with([

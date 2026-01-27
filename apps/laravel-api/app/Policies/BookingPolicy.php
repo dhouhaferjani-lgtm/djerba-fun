@@ -10,11 +10,30 @@ use App\Models\User;
 class BookingPolicy
 {
     /**
+     * Check if user owns the booking via user_id OR email match.
+     */
+    private function userOwnsBooking(User $user, Booking $booking): bool
+    {
+        // Direct ownership (user_id matches)
+        if ($user->id === $booking->user_id) {
+            return true;
+        }
+
+        // Email-based access (guest bookings with matching email)
+        $billingEmail = $booking->billing_contact['email'] ?? null;
+        if ($billingEmail && strtolower($user->email) === strtolower($billingEmail)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Determine if the user can view the booking.
      */
     public function view(User $user, Booking $booking): bool
     {
-        return $user->id === $booking->user_id;
+        return $this->userOwnsBooking($user, $booking);
     }
 
     /**
@@ -22,7 +41,7 @@ class BookingPolicy
      */
     public function cancel(User $user, Booking $booking): bool
     {
-        return $user->id === $booking->user_id && $booking->canBeCancelled();
+        return $this->userOwnsBooking($user, $booking) && $booking->canBeCancelled();
     }
 
     /**
@@ -30,6 +49,6 @@ class BookingPolicy
      */
     public function pay(User $user, Booking $booking): bool
     {
-        return $user->id === $booking->user_id && ! $booking->isConfirmed() && ! $booking->isCancelled();
+        return $this->userOwnsBooking($user, $booking) && ! $booking->isConfirmed() && ! $booking->isCancelled();
     }
 }
