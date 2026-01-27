@@ -8,6 +8,8 @@ use App\Models\PlatformSettings;
 use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -558,7 +560,7 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->label('Display Name')
                                     ->required()
                                     ->live(debounce: 500)
-                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state) {
+                                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
                                         $currentSlug = $get('id');
                                         $newSlug = \Illuminate\Support\Str::slug($state ?? '');
                                         $autoSlug = $get('_auto_slug');
