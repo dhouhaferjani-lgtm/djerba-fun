@@ -549,24 +549,54 @@ class PlatformSettingsPage extends Page implements HasForms
                         Forms\Components\Repeater::make('featured_destinations')
                             ->label('Destinations')
                             ->schema([
+                                // Hidden field to track auto-generated slug
+                                Forms\Components\Hidden::make('_auto_slug')
+                                    ->dehydrated(false),
+
+                                // Display Name - triggers slug auto-generation
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Display Name')
+                                    ->required()
+                                    ->live(debounce: 500)
+                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state) {
+                                        $currentSlug = $get('id');
+                                        $newSlug = \Illuminate\Support\Str::slug($state ?? '');
+                                        $autoSlug = $get('_auto_slug');
+
+                                        // Only auto-update if slug is empty or matches previous auto-slug
+                                        if (empty($currentSlug) || $currentSlug === $autoSlug) {
+                                            $set('id', $newSlug);
+                                            $set('_auto_slug', $newSlug);
+                                        }
+                                    }),
+
+                                // Slug/ID - auto-generated but editable
                                 Forms\Components\TextInput::make('id')
                                     ->label('Slug/ID')
                                     ->required()
-                                    ->helperText('Used in URL, e.g., houmet-souk'),
-                                Forms\Components\TextInput::make('name')
-                                    ->label('Display Name')
-                                    ->required(),
+                                    ->helperText('Auto-generated from name. Used in URL, e.g., houmet-souk')
+                                    ->rules(['regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/']),
+
                                 Forms\Components\TextInput::make('description_en')
                                     ->label('Description (English)')
                                     ->required(),
+
                                 Forms\Components\TextInput::make('description_fr')
                                     ->label('Description (Français)')
                                     ->required(),
-                                Forms\Components\TextInput::make('image')
-                                    ->label('Image Path')
+
+                                // File Upload instead of text input for image
+                                Forms\Components\FileUpload::make('image')
+                                    ->label('Image')
                                     ->required()
-                                    ->placeholder('/images/destinations/houmet-souk.jpg')
-                                    ->helperText('Path to image in public/images/destinations/'),
+                                    ->image()
+                                    ->directory('destinations')
+                                    ->disk('public')
+                                    ->imageResizeMode('cover')
+                                    ->imageCropAspectRatio('16:9')
+                                    ->imageResizeTargetWidth(1200)
+                                    ->imageResizeTargetHeight(675)
+                                    ->helperText('Recommended: 1200x675px (16:9 ratio)'),
                             ])
                             ->columns(2)
                             ->reorderable()

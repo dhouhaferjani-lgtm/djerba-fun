@@ -194,7 +194,14 @@ class PlatformSettingsService
                     'description' => $s->getTranslation('pillar_3_description', $locale),
                 ],
             ],
-            'featuredDestinations' => $s->featured_destinations ?? [],
+            'featuredDestinations' => collect($s->featured_destinations ?? [])->map(function ($dest) {
+                // Convert relative image paths to full URLs
+                if (! empty($dest['image']) && ! str_starts_with($dest['image'], 'http')) {
+                    $dest['image'] = asset('storage/'.$dest['image']);
+                }
+
+                return $dest;
+            })->values()->toArray(),
         ];
     }
 
