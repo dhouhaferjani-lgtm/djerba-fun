@@ -129,7 +129,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       {/* 1. Hero Section */}
       <section className="relative min-h-[500px] flex items-center justify-center">
         <Image
-          src="/images/about/hero-banner.png"
+          src="/images/about/hero-banner.jpg"
           alt="About Go Adventure"
           fill
           className="object-cover"
