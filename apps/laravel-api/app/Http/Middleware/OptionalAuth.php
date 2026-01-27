@@ -34,16 +34,18 @@ class OptionalAuth
                 $accessToken = PersonalAccessToken::findToken($token);
 
                 if ($accessToken && ! $this->isTokenExpired($accessToken)) {
-                    // Set the authenticated user on the request
-                    $request->setUserResolver(fn () => $accessToken->tokenable);
+                    // Get the user (handles lazy loading)
+                    $user = $accessToken->tokenable;
 
-                    // Also update the auth guard
-                    auth()->setUser($accessToken->tokenable);
+                    // Only set if user exists (could be deleted)
+                    if ($user) {
+                        $request->setUserResolver(fn () => $user);
+                    }
                 }
             } catch (\Throwable $e) {
                 // If token lookup fails (DB error, etc.), continue as guest
                 // This ensures checkout never breaks due to auth issues
-                report($e); // Log the error for debugging
+                report($e);
             }
         }
 
