@@ -145,19 +145,19 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         </div>
       </section>
 
-      {/* 2. L'Aventurier Section */}
-      <section className="bg-primary py-16">
+      {/* 2. L'Aventurier Section - Cream background with green text */}
+      <section className="bg-[#f5f0d1] py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <h2 className="text-primary-light text-2xl md:text-3xl font-bold text-center mb-12 uppercase tracking-wide">
+          <h2 className="text-primary text-2xl md:text-3xl font-bold text-center mb-12 uppercase tracking-wide">
             {t('our_story')}
           </h2>
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h3 className="text-4xl md:text-5xl font-bold text-white leading-tight">
+              <h3 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
                 {t('laventurier_heading')}
               </h3>
             </div>
-            <div className="text-white/90 space-y-6">
+            <div className="text-gray-700 space-y-6">
               <p className="text-lg">{t('laventurier_intro')}</p>
               <p className="text-lg">{t('laventurier_desc1')}</p>
               <p className="text-lg">{t('laventurier_desc2')}</p>
@@ -274,17 +274,17 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         </div>
       </section>
 
-      {/* 8. Partner Logos */}
+      {/* 8. Partner Logos - All on one line */}
       <section className="py-16 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <h2 className="text-2xl md:text-3xl font-bold text-primary text-center mb-12 uppercase">
             {t('partners')}
           </h2>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
+          <div className="flex justify-center items-center gap-4 md:gap-8 flex-nowrap overflow-x-auto pb-4">
             {partners.map((partner, index) => (
               <div
                 key={index}
-                className="relative w-24 h-24 md:w-32 md:h-32 hover:scale-110 transition-transform duration-300"
+                className="relative w-16 h-16 md:w-24 md:h-24 flex-shrink-0 hover:scale-110 transition-transform duration-300"
               >
                 <Image src={partner} alt={`Partner ${index + 1}`} fill className="object-contain" />
               </div>
