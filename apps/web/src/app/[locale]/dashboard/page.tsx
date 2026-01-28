@@ -32,6 +32,7 @@ export default function DashboardPage() {
   }
 
   const bookings = bookingsData?.data || [];
+  const totalBookings = bookingsData?.meta?.total ?? bookings.length;
   const upcomingBookings = bookings.filter(
     (b) => b.status === 'confirmed' && b.startsAt && new Date(b.startsAt) > new Date()
   );
@@ -95,7 +96,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">{t('total_bookings')}</p>
-                  <p className="text-3xl font-bold text-gray-900">{bookings.length}</p>
+                  <p className="text-3xl font-bold text-gray-900">{totalBookings}</p>
                 </div>
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                   <svg
