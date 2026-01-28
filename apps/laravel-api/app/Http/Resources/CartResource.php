@@ -32,8 +32,8 @@ class CartResource extends BaseResource
             'subtotal' => $this->getSubtotal(),
             'currency' => $this->getCurrency(),
             'items' => CartItemResource::collection($this->whenLoaded('items')),
-            'createdAt' => $this->created_at->toIso8601String(),
-            'updatedAt' => $this->updated_at->toIso8601String(),
+            'createdAt' => $this->created_at?->toIso8601String(),
+            'updatedAt' => $this->updated_at?->toIso8601String(),
         ];
     }
 }

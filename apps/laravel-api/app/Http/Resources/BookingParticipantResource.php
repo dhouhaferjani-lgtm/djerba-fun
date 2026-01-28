@@ -29,8 +29,8 @@ class BookingParticipantResource extends BaseResource
             'checkedIn' => $this->checked_in,
             'checkedInAt' => $this->checked_in_at?->toIso8601String(),
             'isComplete' => $this->isComplete(),
-            'createdAt' => $this->created_at->toIso8601String(),
-            'updatedAt' => $this->updated_at->toIso8601String(),
+            'createdAt' => $this->created_at?->toIso8601String(),
+            'updatedAt' => $this->updated_at?->toIso8601String(),
         ];
     }
 }

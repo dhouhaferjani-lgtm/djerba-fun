@@ -26,14 +26,14 @@ class BookingHoldResource extends BaseResource
             'priceSnapshot' => $this->price_snapshot ? (float) $this->price_snapshot : null,
             'pricingCountryCode' => $this->pricing_country_code,
             'pricingSource' => $this->pricing_source,
-            'expiresAt' => $this->expires_at->toIso8601String(),
-            'expiresInSeconds' => max(0, $this->expires_at->getTimestamp() - now()->getTimestamp()),
+            'expiresAt' => $this->expires_at?->toIso8601String(),
+            'expiresInSeconds' => $this->expires_at ? max(0, $this->expires_at->getTimestamp() - now()->getTimestamp()) : 0,
             'status' => $this->status->value,
             'statusLabel' => $this->status->label(),
             'isActive' => $this->isActive(),
             'slot' => new AvailabilitySlotResource($this->whenLoaded('slot')),
             'listing' => new ListingResource($this->whenLoaded('listing')),
-            'createdAt' => $this->created_at->toIso8601String(),
+            'createdAt' => $this->created_at?->toIso8601String(),
         ];
     }
 }

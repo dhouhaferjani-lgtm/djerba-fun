@@ -37,8 +37,8 @@ class CartItemResource extends BaseResource
             'requiresTravelerNames' => $this->requiresTravelerNames(),
             'hold' => new BookingHoldResource($this->whenLoaded('hold')),
             'listing' => new ListingResource($this->whenLoaded('listing')),
-            'createdAt' => $this->created_at->toIso8601String(),
-            'updatedAt' => $this->updated_at->toIso8601String(),
+            'createdAt' => $this->created_at?->toIso8601String(),
+            'updatedAt' => $this->updated_at?->toIso8601String(),
         ];
     }
 }

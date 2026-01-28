@@ -38,8 +38,8 @@ class BookingResource extends BaseResource
             'confirmedAt' => $this->confirmed_at?->toIso8601String(),
             'cancelledAt' => $this->cancelled_at?->toIso8601String(),
             'cancellationReason' => $this->cancellation_reason,
-            'createdAt' => $this->created_at->toIso8601String(),
-            'updatedAt' => $this->updated_at->toIso8601String(),
+            'createdAt' => $this->created_at?->toIso8601String(),
+            'updatedAt' => $this->updated_at?->toIso8601String(),
 
             // Relationships
             'user' => new UserResource($this->whenLoaded('user')),

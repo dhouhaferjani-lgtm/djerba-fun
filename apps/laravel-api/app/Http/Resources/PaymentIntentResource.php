@@ -29,8 +29,8 @@ class PaymentIntentResource extends BaseResource
             'metadata' => is_array($this->metadata) ? $this->toCamelCase($this->metadata) : $this->metadata,
             'paidAt' => $this->paid_at?->toIso8601String(),
             'failedAt' => $this->failed_at?->toIso8601String(),
-            'createdAt' => $this->created_at->toIso8601String(),
-            'updatedAt' => $this->updated_at->toIso8601String(),
+            'createdAt' => $this->created_at?->toIso8601String(),
+            'updatedAt' => $this->updated_at?->toIso8601String(),
         ];
     }
 }
