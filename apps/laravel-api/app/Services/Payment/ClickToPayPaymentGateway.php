@@ -63,6 +63,7 @@ class ClickToPayPaymentGateway implements PaymentGateway
                 'amount_in_millimes' => $amountInMillimes,
                 'test_mode' => $this->isTestMode(),
                 'created_at' => now()->toIso8601String(),
+                'cart_payment_id' => $options['cart_payment_id'] ?? null,
             ],
         ]);
 
