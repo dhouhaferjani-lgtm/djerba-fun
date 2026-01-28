@@ -60,7 +60,7 @@ class BookingResource extends BaseResource
             // Convenience aliases for frontend compatibility
             'code' => $this->booking_number,
             'guests' => $this->quantity,
-            'startsAt' => $this->whenLoaded('availabilitySlot', fn () => $this->availabilitySlot?->date?->copy()->setTimeFrom($this->availabilitySlot->start_time)->toIso8601String()),
+            'startsAt' => $this->whenLoaded('availabilitySlot', fn () => $this->availabilitySlot?->date?->copy()?->setTimeFrom($this->availabilitySlot?->start_time)?->toIso8601String()),
         ];
     }
 
