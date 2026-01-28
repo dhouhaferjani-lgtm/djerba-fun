@@ -37,6 +37,14 @@ class BookingPolicy
     }
 
     /**
+     * Determine if the user can update booking participants.
+     */
+    public function update(User $user, Booking $booking): bool
+    {
+        return $this->userOwnsBooking($user, $booking);
+    }
+
+    /**
      * Determine if the user can cancel the booking.
      */
     public function cancel(User $user, Booking $booking): bool
