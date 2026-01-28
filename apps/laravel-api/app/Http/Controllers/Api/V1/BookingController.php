@@ -41,15 +41,20 @@ class BookingController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        $userEmail = strtolower(trim($user->email));
 
         $bookings = Booking::query()
-            ->where(function ($query) use ($user) {
+            ->where(function ($query) use ($user, $userEmail) {
                 // Direct ownership (user_id matches)
                 $query->where('user_id', $user->id)
-                    // OR email-based match for guest bookings
-                    ->orWhere(function ($q) use ($user) {
+                    // OR email-based match for guest bookings (with robust matching)
+                    ->orWhere(function ($q) use ($userEmail) {
                         $q->whereNull('user_id')
-                          ->whereRaw("LOWER(billing_contact->>'email') = ?", [strtolower($user->email)]);
+                            ->where(function ($emailQuery) use ($userEmail) {
+                                // Try multiple email extraction methods for robustness
+                                $emailQuery->whereRaw("LOWER(TRIM(billing_contact->>'email')) = ?", [$userEmail])
+                                    ->orWhereRaw("LOWER(TRIM(traveler_info->>'email')) = ?", [$userEmail]);
+                            });
                     });
             })
             ->selectApi() // Use model scope to prevent column mismatch issues
@@ -59,7 +64,7 @@ class BookingController extends Controller
                 'listing.location:id,uuid,name,slug,city',
                 'listing.vendor:id,uuid',
                 'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
-                'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at'
+                'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at',
             ])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
@@ -86,12 +91,22 @@ class BookingController extends Controller
         // Performance: Eager load with specific columns
         $hold = BookingHold::with([
             'slot:id,listing_id,date,start_time,end_time,capacity,remaining_capacity',
-            'listing:id,uuid,vendor_id,location_id,title,slug,pricing,service_type,status,require_traveler_names'
+            'listing:id,uuid,vendor_id,location_id,title,slug,pricing,service_type,status,require_traveler_names',
         ])->findOrFail($request->input('hold_id'));
 
         // Verify hold ownership: either authenticated user owns it, or guest has matching session_id
         $userId = $request->user()?->id;
         $sessionId = $request->input('session_id');
+
+        // Diagnostic logging to track auth state during booking creation
+        Log::info('BookingController::store - Creating booking', [
+            'has_user' => $request->user() !== null,
+            'user_id' => $userId,
+            'user_email' => $request->user()?->email,
+            'hold_id' => $request->input('hold_id'),
+            'hold_user_id' => $hold->user_id,
+            'session_id' => $sessionId,
+        ]);
 
         $isOwner = ($userId && $hold->user_id === $userId) ||
                    ($sessionId && $hold->session_id === $sessionId);
@@ -124,7 +139,7 @@ class BookingController extends Controller
             'listing.location:id,uuid,name,slug,city',
             'listing.vendor:id,uuid',
             'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
-            'user:id,uuid,first_name,last_name,email'
+            'user:id,uuid,first_name,last_name,email',
         ]);
 
         return response()->json([
@@ -150,7 +165,7 @@ class BookingController extends Controller
             'listing.vendor:id,uuid',
             'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
             'user:id,uuid,first_name,last_name,email',
-            'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at'
+            'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at',
         ]);
 
         return response()->json([
@@ -180,7 +195,7 @@ class BookingController extends Controller
             'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
             'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at',
             'participants:id,booking_id,first_name,last_name,email,phone,age,badge_number',
-            'bookingExtras.extra:id,listing_id,name,description,price,currency'
+            'bookingExtras.extra:id,listing_id,name,description,price,currency',
         ]);
 
         return response()->json([

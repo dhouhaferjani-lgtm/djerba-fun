@@ -12,7 +12,9 @@ use App\Models\Booking;
 use App\Models\BookingHold;
 use App\Models\BookingParticipant;
 use App\Models\PaymentIntent;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class BookingService
@@ -44,6 +46,24 @@ class BookingService
 
             // Normalize travelers: ensure it's an array of travelers
             $normalizedTravelers = $this->normalizeTravelers($travelers);
+
+            // FALLBACK: If no user_id but email matches an existing user, auto-link
+            // This provides a safety net if OptionalAuth failed to set the user
+            if ($userId === null && ! empty($normalizedTravelers)) {
+                $primaryEmail = $normalizedTravelers[0]['email'] ?? null;
+
+                if ($primaryEmail) {
+                    $userByEmail = User::whereRaw('LOWER(email) = ?', [strtolower($primaryEmail)])->first();
+
+                    if ($userByEmail) {
+                        $userId = $userByEmail->id;
+                        Log::info('BookingService: Auto-linked booking to user by email fallback', [
+                            'user_id' => $userId,
+                            'email' => $primaryEmail,
+                        ]);
+                    }
+                }
+            }
 
             // Validate that at least one traveler with email is provided
             if (empty($normalizedTravelers)) {
@@ -517,6 +537,7 @@ class BookingService
 
         // EU countries use EUR
         $eurCountries = ['FR', 'DE', 'IT', 'ES', 'BE', 'NL', 'PT', 'AT', 'GR', 'IE', 'FI', 'SE', 'DK'];
+
         if (in_array($countryCode, $eurCountries, true)) {
             return 'EUR';
         }

@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -40,19 +41,38 @@ class OptionalAuth
 
                     // Only set if user exists (could be deleted)
                     if ($user) {
-                        // Set user on the auth guard (makes auth()->user() and $request->user() work)
+                        // CRITICAL: Set user on the auth guard FIRST
+                        // This makes auth()->user() and $request->user() work
                         Auth::guard('sanctum')->setUser($user);
 
                         // Also set the user resolver on the request for compatibility
                         $request->setUserResolver(fn () => $user);
 
-                        // Update last_used_at on the token
-                        $accessToken->forceFill(['last_used_at' => now()])->save();
+                        Log::debug('OptionalAuth: User authenticated', [
+                            'user_id' => $user->id,
+                            'email' => $user->email,
+                        ]);
+
+                        // Update last_used_at SEPARATELY (non-critical operation)
+                        // If this fails, user is still authenticated
+                        try {
+                            $accessToken->forceFill(['last_used_at' => now()])->save();
+                        } catch (\Throwable $e) {
+                            Log::warning('OptionalAuth: Failed to update token last_used_at', [
+                                'token_id' => $accessToken->id,
+                                'error' => $e->getMessage(),
+                            ]);
+                            // Don't fail - user is still authenticated
+                        }
                     }
                 }
             } catch (\Throwable $e) {
                 // If token lookup fails (DB error, etc.), continue as guest
                 // This ensures checkout never breaks due to auth issues
+                Log::error('OptionalAuth: Token validation failed', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
                 report($e);
             }
         }

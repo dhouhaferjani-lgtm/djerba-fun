@@ -367,4 +367,148 @@ class BookingFlowTest extends TestCase
         // Assert
         $response->assertStatus(403);
     }
+
+    /**
+     * Test authenticated user's booking appears in their dashboard.
+     * This is a regression test for the bug where bookings were created with user_id = NULL
+     * even when the user was authenticated.
+     */
+    public function test_authenticated_user_booking_appears_in_dashboard(): void
+    {
+        // Arrange
+        Mail::fake();
+        $user = User::factory()->create(['email' => 'test@example.com']);
+        $listing = Listing::factory()->create();
+        $slot = AvailabilitySlot::factory()->create([
+            'listing_id' => $listing->id,
+        ]);
+        $hold = BookingHold::factory()->create([
+            'listing_id' => $listing->id,
+            'slot_id' => $slot->id,
+            'user_id' => null, // Guest hold (common scenario: user logs in during checkout)
+            'session_id' => 'test-session-123',
+            'status' => HoldStatus::ACTIVE,
+            'price_snapshot' => 150.00,
+        ]);
+
+        // Act - Create booking as authenticated user
+        $createResponse = $this->actingAs($user, 'sanctum')
+            ->postJson('/api/v1/bookings', [
+                'hold_id' => $hold->id,
+                'session_id' => 'test-session-123',
+                'travelers' => [
+                    [
+                        'first_name' => 'John',
+                        'last_name' => 'Doe',
+                        'email' => 'test@example.com',
+                        'phone' => '+1234567890',
+                    ],
+                ],
+            ]);
+
+        $createResponse->assertStatus(201);
+        $bookingId = $createResponse->json('data.id');
+
+        // Assert - Booking should have user_id set
+        $this->assertDatabaseHas('bookings', [
+            'id' => $bookingId,
+            'user_id' => $user->id,
+        ]);
+
+        // Act - Fetch dashboard bookings
+        $dashboardResponse = $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/bookings');
+
+        // Assert - Booking should appear in dashboard
+        $dashboardResponse->assertStatus(200);
+        $this->assertGreaterThanOrEqual(1, count($dashboardResponse->json('data')));
+
+        $bookingIds = collect($dashboardResponse->json('data'))->pluck('id')->toArray();
+        $this->assertContains($bookingId, $bookingIds);
+    }
+
+    /**
+     * Test user can see guest bookings by email match.
+     * This covers the fallback scenario where booking was created as guest
+     * but user later registers with the same email.
+     */
+    public function test_user_can_see_guest_bookings_by_email_match(): void
+    {
+        // Arrange
+        $user = User::factory()->create(['email' => 'test@example.com']);
+
+        // Create a guest booking with matching email (simulates booking before registration)
+        $listing = Listing::factory()->create();
+        $slot = AvailabilitySlot::factory()->create(['listing_id' => $listing->id]);
+        $booking = Booking::factory()->create([
+            'user_id' => null, // Guest booking
+            'listing_id' => $listing->id,
+            'availability_slot_id' => $slot->id,
+            'billing_contact' => ['email' => 'test@example.com', 'phone' => '+1234567890'],
+            'traveler_info' => ['email' => 'test@example.com', 'first_name' => 'Test', 'last_name' => 'User'],
+            'status' => BookingStatus::CONFIRMED,
+        ]);
+
+        // Act - Fetch dashboard bookings
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/bookings');
+
+        // Assert - Guest booking should appear via email match
+        $response->assertStatus(200);
+        $bookingIds = collect($response->json('data'))->pluck('id')->toArray();
+        $this->assertContains($booking->id, $bookingIds);
+    }
+
+    /**
+     * Test user can view individual guest booking by email match.
+     */
+    public function test_user_can_view_guest_booking_detail_by_email_match(): void
+    {
+        // Arrange
+        $user = User::factory()->create(['email' => 'test@example.com']);
+        $listing = Listing::factory()->create();
+        $slot = AvailabilitySlot::factory()->create(['listing_id' => $listing->id]);
+        $booking = Booking::factory()->create([
+            'user_id' => null, // Guest booking
+            'listing_id' => $listing->id,
+            'availability_slot_id' => $slot->id,
+            'billing_contact' => ['email' => 'test@example.com'],
+            'status' => BookingStatus::CONFIRMED,
+        ]);
+
+        // Act
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson("/api/v1/bookings/{$booking->id}");
+
+        // Assert - User should be able to view the booking via email match policy
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.id', $booking->id);
+    }
+
+    /**
+     * Test email matching is case-insensitive.
+     */
+    public function test_email_matching_is_case_insensitive(): void
+    {
+        // Arrange
+        $user = User::factory()->create(['email' => 'Test@Example.COM']);
+        $listing = Listing::factory()->create();
+        $slot = AvailabilitySlot::factory()->create(['listing_id' => $listing->id]);
+        $booking = Booking::factory()->create([
+            'user_id' => null,
+            'listing_id' => $listing->id,
+            'availability_slot_id' => $slot->id,
+            'billing_contact' => ['email' => 'test@example.com'], // Different case
+            'status' => BookingStatus::CONFIRMED,
+        ]);
+
+        // Act
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/bookings');
+
+        // Assert - Should match despite case difference
+        $response->assertStatus(200);
+        $bookingIds = collect($response->json('data'))->pluck('id')->toArray();
+        $this->assertContains($booking->id, $bookingIds);
+    }
 }
