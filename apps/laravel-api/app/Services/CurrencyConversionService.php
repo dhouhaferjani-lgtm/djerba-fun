@@ -63,7 +63,7 @@ class CurrencyConversionService
                     ->latest('created_at')
                     ->value('rate');
 
-                return $rate ?? $this->getDefaultRate($toCurrency);
+                return (float) ($rate ?? $this->getDefaultRate($toCurrency));
             }
 
             if ($toCurrency === self::BASE_CURRENCY) {
@@ -72,8 +72,8 @@ class CurrencyConversionService
                     ->latest('created_at')
                     ->value('rate');
 
-                if ($rate && $rate > 0) {
-                    return 1 / $rate;
+                if ($rate && (float) $rate > 0) {
+                    return 1 / (float) $rate;
                 }
 
                 $defaultRate = $this->getDefaultRate($fromCurrency);
