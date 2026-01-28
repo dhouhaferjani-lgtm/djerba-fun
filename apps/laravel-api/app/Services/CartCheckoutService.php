@@ -12,8 +12,10 @@ use App\Models\Booking;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\CartPayment;
+use App\Models\User;
 use App\Services\Payment\PaymentGatewayManager;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class CartCheckoutService
@@ -248,10 +250,36 @@ class CartCheckoutService
             }
         }
 
-        // Create the booking
+        // Resolve user_id: Use cart's user_id, or fallback to email-based matching
+        $userId = $cart->user_id;
+
+        // FALLBACK: If cart has no user_id but primary email matches a user, link them
+        // This provides a safety net for edge cases where the cart was created before login
+        if ($userId === null && ! empty($primaryContact['email'])) {
+            $userByEmail = User::whereRaw('LOWER(email) = ?', [strtolower($primaryContact['email'])])->first();
+
+            if ($userByEmail) {
+                $userId = $userByEmail->id;
+                Log::info('CartCheckoutService: Auto-linked booking to user by email fallback', [
+                    'user_id' => $userId,
+                    'email' => $primaryContact['email'],
+                ]);
+            }
+        }
+
+        // Diagnostic logging to track user linking
+        Log::info('CartCheckoutService: Creating booking from cart item', [
+            'cart_id' => $cart->id,
+            'cart_user_id' => $cart->user_id,
+            'resolved_user_id' => $userId,
+            'primary_email' => $primaryContact['email'] ?? null,
+            'session_id' => $cart->session_id,
+        ]);
+
+        // Create the booking with billing_contact for email matching in dashboard
         $booking = Booking::create([
             'booking_number' => $this->bookingService->generateBookingNumber(),
-            'user_id' => $cart->user_id,
+            'user_id' => $userId,
             'session_id' => $cart->session_id,
             'listing_id' => $item->listing_id,
             'availability_slot_id' => $hold->slot_id,
@@ -265,6 +293,13 @@ class CartCheckoutService
             'travelers' => $travelers,
             'extras' => $item->extras,
             'confirmed_at' => $status === BookingStatus::CONFIRMED ? now() : null,
+            // Add billing_contact for email-based matching in BookingController::index
+            'billing_contact' => [
+                'email' => $primaryContact['email'] ?? null,
+                'phone' => $primaryContact['phone'] ?? null,
+                'first_name' => $primaryContact['first_name'] ?? null,
+                'last_name' => $primaryContact['last_name'] ?? null,
+            ],
         ]);
 
         // Convert the hold

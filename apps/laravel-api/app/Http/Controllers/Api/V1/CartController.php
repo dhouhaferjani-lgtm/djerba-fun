@@ -15,6 +15,7 @@ use App\Models\CartItem;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CartController extends Controller
 {
@@ -94,6 +95,17 @@ class CartController extends Controller
 
         // Get or create cart
         $cart = $this->cartService->getOrCreateCart($user, $sessionId);
+
+        // Diagnostic logging to track user authentication in cart flow
+        Log::info('CartController::addItem - Adding item to cart', [
+            'has_user' => $user !== null,
+            'user_id' => $user?->id,
+            'user_email' => $user?->email,
+            'session_id' => $sessionId,
+            'cart_id' => $cart->id,
+            'cart_user_id' => $cart->user_id,
+            'hold_id' => $hold->id,
+        ]);
 
         // Add item to cart
         $this->cartService->addItem($cart, $hold, $hold->listing);

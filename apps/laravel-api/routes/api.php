@@ -136,20 +136,23 @@ Route::prefix('v1')->group(function () {
     // Direct hold access by ID (for checkout page persistence)
     Route::get('/holds/{hold}', [HoldController::class, 'showById']);
 
-    // Cart routes (public - supports guest checkout with session_id)
-    Route::get('/cart', [CartController::class, 'show']);
-    Route::post('/cart/items', [CartController::class, 'addItem']);
-    Route::delete('/cart/items/{item}', [CartController::class, 'removeItem']);
-    Route::patch('/cart/items/{item}', [CartController::class, 'updateItem']);
-    Route::delete('/cart', [CartController::class, 'clear']);
-    Route::get('/cart/summary', [CartController::class, 'summary']);
-    Route::post('/cart/extend-holds', [CartController::class, 'extendHolds']);
+    // Cart routes (supports both authenticated users and guest checkout with session_id)
+    // Uses optional.auth middleware to link user_id when authenticated
+    Route::middleware('optional.auth')->group(function () {
+        Route::get('/cart', [CartController::class, 'show']);
+        Route::post('/cart/items', [CartController::class, 'addItem']);
+        Route::delete('/cart/items/{item}', [CartController::class, 'removeItem']);
+        Route::patch('/cart/items/{item}', [CartController::class, 'updateItem']);
+        Route::delete('/cart', [CartController::class, 'clear']);
+        Route::get('/cart/summary', [CartController::class, 'summary']);
+        Route::post('/cart/extend-holds', [CartController::class, 'extendHolds']);
 
-    // Cart checkout routes (public - supports guest checkout with session_id)
-    Route::post('/cart/checkout', [CartCheckoutController::class, 'initiateCheckout']);
-    Route::post('/cart/checkout/{payment}/pay', [CartCheckoutController::class, 'processPayment']);
-    Route::get('/cart/checkout/{payment}/status', [CartCheckoutController::class, 'status']);
-    Route::post('/cart/checkout/cancel', [CartCheckoutController::class, 'cancelCheckout']);
+        // Cart checkout routes
+        Route::post('/cart/checkout', [CartCheckoutController::class, 'initiateCheckout']);
+        Route::post('/cart/checkout/{payment}/pay', [CartCheckoutController::class, 'processPayment']);
+        Route::get('/cart/checkout/{payment}/status', [CartCheckoutController::class, 'status']);
+        Route::post('/cart/checkout/cancel', [CartCheckoutController::class, 'cancelCheckout']);
+    });
 
     // Checkout endpoints (public - for billing verification and pricing)
     Route::prefix('checkout')->group(function () {

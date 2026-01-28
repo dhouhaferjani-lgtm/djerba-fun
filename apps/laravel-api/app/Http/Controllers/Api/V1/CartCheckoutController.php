@@ -13,6 +13,7 @@ use App\Services\CartCheckoutService;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CartCheckoutController extends Controller
 {
@@ -31,6 +32,16 @@ class CartCheckoutController extends Controller
 
         // Get cart
         $cart = $this->cartService->getActiveCart($user, $sessionId);
+
+        // Diagnostic logging to track user authentication in checkout flow
+        Log::info('CartCheckoutController::initiateCheckout - Starting checkout', [
+            'has_user' => $user !== null,
+            'user_id' => $user?->id,
+            'user_email' => $user?->email,
+            'session_id' => $sessionId,
+            'cart_id' => $cart?->id,
+            'cart_user_id' => $cart?->user_id,
+        ]);
 
         if (! $cart) {
             return response()->json([
