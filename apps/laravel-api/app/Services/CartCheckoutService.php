@@ -12,6 +12,7 @@ use App\Models\Booking;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\CartPayment;
+use App\Models\PaymentGateway as PaymentGatewayModel;
 use App\Models\User;
 use App\Services\Payment\PaymentGatewayManager;
 use Illuminate\Support\Facades\DB;
@@ -96,8 +97,8 @@ class CartCheckoutService
         $paymentMethod = PaymentMethod::from($payment->payment_method);
 
         return match ($paymentMethod) {
+            PaymentMethod::CLICK_TO_PAY => $this->processClictopayPayment($payment, $cart, $paymentData),
             PaymentMethod::CARD,
-            PaymentMethod::CLICK_TO_PAY,
             PaymentMethod::MOCK => $this->processMockPayment($payment, $cart, $paymentData),
             PaymentMethod::BANK_TRANSFER,
             PaymentMethod::CASH_ON_ARRIVAL,
@@ -337,14 +338,116 @@ class CartCheckoutService
     protected function getGatewayForMethod(PaymentMethod $method): string
     {
         return match ($method) {
+            PaymentMethod::CLICK_TO_PAY => $this->isClictopayEnabled() ? 'clicktopay' : 'mock',
             PaymentMethod::CARD,
-            PaymentMethod::CLICK_TO_PAY,
             PaymentMethod::MOCK,
             PaymentMethod::FREE => 'mock',
             PaymentMethod::BANK_TRANSFER,
             PaymentMethod::CASH_ON_ARRIVAL,
             PaymentMethod::OFFLINE => 'offline',
         };
+    }
+
+    /**
+     * Check if Clictopay gateway is enabled and configured.
+     */
+    protected function isClictopayEnabled(): bool
+    {
+        $gateway = PaymentGatewayModel::where('driver', 'clicktopay')
+            ->where('is_enabled', true)
+            ->first();
+
+        if (! $gateway) {
+            return false;
+        }
+
+        $config = $gateway->configuration ?? [];
+
+        return ! empty($config['username']) && ! empty($config['password']);
+    }
+
+    /**
+     * Process Clictopay payment (redirect-based flow).
+     * Creates bookings first in PENDING_PAYMENT status, then redirects to Clictopay.
+     */
+    protected function processClictopayPayment(CartPayment $payment, Cart $cart, array $paymentData): array
+    {
+        // Check if Clictopay is enabled
+        if (! $this->isClictopayEnabled()) {
+            Log::info('Clictopay not enabled, falling back to mock payment');
+
+            return $this->processMockPayment($payment, $cart, $paymentData);
+        }
+
+        $payment->markAsProcessing();
+
+        try {
+            // Create bookings FIRST in PENDING_PAYMENT status (like offline flow)
+            // This is required because ClickToPayPaymentGateway::createIntent() expects a Booking object
+            $bookings = DB::transaction(function () use ($payment, $cart) {
+                return $this->createBookingsFromCart($cart, $payment, BookingStatus::PENDING_PAYMENT);
+            });
+
+            if (empty($bookings)) {
+                throw new \Exception('Failed to create bookings from cart');
+            }
+
+            // Use the first booking for Clictopay registration
+            $primaryBooking = $bookings[0];
+
+            $gateway = $this->gatewayManager->gateway('clicktopay');
+
+            // Create PaymentIntent via Clictopay (registers with API, gets formUrl)
+            $intent = $gateway->createIntent($primaryBooking, [
+                'payment_method' => PaymentMethod::CLICK_TO_PAY->value,
+                'cart_payment_id' => $payment->id,
+            ]);
+
+            $redirectUrl = $gateway->getPaymentUrl($intent);
+
+            if ($redirectUrl && $intent->status !== PaymentStatus::FAILED) {
+                Log::info('Clictopay cart payment registered successfully', [
+                    'cart_payment_id' => $payment->id,
+                    'booking_id' => $primaryBooking->id,
+                    'redirect_url' => $redirectUrl,
+                ]);
+
+                return [
+                    'success' => true,
+                    'requires_redirect' => true,
+                    'redirect_url' => $redirectUrl,
+                    'payment_id' => $payment->id,
+                    'message' => 'Redirect to payment gateway required.',
+                ];
+            }
+
+            // Registration failed - cancel pending bookings
+            Log::warning('Clictopay registration failed, cancelling pending bookings', [
+                'cart_payment_id' => $payment->id,
+            ]);
+
+            foreach ($bookings as $booking) {
+                $booking->update(['status' => BookingStatus::CANCELLED]);
+            }
+            $payment->markAsFailed('Payment gateway initialization failed');
+
+            return [
+                'success' => false,
+                'message' => 'Payment gateway initialization failed. Please try again.',
+            ];
+        } catch (\Exception $e) {
+            Log::error('Clictopay cart payment error', [
+                'cart_payment_id' => $payment->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            $payment->markAsFailed($e->getMessage());
+
+            return [
+                'success' => false,
+                'message' => 'Payment processing failed. Please try again.',
+            ];
+        }
     }
 
     /**

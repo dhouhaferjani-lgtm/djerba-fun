@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
+use App\Mail\BookingConfirmationMail;
+use App\Models\CartPayment;
 use App\Models\PaymentIntent;
 use App\Services\BookingService;
 use App\Services\Payment\ClickToPayPaymentGateway;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Handle Clictopay payment callbacks.
@@ -51,8 +55,55 @@ class ClictopayCallbackController extends Controller
             // Process payment (verify status with Clictopay API)
             $intent = $this->gateway->processPayment($intent, $request->all());
 
-            // If payment succeeded, confirm the booking
+            // If payment succeeded, confirm the booking(s)
             if ($intent->isSuccessful()) {
+                // Check if this is a cart payment (has cart_payment_id in metadata)
+                $cartPaymentId = $intent->metadata['cart_payment_id'] ?? null;
+
+                if ($cartPaymentId) {
+                    // Cart payment flow - confirm all cart bookings
+                    $cartPayment = CartPayment::find($cartPaymentId);
+
+                    if ($cartPayment) {
+                        $cartPayment->markAsSucceeded($intent->gateway_id);
+
+                        foreach ($cartPayment->bookings as $booking) {
+                            if ($booking->status === BookingStatus::PENDING_PAYMENT) {
+                                $booking->update([
+                                    'status' => BookingStatus::CONFIRMED,
+                                    'confirmed_at' => now(),
+                                ]);
+
+                                // Send confirmation email
+                                $email = $booking->getPrimaryEmail();
+                                if ($email) {
+                                    Mail::to($email)->queue(new BookingConfirmationMail($booking));
+                                }
+                            }
+                        }
+
+                        $cartPayment->cart->complete();
+
+                        Log::info('Clictopay cart payment successful, all bookings confirmed', [
+                            'intent_id' => $intent->id,
+                            'cart_payment_id' => $cartPaymentId,
+                            'booking_count' => $cartPayment->bookings->count(),
+                        ]);
+
+                        // Redirect to cart success page with first booking number
+                        $firstBooking = $cartPayment->bookings->first();
+
+                        return redirect()->away(
+                            $frontendUrl . '/checkout/success?' . http_build_query([
+                                'booking' => $firstBooking?->booking_number,
+                                'status' => 'confirmed',
+                                'type' => 'cart',
+                            ])
+                        );
+                    }
+                }
+
+                // Single booking flow (existing behavior)
                 $booking = $intent->booking;
 
                 // Confirm the booking (sends confirmation email, etc.)

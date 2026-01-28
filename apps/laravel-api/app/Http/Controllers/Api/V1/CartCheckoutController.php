@@ -128,6 +128,17 @@ class CartCheckoutController extends Controller
         $paymentData = $request->input('payment_data', []);
         $result = $this->checkoutService->processPayment($payment, $paymentData);
 
+        // Handle redirect-based payments (Clictopay)
+        if (! empty($result['requires_redirect']) && ! empty($result['redirect_url'])) {
+            return response()->json([
+                'message' => $result['message'],
+                'success' => true,
+                'requires_redirect' => true,
+                'redirect_url' => $result['redirect_url'],
+                'payment_id' => $payment->id,
+            ]);
+        }
+
         if (! $result['success']) {
             return response()->json([
                 'message' => $result['message'],

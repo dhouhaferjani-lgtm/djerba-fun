@@ -148,6 +148,14 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
         paymentData: {},
       });
 
+      // Handle redirect-based payments (Clictopay)
+      if (paymentResponse.requires_redirect && paymentResponse.redirect_url) {
+        // Redirect user to payment gateway
+        window.location.href = paymentResponse.redirect_url;
+        return;
+      }
+
+      // Handle direct payments (mock, offline)
       if (paymentResponse.success && paymentResponse.bookings) {
         setCompletedBookings(paymentResponse.bookings);
         setCurrentStep('confirmation');

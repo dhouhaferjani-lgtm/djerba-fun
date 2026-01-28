@@ -1041,7 +1041,10 @@ export const cartApi = {
     return fetchApi<{
       message: string;
       success: boolean;
-      bookings: Booking[];
+      bookings?: Booking[];
+      requires_redirect?: boolean;
+      redirect_url?: string;
+      payment_id?: string;
     }>(`/cart/checkout/${paymentId}/pay`, {
       method: 'POST',
       body: JSON.stringify({
