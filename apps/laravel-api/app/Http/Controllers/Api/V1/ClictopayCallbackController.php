@@ -10,6 +10,7 @@ use App\Mail\BookingConfirmationMail;
 use App\Models\CartPayment;
 use App\Models\PaymentIntent;
 use App\Services\BookingService;
+use App\Services\EmailLogService;
 use App\Services\Payment\ClickToPayPaymentGateway;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,7 +27,8 @@ class ClictopayCallbackController extends Controller
 {
     public function __construct(
         private readonly ClickToPayPaymentGateway $gateway,
-        private readonly BookingService $bookingService
+        private readonly BookingService $bookingService,
+        private readonly ?EmailLogService $emailLogService = null
     ) {}
 
     /**
@@ -74,10 +76,14 @@ class ClictopayCallbackController extends Controller
                                     'confirmed_at' => now(),
                                 ]);
 
-                                // Send confirmation email
+                                // Send confirmation email with proper logging
                                 $email = $booking->getPrimaryEmail();
                                 if ($email) {
-                                    Mail::to($email)->queue(new BookingConfirmationMail($booking));
+                                    if ($this->emailLogService) {
+                                        $this->emailLogService->queue($email, new BookingConfirmationMail($booking), $booking);
+                                    } else {
+                                        Mail::to($email)->queue(new BookingConfirmationMail($booking));
+                                    }
                                 }
                             }
                         }

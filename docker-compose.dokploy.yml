@@ -57,12 +57,10 @@ services:
       QUEUE_CONNECTION: redis
       SESSION_DRIVER: redis
       SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_DOMAINS:-localhost}
-      MAIL_MAILER: ${MAIL_MAILER:-log}
-      MAIL_HOST: ${MAIL_HOST:-}
-      MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_USERNAME: ${MAIL_USERNAME:-}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM:-noreply@example.com}
+      MAIL_MAILER: ${MAIL_MAILER:-resend}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-bookings@go-adventure.net}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Go Adventure}
+      RESEND_API_KEY: ${RESEND_API_KEY}
     volumes:
       - storage_data:/var/www/html/storage/app/public
     depends_on:
@@ -97,6 +95,10 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_PORT: 6379
       QUEUE_CONNECTION: redis
+      MAIL_MAILER: ${MAIL_MAILER:-resend}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-bookings@go-adventure.net}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Go Adventure}
+      RESEND_API_KEY: ${RESEND_API_KEY}
     depends_on:
       api:
         condition: service_healthy
