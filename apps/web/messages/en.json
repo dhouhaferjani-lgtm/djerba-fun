@@ -1007,27 +1007,6 @@
   "destinations": {
     "available_experiences": "Available Experiences"
   },
-  "listings_page": {
-    "title_tours": "Tours & Activities",
-    "title_events": "Events",
-    "title_all": "All Experiences",
-    "search_placeholder": "Search destinations...",
-    "filters": "Filters",
-    "experience_type": "Experience Type",
-    "all_types": "All Types",
-    "location": "Location",
-    "all_locations": "All Locations",
-    "sort_by": "Sort By",
-    "sort_newest": "Newest First",
-    "sort_popular": "Most Popular",
-    "sort_highest_rated": "Highest Rated",
-    "sort_price_low": "Price: Low to High",
-    "sort_price_high": "Price: High to Low",
-    "clear_all_filters": "Clear All Filters",
-    "sort_and_filter": "Sort & Filter",
-    "found_experiences": "Found {count} {count, plural, =1 {experience} other {experiences}}",
-    "no_results": "No listings found. Try adjusting your search."
-  },
   "errors": {
     "404": {
       "title": "404 - Page Not Found",

@@ -14,7 +14,6 @@ function ListingsContent({ locale }: { locale: string }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const t = useTranslations('common');
-  const tListings = useTranslations('listings_page');
   const [showFilters, setShowFilters] = useState(false);
 
   // Get sort from URL or default to newest for better discovery
@@ -73,22 +72,22 @@ function ListingsContent({ locale }: { locale: string }) {
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold text-neutral-900 mb-6">
             {queryParams.serviceType === 'tour'
-              ? tListings('title_tours')
+              ? 'Tours & Activities'
               : queryParams.serviceType === 'event'
-                ? tListings('title_events')
-                : tListings('title_all')}
+                ? 'Events'
+                : 'All Experiences'}
           </h1>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <SearchBar
-                placeholder={tListings('search_placeholder')}
+                placeholder="Search destinations..."
                 onSearch={handleSearch}
                 defaultValue={searchParams.get('q') || ''}
               />
             </div>
             <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
               <Filter className="h-4 w-4 mr-2" />
-              {tListings('filters')}
+              Filters
               {hasActiveFilters && (
                 <span className="ml-2 bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                   !
@@ -101,7 +100,7 @@ function ListingsContent({ locale }: { locale: string }) {
           {showFilters && (
             <div className="mt-6 p-6 bg-white rounded-lg border border-neutral-200 shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-neutral-900">{tListings('filters')}</h3>
+                <h3 className="font-semibold text-neutral-900">Filters</h3>
                 <button
                   onClick={() => setShowFilters(false)}
                   className="text-neutral-500 hover:text-neutral-700"
@@ -114,30 +113,30 @@ function ListingsContent({ locale }: { locale: string }) {
                 {/* Type Filter */}
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    {tListings('experience_type')}
+                    Experience Type
                   </label>
                   <select
                     value={searchParams.get('type') || ''}
                     onChange={(e) => handleFilterChange('type', e.target.value || null)}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   >
-                    <option value="">{tListings('all_types')}</option>
-                    <option value="tour">{tListings('title_tours')}</option>
-                    <option value="event">{tListings('title_events')}</option>
+                    <option value="">All Types</option>
+                    <option value="tour">Tours & Activities</option>
+                    <option value="event">Events</option>
                   </select>
                 </div>
 
                 {/* Location Filter */}
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    {tListings('location')}
+                    Location
                   </label>
                   <select
                     value={searchParams.get('location') || ''}
                     onChange={(e) => handleFilterChange('location', e.target.value || null)}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   >
-                    <option value="">{tListings('all_locations')}</option>
+                    <option value="">All Locations</option>
                     {locations?.map((location) => (
                       <option key={location.id} value={location.slug}>
                         {location.name}
@@ -151,19 +150,17 @@ function ListingsContent({ locale }: { locale: string }) {
 
                 {/* Sort */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    {tListings('sort_by')}
-                  </label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">Sort By</label>
                   <select
                     value={currentSort}
                     onChange={(e) => handleFilterChange('sort', e.target.value)}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   >
-                    <option value="newest">{tListings('sort_newest')}</option>
-                    <option value="popularity">{tListings('sort_popular')}</option>
-                    <option value="rating">{tListings('sort_highest_rated')}</option>
-                    <option value="price_asc">{tListings('sort_price_low')}</option>
-                    <option value="price_desc">{tListings('sort_price_high')}</option>
+                    <option value="newest">Newest First</option>
+                    <option value="popularity">Most Popular</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
                   </select>
                 </div>
               </div>
@@ -171,7 +168,7 @@ function ListingsContent({ locale }: { locale: string }) {
               {hasActiveFilters && (
                 <div className="mt-4 pt-4 border-t border-neutral-200">
                   <Button variant="outline" size="sm" onClick={clearFilters}>
-                    {tListings('clear_all_filters')}
+                    Clear All Filters
                   </Button>
                 </div>
               )}
@@ -200,20 +197,20 @@ function ListingsContent({ locale }: { locale: string }) {
           <>
             <div className="mb-6 flex items-center justify-between">
               <p className="text-sm text-neutral-600">
-                {tListings('found_experiences', { count: data.meta.total })}
+                Found {data.meta.total} experience{data.meta.total !== 1 ? 's' : ''}
               </p>
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className="md:hidden flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900"
               >
                 <SlidersHorizontal className="h-4 w-4" />
-                {tListings('sort_and_filter')}
+                Sort & Filter
               </button>
             </div>
             <ListingGrid
               listings={data.data}
               locale={locale}
-              emptyMessage={tListings('no_results')}
+              emptyMessage="No listings found. Try adjusting your search."
             />
           </>
         )}

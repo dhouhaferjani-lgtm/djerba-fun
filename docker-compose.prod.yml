@@ -63,10 +63,6 @@ services:
       - QUEUE_CONNECTION=redis
       - CACHE_STORE=redis
       - SESSION_DRIVER=redis
-      - MAIL_MAILER=${MAIL_MAILER:-resend}
-      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-bookings@go-adventure.net}
-      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Go Adventure}
-      - RESEND_API_KEY=${RESEND_API_KEY}
     volumes:
       # Named volumes only - no bind mounts in production (Docker best practice)
       - storage_data:/var/www/html/storage
@@ -111,10 +107,6 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=6379
       - QUEUE_CONNECTION=redis
-      - MAIL_MAILER=${MAIL_MAILER:-resend}
-      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-bookings@go-adventure.net}
-      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Go Adventure}
-      - RESEND_API_KEY=${RESEND_API_KEY}
     volumes:
       # Named volumes only - no bind mounts in production (Docker best practice)
       - storage_data:/var/www/html/storage

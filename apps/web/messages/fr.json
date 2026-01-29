@@ -1024,27 +1024,6 @@
   "destinations": {
     "available_experiences": "Expériences disponibles"
   },
-  "listings_page": {
-    "title_tours": "Circuits & Activités",
-    "title_events": "Événements",
-    "title_all": "Toutes les Expériences",
-    "search_placeholder": "Rechercher des destinations...",
-    "filters": "Filtres",
-    "experience_type": "Type d'Expérience",
-    "all_types": "Tous les Types",
-    "location": "Localité",
-    "all_locations": "Toutes les Localités",
-    "sort_by": "Trier par",
-    "sort_newest": "Plus Récents",
-    "sort_popular": "Plus Populaires",
-    "sort_highest_rated": "Mieux Notés",
-    "sort_price_low": "Prix : Croissant",
-    "sort_price_high": "Prix : Décroissant",
-    "clear_all_filters": "Effacer les Filtres",
-    "sort_and_filter": "Trier et Filtrer",
-    "found_experiences": "{count} {count, plural, =1 {expérience trouvée} other {expériences trouvées}}",
-    "no_results": "Aucune activité trouvée. Essayez d'ajuster votre recherche."
-  },
   "errors": {
     "404": {
       "title": "404 - Page Introuvable",
