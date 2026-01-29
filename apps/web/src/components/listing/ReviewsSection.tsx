@@ -21,7 +21,8 @@ export function ReviewsSection({
   reviews = [],
   summary,
 }: ReviewsSectionProps) {
-  const t = useTranslations('listing.reviews');
+  const t = useTranslations('reviews');
+  const tCommon = useTranslations('common');
 
   // Empty state - no reviews yet
   if (reviewsCount === 0) {
@@ -29,10 +30,10 @@ export function ReviewsSection({
       <section className="border-t border-neutral-200 pt-12">
         <div className="bg-accent-light border border-accent-dark rounded-2xl p-12 text-center">
           <MessageSquare className="h-16 w-16 mx-auto text-neutral-400 mb-4" />
-          <h3 className="font-display text-2xl font-semibold text-heading mb-2">No reviews yet</h3>
-          <p className="text-neutral-600 max-w-md mx-auto">
-            Be the first to experience this adventure and share your thoughts with fellow travelers!
-          </p>
+          <h3 className="font-display text-2xl font-semibold text-heading mb-2">
+            {t('no_reviews_title')}
+          </h3>
+          <p className="text-neutral-600 max-w-md mx-auto">{t('no_reviews_message')}</p>
         </div>
       </section>
     );
@@ -49,7 +50,7 @@ export function ReviewsSection({
       <div className="flex items-center gap-3 mb-8">
         <Star className="h-6 w-6 text-primary fill-secondary" />
         <h2 className="font-display text-3xl font-bold text-heading tracking-tight">
-          {reviewsCount} {reviewsCount === 1 ? 'Review' : 'Reviews'}
+          {tCommon('reviews', { count: reviewsCount })}
         </h2>
       </div>
 
@@ -73,9 +74,7 @@ export function ReviewsSection({
                 />
               ))}
             </div>
-            <p className="text-sm text-neutral-600">
-              Based on {reviewsCount} {reviewsCount === 1 ? 'review' : 'reviews'}
-            </p>
+            <p className="text-sm text-neutral-600">{t('based_on', { count: reviewsCount })}</p>
           </div>
 
           {/* Rating Breakdown */}

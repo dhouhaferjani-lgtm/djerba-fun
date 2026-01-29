@@ -21,7 +21,7 @@ export default function ElevationProfile({
   locale = 'en',
   className = '',
 }: ElevationProfileProps) {
-  const t = useTranslations('itinerary');
+  const t = useTranslations('listing');
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
 
   if (!profile.points || profile.points.length === 0) {
@@ -105,28 +105,28 @@ export default function ElevationProfile({
         <div className="bg-white rounded-lg border border-neutral-200 p-4">
           <div className="mb-2 flex items-center gap-2 text-sm text-neutral-600">
             <TrendingUp className="h-4 w-4 text-primary" />
-            Total Ascent
+            {t('total_ascent')}
           </div>
           <div className="text-2xl font-bold text-heading">{profile.totalAscent.toFixed(0)}m</div>
         </div>
         <div className="bg-white rounded-lg border border-neutral-200 p-4">
           <div className="mb-2 flex items-center gap-2 text-sm text-neutral-600">
             <TrendingDown className="h-4 w-4 text-primary" />
-            Total Descent
+            {t('total_descent')}
           </div>
           <div className="text-2xl font-bold text-heading">{profile.totalDescent.toFixed(0)}m</div>
         </div>
         <div className="bg-white rounded-lg border border-neutral-200 p-4">
           <div className="mb-2 flex items-center gap-2 text-sm text-neutral-600">
             <Mountain className="h-4 w-4 text-primary" />
-            Max Elevation
+            {t('max_elevation')}
           </div>
           <div className="text-2xl font-bold text-heading">{profile.maxElevation.toFixed(0)}m</div>
         </div>
         <div className="bg-white rounded-lg border border-neutral-200 p-4">
           <div className="mb-2 flex items-center gap-2 text-sm text-neutral-600">
             <MapPin className="h-4 w-4 text-primary" />
-            Total Distance
+            {t('total_distance')}
           </div>
           <div className="text-2xl font-bold text-heading">
             {formatDistance(profile.totalDistance)}
@@ -136,7 +136,7 @@ export default function ElevationProfile({
 
       {/* Elevation Chart */}
       <div className="relative rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-heading mb-4">Elevation Profile</h3>
+        <h3 className="text-lg font-semibold text-heading mb-4">{t('elevation_profile')}</h3>
 
         {/* Hover Info Card */}
         {hoveredPoint !== null && checkpoints[hoveredPoint] && (
@@ -384,19 +384,19 @@ export default function ElevationProfile({
         <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-[#0D642E] border-2 border-white shadow-sm"></div>
-            <span className="text-neutral-600">Start/End Points</span>
+            <span className="text-neutral-600">{t('start_end_points')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-[#10b981] border-2 border-white shadow-sm"></div>
-            <span className="text-neutral-600">Highest Point</span>
+            <span className="text-neutral-600">{t('highest_point')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-[#f59e0b] border-2 border-white shadow-sm"></div>
-            <span className="text-neutral-600">Lowest Point</span>
+            <span className="text-neutral-600">{t('lowest_point')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-2.5 w-2.5 rounded-full bg-[#8BC34A] border-2 border-white shadow-sm"></div>
-            <span className="text-neutral-600">Waypoints</span>
+            <span className="text-neutral-600">{t('waypoints')}</span>
           </div>
         </div>
       </div>

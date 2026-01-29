@@ -455,6 +455,7 @@ function RouteItineraryTabs({
   locale,
 }: RouteItineraryTabsProps) {
   const [activeTab, setActiveTab] = useState<'map' | 'itinerary'>('map');
+  const t = useTranslations('listing');
 
   return (
     <div className="space-y-4">
@@ -468,7 +469,7 @@ function RouteItineraryTabs({
               : 'text-neutral-600 hover:text-neutral-900'
           }`}
         >
-          Trail Map
+          {t('trail_map')}
         </button>
         <button
           onClick={() => setActiveTab('itinerary')}
@@ -478,7 +479,7 @@ function RouteItineraryTabs({
               : 'text-neutral-600 hover:text-neutral-900'
           }`}
         >
-          Itinerary
+          {t('itinerary')}
         </button>
       </div>
 
@@ -854,7 +855,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   {typeof description === 'string' && description.trim() !== '' && (
                     <section>
                       <h2 className="font-display text-4xl font-bold text-heading mb-6 tracking-tight">
-                        About This Experience
+                        {t('about_experience')}
                       </h2>
                       <div
                         className="font-sans text-lg text-neutral-700 leading-relaxed prose prose-neutral max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1"
@@ -884,7 +885,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   {listing.highlights && listing.highlights.length > 0 && (
                     <section>
                       <h2 className="font-display text-3xl font-bold text-heading mb-6 tracking-tight">
-                        Experience Highlights
+                        {t('experience_highlights')}
                       </h2>
                       <ul className="space-y-4">
                         {listing.highlights.map((highlight: any, index: number) => (
@@ -905,7 +906,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   {'itinerary' in listing && listing.itinerary && listing.itinerary.length > 0 && (
                     <section>
                       <h2 className="font-display text-3xl font-bold text-heading mb-6 tracking-tight">
-                        Route & Itinerary
+                        {t('route_itinerary')}
                       </h2>
 
                       {/* Tabs */}
@@ -1055,7 +1056,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                     {listing.included && listing.included.length > 0 && (
                       <div>
                         <h3 className="font-display text-2xl font-bold text-heading mb-6 tracking-tight">
-                          What's Included
+                          {t('included')}
                         </h3>
                         <ul className="space-y-3">
                           {listing.included.map((item: any, index: number) => (
@@ -1071,7 +1072,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                     {listing.notIncluded && listing.notIncluded.length > 0 && (
                       <div>
                         <h3 className="font-display text-2xl font-bold text-heading mb-6 tracking-tight">
-                          Not Included
+                          {t('not_included')}
                         </h3>
                         <ul className="space-y-3">
                           {listing.notIncluded.map((item: any, index: number) => (
@@ -1089,7 +1090,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   {listing.requirements && listing.requirements.length > 0 && (
                     <section>
                       <h3 className="font-display text-2xl font-bold text-heading mb-6 tracking-tight">
-                        Important Requirements
+                        {t('important_requirements')}
                       </h3>
                       <ul className="space-y-3">
                         {listing.requirements.map((req: any, index: number) => (
