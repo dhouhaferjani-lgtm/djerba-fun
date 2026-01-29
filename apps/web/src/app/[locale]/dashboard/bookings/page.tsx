@@ -38,7 +38,7 @@ export default function BookingsListPage() {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
-    }).format(amount / 100);
+    }).format(amount);
   };
 
   const formatDate = (dateString: string | null | undefined) => {
@@ -159,8 +159,11 @@ export default function BookingsListPage() {
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900">
-                            {t('booking')} #{booking.code}
+                            {booking.listing?.title || `${t('booking')} #${booking.code}`}
                           </h3>
+                          <p className="text-sm text-gray-500">
+                            {t('booking')} #{booking.code}
+                          </p>
                           <p className="text-sm text-gray-600 mt-1">
                             {formatDate(booking.startsAt)}
                           </p>

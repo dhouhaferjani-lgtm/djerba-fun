@@ -126,8 +126,11 @@ export default function BookingDetailPage() {
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {t('booking')} #{booking.code}
+                  {booking.listing?.title || t('booking')}
                 </h1>
+                <p className="text-sm text-gray-500 mb-1">
+                  {t('booking')} #{booking.code}
+                </p>
                 <p className="text-gray-600">{formatDateTime(booking.createdAt)}</p>
               </div>
               <span
@@ -146,6 +149,11 @@ export default function BookingDetailPage() {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">{t('activity_details')}</h2>
               <div className="space-y-2 text-sm text-gray-600">
+                {booking.listing?.title && (
+                  <p>
+                    <strong>{t('activity')}:</strong> {booking.listing.title}
+                  </p>
+                )}
                 <p>
                   <strong>{t('date_time')}:</strong> {formatDateTime(booking.startsAt)}
                 </p>

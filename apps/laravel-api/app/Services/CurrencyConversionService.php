@@ -56,7 +56,7 @@ class CurrencyConversionService
 
         $cacheKey = "exchange_rate:{$fromCurrency}_{$toCurrency}";
 
-        return Cache::remember($cacheKey, now()->addHours(1), function () use ($fromCurrency, $toCurrency) {
+        return (float) Cache::remember($cacheKey, now()->addHours(1), function () use ($fromCurrency, $toCurrency) {
             if ($fromCurrency === self::BASE_CURRENCY) {
                 // Direct conversion from TND
                 $rate = ExchangeRate::where('currency', $toCurrency)
