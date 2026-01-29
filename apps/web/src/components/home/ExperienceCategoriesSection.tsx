@@ -6,19 +6,17 @@ import Link from 'next/link';
 import { useActivityTypes } from '@/lib/api/hooks';
 import type { ActivityType } from '@go-adventure/schemas';
 
-// Fallback images by slug (matching go-adventure.net production site)
+// Fallback images by slug (local images from Go Adventure brand assets)
 const fallbackImages: Record<string, string> = {
-  'cultural-expeditions':
-    'https://go-adventure.net/uploads/0000/7/2025/07/23/laventurierzip-47.png',
-  'corporate-sports': 'https://go-adventure.net/uploads/0000/7/2025/07/23/laventurierzip-49.png',
-  'mountain-biking': 'https://go-adventure.net/uploads/0000/7/2025/07/23/laventurierzip-46.png',
-  'water-activities': 'https://go-adventure.net/uploads/0000/7/2025/07/23/laventurierzip-48.png',
-  'trail-trekking': 'https://go-adventure.net/uploads/0000/7/2025/07/23/laventurierzip-50.png',
+  'cultural-expeditions': '/images/experiences/cultural-expeditions.jpg',
+  'corporate-sports': '/images/experiences/corporate-sports.jpg',
+  'mountain-biking': '/images/experiences/mountain-biking.jpg',
+  'water-activities': '/images/experiences/water-activities.jpg',
+  'trail-trekking': '/images/experiences/trail-trekking.jpg',
 };
 
 // Default fallback image if slug not in map
-const defaultFallbackImage =
-  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80';
+const defaultFallbackImage = '/images/experiences/cultural-expeditions.jpg';
 
 // Fallback activity types when API is unavailable (matches go-adventure.net old site)
 const fallbackActivityTypes: ActivityType[] = [
