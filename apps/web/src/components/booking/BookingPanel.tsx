@@ -48,16 +48,18 @@ export function BookingPanel({
   return (
     <>
       {/* Floating Book Now button at bottom of screen */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-40 shadow-lg safe-area-bottom">
-        <div className="flex items-center justify-between gap-4 max-w-lg mx-auto">
-          <div className="flex-shrink-0" data-testid="listing-price">
-            <PriceDisplay amount={basePrice} currency={currency} size="sm" showFrom perPerson />
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 shadow-lg safe-area-bottom">
+        <div className="px-4 py-3 max-w-lg mx-auto space-y-3">
+          {/* Price - stacked on top for better visibility */}
+          <div className="flex items-center justify-between" data-testid="listing-price">
+            <PriceDisplay amount={basePrice} currency={currency} size="md" showFrom perPerson />
           </div>
+          {/* Full-width button for better mobile UX */}
           <Button
             variant="primary"
             size="lg"
             onClick={() => setIsOpen(true)}
-            className="flex-1 max-w-xs"
+            className="w-full py-4 text-base font-semibold"
             data-testid="book-now-button"
           >
             <Calendar className="h-5 w-5 mr-2" />
@@ -77,7 +79,7 @@ export function BookingPanel({
       </Dialog>
 
       {/* Spacer to prevent content from being hidden behind fixed button */}
-      <div className="h-24 lg:hidden" />
+      <div className="h-32 lg:hidden" />
     </>
   );
 }
