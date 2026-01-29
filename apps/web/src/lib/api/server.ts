@@ -11,8 +11,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1
 /**
  * Get user's real IP and currency from request headers/cookies.
  * Used for server-side API calls that need user context (e.g., currency detection).
+ * Returns empty values if headers/cookies are not available (e.g., during build).
  */
-async function getUserContext() {
+async function getUserContext(): Promise<{ userIp: string; userCurrency: string }> {
   try {
     const headersList = await headers();
     const cfConnectingIp = headersList.get('cf-connecting-ip'); // Cloudflare (priority)
@@ -20,12 +21,18 @@ async function getUserContext() {
     const realIp = headersList.get('x-real-ip');
     const userIp = cfConnectingIp || forwardedFor?.split(',')[0]?.trim() || realIp || '';
 
-    const cookieStore = await cookies();
-    const userCurrency = cookieStore.get('user_currency')?.value || '';
+    let userCurrency = '';
+    try {
+      const cookieStore = await cookies();
+      userCurrency = cookieStore.get('user_currency')?.value || '';
+    } catch {
+      // cookies() may not be available in all contexts
+    }
 
     return { userIp, userCurrency };
-  } catch {
-    // headers() may fail in some contexts (e.g., during build)
+  } catch (error) {
+    // headers() may fail in some contexts (e.g., during build or static generation)
+    console.warn('getUserContext: Could not access headers/cookies', error);
     return { userIp: '', userCurrency: '' };
   }
 }
@@ -225,15 +232,25 @@ export async function getFeaturedListings(limit: number = 3): Promise<ListingSum
     // Get user context for currency detection
     const { userIp, userCurrency } = await getUserContext();
 
+    // Build headers object - only add optional headers if they have values
+    const fetchHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+
+    // Forward user IP for geo-based currency detection (if available)
+    if (userIp) {
+      fetchHeaders['X-Forwarded-For'] = userIp;
+      fetchHeaders['CF-Connecting-IP'] = userIp;
+    }
+
+    // Forward user's detected currency from cookie (if available)
+    if (userCurrency) {
+      fetchHeaders['X-User-Currency'] = userCurrency;
+    }
+
     const response = await fetch(`${API_URL}/listings/featured?limit=${limit}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        // Forward user IP for geo-based currency detection
-        ...(userIp && { 'X-Forwarded-For': userIp, 'CF-Connecting-IP': userIp }),
-        // Forward user's detected currency from cookie
-        ...(userCurrency && { 'X-User-Currency': userCurrency }),
-      },
+      headers: fetchHeaders,
       cache: 'no-store', // Disable cache - currency is user-specific
     });
 
