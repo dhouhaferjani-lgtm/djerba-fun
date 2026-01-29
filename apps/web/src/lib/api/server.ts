@@ -3,9 +3,32 @@
  * These functions can be called from server contexts where localStorage is not available.
  */
 
+import { headers, cookies } from 'next/headers';
 import type { PlatformSettingsResponse, ListingSummary } from '@go-adventure/schemas';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
+/**
+ * Get user's real IP and currency from request headers/cookies.
+ * Used for server-side API calls that need user context (e.g., currency detection).
+ */
+async function getUserContext() {
+  try {
+    const headersList = await headers();
+    const cfConnectingIp = headersList.get('cf-connecting-ip'); // Cloudflare (priority)
+    const forwardedFor = headersList.get('x-forwarded-for');
+    const realIp = headersList.get('x-real-ip');
+    const userIp = cfConnectingIp || forwardedFor?.split(',')[0]?.trim() || realIp || '';
+
+    const cookieStore = await cookies();
+    const userCurrency = cookieStore.get('user_currency')?.value || '';
+
+    return { userIp, userCurrency };
+  } catch {
+    // headers() may fail in some contexts (e.g., during build)
+    return { userIp: '', userCurrency: '' };
+  }
+}
 
 /**
  * Fetch platform settings from the API (server-side).
@@ -195,15 +218,23 @@ export async function getFeaturedDestinations(locale?: string) {
 /**
  * Fetch featured listings from the API (server-side).
  * Returns listings marked as featured by admin for the home page.
+ * Forwards user IP and currency for proper currency detection.
  */
 export async function getFeaturedListings(limit: number = 3): Promise<ListingSummary[]> {
   try {
+    // Get user context for currency detection
+    const { userIp, userCurrency } = await getUserContext();
+
     const response = await fetch(`${API_URL}/listings/featured?limit=${limit}`, {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
+        // Forward user IP for geo-based currency detection
+        ...(userIp && { 'X-Forwarded-For': userIp, 'CF-Connecting-IP': userIp }),
+        // Forward user's detected currency from cookie
+        ...(userCurrency && { 'X-User-Currency': userCurrency }),
       },
-      next: { revalidate: 300 }, // Cache for 5 minutes
+      cache: 'no-store', // Disable cache - currency is user-specific
     });
 
     if (!response.ok) {
