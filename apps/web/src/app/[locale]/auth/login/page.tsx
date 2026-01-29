@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { FloatingInput, Button, Card } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { TurnstileWidget, useTurnstile } from '@/components/atoms/TurnstileWidget';
 import { Mail, Lock } from 'lucide-react';
 
 export default function LoginPage() {
@@ -16,6 +17,7 @@ export default function LoginPage() {
   const t = useTranslations('auth');
   const router = useRouter();
   const { login } = useAuth();
+  const { handleVerify: handleTurnstileVerify, getToken: getTurnstileToken } = useTurnstile();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,7 +30,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await login(email, password, getTurnstileToken());
       router.push(`/${locale}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -77,6 +79,8 @@ export default function LoginPage() {
                     {t('forgot_password')}
                   </Link>
                 </div>
+
+                <TurnstileWidget onVerify={handleTurnstileVerify} className="flex justify-center" />
 
                 <Button
                   type="submit"

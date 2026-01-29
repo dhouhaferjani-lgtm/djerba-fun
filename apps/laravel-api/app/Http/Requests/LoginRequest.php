@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\TurnstileToken;
+
 class LoginRequest extends BaseFormRequest
 {
     /**
@@ -23,6 +25,7 @@ class LoginRequest extends BaseFormRequest
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
             'device_name' => ['nullable', 'string', 'max:255'],
+            'cf_turnstile_response' => ['nullable', new TurnstileToken($this->ip())],
         ];
     }
 }

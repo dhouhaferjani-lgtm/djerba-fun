@@ -49,8 +49,15 @@ export function useLogin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      authApi.login(email, password),
+    mutationFn: ({
+      email,
+      password,
+      cfTurnstileResponse,
+    }: {
+      email: string;
+      password: string;
+      cfTurnstileResponse?: string;
+    }) => authApi.login(email, password, cfTurnstileResponse),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user', 'me'] });
     },
@@ -65,6 +72,7 @@ interface RegisterData {
   lastName: string;
   displayName: string;
   role: string;
+  cfTurnstileResponse?: string;
 }
 
 export function useRegister() {
@@ -758,7 +766,8 @@ export function useFeatureEnabled(
  */
 export function useSendMagicLink() {
   return useMutation({
-    mutationFn: (email: string) => authApi.sendMagicLink(email),
+    mutationFn: ({ email, cfTurnstileResponse }: { email: string; cfTurnstileResponse?: string }) =>
+      authApi.sendMagicLink(email, cfTurnstileResponse),
   });
 }
 
@@ -788,6 +797,7 @@ export function useRegisterPasswordless() {
       lastName: string;
       phone?: string;
       preferredLocale?: 'en' | 'fr';
+      cfTurnstileResponse?: string;
     }) => authApi.registerPasswordless(data),
   });
 }

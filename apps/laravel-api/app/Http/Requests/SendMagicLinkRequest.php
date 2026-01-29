@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Rules\TurnstileToken;
+
 class SendMagicLinkRequest extends BaseFormRequest
 {
     /**
@@ -23,6 +25,7 @@ class SendMagicLinkRequest extends BaseFormRequest
     {
         return [
             'email' => ['required', 'email', 'max:255'],
+            'cf_turnstile_response' => ['nullable', new TurnstileToken($this->ip())],
         ];
     }
 

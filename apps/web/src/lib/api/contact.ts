@@ -4,6 +4,7 @@ export interface ContactFormData {
   name: string;
   email: string;
   message: string;
+  cfTurnstileResponse?: string;
 }
 
 export interface ContactFormResponse {
@@ -21,7 +22,12 @@ export async function submitContactForm(data: ContactFormData): Promise<ContactF
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      name: data.name,
+      email: data.email,
+      message: data.message,
+      cf_turnstile_response: data.cfTurnstileResponse,
+    }),
   });
 
   if (!response.ok) {

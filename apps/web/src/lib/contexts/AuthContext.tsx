@@ -13,13 +13,14 @@ interface RegisterData {
   lastName: string;
   displayName: string;
   role: string;
+  cfTurnstileResponse?: string;
 }
 
 interface AuthContextValue {
   user: User | null | undefined;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, cfTurnstileResponse?: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -46,8 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, [queryClient]);
 
-  const login = async (email: string, password: string) => {
-    await loginMutation.mutateAsync({ email, password });
+  const login = async (email: string, password: string, cfTurnstileResponse?: string) => {
+    await loginMutation.mutateAsync({ email, password, cfTurnstileResponse });
   };
 
   const register = async (data: RegisterData) => {

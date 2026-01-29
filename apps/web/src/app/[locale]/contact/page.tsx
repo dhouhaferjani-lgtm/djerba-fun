@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link } from '@/i18n/navigation';
 import { submitContactForm } from '@/lib/api/contact';
+import { TurnstileWidget, useTurnstile } from '@/components/atoms/TurnstileWidget';
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -21,6 +22,7 @@ export default function ContactPage() {
   const tFooter = useTranslations('footer');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const { handleVerify: handleTurnstileVerify, getToken: getTurnstileToken } = useTurnstile();
 
   const {
     register,
@@ -36,7 +38,10 @@ export default function ContactPage() {
     setSubmitStatus('idle');
 
     try {
-      await submitContactForm(data);
+      await submitContactForm({
+        ...data,
+        cfTurnstileResponse: getTurnstileToken(),
+      });
       setSubmitStatus('success');
       reset();
     } catch {
@@ -130,6 +135,8 @@ export default function ContactPage() {
                     <p className="mt-1 text-sm text-red-600">{t('validation.message_min')}</p>
                   )}
                 </div>
+
+                <TurnstileWidget onVerify={handleTurnstileVerify} className="flex justify-center" />
 
                 <button
                   type="submit"

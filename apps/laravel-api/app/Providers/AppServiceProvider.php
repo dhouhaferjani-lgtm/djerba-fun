@@ -19,6 +19,7 @@ use App\Services\Payment\ClickToPayPaymentGateway;
 use App\Services\Payment\MockPaymentGateway;
 use App\Services\Payment\OfflinePaymentGateway;
 use App\Services\Payment\PaymentGatewayManager;
+use App\Services\TurnstileService;
 use Filament\Http\Responses\Auth\Contracts\LogoutResponse as LogoutResponseContract;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
@@ -60,6 +61,19 @@ class AppServiceProvider extends ServiceProvider
 
         // Register custom logout response to ensure proper session invalidation
         $this->app->bind(LogoutResponseContract::class, LogoutResponse::class);
+
+        // Register TurnstileService as singleton
+        $this->app->singleton(TurnstileService::class, function ($app) {
+            $config = config('services.turnstile');
+
+            return new TurnstileService(
+                secretKey: $config['secret_key'] ?? '',
+                verifyUrl: $config['verify_url'] ?? 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+                timeout: $config['timeout'] ?? 5,
+                failOpen: $config['fail_open'] ?? true,
+                enabled: $config['enabled'] ?? false,
+            );
+        });
     }
 
     /**

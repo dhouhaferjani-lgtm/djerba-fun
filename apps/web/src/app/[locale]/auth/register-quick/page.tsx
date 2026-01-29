@@ -10,6 +10,7 @@ import { Link } from '@/i18n/navigation';
 import { FloatingInput, Button } from '@go-adventure/ui';
 import { User, Mail, Phone, Check, Sparkles } from 'lucide-react';
 import { useRegisterPasswordless } from '@/lib/api/hooks';
+import { TurnstileWidget, useTurnstile } from '@/components/atoms/TurnstileWidget';
 
 // Form validation schema
 const registerSchema = z.object({
@@ -34,6 +35,7 @@ export default function QuickRegisterPage() {
   const [submittedEmail, setSubmittedEmail] = useState('');
 
   const registerMutation = useRegisterPasswordless();
+  const { handleVerify: handleTurnstileVerify, getToken: getTurnstileToken } = useTurnstile();
 
   // Get email and bookingId from query params
   const emailParam = searchParams.get('email');
@@ -68,6 +70,7 @@ export default function QuickRegisterPage() {
         lastName: data.lastName,
         phone: data.phone,
         preferredLocale: data.preferredLocale,
+        cfTurnstileResponse: getTurnstileToken(),
       });
 
       setSubmittedEmail(data.email);
@@ -272,6 +275,9 @@ export default function QuickRegisterPage() {
               <option value="fr">Français</option>
             </select>
           </div>
+
+          {/* Turnstile Widget */}
+          <TurnstileWidget onVerify={handleTurnstileVerify} className="flex justify-center" />
 
           {/* Submit Button */}
           <Button

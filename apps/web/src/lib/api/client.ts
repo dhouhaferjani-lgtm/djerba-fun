@@ -86,10 +86,10 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
 // ============================================================================
 
 export const authApi = {
-  login: async (email: string, password: string) => {
+  login: async (email: string, password: string, cfTurnstileResponse?: string) => {
     const data = await fetchApi<{ user: User; token: string }>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, cf_turnstile_response: cfTurnstileResponse }),
     });
 
     if (typeof window !== 'undefined') {
@@ -107,6 +107,7 @@ export const authApi = {
     lastName: string;
     displayName: string;
     role: string;
+    cfTurnstileResponse?: string;
   }) => {
     const response = await fetchApi<{ user: User; token: string }>('/auth/register', {
       method: 'POST',
@@ -118,6 +119,7 @@ export const authApi = {
         last_name: data.lastName,
         display_name: data.displayName,
         role: data.role,
+        cf_turnstile_response: data.cfTurnstileResponse,
       }),
     });
 
@@ -143,10 +145,10 @@ export const authApi = {
   },
 
   // Passwordless authentication
-  sendMagicLink: async (email: string) => {
+  sendMagicLink: async (email: string, cfTurnstileResponse?: string) => {
     return fetchApi<{ message: string }>('/auth/magic-link/send', {
       method: 'POST',
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, cf_turnstile_response: cfTurnstileResponse }),
     });
   },
 
@@ -169,6 +171,7 @@ export const authApi = {
     lastName: string;
     phone?: string;
     preferredLocale?: 'en' | 'fr';
+    cfTurnstileResponse?: string;
   }) => {
     return fetchApi<{
       message: string;
@@ -181,6 +184,7 @@ export const authApi = {
         last_name: data.lastName,
         phone: data.phone,
         preferred_locale: data.preferredLocale || 'en',
+        cf_turnstile_response: data.cfTurnstileResponse,
       }),
     });
   },

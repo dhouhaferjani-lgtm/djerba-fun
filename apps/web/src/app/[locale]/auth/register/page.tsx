@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { FloatingInput, Button, Card } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { TurnstileWidget, useTurnstile } from '@/components/atoms/TurnstileWidget';
 import { Mail, Lock, User } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -16,6 +17,7 @@ export default function RegisterPage() {
   const t = useTranslations('auth');
   const router = useRouter();
   const { register } = useAuth();
+  const { handleVerify: handleTurnstileVerify, getToken: getTurnstileToken } = useTurnstile();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -50,6 +52,7 @@ export default function RegisterPage() {
         lastName,
         displayName: `${firstName} ${lastName}`.trim(),
         role: 'traveler',
+        cfTurnstileResponse: getTurnstileToken(),
       });
       router.push(`/${locale}`);
     } catch (err) {
@@ -128,6 +131,8 @@ export default function RegisterPage() {
                   autoComplete="new-password"
                   icon={<Lock className="h-4 w-4" />}
                 />
+
+                <TurnstileWidget onVerify={handleTurnstileVerify} className="flex justify-center" />
 
                 <Button
                   type="submit"

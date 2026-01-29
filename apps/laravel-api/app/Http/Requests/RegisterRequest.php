@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\UserRole;
+use App\Rules\TurnstileToken;
 use Illuminate\Validation\Rule;
 
 class RegisterRequest extends BaseFormRequest
@@ -38,6 +39,9 @@ class RegisterRequest extends BaseFormRequest
             'company_name' => ['required_if:role,vendor', 'string', 'max:200'],
             'company_type' => ['required_if:role,vendor', 'string', 'in:individual,company,agency'],
             'tax_id' => ['nullable', 'string'],
+
+            // Turnstile bot protection
+            'cf_turnstile_response' => ['nullable', new TurnstileToken($this->ip())],
         ];
     }
 

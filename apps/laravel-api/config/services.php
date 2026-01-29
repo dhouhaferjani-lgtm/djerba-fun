@@ -51,4 +51,13 @@ return [
         'api_url' => env('DEEPL_API_URL', 'https://api-free.deepl.com/v2/translate'),
     ],
 
+    'turnstile' => [
+        'enabled' => env('TURNSTILE_ENABLED', false),
+        'secret_key' => env('TURNSTILE_SECRET_KEY'),
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'verify_url' => 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+        'timeout' => 5,
+        'fail_open' => env('TURNSTILE_FAIL_OPEN', true),
+    ],
+
 ];

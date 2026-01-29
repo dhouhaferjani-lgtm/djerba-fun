@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation';
 import { FloatingInput, Button } from '@go-adventure/ui';
 import { Mail, ArrowLeft, Check } from 'lucide-react';
 import { useSendMagicLink } from '@/lib/api/hooks';
+import { TurnstileWidget, useTurnstile } from '@/components/atoms/TurnstileWidget';
 
 /**
  * Passwordless login page
@@ -16,12 +17,16 @@ export default function PasswordlessLoginPage() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const sendMagicLinkMutation = useSendMagicLink();
+  const { handleVerify: handleTurnstileVerify, getToken: getTurnstileToken } = useTurnstile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      await sendMagicLinkMutation.mutateAsync(email);
+      await sendMagicLinkMutation.mutateAsync({
+        email,
+        cfTurnstileResponse: getTurnstileToken(),
+      });
       setSubmitted(true);
     } catch (error) {
       // Error is handled by mutation
@@ -129,6 +134,8 @@ export default function PasswordlessLoginPage() {
             autoFocus
             icon={<Mail className="h-4 w-4" />}
           />
+
+          <TurnstileWidget onVerify={handleTurnstileVerify} className="flex justify-center" />
 
           <Button
             type="submit"

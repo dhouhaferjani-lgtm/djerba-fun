@@ -481,7 +481,9 @@
     "registration_error": "Erreur lors de l'inscription. Veuillez réessayer.",
     "send_magic_link_error": "Échec de l'envoi du lien magique. Veuillez réessayer.",
     "or_sign_in": "ou se connecter",
-    "sign_in_email": "Se connecter avec Email"
+    "sign_in_email": "Se connecter avec Email",
+    "turnstile_error": "La vérification de sécurité a échoué. Veuillez réessayer.",
+    "turnstile_expired": "La vérification de sécurité a expiré. Veuillez vérifier à nouveau."
   },
   "navigation": {
     "home": "Accueil",

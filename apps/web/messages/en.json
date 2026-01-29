@@ -506,7 +506,9 @@
     "go_to_dashboard": "Go to Dashboard",
     "link_error": "Failed to link bookings. Please try again.",
     "send_magic_link_error": "Failed to send magic link. Please try again.",
-    "login_without_password": "Login without password"
+    "login_without_password": "Login without password",
+    "turnstile_error": "Security verification failed. Please try again.",
+    "turnstile_expired": "Security verification expired. Please verify again."
   },
   "navigation": {
     "home": "Home",

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Rules\TurnstileToken;
+
 class RegisterPasswordlessRequest extends BaseFormRequest
 {
     /**
@@ -27,6 +29,7 @@ class RegisterPasswordlessRequest extends BaseFormRequest
             'last_name' => ['required', 'string', 'min:1', 'max:100'],
             'phone' => ['nullable', 'string', 'max:50'],
             'preferred_locale' => ['nullable', 'string', 'in:en,fr'],
+            'cf_turnstile_response' => ['nullable', new TurnstileToken($this->ip())],
         ];
     }
 
