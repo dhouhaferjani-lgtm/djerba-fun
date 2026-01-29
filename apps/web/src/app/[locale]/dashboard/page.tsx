@@ -263,8 +263,12 @@ export default function DashboardPage() {
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="font-semibold text-gray-900">
-                          {t('booking')} #{booking.code}
+                          {(booking.listing as { title?: string })?.title ||
+                            `${t('booking')} #${booking.code}`}
                         </h3>
+                        <p className="text-sm text-gray-500">
+                          {t('booking')} #{booking.code}
+                        </p>
                         <p className="text-sm text-gray-600 mt-1">
                           {booking.startsAt ? new Date(booking.startsAt).toLocaleDateString() : '-'}
                         </p>
