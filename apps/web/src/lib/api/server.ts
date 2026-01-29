@@ -225,33 +225,34 @@ export async function getFeaturedDestinations(locale?: string) {
 /**
  * Fetch featured listings from the API (server-side).
  * Returns listings marked as featured by admin for the home page.
- * Forwards user IP and currency for proper currency detection.
+ *
+ * Currency detection: Forwards the user's currency preference from cookie
+ * via X-User-Currency header. The cookie is set client-side when user
+ * visits the listings page (see hooks.ts useListings).
  */
 export async function getFeaturedListings(limit: number = 3): Promise<ListingSummary[]> {
   try {
-    // Get user context for currency detection
-    const { userIp, userCurrency } = await getUserContext();
-
-    // Build headers object - only add optional headers if they have values
-    const fetchHeaders: Record<string, string> = {
+    // Build headers - only forward X-User-Currency, not IP headers
+    // (forwarding IP headers caused 403 errors due to proxy trust issues)
+    const fetchHeaders: HeadersInit = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     };
 
-    // Forward user IP for geo-based currency detection (if available)
-    if (userIp) {
-      fetchHeaders['X-Forwarded-For'] = userIp;
-      fetchHeaders['CF-Connecting-IP'] = userIp;
-    }
-
-    // Forward user's detected currency from cookie (if available)
-    if (userCurrency) {
-      fetchHeaders['X-User-Currency'] = userCurrency;
+    // Try to get user's currency preference from cookie
+    try {
+      const cookieStore = await cookies();
+      const userCurrency = cookieStore.get('user_currency')?.value;
+      if (userCurrency && ['TND', 'EUR'].includes(userCurrency)) {
+        fetchHeaders['X-User-Currency'] = userCurrency;
+      }
+    } catch {
+      // cookies() not available in some contexts (e.g., during build)
     }
 
     const response = await fetch(`${API_URL}/listings/featured?limit=${limit}`, {
       headers: fetchHeaders,
-      cache: 'no-store', // Disable cache - currency is user-specific
+      next: { revalidate: 300 }, // Cache for 5 minutes
     });
 
     if (!response.ok) {
