@@ -159,7 +159,8 @@ export default function BookingsListPage() {
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900">
-                            {booking.listing?.title || `${t('booking')} #${booking.code}`}
+                            {(booking.listing as { title?: string })?.title ||
+                              `${t('booking')} #${booking.code}`}
                           </h3>
                           <p className="text-sm text-gray-500">
                             {t('booking')} #{booking.code}

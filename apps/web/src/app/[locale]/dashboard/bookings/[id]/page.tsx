@@ -126,7 +126,7 @@ export default function BookingDetailPage() {
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {booking.listing?.title || t('booking')}
+                  {(booking.listing as { title?: string })?.title || t('booking')}
                 </h1>
                 <p className="text-sm text-gray-500 mb-1">
                   {t('booking')} #{booking.code}
@@ -149,9 +149,10 @@ export default function BookingDetailPage() {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">{t('activity_details')}</h2>
               <div className="space-y-2 text-sm text-gray-600">
-                {booking.listing?.title && (
+                {(booking.listing as { title?: string })?.title && (
                   <p>
-                    <strong>{t('activity')}:</strong> {booking.listing.title}
+                    <strong>{t('activity')}:</strong>{' '}
+                    {(booking.listing as { title?: string }).title}
                   </p>
                 )}
                 <p>
