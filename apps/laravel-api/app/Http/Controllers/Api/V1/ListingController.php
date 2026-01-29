@@ -105,11 +105,15 @@ class ListingController extends Controller
             $priceMin = $request->get('price_min');
             $priceMax = $request->get('price_max');
 
-            // Try all possible JSON key formats
+            // Try all possible JSON key formats (top-level and nested in person_types)
             $priceExtractFilter = "COALESCE(
                 (pricing->>'base_price')::numeric,
                 (pricing->>'tnd_price')::numeric,
-                (pricing->>'tndPrice')::numeric
+                (pricing->>'tndPrice')::numeric,
+                (pricing->'person_types'->0->>'tnd_price')::numeric,
+                (pricing->'person_types'->0->>'tndPrice')::numeric,
+                (pricing->'personTypes'->0->>'tnd_price')::numeric,
+                (pricing->'personTypes'->0->>'tndPrice')::numeric
             )";
 
             if ($priceMin !== null) {
@@ -149,11 +153,16 @@ class ListingController extends Controller
 
         // Sorting
         // Database stores: base_price (seeder) or tnd_price/tndPrice (Filament)
+        // Vendor panel stores pricing in person_types array, so we extract from there too
         $sortBy = $request->get('sort', 'popularity');
         $priceExtract = "COALESCE(
             (pricing->>'base_price')::numeric,
             (pricing->>'tnd_price')::numeric,
-            (pricing->>'tndPrice')::numeric
+            (pricing->>'tndPrice')::numeric,
+            (pricing->'person_types'->0->>'tnd_price')::numeric,
+            (pricing->'person_types'->0->>'tndPrice')::numeric,
+            (pricing->'personTypes'->0->>'tnd_price')::numeric,
+            (pricing->'personTypes'->0->>'tndPrice')::numeric
         )";
         match ($sortBy) {
             'price_asc' => $query->orderByRaw("{$priceExtract} ASC NULLS LAST"),
