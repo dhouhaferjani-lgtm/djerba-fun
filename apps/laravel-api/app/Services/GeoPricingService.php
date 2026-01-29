@@ -11,6 +11,43 @@ use Illuminate\Support\Facades\Log;
 class GeoPricingService
 {
     /**
+     * Get the real client IP address from proxy headers.
+     *
+     * Priority:
+     * 1. CF-Connecting-IP (Cloudflare)
+     * 2. X-Real-IP (nginx)
+     * 3. X-Forwarded-For (first IP in chain)
+     * 4. $request->ip() (fallback)
+     */
+    public function getRealClientIP(Request $request): string
+    {
+        // Priority 1: Cloudflare header
+        $cfIp = $request->header('CF-Connecting-IP');
+        if ($cfIp && filter_var($cfIp, FILTER_VALIDATE_IP)) {
+            return $cfIp;
+        }
+
+        // Priority 2: X-Real-IP (nginx)
+        $realIp = $request->header('X-Real-IP');
+        if ($realIp && filter_var($realIp, FILTER_VALIDATE_IP)) {
+            return $realIp;
+        }
+
+        // Priority 3: X-Forwarded-For (first IP in chain is the client)
+        $forwardedFor = $request->header('X-Forwarded-For');
+        if ($forwardedFor) {
+            $ips = array_map('trim', explode(',', $forwardedFor));
+            $clientIp = $ips[0] ?? null;
+            if ($clientIp && filter_var($clientIp, FILTER_VALIDATE_IP)) {
+                return $clientIp;
+            }
+        }
+
+        // Fallback to Laravel's method
+        return $request->ip() ?? '127.0.0.1';
+    }
+
+    /**
      * Detect the appropriate currency for the user.
      *
      * Priority:
@@ -33,10 +70,10 @@ class GeoPricingService
             }
         }
 
-        // Priority 2: Check IP geolocation
-        $ip = $request->ip();
+        // Priority 2: Check IP geolocation (using real client IP)
+        $ip = $this->getRealClientIP($request);
 
-        if ($ip && $ip !== '127.0.0.1' && ! $this->isPrivateIP($ip)) {
+        if ($ip && $ip !== '127.0.0.1' && $ip !== '::1' && ! $this->isPrivateIP($ip)) {
             $country = $this->getCountryFromIP($ip);
 
             if ($country === 'TN') {
@@ -164,10 +201,10 @@ class GeoPricingService
             }
         }
 
-        // Check IP
-        $ip = $request->ip();
+        // Check IP (using real client IP from proxy headers)
+        $ip = $this->getRealClientIP($request);
 
-        if ($ip && $ip !== '127.0.0.1' && ! $this->isPrivateIP($ip)) {
+        if ($ip && $ip !== '127.0.0.1' && $ip !== '::1' && ! $this->isPrivateIP($ip)) {
             $country = $this->getCountryFromIP($ip);
 
             if ($country) {
@@ -215,8 +252,8 @@ class GeoPricingService
             ];
         }
 
-        // Priority 3: IP geolocation
-        $ipAddress = $ipAddress ?? request()->ip();
+        // Priority 3: IP geolocation (use provided IP or extract from request)
+        $ipAddress = $ipAddress ?? $this->getRealClientIP(request());
         $geoData = $this->detectCountryFromIp($ipAddress);
 
         return [
@@ -233,8 +270,8 @@ class GeoPricingService
      */
     public function detectCountryFromIp(string $ipAddress): array
     {
-        // Skip private/local IPs
-        if ($ipAddress === '127.0.0.1' || $this->isPrivateIP($ipAddress)) {
+        // Skip private/local IPs (including IPv6 localhost)
+        if ($ipAddress === '127.0.0.1' || $ipAddress === '::1' || $this->isPrivateIP($ipAddress)) {
             return ['countryCode' => null, 'countryName' => null];
         }
 
