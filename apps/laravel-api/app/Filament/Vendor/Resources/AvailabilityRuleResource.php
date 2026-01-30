@@ -143,7 +143,14 @@ class AvailabilityRuleResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('listing_title_display')
                     ->label('Listing')
-                    ->getStateUsing(fn ($record): string => $record->listing?->getTranslation('title', app()->getLocale()) ?: $record->listing?->slug ?? '-')
+                    ->getStateUsing(function ($record): string {
+                        $title = $record->listing?->getTranslation('title', app()->getLocale());
+                        if (is_string($title) && ! empty($title)) {
+                            return $title;
+                        }
+
+                        return $record->listing?->slug ?? '-';
+                    })
                     ->limit(30)
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->whereHas('listing', function ($q) use ($search) {
