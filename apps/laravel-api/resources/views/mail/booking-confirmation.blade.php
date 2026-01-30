@@ -75,7 +75,7 @@
             </div>
 
             <div class="detail-row">
-                <span class="label">Listing:</span> {{ $listing->title }}
+                <span class="label">Listing:</span> {{ $listing?->title ?? 'Activity' }}
             </div>
 
             @if($slot)
@@ -137,7 +137,7 @@
         </div>
         @endif
 
-        @if($booking->travelerDetailsPending() && $listing->promptForNamesImmediately())
+        @if($booking->travelerDetailsPending() && $listing?->promptForNamesImmediately())
         <div class="booking-details" style="background-color: #fff8e1; border-left-color: #ffc107;">
             <h3 style="margin-top: 0; color: #f57c00;">⚠️ Action Required: Participant Names</h3>
             <p><strong>This activity requires participant names before departure.</strong></p>
@@ -151,7 +151,7 @@
             </div>
             @endif
         </div>
-        @elseif($booking->travelerDetailsPending() && !$listing->promptForNamesImmediately())
+        @elseif($booking->travelerDetailsPending() && !$listing?->promptForNamesImmediately())
         <div class="booking-details" style="background-color: #e3f2fd; border-left-color: #2196F3;">
             <h3 style="margin-top: 0; color: #1976D2;">📝 Participant Names (Optional)</h3>
             <p>You can provide participant names now or later before your activity date.</p>

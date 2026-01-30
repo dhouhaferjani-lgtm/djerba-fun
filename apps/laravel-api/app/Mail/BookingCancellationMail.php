@@ -24,7 +24,8 @@ class BookingCancellationMail extends Mailable implements ShouldQueue
     public function __construct(
         public Booking $booking
     ) {
-        $this->booking->load(['listing', 'availabilitySlot', 'user']);
+        // Note: Don't load relationships here - they're lost after serialization
+        // when using SerializesModels trait. Load them in content() instead.
     }
 
     /**
@@ -43,6 +44,10 @@ class BookingCancellationMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
+        // Load relationships when the job processes (after deserialization)
+        // This is required because SerializesModels only stores model IDs
+        $this->booking->loadMissing(['listing', 'availabilitySlot', 'user']);
+
         return new Content(
             view: 'mail.booking-cancellation',
             with: [

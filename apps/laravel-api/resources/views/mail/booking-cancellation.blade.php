@@ -72,7 +72,7 @@
             </div>
 
             <div class="detail-row">
-                <span class="label">Listing:</span> {{ $listing->title }}
+                <span class="label">Listing:</span> {{ $listing?->title ?? 'Activity' }}
             </div>
 
             <div class="detail-row">
