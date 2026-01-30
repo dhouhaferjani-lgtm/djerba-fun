@@ -141,9 +141,9 @@ class AvailabilityRuleResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('listing.title')
+                Tables\Columns\TextColumn::make('listing_title_display')
                     ->label('Listing')
-                    ->formatStateUsing(fn ($record) => $record->listing?->getTranslation('title', app()->getLocale()) ?: $record->listing?->slug)
+                    ->getStateUsing(fn ($record): string => $record->listing?->getTranslation('title', app()->getLocale()) ?: $record->listing?->slug ?? '-')
                     ->limit(30)
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->whereHas('listing', function ($q) use ($search) {
