@@ -162,14 +162,15 @@ class AvailabilityRuleResource extends Resource
                         AvailabilityRuleType::BLOCKED_DATES => 'danger',
                     }),
 
-                Tables\Columns\TextColumn::make('days_of_week')
+                Tables\Columns\TextColumn::make('days_of_week_display')
                     ->label('Days')
-                    ->formatStateUsing(function ($state) {
-                        if (empty($state)) {
+                    ->getStateUsing(function ($record): string {
+                        $daysOfWeek = $record->days_of_week;
+                        if (empty($daysOfWeek)) {
                             return '-';
                         }
                         $dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                        $days = is_array($state) ? $state : json_decode($state, true);
+                        $days = is_array($daysOfWeek) ? $daysOfWeek : [];
 
                         return collect($days)->map(fn ($d) => $dayNames[$d] ?? '?')->join(', ');
                     }),
