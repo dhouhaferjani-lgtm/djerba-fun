@@ -45,9 +45,13 @@ class AvailabilityRuleResource extends Resource
                                 return Listing::where('vendor_id', auth()->id())
                                     ->orderBy('slug')
                                     ->get()
-                                    ->mapWithKeys(fn ($listing) => [
-                                        $listing->id => $listing->getTranslation('title', app()->getLocale()) ?: $listing->slug,
-                                    ]);
+                                    ->mapWithKeys(function ($listing) {
+                                        $title = $listing->getTranslation('title', app()->getLocale());
+
+                                        return [
+                                            $listing->id => is_string($title) && ! empty($title) ? $title : $listing->slug,
+                                        ];
+                                    });
                             })
                             ->searchable()
                             ->required()
