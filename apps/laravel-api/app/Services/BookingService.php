@@ -352,15 +352,21 @@ class BookingService
                     $personType = collect($personTypes)->firstWhere('key', $personTypeKey);
 
                     if ($personType) {
-                        // Use person type price with fallback chain
-                        // Try: price → displayPrice → tndPrice → tnd_price → eurPrice → eur_price → basePrice
-                        $price = $personType['price']
-                            ?? $personType['displayPrice']
-                            ?? $personType['tndPrice']
-                            ?? $personType['tnd_price']
-                            ?? $personType['eurPrice']
-                            ?? $personType['eur_price']
-                            ?? $basePrice;
+                        // Get price for the specific currency (respect hold's currency)
+                        $holdCurrency = $hold->currency ?? 'TND';
+                        if ($holdCurrency === 'TND') {
+                            $price = $personType['tnd_price']
+                                ?? $personType['tndPrice']
+                                ?? $personType['displayPrice']
+                                ?? $personType['price']
+                                ?? $basePrice;
+                        } else {
+                            $price = $personType['eur_price']
+                                ?? $personType['eurPrice']
+                                ?? $personType['displayPrice']
+                                ?? $personType['price']
+                                ?? $basePrice;
+                        }
                         $price = (float) $price;
                         $baseAmount += $price * (int) $quantity;
                     } else {

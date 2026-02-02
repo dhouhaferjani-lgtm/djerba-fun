@@ -54,12 +54,6 @@ export function BookingSummary({
   const basePrice = typeof rawBasePrice === 'string' ? parseFloat(rawBasePrice) : rawBasePrice;
   const quantity = hold.quantity || 1;
 
-  // Use backend-calculated priceSnapshot if available, else fallback to simple calculation
-  const subtotal =
-    (hold as any).priceSnapshot != null
-      ? Number((hold as any).priceSnapshot)
-      : basePrice * quantity;
-
   // Get breakdown details from listing.pricing.personTypes + hold.personTypeBreakdown
   const getBreakdownDetails = () => {
     const breakdown = (hold as any).personTypeBreakdown;
@@ -82,6 +76,14 @@ export function BookingSummary({
         price: Number(type.displayPrice ?? type.tndPrice ?? type.price ?? 0),
       }));
   };
+
+  // Calculate subtotal from breakdown details (accurate) or fallback to priceSnapshot/simple calc
+  const breakdownDetails = getBreakdownDetails();
+  const subtotal = breakdownDetails
+    ? breakdownDetails.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    : (hold as any).priceSnapshot != null
+      ? Number((hold as any).priceSnapshot)
+      : basePrice * quantity;
 
   const extrasTotal = selectedExtras.reduce((total, extra) => {
     return total + extra.price * extra.quantity;
@@ -151,8 +153,8 @@ export function BookingSummary({
             <div>
               <div className="text-sm font-medium text-neutral-900">{t('guests')}</div>
               <div className="text-sm text-neutral-600">
-                {getBreakdownDetails()
-                  ? getBreakdownDetails()!.map((item, idx, arr) => (
+                {breakdownDetails
+                  ? breakdownDetails.map((item, idx, arr) => (
                       <span key={item.key}>
                         {item.quantity} {item.label}
                         {idx < arr.length - 1 ? ', ' : ''}
@@ -169,8 +171,8 @@ export function BookingSummary({
           <h4 className="font-semibold text-neutral-900">{t('price_breakdown')}</h4>
 
           {/* Price breakdown by person type OR simple display */}
-          {getBreakdownDetails() ? (
-            getBreakdownDetails()!.map((item) => (
+          {breakdownDetails ? (
+            breakdownDetails.map((item) => (
               <div key={item.key} className="flex justify-between text-sm">
                 <span className="text-neutral-600">
                   {item.label} × {item.quantity}

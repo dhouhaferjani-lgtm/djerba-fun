@@ -257,7 +257,7 @@ class GeoPricingService
         $geoData = $this->detectCountryFromIp($ipAddress);
 
         return [
-            'country_code' => $geoData['countryCode'] ?? 'FR',
+            'country_code' => $geoData['countryCode'] ?? 'TN',
             'source' => 'ip_geo',
         ];
     }
