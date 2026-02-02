@@ -125,10 +125,22 @@ class AvailabilityRuleResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('listing.title')
+                Tables\Columns\TextColumn::make('listing_title_display')
                     ->label(__('filament.availability_rule.listing'))
-                    ->formatStateUsing(fn ($record) => $record->listing?->getTranslation('title', app()->getLocale()))
-                    ->limit(30),
+                    ->getStateUsing(function ($record): string {
+                        $title = $record->listing?->getTranslation('title', app()->getLocale());
+                        if (is_string($title) && ! empty($title)) {
+                            return $title;
+                        }
+
+                        return $record->listing?->slug ?? '-';
+                    })
+                    ->limit(30)
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('listing', function ($q) use ($search) {
+                            $q->where('slug', 'like', "%{$search}%");
+                        });
+                    }),
 
                 Tables\Columns\TextColumn::make('rule_type')
                     ->label(__('filament.availability_rule.type'))
@@ -176,12 +188,17 @@ class AvailabilityRuleResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('listing_id')
                     ->label(__('filament.availability_rule.listing'))
-                    ->options(
-                        fn () => \App\Models\Listing::query()
+                    ->options(function () {
+                        return \App\Models\Listing::query()
                             ->orderBy('slug')
                             ->get()
-                            ->mapWithKeys(fn ($listing) => [$listing->id => $listing->getTranslation('title', app()->getLocale())])
-                    )
+                            ->mapWithKeys(function ($listing) {
+                                $title = $listing->getTranslation('title', app()->getLocale());
+                                $displayTitle = is_string($title) && ! empty($title) ? $title : $listing->slug;
+
+                                return [$listing->id => $displayTitle];
+                            });
+                    })
                     ->searchable(),
 
                 Tables\Filters\SelectFilter::make('rule_type')
