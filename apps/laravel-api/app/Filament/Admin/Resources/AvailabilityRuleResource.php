@@ -42,7 +42,11 @@ class AvailabilityRuleResource extends Resource
                                 name: 'listing',
                                 modifyQueryUsing: fn (Builder $query) => $query->orderBy('slug'),
                             )
-                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->getTranslation('title', app()->getLocale()))
+                            ->getOptionLabelFromRecordUsing(function ($record): string {
+                        $title = $record->getTranslation('title', app()->getLocale());
+
+                        return is_string($title) && ! empty($title) ? $title : $record->slug;
+                    })
                             ->searchable(['slug'])
                             ->required()
                             ->preload(),
