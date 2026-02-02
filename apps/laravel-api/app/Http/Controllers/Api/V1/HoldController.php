@@ -55,10 +55,11 @@ class HoldController extends Controller
         $sessionId = $validated['session_id'] ?? null;
 
         // Detect currency based on user context (IP geolocation or user billing country)
+        // Use getRealClientIP to properly detect client IP behind Cloudflare/proxy
         $pricingContext = $this->geoPricingService->determinePricingCountry(
             billingAddress: null,
             userSelectedCountry: null,
-            ipAddress: $request->ip()
+            ipAddress: $this->geoPricingService->getRealClientIP($request)
         );
 
         $currency = $this->geoPricingService->getCurrencyForCountry($pricingContext['country_code']);
