@@ -77,7 +77,7 @@ class CartService
                 'cart_id' => $cart->id,
                 'hold_id' => $hold->id,
                 'listing_id' => $listing->id,
-                'listing_title' => $listing->getTranslations('title'),
+                'listing_title' => $this->extractListingTitle($listing),
                 'slot_start' => $hold->slot->start_time,
                 'slot_end' => $hold->slot->end_time,
                 'quantity' => $hold->quantity,
@@ -480,7 +480,18 @@ class CartService
      */
     protected function getPriceForCurrency(array $pricing, string $currency): float
     {
-        // New dual-pricing format
+        // Handle person_types pricing structure (new format)
+        if (isset($pricing['person_types']) && ! empty($pricing['person_types'])) {
+            $firstType = $pricing['person_types'][0] ?? [];
+            if ($currency === 'TND' && isset($firstType['tnd_price'])) {
+                return (float) $firstType['tnd_price'];
+            }
+            if ($currency === 'EUR' && isset($firstType['eur_price'])) {
+                return (float) $firstType['eur_price'];
+            }
+        }
+
+        // Direct dual-pricing format
         if ($currency === 'TND' && isset($pricing['tnd_price'])) {
             return (float) $pricing['tnd_price'];
         }
@@ -490,18 +501,49 @@ class CartService
         }
 
         // Fallback to old single-currency format
-        if (isset($pricing['basePrice'])) {
-            return (float) $pricing['basePrice'];
+        return (float) ($pricing['basePrice'] ?? $pricing['base_price'] ?? $pricing['base'] ?? 0);
+    }
+
+    /**
+     * Extract listing title, handling corrupted data.
+     */
+    protected function extractListingTitle(Listing $listing): array
+    {
+        $translations = $listing->getTranslations('title');
+        $result = [];
+
+        foreach (['en', 'fr'] as $locale) {
+            $value = $translations[$locale] ?? null;
+
+            // Handle corrupted nested data
+            if (is_array($value)) {
+                // Try to find a string value in the nested array
+                $value = $this->findFirstString($value) ?? $listing->slug;
+            }
+
+            $result[$locale] = is_string($value) && ! empty($value) ? $value : $listing->slug;
         }
 
-        if (isset($pricing['base_price'])) {
-            return (float) $pricing['base_price'];
+        return $result;
+    }
+
+    /**
+     * Recursively find first string in nested array.
+     */
+    protected function findFirstString(array $arr): ?string
+    {
+        foreach ($arr as $value) {
+            if (is_string($value) && ! empty($value)) {
+                return $value;
+            }
+            if (is_array($value)) {
+                $found = $this->findFirstString($value);
+                if ($found) {
+                    return $found;
+                }
+            }
         }
 
-        if (isset($pricing['base'])) {
-            return (float) $pricing['base'];
-        }
-
-        return 0;
+        return null;
     }
 }
