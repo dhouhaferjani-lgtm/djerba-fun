@@ -42,7 +42,7 @@ class MagicLoginMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
-        $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+        $frontendUrl = config('app.frontend_url', 'https://dev.go-adventure.net');
         $magicLink = "{$frontendUrl}/auth/verify/{$this->token}";
 
         return new Content(

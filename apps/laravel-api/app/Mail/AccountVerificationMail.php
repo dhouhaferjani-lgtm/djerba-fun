@@ -40,7 +40,7 @@ class AccountVerificationMail extends Mailable
      */
     public function content(): Content
     {
-        $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+        $frontendUrl = config('app.frontend_url', 'https://dev.go-adventure.net');
         $verificationLink = "{$frontendUrl}/auth/verified?token={$this->token}";
 
         return new Content(

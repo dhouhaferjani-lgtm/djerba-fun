@@ -44,7 +44,7 @@ class ParticipantNamesReminderMail extends Mailable
      */
     public function content(): Content
     {
-        $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+        $frontendUrl = config('app.frontend_url', 'https://dev.go-adventure.net');
 
         // Get magic link for the booking
         $magicToken = $this->booking->magic_token;

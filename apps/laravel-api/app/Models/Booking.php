@@ -112,7 +112,7 @@ class Booking extends Model
             return null;
         }
 
-        $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+        $frontendUrl = config('app.frontend_url', 'https://dev.go-adventure.net');
 
         return "{$frontendUrl}/booking/{$this->magic_token}";
     }
