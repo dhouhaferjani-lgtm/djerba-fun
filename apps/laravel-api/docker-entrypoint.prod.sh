@@ -56,7 +56,14 @@ echo "Configuration cached!"
 # Start services
 echo "[6/6] Starting services..."
 echo "======================================"
-echo "Go Adventure API is starting!"
-echo "======================================"
 
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+# Execute the command passed to the container, or default to supervisord
+if [ $# -gt 0 ]; then
+    echo "Running custom command: $@"
+    echo "======================================"
+    exec "$@"
+else
+    echo "Go Adventure API is starting!"
+    echo "======================================"
+    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+fi
