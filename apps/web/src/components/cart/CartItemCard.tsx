@@ -4,6 +4,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@go-adventure/ui';
 import { useCartContext } from '@/lib/contexts/CartContext';
 import type { CartItem } from '@/lib/api/client';
+import { resolveTranslation } from '@/lib/utils/translate';
 import { Trash2, Calendar, Clock, Users, AlertTriangle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
@@ -16,7 +17,7 @@ export function CartItemCard({ item, locale }: CartItemCardProps) {
   const t = useTranslations('cart');
   const { removeItem, isRemovingItem } = useCartContext();
 
-  const title = item.listingTitle[locale] || item.listingTitle['en'] || 'Activity';
+  const title = resolveTranslation(item.listingTitle, locale) || 'Activity';
   const startDate = item.slotStart ? parseISO(item.slotStart) : null;
   const endDate = item.slotEnd ? parseISO(item.slotEnd) : null;
 

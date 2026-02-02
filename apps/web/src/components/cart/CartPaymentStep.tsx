@@ -10,6 +10,7 @@ import {
 import type { Cart } from '@/lib/api/client';
 import type { PrimaryContactData } from './PrimaryContactForm';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
+import { resolveTranslation } from '@/lib/utils/translate';
 
 interface CartPaymentStepProps {
   cart: Cart;
@@ -73,7 +74,7 @@ export function CartPaymentStep({
         {/* Cart Items */}
         <div className="space-y-3">
           {cart.items.map((item) => {
-            const title = item.listingTitle[locale] || item.listingTitle['en'] || 'Experience';
+            const title = resolveTranslation(item.listingTitle, locale) || 'Experience';
             return (
               <div key={item.id} className="flex justify-between items-start text-sm">
                 <div className="flex-1">
