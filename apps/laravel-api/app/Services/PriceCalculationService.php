@@ -209,7 +209,18 @@ class PriceCalculationService
      */
     protected function getPriceForCurrency(array $pricing, string $currency): float
     {
-        // New dual-pricing format
+        // Handle person_types pricing structure (new format)
+        if (isset($pricing['person_types']) && ! empty($pricing['person_types'])) {
+            $firstType = $pricing['person_types'][0] ?? [];
+            if ($currency === 'TND' && isset($firstType['tnd_price'])) {
+                return (float) $firstType['tnd_price'];
+            }
+            if ($currency === 'EUR' && isset($firstType['eur_price'])) {
+                return (float) $firstType['eur_price'];
+            }
+        }
+
+        // Direct dual-pricing format (snake_case)
         if ($currency === 'TND' && isset($pricing['tnd_price'])) {
             return (float) $pricing['tnd_price'];
         }
@@ -219,19 +230,7 @@ class PriceCalculationService
         }
 
         // Fallback to old single-currency format
-        if (isset($pricing['basePrice'])) {
-            return (float) $pricing['basePrice'];
-        }
-
-        if (isset($pricing['base_price'])) {
-            return (float) $pricing['base_price'];
-        }
-
-        if (isset($pricing['base'])) {
-            return (float) $pricing['base'];
-        }
-
-        return 0;
+        return (float) ($pricing['basePrice'] ?? $pricing['base_price'] ?? $pricing['base'] ?? 0);
     }
 
     /**
@@ -239,7 +238,7 @@ class PriceCalculationService
      */
     protected function getPersonTypePriceForCurrency(array $personType, string $currency): float
     {
-        // New dual-pricing format
+        // Check snake_case keys (database format)
         if ($currency === 'TND' && isset($personType['tnd_price'])) {
             return (float) $personType['tnd_price'];
         }
@@ -248,7 +247,21 @@ class PriceCalculationService
             return (float) $personType['eur_price'];
         }
 
-        // Fallback to old single-currency format
+        // Check camelCase keys (API format)
+        if ($currency === 'TND' && isset($personType['tndPrice'])) {
+            return (float) $personType['tndPrice'];
+        }
+
+        if ($currency === 'EUR' && isset($personType['eurPrice'])) {
+            return (float) $personType['eurPrice'];
+        }
+
+        // Check displayPrice (computed by API)
+        if (isset($personType['displayPrice'])) {
+            return (float) $personType['displayPrice'];
+        }
+
+        // Fallback to generic price
         return (float) ($personType['price'] ?? 0);
     }
 }

@@ -113,7 +113,7 @@ class BookingService
                 'quantity' => $hold->quantity,
                 'person_type_breakdown' => $hold->person_type_breakdown,
                 'total_amount' => is_array($pricing) ? $pricing['total'] : $pricing,
-                'currency' => $hold->currency ?? request()->attributes->get('user_currency', 'USD'),
+                'currency' => $hold->currency ?? request()->attributes->get('user_currency', 'TND'),
                 'status' => BookingStatus::PENDING_PAYMENT,
                 'traveler_info' => $primaryTraveler, // Backward compatibility
                 'travelers' => $normalizedTravelers, // Full travelers array
@@ -407,7 +407,7 @@ class BookingService
 
         return [
             'total' => $total,
-            'currency' => $hold->currency ?? 'USD',
+            'currency' => $hold->currency ?? 'TND',
         ];
     }
 
@@ -425,7 +425,7 @@ class BookingService
             // Create a payment intent for the manual payment
             $paymentIntent = $booking->paymentIntents()->create([
                 'amount' => $booking->total_amount,
-                'currency' => $booking->currency ?? 'USD',
+                'currency' => $booking->currency ?? 'TND',
                 'payment_method' => PaymentMethod::OFFLINE,
                 'status' => PaymentStatus::SUCCEEDED,
                 'gateway' => 'offline',
