@@ -81,7 +81,7 @@ export default function SearchMap({
             imageUrl={listing.media[0]?.url}
             price={{
               amount: listing.pricing.displayPrice || listing.pricing.tndPrice || 0,
-              currency: listing.pricing.displayCurrency || 'TND',
+              currency: listing.pricing.displayCurrency || 'EUR',
             }}
             slug={listing.slug}
             location={listing.location}

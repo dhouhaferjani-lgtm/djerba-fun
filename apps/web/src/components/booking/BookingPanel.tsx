@@ -33,7 +33,7 @@ export function BookingPanel({
   const isMobile = useMediaQuery('(max-width: 1023px)');
 
   const basePrice = pricing.displayPrice || pricing.tndPrice || 0;
-  const currency = pricing.displayCurrency || 'TND';
+  const currency = pricing.displayCurrency || 'EUR';
 
   // Desktop: Render as sticky sidebar card
   if (!isMobile) {

@@ -115,7 +115,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
             {listing.pricing.displayPrice || listing.pricing.tndPrice ? (
               <PriceDisplay
                 amount={listing.pricing.displayPrice || listing.pricing.tndPrice || 0}
-                currency={listing.pricing.displayCurrency || 'TND'}
+                currency={listing.pricing.displayCurrency || 'EUR'}
                 size="sm"
                 showFrom
               />
