@@ -33,11 +33,12 @@ const CATEGORY_ICONS: Record<string, string> = {
   other: '📦',
 };
 
-const PRICING_TYPE_LABELS: Record<ExtraPricingType, string> = {
-  per_person: 'per person',
-  per_booking: 'flat rate',
-  per_unit: 'per unit',
-  per_person_type: 'per person type',
+// Pricing type label keys for translations
+const PRICING_TYPE_TRANSLATION_KEYS: Record<ExtraPricingType, string> = {
+  per_person: 'per_traveller',
+  per_booking: 'for_entire_group',
+  per_unit: 'per_item',
+  per_person_type: 'varies_by_age',
 };
 
 export function ExtrasSelection({
@@ -167,11 +168,11 @@ export function ExtrasSelection({
 
     switch (extra.pricingType) {
       case 'per_person':
-        return `${formatPrice(price)} ${t('per_person') || 'per person'} (${totalGuests} ${t('guests') || 'guests'})`;
+        return `${formatPrice(price)} ${t('per_traveller')} (${totalGuests} ${t('guests') || 'guests'})`;
       case 'per_booking':
-        return `${formatPrice(price)} ${t('flat_rate') || 'flat rate'}`;
+        return `${formatPrice(price)} ${t('for_entire_group')}`;
       case 'per_unit':
-        return `${formatPrice(price)} ${t('per_unit') || 'per unit'}`;
+        return `${formatPrice(price)} ${t('per_item')}`;
       case 'per_person_type':
         return t('variable_pricing') || 'Variable pricing by person type';
       default:
@@ -352,7 +353,11 @@ export function ExtrasSelection({
                             </span>
                             {isSelected && extra.pricingType !== 'per_booking' && (
                               <div className="text-xs text-gray-500">
-                                {PRICING_TYPE_LABELS[extra.pricingType as ExtraPricingType]}
+                                {t(
+                                  PRICING_TYPE_TRANSLATION_KEYS[
+                                    extra.pricingType as ExtraPricingType
+                                  ]
+                                )}
                               </div>
                             )}
                           </div>

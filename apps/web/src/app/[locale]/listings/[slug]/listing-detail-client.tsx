@@ -746,14 +746,19 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
 
     try {
       const sessionId = getGuestSessionId();
-      // First create a hold
+      // First create a hold with selected extras
       const holdResponse = await createHoldMutation.mutateAsync({
         slotId: String(selectedSlot.id),
         person_types: filteredBreakdown,
         session_id: sessionId,
-        extras: [],
+        extras: selectedExtras,
       });
       const holdId = holdResponse.data.id;
+
+      // Persist extras to sessionStorage for checkout
+      if (selectedExtras.length > 0) {
+        sessionStorage.setItem(`checkout-extras-${holdId}`, JSON.stringify(selectedExtras));
+      }
 
       // Then add the hold to the cart
       await addToCartMutation.mutateAsync(holdId);
