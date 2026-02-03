@@ -97,8 +97,9 @@ export default function CartParticipantsPage() {
         bookingIds,
         participants: apiParticipants,
       });
-      // Success - redirect to dashboard
-      router.push(`/${locale}/dashboard/bookings`);
+      // Success - redirect to vouchers page for first booking
+      const firstBookingId = bookingIds[0];
+      router.push(`/${locale}/dashboard/bookings/${firstBookingId}/vouchers`);
     } catch (error) {
       console.error('Bulk apply failed:', error);
       // TODO: Show error toast
@@ -140,8 +141,9 @@ export default function CartParticipantsPage() {
       if (currentBookingIndex < bookings.length - 1) {
         setCurrentBookingIndex((i) => i + 1);
       } else {
-        // All done - redirect to dashboard
-        router.push(`/${locale}/dashboard/bookings`);
+        // All done - redirect to vouchers page for first booking
+        const firstBookingId = bookings[0]?.id;
+        router.push(`/${locale}/dashboard/bookings/${firstBookingId}/vouchers`);
       }
     } catch (error) {
       console.error('Update participants failed:', error);
