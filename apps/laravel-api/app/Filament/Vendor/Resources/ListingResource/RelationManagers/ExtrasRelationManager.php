@@ -99,8 +99,16 @@ class ExtrasRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Extra')
-                    ->formatStateUsing(fn ($record) => $record->getTranslation('name', app()->getLocale()))
-                    ->description(fn ($record) => $record->category?->label())
+                    ->formatStateUsing(function ($record) {
+                        $name = $record->getTranslation('name', app()->getLocale());
+
+                        if (is_array($name)) {
+                            $name = $name[app()->getLocale()] ?? $name['en'] ?? reset($name) ?: 'Unnamed';
+                        }
+
+                        return $name ?: 'Unnamed';
+                    })
+                    ->description(fn ($record) => $record->category?->label() ?? 'Other')
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->whereRaw("name->>'en' ILIKE ?", ["%{$search}%"]);
                     }),
@@ -157,9 +165,19 @@ class ExtrasRelationManager extends RelationManager
                                     ->where('vendor_id', auth()->id())
                                     ->where('is_active', true)
                                     ->get()
-                                    ->mapWithKeys(fn (Extra $extra) => [
-                                        $extra->id => $extra->getTranslation('name', app()->getLocale()) . ' - ' . $extra->category?->label(),
-                                    ]);
+                                    ->mapWithKeys(function (Extra $extra) {
+                                        // Safely get translatable name
+                                        $name = $extra->getTranslation('name', app()->getLocale());
+
+                                        if (is_array($name)) {
+                                            $name = $name[app()->getLocale()] ?? $name['en'] ?? reset($name) ?: 'Unnamed';
+                                        }
+                                        $name = $name ?: 'Unnamed';
+
+                                        return [
+                                            $extra->id => $name . ' - ' . ($extra->category?->label() ?? 'Other'),
+                                        ];
+                                    });
                             })
                             ->searchable()
                             ->preload()
@@ -202,17 +220,54 @@ class ExtrasRelationManager extends RelationManager
                             ]),
                     ])
                     ->action(function (array $data, RelationManager $livewire): void {
-                        // Create pivot record directly with UUID
-                        ListingExtra::create([
-                            'id' => (string) Str::uuid(),
-                            'listing_id' => $livewire->getOwnerRecord()->id,
-                            'extra_id' => $data['extra_id'],
-                            'override_price_tnd' => $data['override_price_tnd'] ?? null,
-                            'override_price_eur' => $data['override_price_eur'] ?? null,
-                            'display_order' => $data['display_order'] ?? 0,
-                            'is_featured' => $data['is_featured'] ?? false,
-                            'is_active' => $data['is_active'] ?? true,
-                        ]);
+                        $listingId = $livewire->getOwnerRecord()->id;
+                        $extraId = $data['extra_id'];
+
+                        // Check if this extra is already attached to the listing
+                        $exists = ListingExtra::where('listing_id', $listingId)
+                            ->where('extra_id', $extraId)
+                            ->exists();
+
+                        if ($exists) {
+                            Notification::make()
+                                ->title('Extra already attached')
+                                ->body('This extra is already added to the listing.')
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
+
+                        try {
+                            // Create pivot record directly with UUID
+                            ListingExtra::create([
+                                'id' => (string) Str::uuid(),
+                                'listing_id' => $listingId,
+                                'extra_id' => $extraId,
+                                'override_price_tnd' => $data['override_price_tnd'] ?? null,
+                                'override_price_eur' => $data['override_price_eur'] ?? null,
+                                'display_order' => $data['display_order'] ?? 0,
+                                'is_featured' => $data['is_featured'] ?? false,
+                                'is_active' => $data['is_active'] ?? true,
+                            ]);
+
+                            Notification::make()
+                                ->title('Extra added')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Log::error('Failed to attach extra to listing', [
+                                'listing_id' => $listingId,
+                                'extra_id' => $extraId,
+                                'error' => $e->getMessage(),
+                            ]);
+
+                            Notification::make()
+                                ->title('Failed to add extra')
+                                ->body('An error occurred. Please try again.')
+                                ->danger()
+                                ->send();
+                        }
                     }),
 
                 // Action to create a new extra from a template and attach it
@@ -239,11 +294,21 @@ class ExtrasRelationManager extends RelationManager
                                     $query->where('category', $category);
                                 }
 
-                                return $query->get()->mapWithKeys(fn (ExtraTemplate $template) => [
-                                    $template->id => $template->getTranslation('name', app()->getLocale()) .
-                                        ' - ' . ($template->category?->label() ?? 'Other') .
-                                        ' (' . number_format($template->suggested_price_tnd, 2) . ' TND)',
-                                ]);
+                                return $query->get()->mapWithKeys(function (ExtraTemplate $template) {
+                                    // Safely get translatable name
+                                    $name = $template->getTranslation('name', app()->getLocale());
+
+                                    if (is_array($name)) {
+                                        $name = $name[app()->getLocale()] ?? $name['en'] ?? reset($name) ?: 'Unnamed';
+                                    }
+                                    $name = $name ?: 'Unnamed';
+
+                                    return [
+                                        $template->id => $name .
+                                            ' - ' . ($template->category?->label() ?? 'Other') .
+                                            ' (' . number_format($template->suggested_price_tnd ?? 0, 2) . ' TND)',
+                                    ];
+                                });
                             })
                             ->searchable()
                             ->preload()
@@ -285,43 +350,73 @@ class ExtrasRelationManager extends RelationManager
                             return;
                         }
 
-                        // Clone template to vendor's extras
-                        $extra = $template->cloneForVendor(auth()->id());
+                        try {
+                            // Clone template to vendor's extras
+                            $extra = $template->cloneForVendor(auth()->id());
 
-                        // If custom prices provided, update the extra
-                        if (! empty($data['override_price_tnd'])) {
-                            $extra->base_price_tnd = $data['override_price_tnd'];
+                            // If custom prices provided, update the extra
+                            if (! empty($data['override_price_tnd'])) {
+                                $extra->base_price_tnd = $data['override_price_tnd'];
+                            }
+
+                            if (! empty($data['override_price_eur'])) {
+                                $extra->base_price_eur = $data['override_price_eur'];
+                            }
+
+                            // Activate the extra so it's ready to use
+                            $extra->is_active = true;
+                            $extra->save();
+
+                            // Attach to listing
+                            ListingExtra::create([
+                                'id' => (string) Str::uuid(),
+                                'listing_id' => $livewire->getOwnerRecord()->id,
+                                'extra_id' => $extra->id,
+                                'display_order' => 0,
+                                'is_featured' => false,
+                                'is_active' => true,
+                            ]);
+
+                            // Safely get name for notification
+                            $extraName = $extra->getTranslation('name', 'en');
+
+                            if (is_array($extraName)) {
+                                $extraName = $extraName['en'] ?? reset($extraName) ?: 'Extra';
+                            }
+                            $extraName = $extraName ?: 'Extra';
+
+                            Notification::make()
+                                ->title('Extra created and added')
+                                ->body("'{$extraName}' has been created and added to this listing.")
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Log::error('Failed to create extra from template', [
+                                'template_id' => $data['template_id'],
+                                'listing_id' => $livewire->getOwnerRecord()->id,
+                                'error' => $e->getMessage(),
+                            ]);
+
+                            Notification::make()
+                                ->title('Failed to create extra')
+                                ->body('An error occurred. Please try again.')
+                                ->danger()
+                                ->send();
                         }
-
-                        if (! empty($data['override_price_eur'])) {
-                            $extra->base_price_eur = $data['override_price_eur'];
-                        }
-
-                        // Activate the extra so it's ready to use
-                        $extra->is_active = true;
-                        $extra->save();
-
-                        // Attach to listing
-                        ListingExtra::create([
-                            'id' => (string) Str::uuid(),
-                            'listing_id' => $livewire->getOwnerRecord()->id,
-                            'extra_id' => $extra->id,
-                            'display_order' => 0,
-                            'is_featured' => false,
-                            'is_active' => true,
-                        ]);
-
-                        Notification::make()
-                            ->title('Extra created and added')
-                            ->body("'{$extra->getTranslation('name', 'en')}' has been created and added to this listing.")
-                            ->success()
-                            ->send();
                     }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Edit Override')
-                    ->modalHeading(fn ($record) => 'Edit: ' . $record->getTranslation('name', app()->getLocale())),
+                    ->modalHeading(function ($record) {
+                        $name = $record->getTranslation('name', app()->getLocale());
+
+                        if (is_array($name)) {
+                            $name = $name[app()->getLocale()] ?? $name['en'] ?? reset($name) ?: 'Extra';
+                        }
+
+                        return 'Edit: ' . ($name ?: 'Extra');
+                    }),
 
                 Tables\Actions\DetachAction::make()
                     ->label('Remove'),
@@ -380,11 +475,21 @@ class ExtrasRelationManager extends RelationManager
                                     $query->where('category', $category);
                                 }
 
-                                return $query->get()->mapWithKeys(fn (ExtraTemplate $template) => [
-                                    $template->id => $template->getTranslation('name', app()->getLocale()) .
-                                        ' - ' . ($template->category?->label() ?? 'Other') .
-                                        ' (' . number_format($template->suggested_price_tnd, 2) . ' TND)',
-                                ]);
+                                return $query->get()->mapWithKeys(function (ExtraTemplate $template) {
+                                    // Safely get translatable name
+                                    $name = $template->getTranslation('name', app()->getLocale());
+
+                                    if (is_array($name)) {
+                                        $name = $name[app()->getLocale()] ?? $name['en'] ?? reset($name) ?: 'Unnamed';
+                                    }
+                                    $name = $name ?: 'Unnamed';
+
+                                    return [
+                                        $template->id => $name .
+                                            ' - ' . ($template->category?->label() ?? 'Other') .
+                                            ' (' . number_format($template->suggested_price_tnd ?? 0, 2) . ' TND)',
+                                    ];
+                                });
                             })
                             ->searchable()
                             ->preload()
@@ -403,26 +508,48 @@ class ExtrasRelationManager extends RelationManager
                             return;
                         }
 
-                        // Clone template to vendor's extras
-                        $extra = $template->cloneForVendor(auth()->id());
-                        $extra->is_active = true;
-                        $extra->save();
+                        try {
+                            // Clone template to vendor's extras
+                            $extra = $template->cloneForVendor(auth()->id());
+                            $extra->is_active = true;
+                            $extra->save();
 
-                        // Attach to listing
-                        ListingExtra::create([
-                            'id' => (string) Str::uuid(),
-                            'listing_id' => $livewire->getOwnerRecord()->id,
-                            'extra_id' => $extra->id,
-                            'display_order' => 0,
-                            'is_featured' => false,
-                            'is_active' => true,
-                        ]);
+                            // Attach to listing
+                            ListingExtra::create([
+                                'id' => (string) Str::uuid(),
+                                'listing_id' => $livewire->getOwnerRecord()->id,
+                                'extra_id' => $extra->id,
+                                'display_order' => 0,
+                                'is_featured' => false,
+                                'is_active' => true,
+                            ]);
 
-                        Notification::make()
-                            ->title('Extra created and added')
-                            ->body("'{$extra->getTranslation('name', 'en')}' has been added to this listing.")
-                            ->success()
-                            ->send();
+                            // Safely get name for notification
+                            $extraName = $extra->getTranslation('name', 'en');
+
+                            if (is_array($extraName)) {
+                                $extraName = $extraName['en'] ?? reset($extraName) ?: 'Extra';
+                            }
+                            $extraName = $extraName ?: 'Extra';
+
+                            Notification::make()
+                                ->title('Extra created and added')
+                                ->body("'{$extraName}' has been added to this listing.")
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Log::error('Failed to create extra from template (empty state)', [
+                                'template_id' => $data['template_id'],
+                                'listing_id' => $livewire->getOwnerRecord()->id,
+                                'error' => $e->getMessage(),
+                            ]);
+
+                            Notification::make()
+                                ->title('Failed to create extra')
+                                ->body('An error occurred. Please try again.')
+                                ->danger()
+                                ->send();
+                        }
                     }),
 
                 // Secondary action: Add existing extra (only visible if vendor has extras)
@@ -440,9 +567,19 @@ class ExtrasRelationManager extends RelationManager
                                     ->where('vendor_id', auth()->id())
                                     ->where('is_active', true)
                                     ->get()
-                                    ->mapWithKeys(fn (Extra $extra) => [
-                                        $extra->id => $extra->getTranslation('name', app()->getLocale()) . ' - ' . $extra->category?->label(),
-                                    ]);
+                                    ->mapWithKeys(function (Extra $extra) {
+                                        // Safely get translatable name
+                                        $name = $extra->getTranslation('name', app()->getLocale());
+
+                                        if (is_array($name)) {
+                                            $name = $name[app()->getLocale()] ?? $name['en'] ?? reset($name) ?: 'Unnamed';
+                                        }
+                                        $name = $name ?: 'Unnamed';
+
+                                        return [
+                                            $extra->id => $name . ' - ' . ($extra->category?->label() ?? 'Other'),
+                                        ];
+                                    });
                             })
                             ->searchable()
                             ->preload()
@@ -453,19 +590,51 @@ class ExtrasRelationManager extends RelationManager
                             ->default(true),
                     ])
                     ->action(function (array $data, RelationManager $livewire): void {
-                        ListingExtra::create([
-                            'id' => (string) Str::uuid(),
-                            'listing_id' => $livewire->getOwnerRecord()->id,
-                            'extra_id' => $data['extra_id'],
-                            'display_order' => 0,
-                            'is_featured' => false,
-                            'is_active' => $data['is_active'] ?? true,
-                        ]);
+                        $listingId = $livewire->getOwnerRecord()->id;
+                        $extraId = $data['extra_id'];
 
-                        Notification::make()
-                            ->title('Extra added')
-                            ->success()
-                            ->send();
+                        // Check if this extra is already attached to the listing
+                        $exists = ListingExtra::where('listing_id', $listingId)
+                            ->where('extra_id', $extraId)
+                            ->exists();
+
+                        if ($exists) {
+                            Notification::make()
+                                ->title('Extra already attached')
+                                ->body('This extra is already added to the listing.')
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
+
+                        try {
+                            ListingExtra::create([
+                                'id' => (string) Str::uuid(),
+                                'listing_id' => $listingId,
+                                'extra_id' => $extraId,
+                                'display_order' => 0,
+                                'is_featured' => false,
+                                'is_active' => $data['is_active'] ?? true,
+                            ]);
+
+                            Notification::make()
+                                ->title('Extra added')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Log::error('Failed to attach extra to listing (empty state)', [
+                                'listing_id' => $listingId,
+                                'extra_id' => $extraId,
+                                'error' => $e->getMessage(),
+                            ]);
+
+                            Notification::make()
+                                ->title('Failed to add extra')
+                                ->body('An error occurred. Please try again.')
+                                ->danger()
+                                ->send();
+                        }
                     }),
             ]);
     }
