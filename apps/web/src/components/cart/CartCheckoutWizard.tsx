@@ -36,6 +36,12 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
   const [completedBookings, setCompletedBookings] = useState<Booking[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // Store cart info before payment completes (cart becomes empty after payment)
+  const [completedCartInfo, setCompletedCartInfo] = useState<{
+    totalAmount: number;
+    currency: string;
+  } | null>(null);
+
   // Consent state (for policy agreement checkbox)
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [marketingAccepted, setMarketingAccepted] = useState(false);
@@ -163,6 +169,13 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
 
       // Handle direct payments (mock, offline)
       if (paymentResponse.success && paymentResponse.bookings) {
+        // Save cart info before it gets cleared
+        if (cart) {
+          setCompletedCartInfo({
+            totalAmount: cart.subtotal,
+            currency: cart.currency,
+          });
+        }
         setCompletedBookings(paymentResponse.bookings);
         setCurrentStep('confirmation');
       } else {
@@ -195,7 +208,21 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
     );
   }
 
-  // Empty cart or expired
+  // IMPORTANT: Check confirmation step FIRST
+  // After successful payment, cart becomes empty but we still need to show confirmation
+  if (currentStep === 'confirmation' && completedBookings.length > 0 && completedCartInfo) {
+    return (
+      <CartConfirmation
+        bookings={completedBookings}
+        totalAmount={completedCartInfo.totalAmount}
+        currency={completedCartInfo.currency}
+        locale={locale}
+        primaryEmail={primaryContact?.email}
+      />
+    );
+  }
+
+  // Empty cart or expired (only check if NOT on confirmation step)
   if (!cart || cart.itemCount === 0) {
     return (
       <div className="max-w-2xl mx-auto py-12">
