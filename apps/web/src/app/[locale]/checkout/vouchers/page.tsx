@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { useQueries } from '@tanstack/react-query';
@@ -9,12 +9,22 @@ import { vouchersApi } from '@/lib/api/client';
 import { getGuestSessionId } from '@/lib/utils/session';
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '@go-adventure/ui';
-import { Printer, Download, ChevronLeft, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import {
+  Printer,
+  Download,
+  ChevronLeft,
+  ChevronDown,
+  CheckCircle,
+  AlertTriangle,
+  Loader2,
+  Ticket,
+} from 'lucide-react';
 
 /**
- * Cart Vouchers Page
+ * Cart Vouchers Page - Accordion View
  *
- * Displays vouchers for ALL bookings from a cart checkout on one page.
+ * Displays vouchers for ALL bookings from a cart checkout.
+ * Each activity is a collapsible accordion section.
  * URL: /checkout/vouchers?bookings=id1,id2,id3
  */
 export default function CartVouchersPage() {
@@ -22,6 +32,9 @@ export default function CartVouchersPage() {
   const locale = useLocale();
   const t = useTranslations('vouchers');
   const tCommon = useTranslations('common');
+
+  // Track which accordions are expanded (all expanded by default)
+  const [expandedBookings, setExpandedBookings] = useState<Record<string, boolean>>({});
 
   // Get booking IDs from URL params
   const bookingIdsParam = searchParams.get('bookings');
@@ -45,11 +58,13 @@ export default function CartVouchersPage() {
         }
         return vouchersApi.list(id);
       },
+      retry: 1,
     })),
   });
 
   const isLoading = voucherQueries.some((q) => q.isLoading);
   const hasError = voucherQueries.some((q) => q.isError);
+  const allErrors = voucherQueries.every((q) => q.isError);
 
   // Combine all voucher data
   const allVouchersData = voucherQueries
@@ -58,15 +73,41 @@ export default function CartVouchersPage() {
       data: q.data,
       isLoading: q.isLoading,
       isError: q.isError,
+      error: q.error,
     }))
-    .filter((v) => v.data);
+    .filter((v) => v.data || v.isError);
 
   // Count totals
   const totalVouchers = allVouchersData.reduce((sum, v) => sum + (v.data?.data?.length || 0), 0);
   const readyBookings = allVouchersData.filter((v) => v.data?.canGenerate).length;
   const totalBookings = bookingIds.length;
 
+  // Initialize expanded state on first load
+  useMemo(() => {
+    if (allVouchersData.length > 0 && Object.keys(expandedBookings).length === 0) {
+      const initial: Record<string, boolean> = {};
+      // Expand first booking by default
+      if (bookingIds[0]) {
+        initial[bookingIds[0]] = true;
+      }
+      setExpandedBookings(initial);
+    }
+  }, [allVouchersData.length, bookingIds, expandedBookings]);
+
+  const toggleAccordion = (bookingId: string) => {
+    setExpandedBookings((prev) => ({
+      ...prev,
+      [bookingId]: !prev[bookingId],
+    }));
+  };
+
   const handlePrintAll = () => {
+    window.print();
+  };
+
+  const handleDownloadPdf = async (bookingId: string) => {
+    // For now, just trigger print for that section
+    // In future, could implement individual PDF generation via API
     window.print();
   };
 
@@ -102,8 +143,34 @@ export default function CartVouchersPage() {
     );
   }
 
+  // All queries failed - show error
+  if (allErrors) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="text-center py-12">
+          <AlertTriangle className="w-16 h-16 text-error mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-neutral-900 mb-2">
+            {t('error_loading') || 'Error Loading Vouchers'}
+          </h2>
+          <p className="text-neutral-600 mb-6">
+            {t('error_loading_message') ||
+              "We couldn't load your vouchers. Please try again or contact support."}
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={() => window.location.reload()} variant="outline">
+              {tCommon('try_again') || 'Try Again'}
+            </Button>
+            <Link href="/dashboard/bookings">
+              <Button>{tCommon('go_to_bookings') || 'Go to My Bookings'}</Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8 print:hidden">
         <Link
@@ -114,28 +181,24 @@ export default function CartVouchersPage() {
           {tCommon('back_to_bookings') || 'Back to bookings'}
         </Link>
 
-        <div className="flex items-center justify-between mt-4">
-          <div>
-            <h1 className="text-2xl font-bold text-neutral-900">
-              {t('your_vouchers') || 'Your Vouchers'}
-            </h1>
-            <p className="text-neutral-600 mt-1">
-              {t('cart_subtitle', { bookings: totalBookings, vouchers: totalVouchers }) ||
-                `${totalBookings} activities • ${totalVouchers} vouchers`}
-            </p>
+        <div className="text-center mt-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
+            <Ticket className="w-8 h-8" />
           </div>
-
-          <Button onClick={handlePrintAll} className="flex items-center gap-2">
-            <Printer className="w-5 h-5" />
-            {t('print_all') || 'Print All'}
-          </Button>
+          <h1 className="text-2xl font-bold text-neutral-900">
+            {t('your_vouchers') || 'Your Vouchers'}
+          </h1>
+          <p className="text-neutral-600 mt-1">
+            {t('cart_subtitle', { bookings: totalBookings, vouchers: totalVouchers }) ||
+              `${totalBookings} activities • ${totalVouchers} vouchers`}
+          </p>
         </div>
 
         {/* Progress indicator if some bookings not ready */}
         {readyBookings < totalBookings && (
-          <div className="mt-4 p-4 bg-warning/10 border border-warning/30 rounded-lg">
+          <div className="mt-6 p-4 bg-warning/10 border border-warning/30 rounded-xl">
             <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-warning" />
+              <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0" />
               <div>
                 <p className="font-medium text-warning-dark">
                   {t('some_not_ready', { ready: readyBookings, total: totalBookings }) ||
@@ -151,137 +214,195 @@ export default function CartVouchersPage() {
         )}
       </div>
 
-      {/* Vouchers by Booking */}
-      <div className="space-y-8" id="vouchers-container">
+      {/* Activity Accordions */}
+      <div className="space-y-4 mb-8" id="vouchers-container">
         {allVouchersData.map((voucherData, bookingIndex) => {
-          const { bookingId, data } = voucherData;
+          const { bookingId, data, isError } = voucherData;
+          const isExpanded = expandedBookings[bookingId] || false;
+
+          // Show error for this specific booking
+          if (isError) {
+            return (
+              <div
+                key={bookingId}
+                className="border border-error/30 bg-error/5 rounded-xl overflow-hidden"
+              >
+                <div className="p-4">
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className="w-5 h-5 text-error" />
+                    <div>
+                      <p className="font-medium text-error-dark">
+                        {t('activity_error', { number: bookingIndex + 1 }) ||
+                          `Activity ${bookingIndex + 1} - Error loading`}
+                      </p>
+                      <p className="text-sm text-error-dark/80">
+                        {t('try_refresh') || 'Please try refreshing the page.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          }
 
           if (!data) return null;
 
           const bookingInfo = data.booking;
           const vouchers = data.data || [];
           const canGenerate = data.canGenerate;
+          const completedCount = vouchers.filter((v) => v.participant?.fullName).length;
 
           return (
-            <div key={bookingId} className="print:break-before-page">
-              {/* Activity Header */}
-              <div className="bg-primary/5 rounded-xl p-4 mb-4 print:bg-neutral-100">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-primary font-medium">
-                      {t('activity_number', { number: bookingIndex + 1 }) ||
-                        `Activity ${bookingIndex + 1}`}
-                    </p>
-                    <h2 className="text-lg font-bold text-neutral-900">
-                      {bookingInfo?.listingTitle}
-                    </h2>
-                    <p className="text-sm text-neutral-600">
+            <div
+              key={bookingId}
+              className="border border-neutral-200 rounded-xl overflow-hidden bg-white print:break-before-page"
+            >
+              {/* Accordion Header */}
+              <button
+                onClick={() => toggleAccordion(bookingId)}
+                className="w-full p-4 flex items-center justify-between hover:bg-neutral-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      canGenerate ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+                    }`}
+                  >
+                    {canGenerate ? (
+                      <CheckCircle className="w-5 h-5" />
+                    ) : (
+                      <AlertTriangle className="w-5 h-5" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-neutral-900">{bookingInfo?.listingTitle}</p>
+                    <p className="text-sm text-neutral-500">
                       {bookingInfo?.bookingNumber} • {vouchers.length}{' '}
-                      {vouchers.length === 1 ? 'participant' : 'participants'}
+                      {vouchers.length === 1
+                        ? t('participant') || 'participant'
+                        : t('participants') || 'participants'}
                     </p>
                   </div>
-                  {canGenerate ? (
-                    <div className="flex items-center gap-2 text-success">
-                      <CheckCircle className="w-5 h-5" />
-                      <span className="text-sm font-medium">{t('ready') || 'Ready'}</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {canGenerate && (
+                    <span className="text-sm text-success font-medium hidden sm:inline">
+                      {t('ready') || 'Ready'}
+                    </span>
+                  )}
+                  <ChevronDown
+                    className={`w-5 h-5 text-neutral-400 transition-transform ${
+                      isExpanded ? 'rotate-180' : ''
+                    }`}
+                  />
+                </div>
+              </button>
+
+              {/* Accordion Content */}
+              {isExpanded && (
+                <div className="border-t border-neutral-200">
+                  {canGenerate && vouchers.length > 0 ? (
+                    <div className="p-4 space-y-4">
+                      {/* Voucher Cards */}
+                      {vouchers.map((voucher, index) => (
+                        <div
+                          key={voucher.voucherCode}
+                          className="bg-neutral-50 border border-neutral-200 rounded-lg overflow-hidden print:border-2 print:border-dashed print:mb-4 print:break-inside-avoid"
+                        >
+                          {/* Voucher Header */}
+                          <div className="bg-primary text-white px-4 py-2 print:bg-neutral-200 print:text-neutral-900">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Ticket className="w-4 h-4" />
+                                <span className="font-bold text-sm">{voucher.voucherCode}</span>
+                              </div>
+                              <span className="text-xs opacity-80">
+                                #{index + 1} / {vouchers.length}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Voucher Body */}
+                          <div className="p-4">
+                            <div className="flex gap-4">
+                              {/* QR Code */}
+                              <div className="flex-shrink-0">
+                                <div className="bg-white p-2 border border-neutral-200 rounded">
+                                  <QRCodeSVG value={voucher.qrCodeData} size={80} level="M" />
+                                </div>
+                              </div>
+
+                              {/* Details */}
+                              <div className="flex-1 space-y-2 text-sm">
+                                <div>
+                                  <p className="text-neutral-500">
+                                    {t('participant') || 'Participant'}
+                                  </p>
+                                  <p className="font-semibold text-neutral-900">
+                                    {voucher.participant?.fullName ||
+                                      t('name_not_entered') ||
+                                      'Name not entered'}
+                                  </p>
+                                </div>
+                                <div className="flex gap-4">
+                                  <div>
+                                    <p className="text-neutral-500">{t('date') || 'Date'}</p>
+                                    <p className="font-medium text-neutral-900">
+                                      {voucher.event?.date || '-'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-neutral-500">{t('time') || 'Time'}</p>
+                                    <p className="font-medium text-neutral-900">
+                                      {voucher.event?.time || '-'}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Check-in Status */}
+                            {voucher.participant?.checkedIn && (
+                              <div className="mt-3 p-2 bg-success/10 border border-success/30 rounded flex items-center gap-2">
+                                <CheckCircle className="w-4 h-4 text-success" />
+                                <span className="text-xs font-medium text-success">
+                                  {t('checked_in') || 'Checked In'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Per-activity download button */}
+                      <div className="pt-2 print:hidden">
+                        <Button
+                          onClick={() => handleDownloadPdf(bookingId)}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          {t('download_pdf') || 'Download PDF'}
+                        </Button>
+                      </div>
                     </div>
                   ) : (
-                    <Link href={`/dashboard/bookings/${bookingId}/participants`}>
-                      <Button variant="outline" size="sm">
-                        {t('enter_names') || 'Enter Names'}
-                      </Button>
-                    </Link>
-                  )}
-                </div>
-              </div>
-
-              {/* Vouchers for this booking */}
-              {canGenerate && vouchers.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-1 print:gap-0">
-                  {vouchers.map((voucher, index) => (
-                    <div
-                      key={voucher.voucherCode}
-                      className="bg-white border border-neutral-200 rounded-lg overflow-hidden print:border-2 print:border-dashed print:mb-6 print:break-inside-avoid"
-                    >
-                      {/* Voucher Header */}
-                      <div className="bg-primary text-white p-3 print:bg-neutral-100 print:text-neutral-900">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs opacity-80">{t('voucher') || 'Voucher'}</p>
-                            <p className="font-bold">{voucher.voucherCode}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs opacity-80">#{index + 1}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Voucher Body */}
-                      <div className="p-4">
-                        <div className="flex gap-4">
-                          {/* QR Code */}
-                          <div className="flex-shrink-0">
-                            <div className="bg-white p-1.5 border border-neutral-200 rounded">
-                              <QRCodeSVG value={voucher.qrCodeData} size={80} level="M" />
-                            </div>
-                          </div>
-
-                          {/* Details */}
-                          <div className="flex-1 space-y-2 text-sm">
-                            <div>
-                              <p className="text-neutral-500">
-                                {t('participant') || 'Participant'}
-                              </p>
-                              <p className="font-semibold text-neutral-900">
-                                {voucher.participant?.fullName ||
-                                  t('name_not_entered') ||
-                                  'Name not entered'}
-                              </p>
-                            </div>
-                            <div className="flex gap-3">
-                              <div>
-                                <p className="text-neutral-500">{t('date') || 'Date'}</p>
-                                <p className="font-medium text-neutral-900">
-                                  {voucher.event?.date}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-neutral-500">{t('time') || 'Time'}</p>
-                                <p className="font-medium text-neutral-900">
-                                  {voucher.event?.time}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Check-in Status */}
-                        {voucher.participant?.checkedIn && (
-                          <div className="mt-3 p-2 bg-success/10 border border-success/30 rounded flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4 text-success" />
-                            <span className="text-xs font-medium text-success">
-                              {t('checked_in') || 'Checked In'}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                    <div className="p-6 text-center bg-warning/5">
+                      <AlertTriangle className="w-10 h-10 text-warning mx-auto mb-3" />
+                      <p className="font-medium text-warning-dark mb-2">
+                        {t('vouchers_not_ready') || 'Vouchers Not Ready'}
+                      </p>
+                      <p className="text-sm text-warning-dark/80 mb-4">
+                        {t('complete_names_first') || 'Please enter all participant names first.'}
+                      </p>
+                      <Link href={`/dashboard/bookings/${bookingId}/participants`}>
+                        <Button variant="outline" size="sm">
+                          {t('enter_names') || 'Enter Participant Names'}
+                        </Button>
+                      </Link>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-warning/10 border border-warning/30 rounded-lg p-6 text-center">
-                  <AlertTriangle className="w-10 h-10 text-warning mx-auto mb-3" />
-                  <p className="font-medium text-warning-dark mb-2">
-                    {t('vouchers_not_ready') || 'Vouchers Not Ready'}
-                  </p>
-                  <p className="text-sm text-warning-dark/80 mb-4">
-                    {t('complete_names_first') || 'Please enter all participant names first.'}
-                  </p>
-                  <Link href={`/dashboard/bookings/${bookingId}/participants`}>
-                    <Button variant="outline" size="sm">
-                      {t('enter_names') || 'Enter Participant Names'}
-                    </Button>
-                  </Link>
+                  )}
                 </div>
               )}
             </div>
@@ -289,17 +410,25 @@ export default function CartVouchersPage() {
         })}
       </div>
 
-      {/* Actions footer */}
-      <div className="mt-8 pt-6 border-t print:hidden">
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={handlePrintAll} className="flex items-center justify-center gap-2">
-            <Printer className="w-5 h-5" />
-            {t('print_all') || 'Print All Vouchers'}
+      {/* Download All Button */}
+      {readyBookings > 0 && (
+        <div className="bg-neutral-50 rounded-xl p-6 text-center print:hidden">
+          <Button onClick={handlePrintAll} className="animate-pulse-glow" size="lg">
+            <Download className="w-5 h-5 mr-2" />
+            {t('download_all', { count: totalVouchers }) ||
+              `Download All Vouchers (${totalVouchers})`}
           </Button>
-          <Link href="/dashboard/bookings">
-            <Button variant="outline">{tCommon('go_to_bookings') || 'Go to My Bookings'}</Button>
-          </Link>
+          <p className="text-sm text-neutral-500 mt-3">
+            {t('download_all_hint') || 'Downloads all vouchers as a single PDF'}
+          </p>
         </div>
+      )}
+
+      {/* Back to bookings link */}
+      <div className="mt-8 text-center print:hidden">
+        <Link href="/dashboard/bookings">
+          <Button variant="outline">{tCommon('go_to_bookings') || 'Go to My Bookings'}</Button>
+        </Link>
       </div>
 
       {/* Print Styles */}

@@ -428,3 +428,17 @@ i {
 .prose figure {
   margin: 1.5rem 0;
 }
+
+/* Pulse glow animation for attention-grabbing buttons */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(13, 100, 46, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(13, 100, 46, 0);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}

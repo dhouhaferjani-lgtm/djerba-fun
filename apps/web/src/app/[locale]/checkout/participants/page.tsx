@@ -393,7 +393,7 @@ export default function CartParticipantsPage() {
       <div className="flex flex-col sm:flex-row gap-4">
         <Button
           onClick={handleSaveAllAndView}
-          className="flex-1"
+          className={`flex-1 ${allSaved ? 'animate-pulse-glow' : ''}`}
           disabled={completedParticipants === 0}
         >
           {allSaved ? (
