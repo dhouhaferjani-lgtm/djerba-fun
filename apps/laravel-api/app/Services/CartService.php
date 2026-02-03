@@ -295,19 +295,8 @@ class CartService
             ];
         }
 
-        // Check guest names if required
-        if ($item->requiresTravelerNames()) {
-            $guestCount = $item->quantity;
-            $namesCount = count($item->guest_names ?? []);
-
-            if ($namesCount < $guestCount) {
-                $errors[] = [
-                    'code' => 'missing_guest_names',
-                    'message' => "Guest names required for all {$guestCount} travelers",
-                    'item_id' => $item->id,
-                ];
-            }
-        }
+        // NOTE: Guest names validation removed - participant names are collected post-payment
+        // This aligns cart checkout with BookingService which also does post-payment collection
 
         return $errors;
     }

@@ -230,6 +230,7 @@
     "payment": "Paiement",
     "confirm": "Confirmer la Réservation",
     "total": "Total",
+    "subtotal": "Sous-total",
     "first_name": "Prénom",
     "last_name": "Nom",
     "email": "Email",

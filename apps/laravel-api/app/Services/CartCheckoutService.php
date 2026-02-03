@@ -9,6 +9,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
+use App\Models\BookingParticipant;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\CartPayment;
@@ -301,12 +302,51 @@ class CartCheckoutService
                 'first_name' => $primaryContact['first_name'] ?? null,
                 'last_name' => $primaryContact['last_name'] ?? null,
             ],
+            // Add traveler details status for post-payment participant name collection
+            'traveler_details_status' => $item->listing?->require_traveler_names ? 'pending' : 'not_required',
+            // Add magic token for guest booking access
+            'magic_token' => Str::random(64),
+            'magic_token_expires_at' => now()->addDays(30),
         ]);
 
         // Convert the hold
         $hold->convert();
 
+        // Create empty participant records for post-payment name collection
+        $this->createEmptyParticipantRecords($booking, $item);
+
         return $booking;
+    }
+
+    /**
+     * Create empty participant records for a cart booking.
+     * Participant names will be collected post-payment if required by the listing.
+     * This mirrors the behavior in BookingService::createEmptyParticipantRecords().
+     */
+    protected function createEmptyParticipantRecords(Booking $booking, CartItem $item): void
+    {
+        $breakdown = $item->person_type_breakdown ?? [];
+
+        // If breakdown is available, create participants with person types
+        if (! empty($breakdown)) {
+            foreach ($breakdown as $personType => $count) {
+                for ($i = 0; $i < $count; $i++) {
+                    BookingParticipant::create([
+                        'booking_id' => $booking->id,
+                        'person_type' => $personType,
+                        // Names intentionally left null - to be filled post-payment
+                    ]);
+                }
+            }
+        } else {
+            // No breakdown, create based on quantity only
+            for ($i = 0; $i < $booking->quantity; $i++) {
+                BookingParticipant::create([
+                    'booking_id' => $booking->id,
+                    // Names intentionally left null - to be filled post-payment
+                ]);
+            }
+        }
     }
 
     /**
