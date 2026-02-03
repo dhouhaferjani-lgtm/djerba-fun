@@ -377,7 +377,11 @@
       "first_name_placeholder": "First name",
       "last_name_placeholder": "Last name",
       "add_contact_info": "Add contact info",
-      "names_helper": "Enter the first and last name for each participant. Names will appear on vouchers."
+      "names_helper": "Enter the first and last name for each participant. Names will appear on vouchers.",
+      "same_participants_question": "Same participants for all activities?",
+      "copy_to_remaining": "Copy names to {count} remaining activities",
+      "copy_to_all": "Copy to All",
+      "copying": "Copying..."
     },
     "confirmation": {
       "title": "Booking Confirmed!",

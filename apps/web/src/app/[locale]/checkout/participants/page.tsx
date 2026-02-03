@@ -6,24 +6,21 @@ import { useTranslations, useLocale } from 'next-intl';
 import { useQueries } from '@tanstack/react-query';
 import { bookingsApi } from '@/lib/api/client';
 import { useUpdateParticipants, useBulkApplyParticipants } from '@/lib/api/hooks';
-import { ParticipantModeSelector } from '@/components/booking/ParticipantModeSelector';
-import { BulkParticipantsForm } from '@/components/booking/BulkParticipantsForm';
 import { ActivityAccordion, type ParticipantData } from '@/components/booking/ActivityAccordion';
 import { Button } from '@go-adventure/ui';
-import { Loader2, CheckCircle, AlertTriangle, Users } from 'lucide-react';
+import { Loader2, CheckCircle, AlertTriangle, Users, Copy } from 'lucide-react';
 import { getGuestSessionId } from '@/lib/utils/session';
 import type { Booking } from '@go-adventure/schemas';
-
-type Mode = 'select' | 'same' | 'different';
 
 /**
  * Cart Participants Entry Page - Accordion View
  *
- * Redesigned UX based on European competitor patterns (GetYourGuide, Viator).
+ * Simplified UX that goes directly to accordion view.
  * Shows ALL activities on ONE page with collapsible accordions.
  * Key features:
  * - All activities visible at once
  * - Per-activity save (no data loss)
+ * - "Copy to All" feature after first activity is saved
  * - Progress indicator per activity and overall
  * - Skip for Now option with email reminder
  */
@@ -33,12 +30,13 @@ export default function CartParticipantsPage() {
   const locale = useLocale();
   const t = useTranslations('booking.participants');
 
-  const [mode, setMode] = useState<Mode>('select');
   const [expandedBooking, setExpandedBooking] = useState<string | null>(null);
   const [savedBookings, setSavedBookings] = useState<Record<string, boolean>>({});
   const [savingBooking, setSavingBooking] = useState<string | null>(null);
   const [formData, setFormData] = useState<Record<string, ParticipantData[]>>({});
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+  const [firstSavedData, setFirstSavedData] = useState<ParticipantData[] | null>(null);
+  const [isCopying, setIsCopying] = useState(false);
 
   // Get booking IDs from URL params
   const bookingIdsParam = searchParams.get('bookings');
@@ -121,42 +119,8 @@ export default function CartParticipantsPage() {
     }
   }, [bookings, formData]);
 
-  // Handle mode selection
-  const handleModeSelect = (selectedMode: 'same' | 'different') => {
-    setMode(selectedMode);
-  };
-
-  // Handle bulk apply submission (same for all mode)
-  const handleBulkSubmit = async (
-    participants: Array<{
-      firstName: string;
-      lastName: string;
-      email?: string;
-      phone?: string;
-    }>
-  ) => {
-    try {
-      // Convert from form format (firstName) to API format (first_name)
-      const apiParticipants = participants.map((p) => ({
-        first_name: p.firstName,
-        last_name: p.lastName,
-        email: p.email || null,
-        phone: p.phone || null,
-      }));
-
-      await bulkApplyMutation.mutateAsync({
-        bookingIds,
-        participants: apiParticipants,
-      });
-
-      // Success - redirect to vouchers page for all bookings
-      const bookingIdsJoined = bookingIds.join(',');
-      router.push(`/${locale}/checkout/vouchers?bookings=${bookingIdsJoined}`);
-    } catch (error) {
-      console.error('Bulk apply failed:', error);
-      // TODO: Show error toast
-    }
-  };
+  // Calculate saved count for "Copy to All" visibility
+  const savedCount = Object.values(savedBookings).filter(Boolean).length;
 
   // Handle individual activity save
   const handleActivitySave = useCallback(
@@ -184,8 +148,14 @@ export default function CartParticipantsPage() {
         // Mark this booking as saved
         setSavedBookings((prev) => ({ ...prev, [bookingId]: true }));
 
+        // Store first saved data for "Copy to All" feature
+        if (savedCount === 0) {
+          setFirstSavedData(participants);
+        }
+
         // Auto-expand next unsaved booking
-        const nextUnsaved = bookings.find((b) => b.id !== bookingId && !savedBookings[b.id]);
+        const currentSavedBookings = { ...savedBookings, [bookingId]: true };
+        const nextUnsaved = bookings.find((b) => b.id !== bookingId && !currentSavedBookings[b.id]);
         if (nextUnsaved) {
           setExpandedBooking(nextUnsaved.id);
         }
@@ -196,8 +166,41 @@ export default function CartParticipantsPage() {
         setSavingBooking(null);
       }
     },
-    [bookings, savedBookings, updateParticipantsMutation]
+    [bookings, savedBookings, savedCount, updateParticipantsMutation]
   );
+
+  // Handle "Copy to All" - copies first saved activity's names to all remaining activities
+  const handleCopyToAll = async () => {
+    if (!firstSavedData) return;
+
+    setIsCopying(true);
+
+    try {
+      // Get all unsaved bookings
+      const unsavedBookingIds = bookings.filter((b) => !savedBookings[b.id]).map((b) => b.id);
+
+      if (unsavedBookingIds.length === 0) return;
+
+      // Call bulk apply API with first saved data
+      await bulkApplyMutation.mutateAsync({
+        bookingIds: unsavedBookingIds,
+        participants: firstSavedData.map((p) => ({
+          first_name: p.firstName,
+          last_name: p.lastName,
+          email: p.email || null,
+          phone: p.phone || null,
+        })),
+      });
+
+      // Redirect to vouchers page
+      router.push(`/${locale}/checkout/vouchers?bookings=${bookingIds.join(',')}`);
+    } catch (error) {
+      console.error('Copy to all failed:', error);
+      // TODO: Show error toast
+    } finally {
+      setIsCopying(false);
+    }
+  };
 
   // Handle form data change
   const handleFormChange = useCallback((bookingId: string, data: ParticipantData[]) => {
@@ -240,10 +243,12 @@ export default function CartParticipantsPage() {
   const completedParticipants = Object.values(formData).reduce((sum, participants) => {
     return sum + (participants?.filter((p) => p.firstName.trim() && p.lastName.trim()).length || 0);
   }, 0);
-  const savedCount = Object.values(savedBookings).filter(Boolean).length;
   const allSaved = savedCount === bookings.length;
   const progressPercent =
     totalParticipants > 0 ? Math.round((completedParticipants / totalParticipants) * 100) : 0;
+
+  // Determine if "Copy to All" should be shown
+  const showCopyToAll = savedCount > 0 && savedCount < bookings.length && firstSavedData;
 
   // Loading state
   if (isLoading) {
@@ -277,29 +282,7 @@ export default function CartParticipantsPage() {
     );
   }
 
-  // Mode selection view (first screen)
-  if (mode === 'select') {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        <ParticipantModeSelector bookings={bookings} onModeSelect={handleModeSelect} />
-      </div>
-    );
-  }
-
-  // Same for all - bulk entry view
-  if (mode === 'same') {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        <BulkParticipantsForm
-          bookings={bookings}
-          onSubmit={handleBulkSubmit}
-          isLoading={bulkApplyMutation.isPending}
-        />
-      </div>
-    );
-  }
-
-  // Different per tour - Accordion view (main redesign)
+  // Accordion view (direct - no mode selection)
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       {/* Header */}
@@ -317,6 +300,47 @@ export default function CartParticipantsPage() {
           }) || `${bookings.length} activities • ${totalParticipants} participants total`}
         </p>
       </div>
+
+      {/* "Copy to All" banner - shows after first activity is saved */}
+      {showCopyToAll && (
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <Copy className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-neutral-900">
+                  {t('same_participants_question') || 'Same participants for all activities?'}
+                </p>
+                <p className="text-sm text-neutral-600">
+                  {t('copy_to_remaining', { count: bookings.length - savedCount }) ||
+                    `Copy names to ${bookings.length - savedCount} remaining activities`}
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={handleCopyToAll}
+              variant="outline"
+              size="sm"
+              disabled={isCopying}
+              className="flex-shrink-0"
+            >
+              {isCopying ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t('copying') || 'Copying...'}
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 mr-2" />
+                  {t('copy_to_all') || 'Copy to All'}
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Activity accordions */}
       <div className="space-y-4 mb-8">

@@ -351,7 +351,11 @@
       "first_name_placeholder": "Prénom",
       "last_name_placeholder": "Nom",
       "add_contact_info": "Ajouter les coordonnées",
-      "names_helper": "Entrez le prénom et le nom de chaque participant. Les noms apparaîtront sur les bons."
+      "names_helper": "Entrez le prénom et le nom de chaque participant. Les noms apparaîtront sur les bons.",
+      "same_participants_question": "Mêmes participants pour toutes les activités ?",
+      "copy_to_remaining": "Copier les noms vers {count} activités restantes",
+      "copy_to_all": "Copier vers tout",
+      "copying": "Copie en cours..."
     },
     "confirmation": {
       "title": "Réservation Confirmée !",
