@@ -8,6 +8,7 @@
     "loading": "Chargement...",
     "error": "Une erreur est survenue",
     "retry": "Réessayer",
+    "try_again": "Réessayer",
     "learn_more": "En savoir plus",
     "explore": "Explorer",
     "view_all": "Voir Tout",
@@ -18,7 +19,8 @@
     "back": "Retour",
     "back_arrow": "← Retour",
     "cancel": "Annuler",
-    "back_to_bookings": "Retour aux Réservations"
+    "back_to_bookings": "Retour aux Réservations",
+    "go_to_bookings": "Aller à Mes Réservations"
   },
   "home": {
     "hero_title": "Découvrez la Tunisie Authentique",

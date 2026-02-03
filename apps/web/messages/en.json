@@ -8,6 +8,7 @@
     "loading": "Loading...",
     "error": "Something went wrong",
     "retry": "Try again",
+    "try_again": "Try Again",
     "learn_more": "Learn More",
     "explore": "Explore",
     "view_all": "View All",
@@ -18,7 +19,8 @@
     "back": "Back",
     "back_arrow": "← Back",
     "cancel": "Cancel",
-    "back_to_bookings": "Back to Bookings"
+    "back_to_bookings": "Back to Bookings",
+    "go_to_bookings": "Go to My Bookings"
   },
   "home": {
     "hero_title": "Live More Than Just a Simple Travel",
@@ -158,9 +160,10 @@
     "not_included": "Not Included",
     "available_extras": "Available Add-ons",
     "extras_description": "Enhance your experience with these optional extras. You can select them during checkout.",
-    "per_person": "per person",
-    "per_booking": "per booking",
-    "per_unit": "per unit",
+    "per_person": "per traveller",
+    "per_booking": "for entire group",
+    "per_unit": "per item",
+    "per_person_type": "varies by age",
     "more_extras_available": "+{count} more add-ons available during checkout",
     "meeting_point": "Meeting Point",
     "duration": "Duration",
