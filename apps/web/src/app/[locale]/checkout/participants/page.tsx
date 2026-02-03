@@ -280,6 +280,7 @@ export default function CartParticipantsPage() {
 
         {/* Participants form */}
         <ParticipantsForm
+          key={currentBooking.id}
           booking={currentBooking}
           onSubmit={handleIndividualSubmit}
           isLoading={updateParticipantsMutation.isPending}

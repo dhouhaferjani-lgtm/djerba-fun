@@ -166,6 +166,7 @@ class BookingController extends Controller
             'availabilitySlot:id,listing_id,date,start_time,end_time,remaining_capacity',
             'user:id,uuid,first_name,last_name,email',
             'paymentIntents:id,booking_id,amount,currency,status,payment_method,created_at',
+            'participants:id,booking_id,first_name,last_name,email,phone,person_type',
         ]);
 
         return response()->json([
