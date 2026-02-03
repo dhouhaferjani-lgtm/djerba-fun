@@ -427,6 +427,30 @@ const listingBaseFields = {
   // Activity type for categorization (only used by tours, null for events)
   activityType: activityTypeSchema.nullable().optional(),
   activityTypeId: z.string().uuid().nullable().optional(),
+  // Extras attached to this listing (optional, loaded via eager loading)
+  extras: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        extraId: z.string().uuid(),
+        name: z.string(),
+        description: z.string().nullable(),
+        shortDescription: z.string().nullable(),
+        imageUrl: z.string().nullable(),
+        pricingType: z.enum(['per_person', 'per_booking', 'per_unit']),
+        category: z.string().nullable(),
+        priceTnd: z.number().nonnegative(),
+        priceEur: z.number().nonnegative(),
+        displayPrice: z.number().nonnegative().optional(),
+        displayCurrency: z.enum(['TND', 'EUR']).optional(),
+        minQuantity: z.number().int().nonnegative(),
+        maxQuantity: z.number().int().positive().nullable(),
+        isRequired: z.boolean(),
+        isFeatured: z.boolean(),
+        displayOrder: z.number().int(),
+      })
+    )
+    .optional(),
 };
 
 export const tourSchema = z.object({
