@@ -11,7 +11,7 @@ import type { Booking } from '@go-adventure/schemas';
 
 // Zod schema for participant form validation
 const participantSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(), // Can be UUID or temp-{index} for new participants
   firstName: z.string().min(1, 'First name is required').max(100),
   lastName: z.string().min(1, 'Last name is required').max(100),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
@@ -40,14 +40,27 @@ export function ParticipantsForm({ booking, onSubmit, isLoading = false }: Parti
   const [submitting, setSubmitting] = useState(false);
 
   // Get participants from booking (typed as unknown[] in schema, so we cast)
-  const participants = (booking.participants || []) as Array<{
+  const existingParticipants = (booking.participants || []) as Array<{
     id?: string;
     firstName?: string;
     lastName?: string;
     email?: string;
     phone?: string;
   }>;
-  const quantity = booking.quantity || participants.length || 1;
+  const quantity = booking.quantity || existingParticipants.length || 1;
+
+  // Generate placeholder participants if none exist (common after cart checkout)
+  // This ensures form fields are rendered based on booking quantity
+  const participants =
+    existingParticipants.length > 0
+      ? existingParticipants
+      : Array.from({ length: quantity }, (_, i) => ({
+          id: `temp-${i}`,
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+        }));
 
   // Initialize form with existing participant data
   const {
