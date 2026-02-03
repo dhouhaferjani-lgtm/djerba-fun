@@ -18,7 +18,8 @@ class ListingExtraResource extends JsonResource
     public function toArray(Request $request): array
     {
         $locale = $request->header('Accept-Language', 'en');
-        $currency = $request->header('X-Currency', 'EUR');
+        // Use middleware-detected currency (same as ListingResource) to ensure consistency
+        $currency = $request->attributes->get('user_currency', 'EUR');
         $extra = $this->extra;
 
         // Build context for conditional display evaluation

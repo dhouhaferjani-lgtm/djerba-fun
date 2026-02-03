@@ -81,7 +81,8 @@ class ListingExtrasController extends Controller
             'currency' => 'sometimes|string|in:TND,EUR',
         ]);
 
-        $currency = $validated['currency'] ?? $request->header('X-Currency', 'TND');
+        // Use validated currency parameter first, then middleware-detected currency
+        $currency = $validated['currency'] ?? $request->attributes->get('user_currency', 'TND');
         $personTypeBreakdown = $validated['person_types'] ?? [];
 
         // Validate the selection

@@ -17,7 +17,8 @@ class BookingExtraResource extends JsonResource
     public function toArray(Request $request): array
     {
         $locale = $request->header('Accept-Language', 'en');
-        $currency = $request->header('X-Currency', $this->booking?->currency ?? 'EUR');
+        // Use booking's stored currency first, then middleware-detected currency
+        $currency = $this->booking?->currency ?? $request->attributes->get('user_currency', 'EUR');
 
         return [
             'id' => $this->id,
