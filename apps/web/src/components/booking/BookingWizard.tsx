@@ -22,7 +22,7 @@ import type {
   ListingExtraForBooking,
 } from '@go-adventure/schemas';
 
-interface SelectedExtra {
+export interface SelectedExtra {
   id: string; // listing_extra_id
   quantity: number;
 }
@@ -33,6 +33,7 @@ interface BookingWizardProps {
   slot: AvailabilitySlot;
   availableExtras?: ListingExtraForBooking[];
   onExpired?: () => void;
+  onExtrasChange?: (extras: SelectedExtra[]) => void;
 }
 
 type Step = 'contact' | 'extras' | 'review' | 'confirmation';
@@ -43,6 +44,7 @@ export function BookingWizard({
   slot,
   availableExtras = [],
   onExpired,
+  onExtrasChange,
 }: BookingWizardProps) {
   const t = useTranslations('booking');
   const { user } = useAuth();
@@ -103,6 +105,7 @@ export function BookingWizard({
 
   const handleExtrasSubmit = (extras: SelectedExtra[]) => {
     setSelectedExtras(extras);
+    onExtrasChange?.(extras);
     setCurrentStep('review');
   };
 
@@ -281,6 +284,7 @@ export function BookingWizard({
           },
         ],
         sessionId,
+        extras: selectedExtras,
       });
 
       const booking = bookingResponse.data;

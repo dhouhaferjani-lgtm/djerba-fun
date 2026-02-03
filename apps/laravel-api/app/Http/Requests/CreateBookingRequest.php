@@ -50,9 +50,9 @@ class CreateBookingRequest extends BaseFormRequest
             'billing_address_line2' => ['nullable', 'string', 'max:255'],
             'pricing_disclosure_accepted' => ['nullable', 'boolean'],
 
+            // Extras selection - id is the listing_extra_id (not extra_id)
             'extras' => ['nullable', 'array'],
-            'extras.*.name' => ['required', 'string', 'max:255'],
-            'extras.*.price' => ['required', 'numeric', 'min:0'],
+            'extras.*.id' => ['required', 'uuid', 'exists:listing_extras,id'],
             'extras.*.quantity' => ['required', 'integer', 'min:1'],
         ];
     }

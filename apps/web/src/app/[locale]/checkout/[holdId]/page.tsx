@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { useRouter, Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
-import { BookingWizard } from '@/components/booking/BookingWizard';
+import { BookingWizard, type SelectedExtra } from '@/components/booking/BookingWizard';
 import { BookingSummary } from '@/components/booking/BookingSummary';
 import { CheckoutAuthModal } from '@/components/booking/CheckoutAuthModal';
 import { useHold, useListingExtras } from '@/lib/api/hooks';
@@ -29,6 +29,7 @@ export default function CheckoutPage() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [hasChosenAuthMethod, setHasChosenAuthMethod] = useState(false);
+  const [selectedExtras, setSelectedExtras] = useState<SelectedExtra[]>([]);
 
   const { data: holdData, isLoading, error, isError } = useHold(holdId);
 
@@ -235,6 +236,7 @@ export default function CheckoutPage() {
                 slot={slot as any}
                 availableExtras={extrasData || []}
                 onExpired={handleHoldExpired}
+                onExtrasChange={setSelectedExtras}
               />
             </div>
 
@@ -245,7 +247,19 @@ export default function CheckoutPage() {
                   hold={holdData as any}
                   listing={listing as any}
                   slot={slot as any}
-                  selectedExtras={[]}
+                  selectedExtras={selectedExtras.map((sel) => {
+                    const extra = extrasData?.find((e) => e.id === sel.id);
+                    const price =
+                      extra?.displayPrice ??
+                      (slot.currency === 'TND' ? extra?.priceTnd : extra?.priceEur) ??
+                      0;
+                    return {
+                      id: sel.id,
+                      name: extra?.name || '',
+                      quantity: sel.quantity,
+                      price,
+                    };
+                  })}
                   currency={slot.currency}
                 />
               </div>

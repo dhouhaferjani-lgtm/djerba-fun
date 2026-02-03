@@ -1068,6 +1068,14 @@ export const createBookingRequestSchema = z.object({
   couponCode: z.string().optional(),
   specialRequests: z.string().max(2000).optional(),
   sessionId: z.string().uuid().optional(),
+  extras: z
+    .array(
+      z.object({
+        id: z.string().uuid(), // listing_extra_id
+        quantity: z.number().int().positive(),
+      })
+    )
+    .optional(),
 });
 
 // Hold creation

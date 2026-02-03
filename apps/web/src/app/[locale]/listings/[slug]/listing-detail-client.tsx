@@ -95,6 +95,7 @@ import {
   AlertCircle,
   ShoppingCart,
   Camera,
+  Package,
 } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
 import { getGuestSessionId } from '@/lib/utils/session';
@@ -1085,6 +1086,60 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                       </div>
                     )}
                   </section>
+
+                  {/* Available Extras/Add-ons Preview */}
+                  {listing.extras && listing.extras.length > 0 && (
+                    <section id="extras">
+                      <h3 className="font-display text-2xl font-bold text-heading mb-6 tracking-tight flex items-center gap-3">
+                        <Package className="h-6 w-6 text-primary" />
+                        {t('available_extras')}
+                      </h3>
+                      <p className="text-neutral-600 mb-6">{t('extras_description')}</p>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {listing.extras.slice(0, 4).map((extra: any) => {
+                          const currency = listing.pricing?.displayCurrency || 'EUR';
+                          const price = currency === 'TND' ? extra.priceTnd : extra.priceEur;
+                          const pricingTypeLabel =
+                            extra.pricingType === 'per_person'
+                              ? t('per_person')
+                              : extra.pricingType === 'per_booking'
+                                ? t('per_booking')
+                                : t('per_unit');
+
+                          return (
+                            <div
+                              key={extra.id}
+                              className="border border-neutral-200 rounded-lg p-4 bg-white hover:shadow-md transition-shadow"
+                            >
+                              <div className="flex justify-between items-start gap-4">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-heading">{tr(extra.name)}</h4>
+                                  {extra.shortDescription && (
+                                    <p className="text-sm text-neutral-600 mt-1 line-clamp-2">
+                                      {tr(extra.shortDescription)}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  <span className="font-bold text-primary text-lg">
+                                    {price?.toFixed(2)} {currency}
+                                  </span>
+                                  <span className="text-xs text-neutral-500 block">
+                                    {pricingTypeLabel}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {listing.extras.length > 4 && (
+                        <p className="text-sm text-neutral-500 mt-4 text-center">
+                          {t('more_extras_available', { count: listing.extras.length - 4 })}
+                        </p>
+                      )}
+                    </section>
+                  )}
 
                   {/* Requirements */}
                   {listing.requirements && listing.requirements.length > 0 && (

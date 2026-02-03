@@ -262,7 +262,7 @@ class BookingTest extends TestCase
         // Assert
         $this->assertIsArray($extras);
         $this->assertNotEmpty($extras);
-        $this->assertArrayHasKey('extra_id', $extras[0]);
+        $this->assertArrayHasKey('id', $extras[0]);
         $this->assertArrayHasKey('quantity', $extras[0]);
     }
 

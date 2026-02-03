@@ -59,7 +59,8 @@ class ListingController extends Controller
                 'location:id,uuid,name,slug,city,latitude,longitude',
                 'activityType:id,uuid,name,slug,icon,color',
                 'media:id,uuid,mediable_id,mediable_type,url,thumbnail_url,alt,type,order,category',
-                'faqs:id,listing_id,question,answer,order'
+                'faqs:id,listing_id,question,answer,order',
+                'listingExtras' => fn ($q) => $q->where('is_active', true)->with(['extra' => fn ($e) => $e->where('is_active', true)])
             ]);
 
         // Search by query (title, summary, description)
@@ -211,7 +212,8 @@ class ListingController extends Controller
                 'location:id,uuid,name,slug,city,country,latitude,longitude',
                 'activityType:id,uuid,name,slug,icon,color',
                 'media:id,uuid,mediable_id,mediable_type,url,thumbnail_url,alt,type,order,category',
-                'faqs:id,listing_id,question,answer,order'
+                'faqs:id,listing_id,question,answer,order',
+                'listingExtras' => fn ($q) => $q->where('is_active', true)->with(['extra' => fn ($e) => $e->where('is_active', true)])
             ]);
         });
 

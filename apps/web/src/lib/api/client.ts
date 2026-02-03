@@ -347,7 +347,7 @@ export const bookingsApi = {
         hold_id: request.holdId,
         session_id: request.sessionId,
         travelers: travelers,
-        extras: [],
+        extras: request.extras || [],
       }),
     });
   },
