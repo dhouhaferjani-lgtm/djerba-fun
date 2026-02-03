@@ -75,11 +75,19 @@ export default function CartParticipantsPage() {
   const updateParticipantsMutation = useUpdateParticipants(useGuestAccess);
 
   // Initialize form data for each booking when loaded
+  // Uses functional update to handle async booking loads correctly
   useEffect(() => {
-    if (bookings.length > 0 && Object.keys(formData).length === 0) {
-      const initialData: Record<string, ParticipantData[]> = {};
+    if (bookings.length === 0) return;
+
+    setFormData((prev) => {
+      const updated = { ...prev };
+      let hasChanges = false;
 
       bookings.forEach((booking) => {
+        // Skip if this booking is already initialized
+        if (updated[booking.id]) return;
+
+        hasChanges = true;
         const existingParticipants = (booking.participants || []) as Array<{
           id: string;
           firstName?: string;
@@ -92,7 +100,7 @@ export default function CartParticipantsPage() {
         const quantity = booking.quantity || existingParticipants.length || 1;
 
         if (existingParticipants.length > 0) {
-          initialData[booking.id] = existingParticipants.map((p) => ({
+          updated[booking.id] = existingParticipants.map((p) => ({
             id: p.id,
             firstName: p.firstName || p.first_name || '',
             lastName: p.lastName || p.last_name || '',
@@ -100,7 +108,7 @@ export default function CartParticipantsPage() {
             phone: p.phone || '',
           }));
         } else {
-          initialData[booking.id] = Array.from({ length: quantity }, (_, i) => ({
+          updated[booking.id] = Array.from({ length: quantity }, (_, i) => ({
             id: `temp-${booking.id}-${i}`,
             firstName: '',
             lastName: '',
@@ -110,14 +118,14 @@ export default function CartParticipantsPage() {
         }
       });
 
-      setFormData(initialData);
+      return hasChanges ? updated : prev;
+    });
 
-      // Auto-expand first booking
-      if (bookings[0]) {
-        setExpandedBooking(bookings[0].id);
-      }
+    // Auto-expand first booking if none expanded
+    if (!expandedBooking && bookings[0]) {
+      setExpandedBooking(bookings[0].id);
     }
-  }, [bookings, formData]);
+  }, [bookings, expandedBooking]);
 
   // Calculate saved count for "Copy to All" visibility
   const savedCount = Object.values(savedBookings).filter(Boolean).length;
