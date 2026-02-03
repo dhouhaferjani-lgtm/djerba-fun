@@ -96,6 +96,9 @@ import {
   ShoppingCart,
   Camera,
   Package,
+  ChevronDown,
+  Minus,
+  Plus,
 } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
 import { getGuestSessionId } from '@/lib/utils/session';
@@ -215,6 +218,13 @@ interface BookingFlowContentProps {
   tBooking: ReturnType<typeof useTranslations>;
   tCommon: ReturnType<typeof useTranslations>;
   tCart: ReturnType<typeof useTranslations>;
+  // Extras selection
+  selectedExtras: { id: string; quantity: number }[];
+  extrasExpanded: boolean;
+  onExtrasExpandedChange: (expanded: boolean) => void;
+  onExtraIncrement: (extraId: string, maxQty?: number | null) => void;
+  onExtraDecrement: (extraId: string) => void;
+  getExtraQuantity: (extraId: string) => number;
 }
 
 function BookingFlowContent({
@@ -241,6 +251,12 @@ function BookingFlowContent({
   tBooking,
   tCommon,
   tCart,
+  selectedExtras,
+  extrasExpanded,
+  onExtrasExpandedChange,
+  onExtraIncrement,
+  onExtraDecrement,
+  getExtraQuantity,
 }: BookingFlowContentProps) {
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
 
@@ -396,6 +412,74 @@ function BookingFlowContent({
             locale={locale}
           />
 
+          {/* Collapsible Extras Section */}
+          {listing.extras && listing.extras.length > 0 && (
+            <div className="mt-6 pt-4 border-t border-neutral-200">
+              <button
+                onClick={() => onExtrasExpandedChange(!extrasExpanded)}
+                className="flex items-center justify-between w-full text-left py-2"
+              >
+                <span className="font-semibold text-heading flex items-center gap-2">
+                  <Package className="h-5 w-5 text-primary" />
+                  {t('add_extras')}
+                  <span className="text-sm font-normal text-neutral-500">
+                    ({listing.extras.length} {t('available')})
+                  </span>
+                </span>
+                <ChevronDown
+                  className={`h-5 w-5 text-neutral-500 transition-transform ${extrasExpanded ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              {extrasExpanded && (
+                <div className="mt-4 space-y-3">
+                  {listing.extras.map((extra: any) => {
+                    const qty = getExtraQuantity(extra.id);
+                    const currency =
+                      selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
+                    const price = currency === 'TND' ? extra.priceTnd : extra.priceEur;
+                    const pricingLabel =
+                      extra.pricingType === 'per_person'
+                        ? t('per_person')
+                        : extra.pricingType === 'per_booking'
+                          ? t('per_booking')
+                          : t('per_unit');
+
+                    return (
+                      <div
+                        key={extra.id}
+                        className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-heading truncate">{extra.name}</div>
+                          <div className="text-sm text-neutral-500">
+                            {price?.toFixed(2)} {currency} {pricingLabel}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 ml-4">
+                          <button
+                            onClick={() => onExtraDecrement(extra.id)}
+                            disabled={qty === 0}
+                            className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center disabled:opacity-40 hover:bg-neutral-100 transition-colors"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                          <span className="w-8 text-center font-medium">{qty}</span>
+                          <button
+                            onClick={() => onExtraIncrement(extra.id, extra.maxQuantity)}
+                            className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center hover:bg-neutral-100 transition-colors"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Book Buttons */}
           <div className="pt-6 space-y-3">
             <Button
@@ -530,6 +614,10 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
     adult: 1,
   });
 
+  // Extras selection state
+  const [selectedExtras, setSelectedExtras] = useState<{ id: string; quantity: number }[]>([]);
+  const [extrasExpanded, setExtrasExpanded] = useState(false);
+
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -574,6 +662,33 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
     setSelectedSlot(slot);
   };
 
+  // Extras helper functions
+  const getExtraQuantity = (extraId: string) => {
+    return selectedExtras.find((e) => e.id === extraId)?.quantity || 0;
+  };
+
+  const incrementExtra = (extraId: string, maxQty?: number | null) => {
+    setSelectedExtras((prev) => {
+      const existing = prev.find((e) => e.id === extraId);
+      if (existing) {
+        const newQty = existing.quantity + 1;
+        if (maxQty && newQty > maxQty) return prev;
+        return prev.map((e) => (e.id === extraId ? { ...e, quantity: newQty } : e));
+      }
+      return [...prev, { id: extraId, quantity: 1 }];
+    });
+  };
+
+  const decrementExtra = (extraId: string) => {
+    setSelectedExtras((prev) => {
+      const existing = prev.find((e) => e.id === extraId);
+      if (existing && existing.quantity > 1) {
+        return prev.map((e) => (e.id === extraId ? { ...e, quantity: e.quantity - 1 } : e));
+      }
+      return prev.filter((e) => e.id !== extraId);
+    });
+  };
+
   const handleCreateHold = async () => {
     if (!selectedSlot) return;
 
@@ -602,7 +717,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
         slotId: String(selectedSlot.id),
         person_types: filteredBreakdown,
         session_id: sessionId,
-        extras: [],
+        extras: selectedExtras,
       });
       const holdId = response.data.id;
 
@@ -1204,6 +1319,12 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   tBooking={tBooking}
                   tCommon={tCommon}
                   tCart={tCart}
+                  selectedExtras={selectedExtras}
+                  extrasExpanded={extrasExpanded}
+                  onExtrasExpandedChange={setExtrasExpanded}
+                  onExtraIncrement={incrementExtra}
+                  onExtraDecrement={decrementExtra}
+                  getExtraQuantity={getExtraQuantity}
                 />
               </FixedBookingPanel>
             </div>
@@ -1242,6 +1363,12 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
             tBooking={tBooking}
             tCommon={tCommon}
             tCart={tCart}
+            selectedExtras={selectedExtras}
+            extrasExpanded={extrasExpanded}
+            onExtrasExpandedChange={setExtrasExpanded}
+            onExtraIncrement={incrementExtra}
+            onExtraDecrement={decrementExtra}
+            getExtraQuantity={getExtraQuantity}
           />
         </BookingPanel>
       </div>
