@@ -23,16 +23,24 @@ class VoucherController extends Controller
     {
         Gate::authorize('view', $booking);
 
+        // Always return 200 OK - use canGenerate flag to indicate if vouchers are ready
+        // This allows the frontend to handle the state gracefully without throwing errors
         if (! $booking->canGenerateVouchers()) {
             $reason = ! $booking->isConfirmed()
                 ? 'Booking is not confirmed'
                 : 'Participant names are required but not complete';
 
             return response()->json([
+                'data' => [],
+                'canGenerate' => false,
                 'message' => 'Vouchers are not available yet',
                 'reason' => $reason,
-                'canGenerate' => false,
-            ], 422);
+                'booking' => [
+                    'bookingNumber' => $booking->booking_number,
+                    'listingTitle' => $booking->listing?->getTranslation('title', app()->getLocale()),
+                    'eventDate' => $booking->availabilitySlot?->start_time?->toIso8601String(),
+                ],
+            ]);
         }
 
         $participants = $booking->participants()
@@ -66,16 +74,24 @@ class VoucherController extends Controller
             ], 403);
         }
 
+        // Always return 200 OK - use canGenerate flag to indicate if vouchers are ready
+        // This allows the frontend to handle the state gracefully without throwing errors
         if (! $booking->canGenerateVouchers()) {
             $reason = ! $booking->isConfirmed()
                 ? 'Booking is not confirmed'
                 : 'Participant names are required but not complete';
 
             return response()->json([
+                'data' => [],
+                'canGenerate' => false,
                 'message' => 'Vouchers are not available yet',
                 'reason' => $reason,
-                'canGenerate' => false,
-            ], 422);
+                'booking' => [
+                    'bookingNumber' => $booking->booking_number,
+                    'listingTitle' => $booking->listing?->getTranslation('title', app()->getLocale()),
+                    'eventDate' => $booking->availabilitySlot?->start_time?->toIso8601String(),
+                ],
+            ]);
         }
 
         $participants = $booking->participants()
