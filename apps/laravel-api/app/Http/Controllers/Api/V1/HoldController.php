@@ -82,6 +82,9 @@ class HoldController extends Controller
             $priceSnapshot = $calculation['total'];
         }
 
+        // Get extras (if any)
+        $extras = $validated['extras'] ?? null;
+
         // Create the hold with pricing context
         $hold = BookingHold::createForSlot(
             slot: $slot,
@@ -92,7 +95,8 @@ class HoldController extends Controller
             currency: $currency,
             priceSnapshot: $priceSnapshot,
             pricingCountryCode: $pricingContext['country_code'],
-            pricingSource: $pricingContext['source']
+            pricingSource: $pricingContext['source'],
+            extras: $extras
         );
 
         if (! $hold) {

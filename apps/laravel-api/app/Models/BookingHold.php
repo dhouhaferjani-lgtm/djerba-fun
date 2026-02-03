@@ -33,6 +33,7 @@ class BookingHold extends Model
         'cart_id',
         'quantity',
         'person_type_breakdown',
+        'extras',
         'currency',
         'price_snapshot',
         'pricing_country_code',
@@ -52,6 +53,7 @@ class BookingHold extends Model
             'expires_at' => 'datetime',
             'status' => HoldStatus::class,
             'person_type_breakdown' => 'array',
+            'extras' => 'array',
             'price_snapshot' => 'decimal:2',
         ];
     }
@@ -271,10 +273,11 @@ class BookingHold extends Model
         ?string $currency = null,
         ?float $priceSnapshot = null,
         ?string $pricingCountryCode = null,
-        ?string $pricingSource = null
+        ?string $pricingSource = null,
+        ?array $extras = null
     ): ?self {
         // Wrap in transaction with row-level locking to prevent race conditions
-        return DB::transaction(function () use ($slot, $user, $quantity, $sessionId, $personTypeBreakdown, $currency, $priceSnapshot, $pricingCountryCode, $pricingSource) {
+        return DB::transaction(function () use ($slot, $user, $quantity, $sessionId, $personTypeBreakdown, $currency, $priceSnapshot, $pricingCountryCode, $pricingSource, $extras) {
             // Lock the slot row for this transaction to prevent concurrent bookings
             $lockedSlot = AvailabilitySlot::lockForUpdate()->find($slot->id);
 
@@ -295,6 +298,7 @@ class BookingHold extends Model
                 'session_id' => $sessionId,
                 'quantity' => $quantity,
                 'person_type_breakdown' => $personTypeBreakdown,
+                'extras' => $extras,
                 'currency' => $currency,
                 'price_snapshot' => $priceSnapshot,
                 'pricing_country_code' => $pricingCountryCode,

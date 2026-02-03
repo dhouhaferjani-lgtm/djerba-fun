@@ -37,6 +37,10 @@ class CreateHoldRequest extends BaseFormRequest
             'person_types.adult' => ['nullable', 'integer', 'min:0'],
             'person_types.child' => ['nullable', 'integer', 'min:0'],
             'person_types.infant' => ['nullable', 'integer', 'min:0'],
+            // Extras (optional - selected extras with quantities)
+            'extras' => ['nullable', 'array'],
+            'extras.*.id' => ['required', 'string'],
+            'extras.*.quantity' => ['required', 'integer', 'min:1'],
         ];
     }
 

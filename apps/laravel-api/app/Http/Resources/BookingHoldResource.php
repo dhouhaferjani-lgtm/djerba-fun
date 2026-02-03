@@ -22,6 +22,7 @@ class BookingHoldResource extends BaseResource
             'sessionId' => $this->session_id,
             'quantity' => $this->quantity,
             'personTypeBreakdown' => is_array($this->person_type_breakdown) ? $this->toCamelCase($this->person_type_breakdown) : $this->person_type_breakdown,
+            'extras' => $this->extras,
             'currency' => $this->currency,
             'priceSnapshot' => $this->price_snapshot ? (float) $this->price_snapshot : null,
             'pricingCountryCode' => $this->pricing_country_code,
