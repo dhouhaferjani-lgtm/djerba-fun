@@ -295,7 +295,30 @@
       "save_participants": "Enregistrer les Participants",
       "complete": "Complet",
       "all_complete": "Tous les participants complétés !",
-      "required_fields": "* Champs requis"
+      "required_fields": "* Champs requis",
+      "optional": "optionnel",
+      "enter_participant_names": "Saisir les noms des participants",
+      "you_have_bookings": "Vous avez {count} réservations avec {participants} participants au total.",
+      "same_for_all_tours": "Mêmes participants pour toutes les activités",
+      "same_for_all_description": "Remplissez les noms une fois et appliquez à toutes les réservations",
+      "different_per_tour": "Participants différents par activité",
+      "different_per_tour_description": "Remplissez les noms séparément pour chaque réservation",
+      "quantities_differ_title": "Nombres de participants différents",
+      "quantities_differ_message": "Vos réservations ont des nombres de participants différents. Vous devrez saisir les noms pour chaque activité séparément.",
+      "ok_continue": "OK, Continuer",
+      "continue": "Continuer",
+      "booking_progress": "Réservation {current} sur {total}",
+      "bulk_entry_title": "Saisir les noms des participants",
+      "bulk_entry_subtitle": "Ces noms seront appliqués à toutes les {bookings} réservations.",
+      "applying_to_bookings": "Application aux réservations :",
+      "apply_to_all_bookings": "Appliquer à toutes les réservations",
+      "loading_bookings": "Chargement des réservations...",
+      "error_loading": "Erreur de chargement",
+      "error_loading_message": "Nous n'avons pas pu charger les détails de vos réservations. Veuillez réessayer.",
+      "go_to_bookings": "Voir mes réservations",
+      "entering_names_for": "Saisie des noms pour :",
+      "participants": "participants",
+      "previous_booking": "Réservation précédente"
     },
     "confirmation": {
       "title": "Réservation Confirmée !",
@@ -439,7 +462,16 @@
       "whats_next": "Quelle est la Suite ?",
       "tip_check_email": "Vérifiez votre email pour les confirmations et détails de réservation",
       "tip_save_booking": "Enregistrez vos numéros de réservation pour référence",
-      "tip_arrive_early": "Arrivez 15 minutes en avance à vos expériences"
+      "tip_arrive_early": "Arrivez 15 minutes en avance à vos expériences",
+      "cart_bookings_confirmed": "Vos réservations sont confirmées !",
+      "your_booking_number": "Votre numéro de réservation"
+    },
+    "confirmation": {
+      "your_booking_numbers": "Vos numéros de réservation",
+      "booking_number": "Numéro de réservation",
+      "enter_participant_names": "Saisir les noms des participants",
+      "participant_names_description": "Ajoutez les noms de tous les participants pour vos réservations. Vous pouvez aussi le faire plus tard depuis votre tableau de bord.",
+      "enter_names_button": "Saisir les noms maintenant"
     }
   },
   "auth": {

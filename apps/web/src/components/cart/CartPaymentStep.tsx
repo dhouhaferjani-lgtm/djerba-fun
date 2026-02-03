@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@go-adventure/ui';
 import {
   PaymentMethodSelector,
   type PaymentMethod,
 } from '@/components/booking/PaymentMethodSelector';
+import CheckoutConsents from '@/components/consent/CheckoutConsents';
 import type { Cart } from '@/lib/api/client';
 import type { PrimaryContactData } from './PrimaryContactForm';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
@@ -19,6 +20,15 @@ interface CartPaymentStepProps {
   onBack: () => void;
   onSubmit: (paymentMethod: PaymentMethod) => void;
   isProcessing: boolean;
+  // Consent props
+  termsAccepted: boolean;
+  onTermsChange: (accepted: boolean) => void;
+  marketingAccepted: boolean;
+  onMarketingChange: (accepted: boolean) => void;
+  termsError?: string;
+  setTermsError: (error: string | undefined) => void;
+  highlightConsents: boolean;
+  setHighlightConsents: (highlight: boolean) => void;
 }
 
 export function CartPaymentStep({
@@ -28,11 +38,21 @@ export function CartPaymentStep({
   onBack,
   onSubmit,
   isProcessing,
+  termsAccepted,
+  onTermsChange,
+  marketingAccepted,
+  onMarketingChange,
+  termsError,
+  setTermsError,
+  highlightConsents,
+  setHighlightConsents,
 }: CartPaymentStepProps) {
   const t = useTranslations('cart.checkout');
   const tCart = useTranslations('cart');
   const tPayment = useTranslations('payment');
+  const tCheckout = useTranslations('checkout');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | undefined>();
+  const consentsRef = useRef<HTMLDivElement>(null);
 
   const formatPrice = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', {
@@ -50,6 +70,22 @@ export function CartPaymentStep({
   };
 
   const handleSubmit = () => {
+    // Validate terms acceptance first
+    if (!termsAccepted) {
+      setTermsError(tCheckout('terms_required') || 'You must accept the terms and conditions');
+      setHighlightConsents(true);
+
+      // Scroll to consents section
+      consentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Auto-clear highlight after 3 seconds
+      setTimeout(() => setHighlightConsents(false), 3000);
+      return;
+    }
+
+    // Clear any previous error
+    setTermsError(undefined);
+
     if (selectedMethod) {
       onSubmit(selectedMethod);
     }
@@ -114,6 +150,17 @@ export function CartPaymentStep({
         />
       </div>
 
+      {/* Consent Checkboxes */}
+      <CheckoutConsents
+        ref={consentsRef}
+        termsAccepted={termsAccepted}
+        onTermsChange={onTermsChange}
+        marketingAccepted={marketingAccepted}
+        onMarketingChange={onMarketingChange}
+        termsError={termsError}
+        highlight={highlightConsents}
+      />
+
       {/* Security Badge */}
       <div className="flex items-center gap-2 text-sm text-gray-500">
         <ShieldCheck className="w-4 h-4 text-success" />
@@ -129,7 +176,7 @@ export function CartPaymentStep({
         <Button
           className="flex-1"
           onClick={handleSubmit}
-          disabled={!selectedMethod || isProcessing}
+          disabled={!selectedMethod || !termsAccepted || isProcessing}
         >
           {isProcessing
             ? t('processing')

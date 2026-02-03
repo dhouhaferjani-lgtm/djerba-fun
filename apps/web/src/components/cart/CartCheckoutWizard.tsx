@@ -36,6 +36,12 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
   const [completedBookings, setCompletedBookings] = useState<Booking[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // Consent state (for policy agreement checkbox)
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [marketingAccepted, setMarketingAccepted] = useState(false);
+  const [termsError, setTermsError] = useState<string | undefined>();
+  const [highlightConsents, setHighlightConsents] = useState(false);
+
   // Auth modal state
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [hasChosenAuthMethod, setHasChosenAuthMethod] = useState(false);
@@ -256,6 +262,14 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
             onBack={() => setCurrentStep('contact')}
             onSubmit={handlePaymentSubmit}
             isProcessing={initiateCheckout.isPending || processPayment.isPending}
+            termsAccepted={termsAccepted}
+            onTermsChange={setTermsAccepted}
+            marketingAccepted={marketingAccepted}
+            onMarketingChange={setMarketingAccepted}
+            termsError={termsError}
+            setTermsError={setTermsError}
+            highlightConsents={highlightConsents}
+            setHighlightConsents={setHighlightConsents}
           />
         );
 

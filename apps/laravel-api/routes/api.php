@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\V1\ListingExtrasController;
 use App\Http\Controllers\Api\V1\LocationController;
 use App\Http\Controllers\Api\V1\MagicLinkController;
 use App\Http\Controllers\Api\V1\PageController;
+use App\Http\Controllers\Api\V1\BulkParticipantController;
 use App\Http\Controllers\Api\V1\ParticipantController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PlatformSettingsController;
@@ -177,6 +178,10 @@ Route::prefix('v1')->group(function () {
     Route::put('/bookings/{booking}/participants/guest', [ParticipantController::class, 'updateGuest']);
     Route::get('/bookings/{booking}/vouchers/guest', [VoucherController::class, 'indexGuest']);
 
+    // Bulk participant update for cart checkout (guest access via session_id)
+    Route::post('/bookings/participants/bulk-apply/guest', [BulkParticipantController::class, 'bulkApplyGuest'])
+        ->middleware('optional.auth');
+
     // Magic link routes (token-based access - no authentication required)
     // These allow guests to access bookings via secure token sent in email
     Route::get('/bookings/magic/{token}', [MagicLinkController::class, 'show']);
@@ -237,6 +242,9 @@ Route::prefix('v1')->group(function () {
         // Participant management (for post-checkout name entry)
         Route::get('/bookings/{booking}/participants', [ParticipantController::class, 'index']);
         Route::put('/bookings/{booking}/participants', [ParticipantController::class, 'update']);
+
+        // Bulk participant update for cart checkout (applies same names to multiple bookings)
+        Route::post('/bookings/participants/bulk-apply', [BulkParticipantController::class, 'bulkApply']);
 
         // Voucher access
         Route::get('/bookings/{booking}/vouchers', [VoucherController::class, 'index']);

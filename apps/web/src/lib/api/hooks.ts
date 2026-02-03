@@ -357,6 +357,48 @@ export function useUpdateParticipants(useGuestAccess = false) {
   });
 }
 
+/**
+ * Bulk apply participant names to multiple bookings at once.
+ * Used when user selects "same participants for all tours" option after cart checkout.
+ */
+export function useBulkApplyParticipants(useGuestAccess = false) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      bookingIds,
+      participants,
+    }: {
+      bookingIds: string[];
+      participants: Array<{
+        first_name: string;
+        last_name: string;
+        email?: string | null;
+        phone?: string | null;
+      }>;
+    }) => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+
+      if (token && !useGuestAccess) {
+        return participantsApi.bulkApply(bookingIds, participants);
+      } else {
+        const sessionId = getGuestSessionId();
+        if (!sessionId) {
+          throw new Error('No session ID available for guest access');
+        }
+        return participantsApi.bulkApplyGuest(bookingIds, participants, sessionId);
+      }
+    },
+    onSuccess: (_, { bookingIds }) => {
+      // Invalidate all affected bookings
+      bookingIds.forEach((bookingId) => {
+        queryClient.invalidateQueries({ queryKey: ['participants', bookingId] });
+        queryClient.invalidateQueries({ queryKey: ['bookings', bookingId] });
+        queryClient.invalidateQueries({ queryKey: ['vouchers', bookingId] });
+      });
+    },
+  });
+}
+
 // ============================================================================
 // VOUCHERS HOOKS
 // ============================================================================

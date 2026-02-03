@@ -496,6 +496,69 @@ export const participantsApi = {
       }
     );
   },
+
+  /**
+   * Bulk apply participant names to multiple bookings at once.
+   * Used when user selects "same participants for all tours" option.
+   */
+  bulkApply: async (
+    bookingIds: string[],
+    participants: Array<{
+      first_name: string;
+      last_name: string;
+      email?: string | null;
+      phone?: string | null;
+    }>
+  ) => {
+    return fetchApi<{
+      success_count: number;
+      failed_count: number;
+      results: {
+        success: Array<{
+          booking_id: string;
+          booking_number: string;
+          participants_updated: number;
+        }>;
+        failed: Array<{ booking_id: string; error: string }>;
+      };
+      message: string;
+    }>('/bookings/participants/bulk-apply', {
+      method: 'POST',
+      body: JSON.stringify({ booking_ids: bookingIds, participants }),
+    });
+  },
+
+  /**
+   * Bulk apply participant names to multiple bookings (guest access via session_id).
+   */
+  bulkApplyGuest: async (
+    bookingIds: string[],
+    participants: Array<{
+      first_name: string;
+      last_name: string;
+      email?: string | null;
+      phone?: string | null;
+    }>,
+    sessionId: string
+  ) => {
+    return fetchApi<{
+      success_count: number;
+      failed_count: number;
+      results: {
+        success: Array<{
+          booking_id: string;
+          booking_number: string;
+          participants_updated: number;
+        }>;
+        failed: Array<{ booking_id: string; error: string }>;
+      };
+      message: string;
+    }>('/bookings/participants/bulk-apply/guest', {
+      method: 'POST',
+      body: JSON.stringify({ booking_ids: bookingIds, participants }),
+      headers: { 'X-Session-ID': sessionId },
+    });
+  },
 };
 
 // ============================================================================

@@ -90,18 +90,22 @@ class ClictopayCallbackController extends Controller
 
                         $cartPayment->cart->complete();
 
+                        // Collect all booking IDs and numbers for the success page
+                        $bookingIds = $cartPayment->bookings->pluck('id')->join(',');
+                        $bookingNumbers = $cartPayment->bookings->pluck('booking_number')->join(',');
+
                         Log::info('Clictopay cart payment successful, all bookings confirmed', [
                             'intent_id' => $intent->id,
                             'cart_payment_id' => $cartPaymentId,
                             'booking_count' => $cartPayment->bookings->count(),
+                            'booking_numbers' => $bookingNumbers,
                         ]);
 
-                        // Redirect to cart success page with first booking number
-                        $firstBooking = $cartPayment->bookings->first();
-
+                        // Redirect to cart success page with all booking info
                         return redirect()->away(
                             $frontendUrl . '/checkout/success?' . http_build_query([
-                                'booking' => $firstBooking?->booking_number,
+                                'bookings' => $bookingIds,
+                                'booking_numbers' => $bookingNumbers,
                                 'status' => 'confirmed',
                                 'type' => 'cart',
                             ])

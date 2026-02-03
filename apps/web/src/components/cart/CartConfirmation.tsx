@@ -1,15 +1,16 @@
 'use client';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- next-intl Link requires typed routes */
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@go-adventure/ui';
 import Link from 'next/link';
 import type { Booking } from '@go-adventure/schemas';
-import { CheckCircle, Calendar, Users, MapPin, Download, Mail } from 'lucide-react';
+import { CheckCircle, Calendar, Users, MapPin, Download, Mail, UserCheck } from 'lucide-react';
+import { resolveTranslation } from '@/lib/utils/translate';
 
 // Extended booking type with listingTitle from cart checkout response
 interface CartBooking extends Booking {
-  listingTitle?: string;
+  listingTitle?: string | Record<string, string>;
 }
 
 interface CartConfirmationProps {
@@ -29,6 +30,24 @@ export function CartConfirmation({
 }: CartConfirmationProps) {
   const t = useTranslations('cart.checkout');
   const tCart = useTranslations('cart');
+  const tConfirm = useTranslations('cart.confirmation');
+
+  // Helper to resolve listing title (may be translated object or string)
+  const getListingTitle = (booking: CartBooking) => {
+    if (typeof booking.listingTitle === 'object') {
+      return resolveTranslation(booking.listingTitle, locale) || 'Experience';
+    }
+    return booking.listingTitle || 'Experience';
+  };
+
+  // Check if any booking requires participant names
+  const requiresParticipantNames = bookings.some(
+    (b) => b.travelerDetailsStatus === 'pending' || b.travelerDetailsStatus === undefined
+  );
+
+  // Build participant entry URL with booking IDs
+  const bookingIds = bookings.map((b) => b.id).join(',');
+  const participantsUrl = `/${locale}/checkout/participants?bookings=${bookingIds}`;
 
   const formatPrice = (amount: number, curr: string) => {
     return new Intl.NumberFormat('en-US', {
@@ -73,6 +92,70 @@ export function CartConfirmation({
           <p className="text-3xl font-bold text-primary">{formatPrice(totalAmount, currency)}</p>
         </div>
 
+        {/* Prominent Booking Numbers Section */}
+        <div className="bg-white border-2 border-primary/30 rounded-xl p-6 text-left">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+            {tConfirm('your_booking_numbers')}
+          </h3>
+          <div className="space-y-3">
+            {bookings.map((booking) => {
+              const bookingNumber = booking.bookingNumber || booking.code || booking.id;
+              const listingTitle = getListingTitle(booking);
+              const startDate =
+                booking.startsAt ||
+                booking.availabilitySlot?.start ||
+                booking.confirmedAt ||
+                booking.createdAt;
+
+              return (
+                <div
+                  key={booking.id}
+                  className="flex items-center justify-between bg-gray-50 rounded-lg p-4 border border-gray-200"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">{listingTitle}</p>
+                    <p className="text-sm text-gray-600">{formatDate(startDate)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">
+                      {tConfirm('booking_number')}
+                    </p>
+                    <p className="text-xl font-bold text-primary font-mono">#{bookingNumber}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Participant Names Entry Prompt */}
+        {requiresParticipantNames && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+                <UserCheck className="w-6 h-6 text-amber-600" />
+              </div>
+              <div className="flex-1 text-left">
+                <h3 className="font-semibold text-gray-900 mb-1">
+                  {tConfirm('enter_participant_names')}
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  {tConfirm('participant_names_description')}
+                </p>
+                <Link href={participantsUrl as any}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-amber-300 hover:bg-amber-100"
+                  >
+                    {tConfirm('enter_names_button')}
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Bookings List */}
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden text-left">
           <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -94,9 +177,7 @@ export function CartConfirmation({
                 <div key={booking.id} className="p-4 space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-semibold text-gray-900">
-                        {booking.listingTitle || 'Experience'}
-                      </p>
+                      <p className="font-semibold text-gray-900">{getListingTitle(booking)}</p>
                       <p className="text-sm text-primary font-mono">#{bookingNumber}</p>
                     </div>
                     <span className="px-2 py-1 text-xs font-medium bg-success-light text-success-dark rounded-full">
