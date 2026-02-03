@@ -28,7 +28,7 @@ class ClictopayCallbackController extends Controller
     public function __construct(
         private readonly ClickToPayPaymentGateway $gateway,
         private readonly BookingService $bookingService,
-        private readonly EmailLogService $emailLogService
+        private readonly ?EmailLogService $emailLogService = null
     ) {}
 
     /**
@@ -79,11 +79,11 @@ class ClictopayCallbackController extends Controller
                                 // Send confirmation email with proper logging
                                 $email = $booking->getPrimaryEmail();
                                 if ($email) {
-                                    $this->emailLogService->queue($email, new BookingConfirmationMail($booking), $booking);
-                                    Log::info('Clictopay callback: confirmation email queued', [
-                                        'to' => $email,
-                                        'booking_number' => $booking->booking_number,
-                                    ]);
+                                    if ($this->emailLogService) {
+                                        $this->emailLogService->queue($email, new BookingConfirmationMail($booking), $booking);
+                                    } else {
+                                        Mail::to($email)->queue(new BookingConfirmationMail($booking));
+                                    }
                                 }
                             }
                         }

@@ -21,7 +21,7 @@ class BookingService
 {
     public function __construct(
         private readonly ExtrasService $extrasService,
-        private readonly EmailLogService $emailLogService
+        private readonly ?EmailLogService $emailLogService = null
     ) {}
 
     /**
@@ -257,22 +257,13 @@ class BookingService
         // Send confirmation email to primary traveler
         $email = $booking->getPrimaryEmail();
 
-        Log::info('BookingService::confirmPayment - Sending email', [
-            'booking_id' => $booking->id,
-            'booking_number' => $booking->booking_number,
-            'email' => $email,
-            'billing_contact' => $booking->billing_contact,
-        ]);
-
         if ($email) {
-            $this->emailLogService->queue($email, new BookingConfirmationMail($booking), $booking);
-            Log::info('Booking confirmation email queued', ['to' => $email, 'booking_number' => $booking->booking_number]);
-        } else {
-            Log::warning('No email found for booking confirmation', [
-                'booking_id' => $booking->id,
-                'billing_contact' => $booking->billing_contact,
-                'traveler_info' => $booking->traveler_info,
-            ]);
+            if ($this->emailLogService) {
+                $this->emailLogService->queue($email, new BookingConfirmationMail($booking), $booking);
+            } else {
+                // Fallback for backward compatibility
+                \Illuminate\Support\Facades\Mail::to($email)->queue(new BookingConfirmationMail($booking));
+            }
         }
 
         return $booking->fresh();
@@ -294,19 +285,20 @@ class BookingService
         ]);
 
         // Release inventory for any reserved extras
-        $this->extrasService->releaseBookingExtrasInventory($booking);
+        if ($this->extrasService) {
+            $this->extrasService->releaseBookingExtrasInventory($booking);
+        }
 
         // Send cancellation email to primary traveler
         $email = $booking->getPrimaryEmail();
 
         if ($email) {
-            $this->emailLogService->queue($email, new BookingCancellationMail($booking), $booking);
-            Log::info('Booking cancellation email queued', ['to' => $email, 'booking_number' => $booking->booking_number]);
-        } else {
-            Log::warning('No email found for booking cancellation', [
-                'booking_id' => $booking->id,
-                'billing_contact' => $booking->billing_contact,
-            ]);
+            if ($this->emailLogService) {
+                $this->emailLogService->queue($email, new BookingCancellationMail($booking), $booking);
+            } else {
+                // Fallback for backward compatibility
+                \Illuminate\Support\Facades\Mail::to($email)->queue(new BookingCancellationMail($booking));
+            }
         }
 
         return $booking->fresh();
