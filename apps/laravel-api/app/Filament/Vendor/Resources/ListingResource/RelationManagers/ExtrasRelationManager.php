@@ -141,7 +141,7 @@ class ExtrasRelationManager extends RelationManager
                     ->label('Active')
                     ->boolean(),
             ])
-            ->defaultSort('pivot.display_order')
+            ->defaultSort('listing_extras.display_order')
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Active Status')
