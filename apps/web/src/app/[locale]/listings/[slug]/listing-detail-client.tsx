@@ -721,6 +721,11 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       });
       const holdId = response.data.id;
 
+      // Persist extras to sessionStorage for checkout (skip extras step if pre-selected)
+      if (selectedExtras.length > 0) {
+        sessionStorage.setItem(`checkout-extras-${holdId}`, JSON.stringify(selectedExtras));
+      }
+
       // Add to cart in background (for abandoned cart marketing)
       await addToCartMutation.mutateAsync(holdId);
 

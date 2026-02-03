@@ -32,6 +32,7 @@ interface BookingWizardProps {
   listing: ListingSummary;
   slot: AvailabilitySlot;
   availableExtras?: ListingExtraForBooking[];
+  initialExtras?: SelectedExtra[];
   onExpired?: () => void;
   onExtrasChange?: (extras: SelectedExtra[]) => void;
 }
@@ -43,16 +44,20 @@ export function BookingWizard({
   listing,
   slot,
   availableExtras = [],
+  initialExtras = [],
   onExpired,
   onExtrasChange,
 }: BookingWizardProps) {
   const t = useTranslations('booking');
   const { user } = useAuth();
 
+  // Check if extras were pre-selected on listing page
+  const hasPreselectedExtras = initialExtras.length > 0;
+
   // Start with contact information collection
   const [currentStep, setCurrentStep] = useState<Step>('contact');
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
-  const [selectedExtras, setSelectedExtras] = useState<SelectedExtra[]>([]);
+  const [selectedExtras, setSelectedExtras] = useState<SelectedExtra[]>(initialExtras);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>();
   const [completedBooking, setCompletedBooking] = useState<Booking | null>(null);
 
@@ -83,10 +88,11 @@ export function BookingWizard({
     [user?.email, user?.phone, user?.firstName, user?.lastName, contactInfo]
   );
 
-  // Progress steps - Show ALL steps for clarity
+  // Progress steps - Conditionally show extras step
+  const showExtrasStep = availableExtras.length > 0 && !hasPreselectedExtras;
   const steps: { key: Step; label: string }[] = [
     { key: 'contact', label: t('step_contact') || 'Contact' },
-    { key: 'extras', label: t('step_extras') || 'Extras' },
+    ...(showExtrasStep ? [{ key: 'extras' as Step, label: t('step_extras') || 'Extras' }] : []),
     { key: 'review', label: t('step_review') || 'Review & Payment' },
   ];
 
@@ -95,8 +101,10 @@ export function BookingWizard({
   // Handle contact information submission
   const handleContactSubmit = (info: ContactInfo) => {
     setContactInfo(info);
-    // Skip extras step if no extras are available
-    if (!availableExtras || availableExtras.length === 0) {
+    // Skip extras step if:
+    // 1. No extras are available for this listing, OR
+    // 2. Extras were already pre-selected on the listing page
+    if (!availableExtras || availableExtras.length === 0 || hasPreselectedExtras) {
       setCurrentStep('review');
     } else {
       setCurrentStep('extras');

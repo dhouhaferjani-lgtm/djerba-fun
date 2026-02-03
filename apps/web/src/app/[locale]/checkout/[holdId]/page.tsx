@@ -40,6 +40,23 @@ export default function CheckoutPage() {
     }
   }, [isAuthLoading, user, hasChosenAuthMethod, holdData]);
 
+  // Load pre-selected extras from sessionStorage (set on listing page)
+  useEffect(() => {
+    if (holdId) {
+      const storedExtras = sessionStorage.getItem(`checkout-extras-${holdId}`);
+      if (storedExtras) {
+        try {
+          const parsed = JSON.parse(storedExtras);
+          setSelectedExtras(parsed);
+          // Clean up after reading
+          sessionStorage.removeItem(`checkout-extras-${holdId}`);
+        } catch (e) {
+          console.warn('Failed to parse stored extras');
+        }
+      }
+    }
+  }, [holdId]);
+
   // Fetch available extras for the listing (only when we have hold data)
   const {
     data: extrasData,
@@ -235,6 +252,7 @@ export default function CheckoutPage() {
                 listing={listing as any}
                 slot={slot as any}
                 availableExtras={extrasData || []}
+                initialExtras={selectedExtras}
                 onExpired={handleHoldExpired}
                 onExtrasChange={setSelectedExtras}
               />
