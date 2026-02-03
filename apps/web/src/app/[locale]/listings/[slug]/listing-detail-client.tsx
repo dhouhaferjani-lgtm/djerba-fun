@@ -421,9 +421,9 @@ function BookingFlowContent({
               >
                 <span className="font-semibold text-heading flex items-center gap-2">
                   <Package className="h-5 w-5 text-primary" />
-                  {t('add_extras')}
+                  {tBooking('add_extras')}
                   <span className="text-sm font-normal text-neutral-500">
-                    ({listing.extras.length} {t('available')})
+                    ({listing.extras.length} {tBooking('available')})
                   </span>
                 </span>
                 <ChevronDown
@@ -440,10 +440,10 @@ function BookingFlowContent({
                     const price = currency === 'TND' ? extra.priceTnd : extra.priceEur;
                     const pricingLabel =
                       extra.pricingType === 'per_person'
-                        ? t('per_person')
+                        ? tBooking('per_person')
                         : extra.pricingType === 'per_booking'
-                          ? t('per_booking')
-                          : t('per_unit');
+                          ? tBooking('per_booking')
+                          : tBooking('per_unit');
 
                     return (
                       <div

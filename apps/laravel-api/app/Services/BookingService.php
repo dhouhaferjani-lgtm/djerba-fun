@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
 class BookingService
 {
     public function __construct(
-        private readonly ?ExtrasService $extrasService = null,
+        private readonly ExtrasService $extrasService,
         private readonly ?EmailLogService $emailLogService = null
     ) {}
 
@@ -133,8 +133,8 @@ class BookingService
             // Create empty participant records (names to be filled post-payment)
             $this->createEmptyParticipantRecords($booking, $hold);
 
-            // Create booking extras records (if extras service is available and extras are selected)
-            if ($this->extrasService && ! empty($extras)) {
+            // Create booking extras records if extras are selected
+            if (! empty($extras)) {
                 $personTypeBreakdown = $hold->person_type_breakdown ?? [];
                 $currency = $hold->slot?->currency ?? 'EUR';
 
@@ -391,10 +391,10 @@ class BookingService
 
         $extrasAmount = 0;
 
-        // Use ExtrasService for proper calculation if available
-        if ($this->extrasService && ! empty($extras)) {
-            // Get currency from listing pricing
-            $currency = $listing?->pricing['currency'] ?? 'TND';
+        // Use ExtrasService for proper calculation
+        if (! empty($extras)) {
+            // Get currency from hold or listing pricing
+            $currency = $hold->currency ?? $listing?->pricing['currency'] ?? 'TND';
 
             $calculation = $this->extrasService->calculateExtrasTotal(
                 $extras,
@@ -402,11 +402,6 @@ class BookingService
                 $currency
             );
             $extrasAmount = $calculation['subtotal'] ?? 0;
-        } else {
-            // Fallback for backward compatibility
-            foreach ($extras as $extra) {
-                $extrasAmount += (float) ($extra['price'] ?? 0) * (int) ($extra['quantity'] ?? 1);
-            }
         }
 
         $total = $baseAmount + $extrasAmount;
