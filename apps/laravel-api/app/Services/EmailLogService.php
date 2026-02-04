@@ -37,9 +37,14 @@ class EmailLogService
             $emailLog->update(['html_content' => $rendered]);
 
             // Queue the email
-            // The UpdateEmailLogOnSent listener will update the status to 'sent'
-            // when the email is actually processed by the queue worker
             Mail::to($to)->queue($mailable);
+
+            // Mark as SENT immediately after successful queue
+            // Resend webhook will update to DELIVERED when actually delivered
+            $emailLog->update([
+                'status' => EmailLogStatus::SENT,
+                'sent_at' => now(),
+            ]);
 
             return $emailLog;
         } catch (\Throwable $e) {
