@@ -29,11 +29,34 @@ class BookingPolicy
     }
 
     /**
+     * Check if user is the vendor who owns the listing for this booking.
+     */
+    private function vendorOwnsListing(User $user, Booking $booking): bool
+    {
+        return $booking->listing && $booking->listing->vendor_id === $user->id;
+    }
+
+    /**
      * Determine if the user can view the booking.
      */
     public function view(User $user, Booking $booking): bool
     {
-        return $this->userOwnsBooking($user, $booking);
+        // Traveler who made the booking
+        if ($this->userOwnsBooking($user, $booking)) {
+            return true;
+        }
+
+        // Vendor who owns the listing
+        if ($this->vendorOwnsListing($user, $booking)) {
+            return true;
+        }
+
+        // Admin can view all
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -41,7 +64,22 @@ class BookingPolicy
      */
     public function update(User $user, Booking $booking): bool
     {
-        return $this->userOwnsBooking($user, $booking);
+        // Traveler who made the booking
+        if ($this->userOwnsBooking($user, $booking)) {
+            return true;
+        }
+
+        // Vendor who owns the listing (can update booking status, mark as paid, etc.)
+        if ($this->vendorOwnsListing($user, $booking)) {
+            return true;
+        }
+
+        // Admin can update all
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
