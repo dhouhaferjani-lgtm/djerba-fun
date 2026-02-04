@@ -252,6 +252,11 @@ export const listingsApi = {
       body.quantity = request.quantity ?? request.guests;
     }
 
+    // Add extras to request body if provided
+    if (request.extras && request.extras.length > 0) {
+      body.extras = request.extras;
+    }
+
     return fetchApi<{ data: CreateHoldResponse }>(`/listings/${listingSlug}/holds`, {
       method: 'POST',
       body: JSON.stringify(body),
