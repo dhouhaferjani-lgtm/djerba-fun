@@ -21,6 +21,22 @@ class ViewBooking extends ViewRecord
         return [];
     }
 
+    /**
+     * Eager load relationships to prevent N+1 queries during rendering.
+     * This fixes 500 errors caused by relationship queries in visibility callbacks.
+     */
+    protected function resolveRecord(int|string $key): \Illuminate\Database\Eloquent\Model
+    {
+        return static::getResource()::resolveRecordRouteBinding($key)
+            ->loadMissing([
+                'bookingExtras',
+                'participants',
+                'user',
+                'listing',
+                'availabilitySlot',
+            ]);
+    }
+
     public function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -137,7 +153,7 @@ class ViewBooking extends ViewRecord
                             ->columns(4)
                             ->columnSpanFull(),
                     ])
-                    ->visible(fn ($record) => $record->bookingExtras()->count() > 0),
+                    ->visible(fn ($record) => $record->bookingExtras->isNotEmpty()),
 
                 Infolists\Components\Section::make('Participants')
                     ->description('All participants with contact info and check-in status')
@@ -195,7 +211,7 @@ class ViewBooking extends ViewRecord
                             ->columns(4)
                             ->columnSpanFull(),
                     ])
-                    ->visible(fn ($record) => $record->participants()->count() > 0),
+                    ->visible(fn ($record) => $record->participants->isNotEmpty()),
 
                 Infolists\Components\Section::make('Timestamps')
                     ->schema([
