@@ -48,11 +48,23 @@ class BookingConfirmationMail extends Mailable implements ShouldQueue
         // This is required because SerializesModels only stores model IDs
         $this->booking->loadMissing(['listing', 'availabilitySlot', 'user']);
 
+        // Get listing title as string (title is translatable, returns array if accessed directly)
+        $listingTitle = 'Activity';
+        if ($this->booking->listing) {
+            $title = $this->booking->listing->getTranslation('title', 'en');
+            if (is_string($title) && !empty($title)) {
+                $listingTitle = $title;
+            } elseif (is_array($title)) {
+                $listingTitle = $title['en'] ?? $title['fr'] ?? reset($title) ?: 'Activity';
+            }
+        }
+
         return new Content(
             view: 'mail.booking-confirmation',
             with: [
                 'booking' => $this->booking,
                 'listing' => $this->booking->listing,
+                'listingTitle' => $listingTitle,
                 'slot' => $this->booking->availabilitySlot,
                 'travelerInfo' => $this->booking->traveler_info,
                 // Magic link URLs for guest access
