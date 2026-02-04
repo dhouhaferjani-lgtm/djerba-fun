@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 import { useCartContext } from '@/lib/contexts/CartContext';
 import { cn } from '@/lib/utils/cn';
@@ -36,7 +37,7 @@ export function CartIcon({ locale, className }: CartIconProps) {
   }, [itemCount]);
 
   return (
-    <a
+    <Link
       href={`/${locale}/cart`}
       className={cn(
         'relative p-2 text-white hover:bg-primary-light rounded-lg transition-colors',
@@ -56,6 +57,6 @@ export function CartIcon({ locale, className }: CartIconProps) {
           {itemCount > 9 ? '9+' : itemCount}
         </span>
       )}
-    </a>
+    </Link>
   );
 }
