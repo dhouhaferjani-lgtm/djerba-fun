@@ -52,7 +52,7 @@ class BookingPolicy
         }
 
         // Admin can view all
-        if ($user->hasRole('admin')) {
+        if ($user->isAdmin()) {
             return true;
         }
 
@@ -75,7 +75,7 @@ class BookingPolicy
         }
 
         // Admin can update all
-        if ($user->hasRole('admin')) {
+        if ($user->isAdmin()) {
             return true;
         }
 
