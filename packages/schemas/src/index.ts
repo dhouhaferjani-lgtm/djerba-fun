@@ -603,6 +603,15 @@ export const bookingHoldSchema = z.object({
   sessionId: z.string().uuid().optional(),
   quantity: z.number().int().positive(),
   personTypeBreakdown: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  extras: z
+    .array(
+      z.object({
+        id: z.string(),
+        quantity: z.number().int().positive(),
+      })
+    )
+    .nullable()
+    .optional(),
   expiresAt: z.string().datetime(),
   expiresInSeconds: z.number().int().nonnegative().optional(),
   status: z.string(),
