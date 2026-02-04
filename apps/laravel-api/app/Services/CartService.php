@@ -9,6 +9,7 @@ use App\Models\BookingHold;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Listing;
+use App\Models\ListingExtra;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -72,6 +73,23 @@ class CartService
             $pricing = $listing->pricing;
             $basePrice = $this->getPriceForCurrency($pricing, $currency);
 
+            // Enrich extras from hold with price and name info
+            $enrichedExtras = null;
+            if (! empty($hold->extras)) {
+                $enrichedExtras = [];
+                foreach ($hold->extras as $extra) {
+                    $listingExtra = ListingExtra::with('extra')->find($extra['id']);
+                    if ($listingExtra && $listingExtra->extra) {
+                        $enrichedExtras[] = [
+                            'id' => $extra['id'],
+                            'name' => $listingExtra->extra->getTranslation('name', 'en'),
+                            'price' => $listingExtra->getEffectivePrice($currency),
+                            'quantity' => $extra['quantity'] ?? 1,
+                        ];
+                    }
+                }
+            }
+
             // Create cart item with cached data
             $item = CartItem::create([
                 'cart_id' => $cart->id,
@@ -84,6 +102,7 @@ class CartService
                 'person_type_breakdown' => $hold->person_type_breakdown,
                 'unit_price' => $basePrice,
                 'currency' => $currency,
+                'extras' => $enrichedExtras,
             ]);
 
             // Extend cart expiration
