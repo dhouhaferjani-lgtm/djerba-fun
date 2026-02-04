@@ -49,7 +49,7 @@ export function CartIcon({ locale, className }: CartIconProps) {
       {itemCount > 0 && !isLoading && (
         <span
           className={cn(
-            'absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary-cream text-xs font-bold text-primary transition-all',
+            'absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-primary border border-primary/20 transition-all',
             isAnimating && 'scale-150 ring-4 ring-white shadow-lg'
           )}
         >

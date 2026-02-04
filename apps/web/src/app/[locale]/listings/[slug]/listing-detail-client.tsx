@@ -346,7 +346,7 @@ function BookingFlowContent({
                   <button
                     key={slot.id}
                     onClick={() => handleSlotSelect(slot)}
-                    className={`w-full p-3 rounded-lg border text-left transition-colors ${
+                    className={`w-full p-3 rounded-lg border text-left transition-colors cursor-pointer ${
                       selectedSlot?.id === slot.id
                         ? 'border-primary bg-primary/5'
                         : 'border-neutral-200 hover:border-neutral-300'
@@ -417,7 +417,7 @@ function BookingFlowContent({
             <div className="mt-6 pt-4 border-t border-neutral-200">
               <button
                 onClick={() => onExtrasExpandedChange(!extrasExpanded)}
-                className="flex items-center justify-between w-full text-left py-2"
+                className="flex items-center justify-between w-full text-left py-2 cursor-pointer"
               >
                 <span className="font-semibold text-heading flex items-center gap-2">
                   <Package className="h-5 w-5 text-primary" />
@@ -460,14 +460,14 @@ function BookingFlowContent({
                           <button
                             onClick={() => onExtraDecrement(extra.id)}
                             disabled={qty === 0}
-                            className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center disabled:opacity-40 hover:bg-neutral-100 transition-colors"
+                            className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center disabled:opacity-40 hover:bg-neutral-100 transition-colors cursor-pointer disabled:cursor-not-allowed"
                           >
                             <Minus className="h-4 w-4" />
                           </button>
                           <span className="w-8 text-center font-medium">{qty}</span>
                           <button
                             onClick={() => onExtraIncrement(extra.id, extra.maxQuantity)}
-                            className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center hover:bg-neutral-100 transition-colors"
+                            className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center hover:bg-neutral-100 transition-colors cursor-pointer"
                           >
                             <Plus className="h-4 w-4" />
                           </button>
