@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useRouter, Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
@@ -30,6 +30,7 @@ export default function CheckoutPage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [hasChosenAuthMethod, setHasChosenAuthMethod] = useState(false);
   const [selectedExtras, setSelectedExtras] = useState<SelectedExtra[]>([]);
+  const hasInitializedExtras = useRef(false);
 
   const { data: holdData, isLoading, error, isError } = useHold(holdId);
 
@@ -40,9 +41,20 @@ export default function CheckoutPage() {
     }
   }, [isAuthLoading, user, hasChosenAuthMethod, holdData]);
 
-  // Load pre-selected extras from sessionStorage (set on listing page)
+  // Load extras from hold data (backend) OR sessionStorage (fallback)
+  // Uses ref to ensure we only initialize once and don't override user changes on refetch
   useEffect(() => {
-    if (holdId) {
+    if (holdId && holdData && !hasInitializedExtras.current) {
+      // First try to get from hold data (persisted in database)
+      if (holdData.extras && Array.isArray(holdData.extras) && holdData.extras.length > 0) {
+        setSelectedExtras(holdData.extras);
+        hasInitializedExtras.current = true;
+        // Clean up sessionStorage if it exists (no longer needed)
+        sessionStorage.removeItem(`checkout-extras-${holdId}`);
+        return;
+      }
+
+      // Fallback to sessionStorage (for backwards compatibility)
       const storedExtras = sessionStorage.getItem(`checkout-extras-${holdId}`);
       if (storedExtras) {
         try {
@@ -54,8 +66,9 @@ export default function CheckoutPage() {
           console.warn('Failed to parse stored extras');
         }
       }
+      hasInitializedExtras.current = true;
     }
-  }, [holdId]);
+  }, [holdId, holdData]);
 
   // Fetch available extras for the listing (only when we have hold data)
   const {
