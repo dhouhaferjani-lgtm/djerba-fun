@@ -77,7 +77,7 @@ export function PaymentMethodSelector({
               key={method}
               type="button"
               onClick={() => handleSelect(method)}
-              className={`w-full text-left p-4 border rounded-lg transition-all ${
+              className={`w-full text-left p-4 border rounded-lg transition-all cursor-pointer ${
                 isSelected
                   ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
                   : 'border-gray-200 hover:border-gray-300'

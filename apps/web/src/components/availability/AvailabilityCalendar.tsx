@@ -149,14 +149,14 @@ export default function AvailabilityCalendar({
         <div className="flex gap-2">
           <button
             onClick={handlePreviousMonth}
-            className="rounded-lg border border-neutral-300 p-2 hover:bg-neutral-50"
+            className="rounded-lg border border-neutral-300 p-2 hover:bg-neutral-50 cursor-pointer"
             aria-label={t('aria_labels.previous_month')}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           <button
             onClick={handleNextMonth}
-            className="rounded-lg border border-neutral-300 p-2 hover:bg-neutral-50"
+            className="rounded-lg border border-neutral-300 p-2 hover:bg-neutral-50 cursor-pointer"
             aria-label={t('aria_labels.next_month')}
           >
             <ChevronRight className="h-5 w-5" />
@@ -196,6 +196,7 @@ export default function AvailabilityCalendar({
                 ${!isCurrentMonth ? 'opacity-40' : ''}
                 ${isSelected ? 'ring-2 ring-primary' : ''}
                 ${isPast ? 'cursor-not-allowed opacity-50' : ''}
+                ${!isDisabled ? 'cursor-pointer' : ''}
                 ${isCurrentMonth && !isPast ? getStatusColor(status) : 'text-neutral-400'}
               `}
               data-testid={`date-${format(day, 'yyyy-MM-dd')}`}

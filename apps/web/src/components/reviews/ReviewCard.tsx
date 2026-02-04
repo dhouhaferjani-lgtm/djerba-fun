@@ -218,7 +218,7 @@ function ReviewCardComponent({ review, onMarkHelpful, isMarkingHelpful }: Review
         <button
           onClick={handleMarkHelpful}
           disabled={isMarkingHelpful}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
