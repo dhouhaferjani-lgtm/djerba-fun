@@ -124,12 +124,12 @@ class Cart extends Model
     }
 
     /**
-     * Calculate the cart subtotal.
+     * Calculate the cart subtotal (includes extras).
      */
     public function getSubtotal(): float
     {
         return (float) $this->items->sum(function ($item) {
-            return $item->getSubtotal();
+            return $item->getTotal();  // Use getTotal() to include extras
         });
     }
 
