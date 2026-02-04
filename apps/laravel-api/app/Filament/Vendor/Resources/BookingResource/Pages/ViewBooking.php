@@ -27,14 +27,19 @@ class ViewBooking extends ViewRecord
      */
     protected function resolveRecord(int|string $key): \Illuminate\Database\Eloquent\Model
     {
-        return static::getResource()::resolveRecordRouteBinding($key)
-            ->loadMissing([
-                'bookingExtras',
-                'participants',
-                'user',
-                'listing',
-                'availabilitySlot',
-            ]);
+        $record = static::getResource()::resolveRecordRouteBinding($key);
+
+        if ($record === null) {
+            abort(404);
+        }
+
+        return $record->loadMissing([
+            'bookingExtras',
+            'participants',
+            'user',
+            'listing',
+            'availabilitySlot',
+        ]);
     }
 
     public function infolist(Infolist $infolist): Infolist

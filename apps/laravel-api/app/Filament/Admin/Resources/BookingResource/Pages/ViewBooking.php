@@ -24,6 +24,27 @@ class ViewBooking extends ViewRecord
         ];
     }
 
+    /**
+     * Eager load relationships to prevent N+1 queries during rendering.
+     */
+    protected function resolveRecord(int|string $key): \Illuminate\Database\Eloquent\Model
+    {
+        $record = static::getResource()::resolveRecordRouteBinding($key);
+
+        if ($record === null) {
+            abort(404);
+        }
+
+        return $record->loadMissing([
+            'bookingExtras',
+            'participants',
+            'user',
+            'listing',
+            'availabilitySlot',
+            'paymentIntents',
+        ]);
+    }
+
     public function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -124,7 +145,7 @@ class ViewBooking extends ViewRecord
                             ->columns(6)
                             ->columnSpanFull(),
                     ])
-                    ->visible(fn ($record) => $record->participants()->count() > 0),
+                    ->visible(fn ($record) => $record->participants->isNotEmpty()),
 
                 // Fallback for legacy bookings with travelers array
                 Infolists\Components\Section::make('Travelers (Legacy)')
@@ -161,7 +182,7 @@ class ViewBooking extends ViewRecord
                             ->columns(5)
                             ->columnSpanFull(),
                     ])
-                    ->visible(fn ($record) => $record->participants()->count() === 0 && ! empty($record->travelers)),
+                    ->visible(fn ($record) => $record->participants->isEmpty() && ! empty($record->travelers)),
 
                 // Fallback for legacy bookings without travelers array
                 Infolists\Components\Section::make('Traveler Information')
@@ -170,7 +191,7 @@ class ViewBooking extends ViewRecord
                             ->label('Details')
                             ->columnSpanFull(),
                     ])
-                    ->visible(fn ($record) => $record->participants()->count() === 0 && empty($record->travelers) && ! empty($record->traveler_info)),
+                    ->visible(fn ($record) => $record->participants->isEmpty() && empty($record->travelers) && ! empty($record->traveler_info)),
 
                 Infolists\Components\Section::make('Extras & Add-ons')
                     ->schema([
