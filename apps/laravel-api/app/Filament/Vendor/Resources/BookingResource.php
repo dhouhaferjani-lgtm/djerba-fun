@@ -139,7 +139,6 @@ class BookingResource extends Resource
                     ->label('Booking #')
                     ->searchable()
                     ->sortable()
-                    ->copyable()
                     ->weight('bold')
                     ->url(fn (Booking $record): string => static::getUrl('view', ['record' => $record]))
                     ->color('primary'),
