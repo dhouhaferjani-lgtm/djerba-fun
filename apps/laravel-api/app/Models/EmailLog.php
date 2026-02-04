@@ -27,7 +27,7 @@ class EmailLog extends Model
         'text_content',
         'status',
         'error_message',
-        'mailgun_message_id',
+        'provider_message_id',
         'booking_id',
         'listing_id',
         'vendor_id',

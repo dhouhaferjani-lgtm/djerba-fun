@@ -41,7 +41,7 @@ class UpdateEmailLogOnSent
                 $emailLog->update([
                     'status' => EmailLogStatus::SENT,
                     'sent_at' => now(),
-                    'mailgun_message_id' => $messageId,
+                    'provider_message_id' => $messageId,
                 ]);
 
                 Log::info('UpdateEmailLogOnSent: Email log updated to sent', [

@@ -89,7 +89,7 @@ class EmailLogService
             $emailLog->update([
                 'status' => EmailLogStatus::SENT,
                 'sent_at' => now(),
-                'mailgun_message_id' => $messageId,
+                'provider_message_id' => $messageId,
             ]);
 
             return $emailLog;
@@ -189,14 +189,14 @@ class EmailLogService
     }
 
     /**
-     * Update status from Mailgun webhook.
+     * Update status from email provider webhook (Resend, Mailgun, etc.).
      */
     public function updateFromWebhook(string $messageId, string $event, array $eventData = []): bool
     {
-        $emailLog = EmailLog::where('mailgun_message_id', $messageId)->first();
+        $emailLog = EmailLog::where('provider_message_id', $messageId)->first();
 
         if (! $emailLog) {
-            Log::warning('Email log not found for Mailgun message', [
+            Log::warning('Email log not found for provider message', [
                 'message_id' => $messageId,
                 'event' => $event,
             ]);
@@ -221,7 +221,7 @@ class EmailLogService
             'dropped' => [
                 'status' => EmailLogStatus::FAILED,
                 'failed_at' => now(),
-                'error_message' => $eventData['reason'] ?? 'Dropped by Mailgun',
+                'error_message' => $eventData['reason'] ?? 'Dropped by provider',
             ],
             'complained' => [
                 'status' => EmailLogStatus::COMPLAINED,

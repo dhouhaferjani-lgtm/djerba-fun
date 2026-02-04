@@ -27,7 +27,7 @@ class CartCheckoutService
         protected BookingService $bookingService,
         protected PaymentGatewayManager $gatewayManager,
         protected PriceCalculationService $priceService,
-        protected ?EmailLogService $emailLogService = null
+        protected EmailLogService $emailLogService
     ) {}
 
     /**
@@ -358,16 +358,11 @@ class CartCheckoutService
             $email = $booking->getPrimaryEmail();
 
             if ($email) {
-                if ($this->emailLogService) {
-                    $this->emailLogService->queue(
-                        $email,
-                        new BookingConfirmationMail($booking),
-                        $booking
-                    );
-                } else {
-                    // Fallback for backward compatibility
-                    \Illuminate\Support\Facades\Mail::to($email)->queue(new BookingConfirmationMail($booking));
-                }
+                $this->emailLogService->queue(
+                    $email,
+                    new BookingConfirmationMail($booking),
+                    $booking
+                );
             }
         }
     }

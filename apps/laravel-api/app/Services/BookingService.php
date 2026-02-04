@@ -21,7 +21,7 @@ class BookingService
 {
     public function __construct(
         private readonly ExtrasService $extrasService,
-        private readonly ?EmailLogService $emailLogService = null
+        private readonly EmailLogService $emailLogService
     ) {}
 
     /**
@@ -258,12 +258,7 @@ class BookingService
         $email = $booking->getPrimaryEmail();
 
         if ($email) {
-            if ($this->emailLogService) {
-                $this->emailLogService->queue($email, new BookingConfirmationMail($booking), $booking);
-            } else {
-                // Fallback for backward compatibility
-                \Illuminate\Support\Facades\Mail::to($email)->queue(new BookingConfirmationMail($booking));
-            }
+            $this->emailLogService->queue($email, new BookingConfirmationMail($booking), $booking);
         }
 
         return $booking->fresh();
@@ -293,12 +288,7 @@ class BookingService
         $email = $booking->getPrimaryEmail();
 
         if ($email) {
-            if ($this->emailLogService) {
-                $this->emailLogService->queue($email, new BookingCancellationMail($booking), $booking);
-            } else {
-                // Fallback for backward compatibility
-                \Illuminate\Support\Facades\Mail::to($email)->queue(new BookingCancellationMail($booking));
-            }
+            $this->emailLogService->queue($email, new BookingCancellationMail($booking), $booking);
         }
 
         return $booking->fresh();
