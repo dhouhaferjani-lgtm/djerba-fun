@@ -155,7 +155,7 @@ export function PersonTypeSelector({
                   type="button"
                   onClick={() => handleQuantityChange(type.key, -1)}
                   disabled={!canDecrement(type)}
-                  className="p-2 rounded-full border border-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50 transition-colors"
+                  className="p-2 rounded-full border border-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50 transition-colors cursor-pointer"
                   aria-label={`Decrease ${label}`}
                   data-testid={`person-type-${type.key}-decrement`}
                 >
@@ -171,7 +171,7 @@ export function PersonTypeSelector({
                   type="button"
                   onClick={() => handleQuantityChange(type.key, 1)}
                   disabled={!canIncrement(type)}
-                  className="p-2 rounded-full border border-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50 transition-colors"
+                  className="p-2 rounded-full border border-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50 transition-colors cursor-pointer"
                   aria-label={`Increase ${label}`}
                   data-testid={`person-type-${type.key}-increment`}
                 >

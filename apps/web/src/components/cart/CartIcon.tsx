@@ -27,7 +27,7 @@ export function CartIcon({ locale, className }: CartIconProps) {
     // Only animate when count INCREASES (not on decrease/removal)
     if (itemCount > prevCountRef.current) {
       setIsAnimating(true);
-      const timer = setTimeout(() => setIsAnimating(false), 600);
+      const timer = setTimeout(() => setIsAnimating(false), 1000);
       prevCountRef.current = itemCount;
       return () => clearTimeout(timer);
     }
@@ -50,7 +50,7 @@ export function CartIcon({ locale, className }: CartIconProps) {
         <span
           className={cn(
             'absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary-cream text-xs font-bold text-primary transition-all',
-            isAnimating && 'scale-125 ring-2 ring-white'
+            isAnimating && 'scale-150 ring-4 ring-white shadow-lg'
           )}
         >
           {itemCount > 9 ? '9+' : itemCount}

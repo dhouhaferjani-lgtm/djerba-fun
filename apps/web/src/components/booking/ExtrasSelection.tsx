@@ -263,7 +263,7 @@ export function ExtrasSelection({
                               checked={isSelected}
                               onChange={() => handleToggleExtra(extra.id, extra)}
                               disabled={extra.isRequired}
-                              className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary disabled:opacity-50"
+                              className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                             />
                             <label
                               htmlFor={`extra-${extra.id}`}
@@ -324,7 +324,7 @@ export function ExtrasSelection({
                                     handleQuantityChange(extra.id, quantity - 1, extra)
                                   }
                                   disabled={quantity <= (extra.minQuantity || 1)}
-                                  className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                   aria-label="Decrease quantity"
                                 >
                                   −
@@ -338,7 +338,7 @@ export function ExtrasSelection({
                                   disabled={
                                     extra.maxQuantity !== null && quantity >= extra.maxQuantity
                                   }
-                                  className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                   aria-label="Increase quantity"
                                 >
                                   +
@@ -388,7 +388,7 @@ export function ExtrasSelection({
           <button
             type="button"
             onClick={onBack}
-            className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
           >
             {t('back')}
           </button>
@@ -396,7 +396,7 @@ export function ExtrasSelection({
         <button
           type="button"
           onClick={handleSubmit}
-          className="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+          className="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors cursor-pointer"
           data-testid="continue-to-billing"
         >
           {t('continue')}
