@@ -156,8 +156,9 @@ class BookingResource extends Resource
                     ->label(__('filament.labels.booking_hash'))
                     ->searchable()
                     ->sortable()
-                    ->copyable()
-                    ->weight('bold'),
+                    ->weight('bold')
+                    ->url(fn (Booking $record): string => static::getUrl('view', ['record' => $record]))
+                    ->color('primary'),
 
                 Tables\Columns\TextColumn::make('listing.title')
                     ->label(__('filament.resources.listings'))

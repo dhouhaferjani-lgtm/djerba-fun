@@ -116,27 +116,28 @@ class ViewBooking extends ViewRecord
                 Infolists\Components\Section::make('Selected Extras')
                     ->description('Add-ons purchased with this booking')
                     ->schema([
-                        Infolists\Components\RepeatableEntry::make('extras')
+                        Infolists\Components\RepeatableEntry::make('bookingExtras')
                             ->label('')
                             ->schema([
-                                Infolists\Components\TextEntry::make('name')
-                                    ->label('Extra'),
+                                Infolists\Components\TextEntry::make('extra_name')
+                                    ->label('Extra')
+                                    ->formatStateUsing(fn ($state) => is_array($state) ? ($state['en'] ?? $state['fr'] ?? 'Extra') : ($state ?? 'Extra')),
 
                                 Infolists\Components\TextEntry::make('quantity')
                                     ->label('Qty'),
 
-                                Infolists\Components\TextEntry::make('unit_price')
+                                Infolists\Components\TextEntry::make('unit_price_tnd')
                                     ->label('Unit Price')
-                                    ->formatStateUsing(fn ($state, $record) => number_format((float) $state, 2).' '.($record->currency ?? 'TND')),
+                                    ->formatStateUsing(fn ($state) => number_format((float) ($state ?? 0), 2).' TND'),
 
-                                Infolists\Components\TextEntry::make('total_price')
+                                Infolists\Components\TextEntry::make('subtotal_tnd')
                                     ->label('Total')
-                                    ->formatStateUsing(fn ($state, $record) => number_format((float) $state, 2).' '.($record->currency ?? 'TND')),
+                                    ->formatStateUsing(fn ($state) => number_format((float) ($state ?? 0), 2).' TND'),
                             ])
                             ->columns(4)
                             ->columnSpanFull(),
                     ])
-                    ->visible(fn ($record) => ! empty($record->extras)),
+                    ->visible(fn ($record) => $record->bookingExtras()->count() > 0),
 
                 Infolists\Components\Section::make('Participants')
                     ->description('All participants with contact info and check-in status')
