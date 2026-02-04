@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useRouter, Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { MainLayout } from '@/components/templates/MainLayout';
 import { BookingWizard, type SelectedExtra } from '@/components/booking/BookingWizard';
 import { BookingSummary } from '@/components/booking/BookingSummary';
 import { CheckoutAuthModal } from '@/components/booking/CheckoutAuthModal';
@@ -14,7 +13,6 @@ import { Button } from '@go-adventure/ui';
 import { AlertTriangle, ArrowLeft, Clock } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
 import { getListingUrl, getListingsIndexUrl } from '@/lib/utils/urls';
-import type { Locale } from '@/i18n/routing';
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -102,14 +100,12 @@ export default function CheckoutPage() {
 
   if (isLoading || isLoadingExtras) {
     return (
-      <MainLayout locale={locale}>
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-gray-600">{t('loading')}</p>
-          </div>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
@@ -119,50 +115,20 @@ export default function CheckoutPage() {
     const listingSlug = errorData?.listingSlug;
 
     return (
-      <MainLayout locale={locale}>
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="text-center max-w-md mx-auto px-4">
-            <div className="mb-6">
-              <Clock className="h-16 w-16 text-warning mx-auto" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-3">
-              {tCheckout('hold_expired_title') || 'Reservation Expired'}
-            </h1>
-            <p className="text-gray-600 mb-6">
-              {tCheckout('hold_expired_message') ||
-                'Your reservation has expired. Please select a new date and time to continue booking.'}
-            </p>
-            <div className="space-y-3">
-              <Link href={getListingsIndexUrl(locale as Locale)}>
-                <Button variant="primary" size="lg" className="w-full">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  {tCheckout('browse_listings') || 'Browse Listings'}
-                </Button>
-              </Link>
-            </div>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="mb-6">
+            <Clock className="h-16 w-16 text-warning mx-auto" />
           </div>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  // Handle not found or other errors
-  if (isError || !holdData) {
-    return (
-      <MainLayout locale={locale}>
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="text-center max-w-md mx-auto px-4">
-            <div className="mb-6">
-              <AlertTriangle className="h-16 w-16 text-error mx-auto" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-3">
-              {tCheckout('hold_not_found_title') || 'Reservation Not Found'}
-            </h1>
-            <p className="text-gray-600 mb-6">
-              {tCheckout('hold_not_found_message') ||
-                'We could not find your reservation. It may have expired or been cancelled.'}
-            </p>
-            <Link href={getListingsIndexUrl(locale as Locale)}>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">
+            {tCheckout('hold_expired_title') || 'Reservation Expired'}
+          </h1>
+          <p className="text-gray-600 mb-6">
+            {tCheckout('hold_expired_message') ||
+              'Your reservation has expired. Please select a new date and time to continue booking.'}
+          </p>
+          <div className="space-y-3">
+            <Link href={getListingsIndexUrl('fr')}>
               <Button variant="primary" size="lg" className="w-full">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 {tCheckout('browse_listings') || 'Browse Listings'}
@@ -170,7 +136,33 @@ export default function CheckoutPage() {
             </Link>
           </div>
         </div>
-      </MainLayout>
+      </div>
+    );
+  }
+
+  // Handle not found or other errors
+  if (isError || !holdData) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="mb-6">
+            <AlertTriangle className="h-16 w-16 text-error mx-auto" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">
+            {tCheckout('hold_not_found_title') || 'Reservation Not Found'}
+          </h1>
+          <p className="text-gray-600 mb-6">
+            {tCheckout('hold_not_found_message') ||
+              'We could not find your reservation. It may have expired or been cancelled.'}
+          </p>
+          <Link href={getListingsIndexUrl('fr')}>
+            <Button variant="primary" size="lg" className="w-full">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {tCheckout('browse_listings') || 'Browse Listings'}
+            </Button>
+          </Link>
+        </div>
+      </div>
     );
   }
 
@@ -179,36 +171,34 @@ export default function CheckoutPage() {
   // Ensure we have the required data
   if (!listing || !slot) {
     return (
-      <MainLayout locale={locale}>
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="text-center max-w-md mx-auto px-4">
-            <div className="mb-6">
-              <AlertTriangle className="h-16 w-16 text-warning mx-auto" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-3">{t('error')}</h1>
-            <p className="text-gray-600 mb-6">
-              {tCheckout('missing_data_message') ||
-                'Some booking information is missing. Please try again.'}
-            </p>
-            <Link href={getListingsIndexUrl(locale as Locale)}>
-              <Button variant="primary" size="lg" className="w-full">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {tCheckout('browse_listings') || 'Browse Listings'}
-              </Button>
-            </Link>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="mb-6">
+            <AlertTriangle className="h-16 w-16 text-warning mx-auto" />
           </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">{t('error')}</h1>
+          <p className="text-gray-600 mb-6">
+            {tCheckout('missing_data_message') ||
+              'Some booking information is missing. Please try again.'}
+          </p>
+          <Link href={getListingsIndexUrl('fr')}>
+            <Button variant="primary" size="lg" className="w-full">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {tCheckout('browse_listings') || 'Browse Listings'}
+            </Button>
+          </Link>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
   const handleHoldExpired = () => {
     // Redirect to listing page when hold expires
     if (listing.slug && listing.location) {
-      const listingUrl = getListingUrl(listing.slug, listing.location, locale as Locale);
+      const listingUrl = getListingUrl(listing.slug, listing.location, 'fr');
       router.push(listingUrl);
     } else {
-      router.push(getListingsIndexUrl(locale as Locale));
+      router.push(getListingsIndexUrl('fr'));
     }
   };
 
@@ -232,7 +222,7 @@ export default function CheckoutPage() {
   const title = tr(listing.title);
 
   return (
-    <MainLayout locale={locale}>
+    <>
       <div className="bg-gray-50 min-h-screen">
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
@@ -240,7 +230,7 @@ export default function CheckoutPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link
-                  href={getListingUrl(listing.slug, listing.location, locale as Locale)}
+                  href={getListingUrl(listing.slug, listing.location, 'fr')}
                   className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   <ArrowLeft className="h-5 w-5" />
@@ -307,6 +297,6 @@ export default function CheckoutPage() {
         onEmailLogin={handleEmailLogin}
         onCreateAccount={handleCreateAccount}
       />
-    </MainLayout>
+    </>
   );
 }
