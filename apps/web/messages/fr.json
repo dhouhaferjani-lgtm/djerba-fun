@@ -1383,5 +1383,13 @@
     "email_label": "Email",
     "address_label": "Adresse",
     "follow_us": "Suivez-Nous"
+  },
+  "price_breakdown": {
+    "title": "Détail du prix",
+    "type": "Type",
+    "qty": "Qté",
+    "unit_price": "Prix",
+    "subtotal": "Sous-total",
+    "total": "Total"
   }
 }

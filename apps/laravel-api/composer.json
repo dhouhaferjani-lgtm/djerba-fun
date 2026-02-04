@@ -21,9 +21,9 @@
     "laravel/tinker": "^2.10.1",
     "league/flysystem-aws-s3-v3": "^3.0",
     "matanyadaev/laravel-eloquent-spatial": "^4.2",
+    "resend/resend-laravel": "^1.1",
     "simplesoftwareio/simple-qrcode": "^4.2",
     "spatie/laravel-medialibrary": "^11.17",
-    "resend/resend-laravel": "^1.1",
     "spatie/laravel-translatable": "^6.12",
     "statikbe/laravel-filament-flexible-content-block-pages": "^0.2.12",
     "statikbe/laravel-filament-flexible-content-blocks": "^2.6"

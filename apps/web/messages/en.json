@@ -1366,5 +1366,13 @@
     "email_label": "Email",
     "address_label": "Address",
     "follow_us": "Follow Us"
+  },
+  "price_breakdown": {
+    "title": "Price Breakdown",
+    "type": "Type",
+    "qty": "Qty",
+    "unit_price": "Price",
+    "subtotal": "Subtotal",
+    "total": "Total"
   }
 }

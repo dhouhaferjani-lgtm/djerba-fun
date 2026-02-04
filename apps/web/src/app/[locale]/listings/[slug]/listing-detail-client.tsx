@@ -11,6 +11,10 @@ import { useAvailability, useCreateHold, useAddToCart } from '@/lib/api/hooks';
 import { Button } from '@go-adventure/ui';
 import { PersonTypeSelector } from '@/components/booking/PersonTypeSelector';
 import { BookingStepIndicator, type BookingStep } from '@/components/booking/BookingStepIndicator';
+import {
+  PriceBreakdownTable,
+  type PriceBreakdownItem,
+} from '@/components/booking/PriceBreakdownTable';
 import { SanitizedHtml } from '@/components/atoms/SanitizedHtml';
 
 // Dynamic imports for heavy components to reduce initial bundle size
@@ -477,6 +481,75 @@ function BookingFlowContent({
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Price Breakdown Table */}
+          {totalGuests > 0 && (
+            <div className="mt-6 pt-4 border-t border-neutral-200">
+              <PriceBreakdownTable
+                items={(() => {
+                  const items: PriceBreakdownItem[] = [];
+                  const currency =
+                    selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
+
+                  // Add person types with qty > 0
+                  for (const [key, qty] of Object.entries(personTypeBreakdown)) {
+                    if (qty > 0) {
+                      const pt = personTypes.find((p) => p.key === key);
+                      if (pt) {
+                        const label =
+                          typeof pt.label === 'object'
+                            ? (pt.label as any)[locale] || (pt.label as any).en || key
+                            : pt.label || key;
+                        const unitPrice = pt.displayPrice ?? pt.price ?? 0;
+                        items.push({
+                          type: 'person',
+                          key,
+                          label,
+                          quantity: qty,
+                          unitPrice,
+                          subtotal: unitPrice * qty,
+                        });
+                      }
+                    }
+                  }
+
+                  // Add extras with qty > 0
+                  for (const extra of selectedExtras) {
+                    if (extra.quantity > 0) {
+                      const listingExtra = listing.extras?.find((e: any) => e.id === extra.id);
+                      if (listingExtra) {
+                        const price =
+                          currency === 'TND' ? listingExtra.priceTnd : listingExtra.priceEur;
+                        items.push({
+                          type: 'extra',
+                          key: extra.id,
+                          label: listingExtra.name || 'Extra',
+                          quantity: extra.quantity,
+                          unitPrice: price || 0,
+                          subtotal: (price || 0) * extra.quantity,
+                        });
+                      }
+                    }
+                  }
+
+                  return items;
+                })()}
+                currency={selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND'}
+                total={
+                  totalPrice +
+                  selectedExtras.reduce((sum, extra) => {
+                    const listingExtra = listing.extras?.find((e: any) => e.id === extra.id);
+                    const currency =
+                      selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
+                    const price =
+                      currency === 'TND' ? listingExtra?.priceTnd : listingExtra?.priceEur;
+                    return sum + (price || 0) * extra.quantity;
+                  }, 0)
+                }
+                compact={true}
+              />
             </div>
           )}
 

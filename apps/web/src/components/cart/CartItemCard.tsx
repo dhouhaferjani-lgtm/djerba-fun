@@ -1,12 +1,17 @@
 'use client';
 
 import { useTranslations, useLocale } from 'next-intl';
+import { useMemo } from 'react';
 import { Button } from '@go-adventure/ui';
 import { useCartContext } from '@/lib/contexts/CartContext';
 import type { CartItem } from '@/lib/api/client';
 import { resolveTranslation } from '@/lib/utils/translate';
 import { Trash2, Calendar, Clock, Users, AlertTriangle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import {
+  PriceBreakdownTable,
+  type PriceBreakdownItem,
+} from '@/components/booking/PriceBreakdownTable';
 
 interface CartItemCardProps {
   item: CartItem;
@@ -33,6 +38,46 @@ export function CartItemCard({ item, locale }: CartItemCardProps) {
     }
     return parts.join(', ');
   };
+
+  // Build breakdown items for price table
+  const breakdownItems = useMemo((): PriceBreakdownItem[] => {
+    const items: PriceBreakdownItem[] = [];
+
+    // Add person types with qty > 0
+    if (item.personTypeBreakdown) {
+      for (const [type, qty] of Object.entries(item.personTypeBreakdown)) {
+        if (qty > 0) {
+          const label = t(`person_type.${type}`, { defaultValue: type });
+          items.push({
+            type: 'person',
+            key: type,
+            label: label.charAt(0).toUpperCase() + label.slice(1),
+            quantity: qty,
+            unitPrice: item.unitPrice,
+            subtotal: item.unitPrice * qty,
+          });
+        }
+      }
+    }
+
+    // Add extras with qty > 0 (only if extras exist)
+    if (item.extras && item.extras.length > 0) {
+      for (const extra of item.extras) {
+        if (extra.quantity > 0) {
+          items.push({
+            type: 'extra',
+            key: extra.id,
+            label: extra.name,
+            quantity: extra.quantity,
+            unitPrice: extra.price,
+            subtotal: extra.price * extra.quantity,
+          });
+        }
+      }
+    }
+
+    return items;
+  }, [item.personTypeBreakdown, item.extras, item.unitPrice, t]);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
@@ -88,7 +133,7 @@ export function CartItemCard({ item, locale }: CartItemCardProps) {
           )}
         </div>
 
-        {/* Price */}
+        {/* Price (simple display for header) */}
         <div className="text-right flex-shrink-0">
           <p className="font-semibold text-gray-900">
             {item.currency} {item.total.toFixed(2)}
@@ -100,6 +145,19 @@ export function CartItemCard({ item, locale }: CartItemCardProps) {
           )}
         </div>
       </div>
+
+      {/* Price Breakdown Table */}
+      {breakdownItems.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <PriceBreakdownTable
+            items={breakdownItems}
+            currency={item.currency}
+            total={item.total}
+            compact={true}
+            showTitle={false}
+          />
+        </div>
+      )}
     </div>
   );
 }

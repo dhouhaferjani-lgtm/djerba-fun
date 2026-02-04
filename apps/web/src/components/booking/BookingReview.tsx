@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useMemo } from 'react';
 import type {
   TravelerInfo,
   ListingSummary,
@@ -8,6 +9,7 @@ import type {
   PersonType,
 } from '@go-adventure/schemas';
 import CouponInput from './CouponInput';
+import { PriceBreakdownTable, type PriceBreakdownItem } from './PriceBreakdownTable';
 
 interface Extra {
   id: string;
@@ -201,6 +203,66 @@ export function BookingReview({
     return Math.max(0, subtotal - discount);
   };
 
+  // Build breakdown items for PriceBreakdownTable
+  const breakdownItems = useMemo((): PriceBreakdownItem[] => {
+    const items: PriceBreakdownItem[] = [];
+    const personTypes = getPersonTypes();
+
+    // Add person types with qty > 0
+    if (personTypeBreakdown && Object.keys(personTypeBreakdown).length > 0) {
+      for (const type of personTypes) {
+        const qty = personTypeBreakdown[type.key] || 0;
+        if (qty > 0) {
+          items.push({
+            type: 'person',
+            key: type.key,
+            label: getPersonTypeLabel(type),
+            quantity: qty,
+            unitPrice: type.price ?? 0,
+            subtotal: (type.price ?? 0) * qty,
+          });
+        }
+      }
+    } else if (quantity > 0) {
+      // Fallback: show as single line item
+      const unitPrice =
+        slot.displayPrice ||
+        slot.tndPrice ||
+        listing.pricing?.displayPrice ||
+        listing.pricing?.tndPrice ||
+        0;
+      items.push({
+        type: 'person',
+        key: 'guests',
+        label: t('guests') || 'Guests',
+        quantity: quantity,
+        unitPrice: unitPrice,
+        subtotal: unitPrice * quantity,
+      });
+    }
+
+    // Add extras with qty > 0
+    for (const extra of extras) {
+      if (extra.quantity > 0) {
+        items.push({
+          type: 'extra',
+          key: extra.id,
+          label: extra.name,
+          quantity: extra.quantity,
+          unitPrice: extra.price,
+          subtotal: extra.price * extra.quantity,
+        });
+      }
+    }
+
+    return items;
+  }, [personTypeBreakdown, extras, quantity, slot, listing.pricing, locale]);
+
+  // Calculate total for breakdown table (before coupon)
+  const breakdownTotal = useMemo(() => {
+    return breakdownItems.reduce((sum, item) => sum + item.subtotal, 0);
+  }, [breakdownItems]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -389,54 +451,56 @@ export function BookingReview({
 
       {/* Price Breakdown */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-        <h3 className="font-semibold text-lg text-gray-900 mb-4">{t('price_breakdown')}</h3>
-        <div className="space-y-3">
-          {/* Show breakdown by person type if available */}
-          {getBreakdownDetails() ? (
-            getBreakdownDetails()!.map((item, index) => (
-              <div key={index} className="flex justify-between text-sm">
-                <span className="text-gray-600">
-                  {item.label} × {item.quantity}
-                  {item.price > 0 && (
-                    <span className="text-gray-400 ml-1">@ {formatPrice(item.price)}</span>
-                  )}
-                </span>
-                <span className="font-medium text-gray-900">
-                  {item.price > 0 ? formatPrice(item.total) : t('free') || 'Free'}
-                </span>
+        {breakdownItems.length > 0 ? (
+          <>
+            <PriceBreakdownTable
+              items={breakdownItems}
+              currency={currency}
+              total={breakdownTotal}
+              compact={false}
+              showTitle={true}
+            />
+            {/* Coupon Discount - shown separately after breakdown */}
+            {couponDiscount && couponDiscount > 0 && (
+              <div className="mt-4 pt-4 border-t border-neutral-200">
+                <div className="flex justify-between text-sm">
+                  <span className="text-success font-medium">{tDashboard('discount')}</span>
+                  <span className="font-medium text-success">-{formatPrice(couponDiscount)}</span>
+                </div>
+                <div className="flex justify-between mt-3 pt-3 border-t border-neutral-200">
+                  <span className="font-bold text-gray-900">{t('grand_total')}</span>
+                  <span className="text-xl font-bold text-primary" data-testid="review-total-price">
+                    {formatPrice(calculateTotal())}
+                  </span>
+                </div>
               </div>
-            ))
-          ) : (
+            )}
+          </>
+        ) : (
+          <div className="space-y-3">
+            <h3 className="font-semibold text-lg text-gray-900 mb-4">{t('price_breakdown')}</h3>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">
                 {t('base_price')} × {quantity} {quantity === 1 ? 'guest' : 'guests'}
               </span>
               <span className="font-medium text-gray-900">{formatPrice(calculateSubtotal())}</span>
             </div>
-          )}
-          {extras.length > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t('extras_total')}</span>
-              <span className="font-medium text-gray-900">
-                {formatPrice(calculateExtrasTotal())}
-              </span>
-            </div>
-          )}
-          {couponDiscount && couponDiscount > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-success">{tDashboard('discount')}</span>
-              <span className="font-medium text-success">-{formatPrice(couponDiscount)}</span>
-            </div>
-          )}
-          <div className="border-t pt-3">
-            <div className="flex justify-between">
-              <span className="font-bold text-gray-900">{t('total')}</span>
-              <span className="text-xl font-bold text-primary" data-testid="review-total-price">
-                {formatPrice(calculateTotal())}
-              </span>
+            {couponDiscount && couponDiscount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-success">{tDashboard('discount')}</span>
+                <span className="font-medium text-success">-{formatPrice(couponDiscount)}</span>
+              </div>
+            )}
+            <div className="border-t pt-3">
+              <div className="flex justify-between">
+                <span className="font-bold text-gray-900">{t('total')}</span>
+                <span className="text-xl font-bold text-primary" data-testid="review-total-price">
+                  {formatPrice(calculateTotal())}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Action Buttons */}
