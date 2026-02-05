@@ -116,6 +116,12 @@ class ListingResource extends Resource
                                         return;
                                     }
 
+                                    // Don't override if French title already generated the slug
+                                    $frenchTitle = $get('title.fr');
+                                    if (! empty($frenchTitle) && ! empty($get('_auto_slug'))) {
+                                        return;
+                                    }
+
                                     $currentSlug = $get('slug');
                                     $newSlug = Str::slug($state ?? '');
 
