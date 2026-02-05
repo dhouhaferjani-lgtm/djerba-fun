@@ -53,7 +53,11 @@ export default function CartVouchersPage() {
       queryFn: async () => {
         if (isGuest) {
           const sessionId = getGuestSessionId();
-          if (!sessionId) throw new Error('No session ID');
+          if (!sessionId) {
+            console.error('Guest session ID not found for booking:', id);
+            // Return empty state instead of throwing - allows page to render with helpful message
+            return { data: [], canGenerate: false, booking: null };
+          }
           return vouchersApi.listGuest(id, sessionId);
         }
         return vouchersApi.list(id);
@@ -247,10 +251,43 @@ export default function CartVouchersPage() {
 
           if (!data) return null;
 
-          const bookingInfo = data.booking;
-          const vouchers = data.data || [];
-          const canGenerate = data.canGenerate;
-          const completedCount = vouchers.filter((v) => v.participant?.fullName).length;
+          // Add null safety for all data access
+          const bookingInfo = data?.booking ?? null;
+          const vouchers = data?.data ?? [];
+          const canGenerate = data?.canGenerate ?? false;
+          const completedCount = vouchers.filter((v) => v?.participant?.fullName).length;
+
+          // Handle case where session is missing/expired (no booking info and no vouchers)
+          if (!bookingInfo && vouchers.length === 0) {
+            return (
+              <div
+                key={bookingId}
+                className="border border-warning/30 bg-warning/5 rounded-xl overflow-hidden"
+              >
+                <div className="p-4">
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className="w-5 h-5 text-warning" />
+                    <div>
+                      <p className="font-medium text-warning-dark">
+                        {t('session_expired') || 'Session Expired'}
+                      </p>
+                      <p className="text-sm text-warning-dark/80">
+                        {t('session_expired_message') ||
+                          'Your session may have expired. Please check your bookings.'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <Link href="/dashboard/bookings">
+                      <Button variant="outline" size="sm">
+                        {tCommon('go_to_bookings') || 'Go to My Bookings'}
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            );
+          }
 
           return (
             <div
@@ -275,9 +312,11 @@ export default function CartVouchersPage() {
                     )}
                   </div>
                   <div className="text-left">
-                    <p className="font-semibold text-neutral-900">{bookingInfo?.listingTitle}</p>
+                    <p className="font-semibold text-neutral-900">
+                      {bookingInfo?.listingTitle || t('activity') || `Activity ${bookingIndex + 1}`}
+                    </p>
                     <p className="text-sm text-neutral-500">
-                      {bookingInfo?.bookingNumber} • {vouchers.length}{' '}
+                      {bookingInfo?.bookingNumber || bookingId.slice(0, 8)} • {vouchers.length}{' '}
                       {vouchers.length === 1
                         ? t('participant') || 'participant'
                         : t('participants') || 'participants'}
