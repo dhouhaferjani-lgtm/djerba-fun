@@ -56,7 +56,9 @@ export function ExtrasSelection({
     // Initialize with required/auto-add extras
     extras.forEach((extra) => {
       if (extra.isRequired || extra.autoAdd) {
-        initial[extra.id] = extra.minQuantity > 0 ? extra.minQuantity : 1;
+        // Prefer defaultQuantity, then minQuantity, then 1
+        initial[extra.id] =
+          extra.defaultQuantity || (extra.minQuantity > 0 ? extra.minQuantity : 1);
       }
     });
     // Apply default selections
@@ -78,7 +80,9 @@ export function ExtrasSelection({
       if (newState[extraId]) {
         delete newState[extraId];
       } else {
-        newState[extraId] = extra.minQuantity > 0 ? extra.minQuantity : 1;
+        // Prefer defaultQuantity, then minQuantity, then 1
+        newState[extraId] =
+          extra.defaultQuantity || (extra.minQuantity > 0 ? extra.minQuantity : 1);
       }
       return newState;
     });

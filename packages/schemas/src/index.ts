@@ -832,6 +832,7 @@ export const listingExtraForBookingSchema = z.object({
   personTypePrices: personTypePricesSchema.nullable(),
   minQuantity: z.number().int().nonnegative(),
   maxQuantity: z.number().int().positive().nullable(),
+  defaultQuantity: z.number().int().positive().optional(), // Suggested quantity when selecting
   isRequired: z.boolean(),
   autoAdd: z.boolean(), // Automatically added to booking
   // Display flags
