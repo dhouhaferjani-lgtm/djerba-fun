@@ -1036,6 +1036,9 @@ class ListingResource extends Resource
                                                             $set('eur_price', $calculatedEur);
                                                             $set('_auto_eur', $calculatedEur);
                                                         }
+
+                                                        // Clear the auto TND tracker since user is entering TND manually
+                                                        $set('_auto_tnd', null);
                                                     })
                                                     ->columnSpan(1),
 
@@ -1046,14 +1049,28 @@ class ListingResource extends Resource
                                                     ->step(0.01)
                                                     ->minValue(0)
                                                     ->required()
-                                                    ->live(onBlur: true)
+                                                    ->live(debounce: 500)
                                                     ->afterStateUpdated(function ($state, $set, $get) {
-                                                        // When user manually edits EUR, clear auto tracker
-                                                        $autoEur = $get('_auto_eur');
-
-                                                        if ((float) $state !== (float) $autoEur) {
-                                                            $set('_auto_eur', null);
+                                                        if (empty($state)) {
+                                                            return;
                                                         }
+
+                                                        // Reverse calculation: EUR → TND
+                                                        $service = app(\App\Services\IncomePricingService::class);
+                                                        $ratio = $service->getParityRatio('TND', 'EUR') ?? 0.1286;
+                                                        $calculatedTnd = round((float) $state / $ratio, 2);
+
+                                                        $currentTnd = $get('tnd_price');
+                                                        $autoTnd = $get('_auto_tnd');
+
+                                                        // Only auto-update if TND is empty or matches previous auto-value
+                                                        if (empty($currentTnd) || (float) $currentTnd === (float) $autoTnd) {
+                                                            $set('tnd_price', $calculatedTnd);
+                                                            $set('_auto_tnd', $calculatedTnd);
+                                                        }
+
+                                                        // Clear the auto EUR tracker since user is entering EUR manually
+                                                        $set('_auto_eur', null);
                                                     })
                                                     ->suffixAction(
                                                         Forms\Components\Actions\Action::make('calculate_eur')
@@ -1075,6 +1092,10 @@ class ListingResource extends Resource
 
                                             // Hidden field to track auto-generated EUR price
                                             Forms\Components\Hidden::make('_auto_eur')
+                                                ->dehydrated(false),
+
+                                            // Hidden field to track auto-generated TND price
+                                            Forms\Components\Hidden::make('_auto_tnd')
                                                 ->dehydrated(false),
 
                                             // Age Range + Quantity Constraints
