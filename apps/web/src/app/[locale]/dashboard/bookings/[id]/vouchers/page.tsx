@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { useBooking, useVouchers } from '@/lib/api/hooks';
 import { QRCodeSVG } from 'qrcode.react';
@@ -10,8 +10,19 @@ import { QRCodeSVG } from 'qrcode.react';
 export default function VouchersPage() {
   const params = useParams();
   const bookingId = params.id as string;
+  const locale = useLocale();
   const t = useTranslations('vouchers');
   const tCommon = useTranslations('common');
+
+  // Helper to extract string from translatable object or return string directly
+  const getLocalizedString = (
+    value: string | Record<string, string> | null | undefined,
+    fallback: string = ''
+  ): string => {
+    if (!value) return fallback;
+    if (typeof value === 'string') return value;
+    return value[locale] || value['en'] || value['fr'] || Object.values(value)[0] || fallback;
+  };
 
   // Check if user is authenticated - if not, use guest access
   const isGuest = useMemo(() => {
@@ -173,7 +184,9 @@ export default function VouchersPage() {
           </div>
           <div>
             <p className="text-gray-600">{t('activity') || 'Activity'}</p>
-            <p className="font-semibold text-gray-900">{bookingInfo.listingTitle}</p>
+            <p className="font-semibold text-gray-900">
+              {getLocalizedString(bookingInfo.listingTitle)}
+            </p>
           </div>
           <div>
             <p className="text-gray-600">{t('participants') || 'Participants'}</p>
@@ -230,7 +243,9 @@ export default function VouchersPage() {
 
                   <div>
                     <p className="text-sm text-gray-600">{t('event') || 'Event'}</p>
-                    <p className="font-medium text-gray-900">{voucher.event.title}</p>
+                    <p className="font-medium text-gray-900">
+                      {getLocalizedString(voucher.event.title)}
+                    </p>
                   </div>
 
                   <div className="flex gap-4 text-sm">
@@ -247,7 +262,9 @@ export default function VouchersPage() {
                   {voucher.event.location && (
                     <div className="text-sm">
                       <p className="text-gray-600">{t('location') || 'Location'}</p>
-                      <p className="font-medium text-gray-900">{voucher.event.location}</p>
+                      <p className="font-medium text-gray-900">
+                        {getLocalizedString(voucher.event.location)}
+                      </p>
                     </div>
                   )}
                 </div>
