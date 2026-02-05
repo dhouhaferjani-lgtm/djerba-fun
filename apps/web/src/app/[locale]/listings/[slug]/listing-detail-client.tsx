@@ -141,9 +141,10 @@ function getPersonTypesFromListing(listing: Listing): PersonType[] {
 
   if (personTypes && Array.isArray(personTypes) && personTypes.length > 0) {
     // Fill in missing 'price' field with displayPrice/tndPrice/eurPrice
+    // Use || instead of ?? because ?? doesn't catch 0 (only null/undefined)
     return personTypes.map((pt: any) => ({
       ...pt,
-      price: pt.price ?? pt.displayPrice ?? pt.tndPrice ?? pt.eurPrice ?? numericPrice,
+      price: pt.price || pt.displayPrice || pt.tndPrice || pt.eurPrice || numericPrice,
     }));
   }
 
