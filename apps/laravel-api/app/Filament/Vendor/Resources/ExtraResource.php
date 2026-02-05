@@ -52,7 +52,6 @@ class ExtraResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('name.en')
                             ->label('Name (English)')
-                            ->required()
                             ->maxLength(255),
 
                         Forms\Components\TextInput::make('name.fr')
