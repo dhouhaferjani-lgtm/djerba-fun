@@ -10,6 +10,8 @@ use App\Filament\Vendor\Resources\ExtraResource\Pages;
 use App\Models\Extra;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -104,17 +106,64 @@ class ExtraResource extends Resource
                             ->label('Price (TND)')
                             ->numeric()
                             ->prefix('TND')
-                            ->required()
                             ->minValue(0)
-                            ->step(0.01),
+                            ->step(0.01)
+                            ->live(debounce: 500)
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                if (empty($state)) {
+                                    return;
+                                }
+
+                                $service = app(\App\Services\IncomePricingService::class);
+                                $calculatedEur = $service->calculateExpectedPrice((float) $state);
+
+                                $currentEur = $get('base_price_eur');
+                                $autoEur = $get('_auto_eur');
+
+                                // Only auto-update if EUR is empty or matches previous auto-value
+                                if (empty($currentEur) || (float) $currentEur === (float) $autoEur) {
+                                    $set('base_price_eur', $calculatedEur);
+                                    $set('_auto_eur', $calculatedEur);
+                                }
+                            })
+                            ->helperText('Enter TND price to auto-calculate EUR'),
+
+                        Forms\Components\Hidden::make('_auto_eur')
+                            ->dehydrated(false),
+
+                        Forms\Components\Hidden::make('_auto_tnd')
+                            ->dehydrated(false),
 
                         Forms\Components\TextInput::make('base_price_eur')
                             ->label('Price (EUR)')
                             ->numeric()
                             ->prefix('EUR')
-                            ->required()
                             ->minValue(0)
-                            ->step(0.01),
+                            ->step(0.01)
+                            ->live(debounce: 500)
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                if (empty($state)) {
+                                    return;
+                                }
+
+                                // Reverse calculation: EUR → TND
+                                $service = app(\App\Services\IncomePricingService::class);
+                                $ratio = $service->getParityRatio('TND', 'EUR') ?? 0.1286;
+                                $calculatedTnd = round((float) $state / $ratio, 2);
+
+                                $currentTnd = $get('base_price_tnd');
+                                $autoTnd = $get('_auto_tnd');
+
+                                // Only auto-update if TND is empty or matches previous auto-value
+                                if (empty($currentTnd) || (float) $currentTnd === (float) $autoTnd) {
+                                    $set('base_price_tnd', $calculatedTnd);
+                                    $set('_auto_tnd', $calculatedTnd);
+                                }
+
+                                // Clear the auto EUR tracker since user is entering EUR manually
+                                $set('_auto_eur', null);
+                            })
+                            ->helperText('Or enter EUR price to auto-calculate TND'),
                     ])
                     ->columns(2),
 
@@ -136,16 +185,57 @@ class ExtraResource extends Resource
                                 Forms\Components\TextInput::make('tnd')
                                     ->label('TND Price')
                                     ->numeric()
-                                    ->required()
-                                    ->minValue(0),
+                                    ->minValue(0)
+                                    ->live(debounce: 500)
+                                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                        if (empty($state)) {
+                                            return;
+                                        }
+
+                                        $service = app(\App\Services\IncomePricingService::class);
+                                        $calculatedEur = $service->calculateExpectedPrice((float) $state);
+
+                                        $currentEur = $get('eur');
+                                        $autoEur = $get('_auto_eur_pt');
+
+                                        if (empty($currentEur) || (float) $currentEur === (float) $autoEur) {
+                                            $set('eur', $calculatedEur);
+                                            $set('_auto_eur_pt', $calculatedEur);
+                                        }
+                                    }),
+
+                                Forms\Components\Hidden::make('_auto_eur_pt')
+                                    ->dehydrated(false),
+
+                                Forms\Components\Hidden::make('_auto_tnd_pt')
+                                    ->dehydrated(false),
 
                                 Forms\Components\TextInput::make('eur')
                                     ->label('EUR Price')
                                     ->numeric()
-                                    ->required()
-                                    ->minValue(0),
+                                    ->minValue(0)
+                                    ->live(debounce: 500)
+                                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                        if (empty($state)) {
+                                            return;
+                                        }
+
+                                        $service = app(\App\Services\IncomePricingService::class);
+                                        $ratio = $service->getParityRatio('TND', 'EUR') ?? 0.1286;
+                                        $calculatedTnd = round((float) $state / $ratio, 2);
+
+                                        $currentTnd = $get('tnd');
+                                        $autoTnd = $get('_auto_tnd_pt');
+
+                                        if (empty($currentTnd) || (float) $currentTnd === (float) $autoTnd) {
+                                            $set('tnd', $calculatedTnd);
+                                            $set('_auto_tnd_pt', $calculatedTnd);
+                                        }
+
+                                        $set('_auto_eur_pt', null);
+                                    }),
                             ])
-                            ->columns(3)
+                            ->columns(5)
                             ->defaultItems(0)
                             ->addActionLabel('Add Person Type Price')
                             ->columnSpanFull(),
