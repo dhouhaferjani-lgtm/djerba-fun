@@ -35,6 +35,15 @@ class ResendWebhookController extends Controller
         $data = $payload['data'] ?? [];
         $emailId = $data['email_id'] ?? null;
 
+        // Extract recipient email from the webhook data
+        $recipientEmail = null;
+        $toArray = $data['to'] ?? [];
+        if (is_array($toArray) && ! empty($toArray)) {
+            $recipientEmail = $toArray[0] ?? null;
+        } elseif (is_string($toArray)) {
+            $recipientEmail = $toArray;
+        }
+
         if (! $type || ! $emailId) {
             Log::warning('Resend webhook missing required data', [
                 'has_type' => (bool) $type,
@@ -52,6 +61,7 @@ class ResendWebhookController extends Controller
                 'error' => $data['bounce']['message'] ?? null,
                 'description' => $data['bounce']['description'] ?? null,
                 'reason' => $data['reason'] ?? null,
+                'recipient_email' => $recipientEmail,
             ];
 
             $updated = $this->emailLogService->updateFromWebhook(

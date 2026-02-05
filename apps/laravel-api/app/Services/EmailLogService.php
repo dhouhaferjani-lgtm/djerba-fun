@@ -198,12 +198,33 @@ class EmailLogService
      */
     public function updateFromWebhook(string $messageId, string $event, array $eventData = []): bool
     {
+        // First try to find by provider_message_id
         $emailLog = EmailLog::where('provider_message_id', $messageId)->first();
+
+        // If not found by message ID, try to find by recipient email (for first webhook)
+        if (! $emailLog && ! empty($eventData['recipient_email'])) {
+            $emailLog = EmailLog::where('recipient_email', $eventData['recipient_email'])
+                ->where('status', EmailLogStatus::SENT)
+                ->whereNull('provider_message_id')
+                ->where('sent_at', '>=', now()->subMinutes(30))
+                ->orderBy('sent_at', 'desc')
+                ->first();
+
+            // Store the provider_message_id for future webhooks
+            if ($emailLog) {
+                $emailLog->update(['provider_message_id' => $messageId]);
+                Log::info('EmailLog matched by recipient, provider_message_id set', [
+                    'email_log_id' => $emailLog->id,
+                    'message_id' => $messageId,
+                ]);
+            }
+        }
 
         if (! $emailLog) {
             Log::warning('Email log not found for provider message', [
                 'message_id' => $messageId,
                 'event' => $event,
+                'recipient_email' => $eventData['recipient_email'] ?? null,
             ]);
 
             return false;
