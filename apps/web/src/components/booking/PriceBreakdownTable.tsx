@@ -43,7 +43,9 @@ export function PriceBreakdownTable({
   }
 
   const formatPrice = (price: number) => {
-    return `${currency} ${price.toFixed(2)}`;
+    // Defensive: handle undefined, null, NaN, or non-number values
+    const safePrice = typeof price === 'number' && !isNaN(price) ? price : 0;
+    return `${currency} ${safePrice.toFixed(2)}`;
   };
 
   // Mobile/Compact layout - stacked cards

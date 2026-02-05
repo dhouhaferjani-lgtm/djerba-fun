@@ -502,7 +502,9 @@ function BookingFlowContent({
                           typeof pt.label === 'object'
                             ? (pt.label as any)[locale] || (pt.label as any).en || key
                             : pt.label || key;
-                        const unitPrice = pt.displayPrice ?? pt.price ?? 0;
+                        const rawPrice = pt.displayPrice ?? pt.price ?? 0;
+                        const unitPrice =
+                          typeof rawPrice === 'number' && !isNaN(rawPrice) ? rawPrice : 0;
                         items.push({
                           type: 'person',
                           key,
@@ -538,14 +540,17 @@ function BookingFlowContent({
                 })()}
                 currency={selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND'}
                 total={
-                  totalPrice +
+                  (typeof totalPrice === 'number' && !isNaN(totalPrice) ? totalPrice : 0) +
                   selectedExtras.reduce((sum, extra) => {
                     const listingExtra = listing.extras?.find((e: any) => e.id === extra.id);
                     const currency =
                       selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
                     const price =
                       currency === 'TND' ? listingExtra?.priceTnd : listingExtra?.priceEur;
-                    return sum + (price || 0) * extra.quantity;
+                    return (
+                      sum +
+                      (typeof price === 'number' && !isNaN(price) ? price : 0) * extra.quantity
+                    );
                   }, 0)
                 }
                 compact={true}
