@@ -108,7 +108,7 @@ class ViewBooking extends ViewRecord
                         Infolists\Components\TextEntry::make('person_type_breakdown')
                             ->label('Breakdown')
                             ->formatStateUsing(function ($state) {
-                                if (empty($state)) {
+                                if (empty($state) || ! is_array($state)) {
                                     return '-';
                                 }
                                 $parts = [];
