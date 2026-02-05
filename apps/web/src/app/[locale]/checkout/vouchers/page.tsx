@@ -46,6 +46,18 @@ export default function CartVouchersPage() {
     return !localStorage.getItem('auth_token');
   }, []);
 
+  // Helper to extract string from translatable object or return string directly
+  // Handles cases where API returns {en: "...", fr: "..."} instead of plain string
+  const getLocalizedString = (
+    value: string | Record<string, string> | null | undefined,
+    fallback: string = ''
+  ): string => {
+    if (!value) return fallback;
+    if (typeof value === 'string') return value;
+    // It's a translatable object like {en: "...", fr: "..."}
+    return value[locale] || value['en'] || value['fr'] || Object.values(value)[0] || fallback;
+  };
+
   // Fetch vouchers for ALL bookings using useQueries
   const voucherQueries = useQueries({
     queries: bookingIds.map((id) => ({
@@ -313,7 +325,10 @@ export default function CartVouchersPage() {
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-neutral-900">
-                      {bookingInfo?.listingTitle || t('activity') || `Activity ${bookingIndex + 1}`}
+                      {getLocalizedString(
+                        bookingInfo?.listingTitle,
+                        t('activity') || `Activity ${bookingIndex + 1}`
+                      )}
                     </p>
                     <p className="text-sm text-neutral-500">
                       {bookingInfo?.bookingNumber || bookingId.slice(0, 8)} • {vouchers.length}{' '}
