@@ -7,8 +7,10 @@ namespace App\Http\Controllers\Api\V1;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreCustomTripRequestRequest;
+use App\Mail\CustomTripRequestConfirmationMail;
 use App\Models\CustomTripRequest;
 use App\Models\User;
+use App\Services\EmailLogService;
 use Filament\Notifications\Actions\Action as NotificationAction;
 use Filament\Notifications\Notification;
 use Illuminate\Http\JsonResponse;
@@ -17,6 +19,10 @@ use Illuminate\Support\Facades\Log;
 
 class CustomTripRequestController extends Controller
 {
+    public function __construct(
+        private readonly EmailLogService $emailLogService
+    ) {}
+
     /**
      * Store a new custom trip request.
      */
@@ -53,7 +59,8 @@ class CustomTripRequestController extends Controller
         // Send notification to all admin users
         $this->notifyAdmins($customTripRequest);
 
-        // TODO: Send confirmation email to customer
+        // Send confirmation email to customer
+        $this->sendConfirmationEmail($customTripRequest);
 
         return response()->json([
             'data' => [
@@ -96,6 +103,31 @@ class CustomTripRequestController extends Controller
             Log::warning('Failed to send custom trip request notification', [
                 'error' => $e->getMessage(),
                 'request_id' => $customTripRequest->id,
+            ]);
+        }
+    }
+
+    /**
+     * Send confirmation email to the customer.
+     */
+    private function sendConfirmationEmail(CustomTripRequest $customTripRequest): void
+    {
+        try {
+            $this->emailLogService->queue(
+                $customTripRequest->contact_email,
+                new CustomTripRequestConfirmationMail($customTripRequest),
+                null, // No booking associated
+                [
+                    'name' => $customTripRequest->contact_name,
+                    'phone' => $customTripRequest->contact_phone,
+                ]
+            );
+        } catch (\Throwable $e) {
+            // Don't let email errors break the request submission
+            Log::warning('Failed to send custom trip request confirmation email', [
+                'error' => $e->getMessage(),
+                'request_id' => $customTripRequest->id,
+                'email' => $customTripRequest->contact_email,
             ]);
         }
     }

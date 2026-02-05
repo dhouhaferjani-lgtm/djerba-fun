@@ -8,6 +8,7 @@ use App\Mail\AccountVerificationMail;
 use App\Mail\BookingCancellationMail;
 use App\Mail\BookingConfirmationMail;
 use App\Mail\ContactFormMail;
+use App\Mail\CustomTripRequestConfirmationMail;
 use App\Mail\ListingPublishFailedMail;
 use App\Mail\MagicLinkMail;
 use App\Mail\MagicLoginMail;
@@ -25,6 +26,7 @@ enum EmailType: string
     case ACCOUNT_VERIFICATION = 'account_verification';
     case CONTACT_FORM = 'contact_form';
     case LISTING_PUBLISH_FAILED = 'listing_publish_failed';
+    case CUSTOM_TRIP_CONFIRMATION = 'custom_trip_confirmation';
     case OTHER = 'other';
 
     public function label(): string
@@ -39,6 +41,7 @@ enum EmailType: string
             self::ACCOUNT_VERIFICATION => 'Account Verification',
             self::CONTACT_FORM => 'Contact Form',
             self::LISTING_PUBLISH_FAILED => 'Listing Publish Failed',
+            self::CUSTOM_TRIP_CONFIRMATION => 'Custom Trip Confirmation',
             self::OTHER => 'Other',
         };
     }
@@ -55,6 +58,7 @@ enum EmailType: string
             self::ACCOUNT_VERIFICATION => 'primary',
             self::CONTACT_FORM => 'gray',
             self::LISTING_PUBLISH_FAILED => 'danger',
+            self::CUSTOM_TRIP_CONFIRMATION => 'info',
             self::OTHER => 'gray',
         };
     }
@@ -74,6 +78,7 @@ enum EmailType: string
             AccountVerificationMail::class => self::ACCOUNT_VERIFICATION,
             ContactFormMail::class => self::CONTACT_FORM,
             ListingPublishFailedMail::class => self::LISTING_PUBLISH_FAILED,
+            CustomTripRequestConfirmationMail::class => self::CUSTOM_TRIP_CONFIRMATION,
             default => self::OTHER,
         };
     }
