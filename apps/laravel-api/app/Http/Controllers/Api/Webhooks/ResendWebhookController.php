@@ -119,6 +119,11 @@ class ResendWebhookController extends Controller
         $payload = $request->getContent();
         $signedContent = "{$webhookId}.{$timestamp}.{$payload}";
 
+        // Strip the "whsec_" prefix if present (Resend/Svix format)
+        if (str_starts_with($signingSecret, 'whsec_')) {
+            $signingSecret = substr($signingSecret, 6);
+        }
+
         // Decode the secret (it's base64 encoded)
         $secretBytes = base64_decode($signingSecret);
 
