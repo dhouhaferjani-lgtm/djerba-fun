@@ -130,6 +130,13 @@ function parseHoldError(error: any, t: any): string {
   return response?.message || error?.message || t('generic_booking_error');
 }
 
+// Helper to safely parse price values (handles strings, numbers, null, undefined)
+function parsePrice(val: unknown): number | null {
+  if (val === null || val === undefined) return null;
+  const num = typeof val === 'number' ? val : Number(val);
+  return isNaN(num) ? null : num;
+}
+
 // Get person types from listing pricing or return defaults
 function getPersonTypesFromListing(listing: Listing): PersonType[] {
   const pricing = listing.pricing || {};
@@ -141,10 +148,15 @@ function getPersonTypesFromListing(listing: Listing): PersonType[] {
 
   if (personTypes && Array.isArray(personTypes) && personTypes.length > 0) {
     // Fill in missing 'price' field with displayPrice/tndPrice/eurPrice
-    // Use || instead of ?? because ?? doesn't catch 0 (only null/undefined)
+    // Use parsePrice() to handle string values from API, and ?? for null fallthrough
     return personTypes.map((pt: any) => ({
       ...pt,
-      price: pt.price || pt.displayPrice || pt.tndPrice || pt.eurPrice || numericPrice,
+      price:
+        parsePrice(pt.price) ??
+        parsePrice(pt.displayPrice) ??
+        parsePrice(pt.tndPrice) ??
+        parsePrice(pt.eurPrice) ??
+        numericPrice,
     }));
   }
 
@@ -503,13 +515,13 @@ function BookingFlowContent({
                           typeof pt.label === 'object'
                             ? (pt.label as any)[locale] || (pt.label as any).en || key
                             : pt.label || key;
-                        // Use slot price as fallback when person type has no individual price
-                        // Use || instead of ?? because ?? doesn't catch 0 (only null/undefined)
+                        // Use parsePrice for safety - handles string values from API
                         const slotBasePrice =
-                          selectedSlot?.displayPrice || selectedSlot?.basePrice || 0;
-                        const rawPrice = pt.price || pt.displayPrice || slotBasePrice;
+                          parsePrice(selectedSlot?.displayPrice) ??
+                          parsePrice(selectedSlot?.basePrice) ??
+                          0;
                         const unitPrice =
-                          typeof rawPrice === 'number' && !isNaN(rawPrice) ? rawPrice : 0;
+                          parsePrice(pt.price) ?? parsePrice(pt.displayPrice) ?? slotBasePrice;
                         items.push({
                           type: 'person',
                           key,
