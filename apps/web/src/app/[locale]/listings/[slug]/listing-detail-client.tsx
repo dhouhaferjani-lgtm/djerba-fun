@@ -502,7 +502,7 @@ function BookingFlowContent({
                           typeof pt.label === 'object'
                             ? (pt.label as any)[locale] || (pt.label as any).en || key
                             : pt.label || key;
-                        const rawPrice = pt.displayPrice ?? pt.price ?? 0;
+                        const rawPrice = pt.price ?? pt.displayPrice ?? 0;
                         const unitPrice =
                           typeof rawPrice === 'number' && !isNaN(rawPrice) ? rawPrice : 0;
                         items.push({

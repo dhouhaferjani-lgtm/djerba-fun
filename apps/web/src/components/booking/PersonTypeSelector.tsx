@@ -183,39 +183,26 @@ export function PersonTypeSelector({
         })}
       </div>
 
-      {/* Totals */}
-      <div className="border-t border-neutral-200 pt-4">
-        <div className="flex items-center justify-between">
-          <div className="text-neutral-600">
-            {t('total')}:{' '}
-            <span className="font-medium text-neutral-900">
-              {t('guests_count', { count: totals.totalGuests })}
-            </span>
-          </div>
-          <PriceDisplay
-            amount={totals.totalPrice}
-            currency={currency}
-            size="md"
-            perPerson={false}
-            data-testid="total-price"
-          />
-        </div>
-        {maxCapacity - totals.totalGuests <= 3 && totals.totalGuests < maxCapacity && (
-          <p className="text-sm text-warning font-medium mt-2 flex items-center gap-1">
+      {/* Capacity warnings only - price subtotal removed (shown in PriceBreakdownTable instead) */}
+      {maxCapacity - totals.totalGuests <= 3 && totals.totalGuests < maxCapacity && (
+        <div className="border-t border-neutral-200 pt-4">
+          <p className="text-sm text-warning font-medium flex items-center gap-1">
             <AlertTriangle className="h-4 w-4" />
             {t('only_x_spots_left', { count: maxCapacity - totals.totalGuests })}
           </p>
-        )}
-        {totals.totalGuests > maxCapacity && (
+        </div>
+      )}
+      {totals.totalGuests > maxCapacity && (
+        <div className="border-t border-neutral-200 pt-4">
           <div
-            className="text-sm text-error font-medium mt-2 flex items-center gap-1"
+            className="text-sm text-error font-medium flex items-center gap-1"
             data-testid="capacity-error"
           >
             <AlertTriangle className="h-4 w-4" />
             {t('exceeds_capacity', { max: maxCapacity })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
