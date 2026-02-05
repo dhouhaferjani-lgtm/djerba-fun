@@ -73,7 +73,7 @@ class ExtraTemplate extends Model
 
     public function scopeOrdered($query)
     {
-        return $query->orderBy('display_order')->orderBy('name');
+        return $query->orderBy('display_order')->orderByRaw("COALESCE(name->>'en', name->>'fr') asc");
     }
 
     // =========================================================================
