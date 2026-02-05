@@ -502,7 +502,10 @@ function BookingFlowContent({
                           typeof pt.label === 'object'
                             ? (pt.label as any)[locale] || (pt.label as any).en || key
                             : pt.label || key;
-                        const rawPrice = pt.price ?? pt.displayPrice ?? 0;
+                        // Use slot price as fallback when person type has no individual price
+                        const slotBasePrice =
+                          selectedSlot?.displayPrice ?? selectedSlot?.basePrice ?? 0;
+                        const rawPrice = pt.price ?? pt.displayPrice ?? slotBasePrice;
                         const unitPrice =
                           typeof rawPrice === 'number' && !isNaN(rawPrice) ? rawPrice : 0;
                         items.push({
