@@ -56,4 +56,18 @@ enum ExtraCategory: string
             self::OTHER => 'gray',
         };
     }
+
+    public function emoji(): string
+    {
+        return match ($this) {
+            self::EQUIPMENT => '🎒',
+            self::MEAL => '🍽️',
+            self::INSURANCE => '🛡️',
+            self::UPGRADE => '⭐',
+            self::MERCHANDISE => '🧢',
+            self::TRANSPORT => '🚐',
+            self::ACCESSIBILITY => '🛣️',
+            self::OTHER => '📦',
+        };
+    }
 }

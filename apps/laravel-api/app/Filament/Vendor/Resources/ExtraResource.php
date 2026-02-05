@@ -317,22 +317,6 @@ class ExtraResource extends Resource
                             ->helperText('Lower numbers appear first'),
                     ])
                     ->columns(2),
-
-                Forms\Components\Section::make('Images')
-                    ->schema([
-                        Forms\Components\TextInput::make('image_url')
-                            ->label('Image URL')
-                            ->url()
-                            ->maxLength(500),
-
-                        Forms\Components\TextInput::make('thumbnail_url')
-                            ->label('Thumbnail URL')
-                            ->url()
-                            ->maxLength(500),
-                    ])
-                    ->columns(2)
-                    ->collapsible()
-                    ->collapsed(),
             ]);
     }
 
