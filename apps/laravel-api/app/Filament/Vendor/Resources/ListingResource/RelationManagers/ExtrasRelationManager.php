@@ -379,7 +379,7 @@ class ExtrasRelationManager extends RelationManager
                     ->icon('heroicon-o-document-duplicate')
                     ->color('success')
                     ->modalHeading('Create Extra from Template')
-                    ->modalDescription('Select a template to create a new extra and add it to this listing.')
+                    ->modalDescription('Select a template to pre-fill the extra creation form.')
                     ->form([
                         Forms\Components\Select::make('category')
                             ->label('Category')
@@ -416,62 +416,18 @@ class ExtrasRelationManager extends RelationManager
                             ->searchable()
                             ->preload()
                             ->required()
-                            ->helperText('Choose from common extras like breakfast, transport, equipment, etc.'),
+                            ->helperText('You will be redirected to the creation form with template data pre-filled.'),
                     ])
-                    ->action(function (array $data, RelationManager $livewire): void {
-                        $template = ExtraTemplate::find($data['template_id']);
+                    ->action(function (array $data, RelationManager $livewire) {
+                        $listingId = $livewire->getOwnerRecord()->id;
+                        $templateId = $data['template_id'];
 
-                        if (! $template) {
-                            Notification::make()
-                                ->title('Template not found')
-                                ->danger()
-                                ->send();
-
-                            return;
-                        }
-
-                        try {
-                            // Clone template to vendor's extras
-                            $extra = $template->cloneForVendor(auth()->id());
-                            $extra->is_active = true;
-                            $extra->save();
-
-                            // Attach to listing
-                            ListingExtra::create([
-                                'id' => (string) Str::uuid(),
-                                'listing_id' => $livewire->getOwnerRecord()->id,
-                                'extra_id' => $extra->id,
-                                'display_order' => 0,
-                                'is_featured' => false,
-                                'is_active' => true,
-                            ]);
-
-                            // Safely get name for notification
-                            $extraName = $extra->getTranslation('name', 'en');
-
-                            if (is_array($extraName)) {
-                                $extraName = $extraName['en'] ?? reset($extraName) ?: 'Extra';
-                            }
-                            $extraName = $extraName ?: 'Extra';
-
-                            Notification::make()
-                                ->title('Extra created and added')
-                                ->body("'{$extraName}' has been added to this listing.")
-                                ->success()
-                                ->send();
-                        } catch (\Exception $e) {
-                            \Log::error('Failed to create extra from template (empty state)', [
-                                'template_id' => $data['template_id'],
-                                'listing_id' => $livewire->getOwnerRecord()->id,
-                                'error' => $e->getMessage(),
-                            ]);
-
-                            Notification::make()
-                                ->title('Failed to create extra')
-                                ->body('An error occurred. Please try again.')
-                                ->danger()
-                                ->send();
-                        }
+                        // Redirect to extra creation page with template and listing params
+                        return redirect()->to(
+                            route('filament.vendor.resources.extras.create') .
+                            '?template_id=' . $templateId .
+                            '&listing_id=' . $listingId
+                        );
                     }),
 
                 // Secondary action: Add existing extra (only visible if vendor has extras)
