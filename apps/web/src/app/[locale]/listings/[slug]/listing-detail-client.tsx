@@ -804,11 +804,11 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
         sessionStorage.setItem(`checkout-extras-${holdId}`, JSON.stringify(selectedExtras));
       }
 
-      // Add to cart in background (for abandoned cart marketing)
+      // Add to cart (preserves existing cart items)
       await addToCartMutation.mutateAsync(holdId);
 
-      // Redirect to dedicated checkout page with hold ID (skip cart view)
-      router.push(`/checkout/${holdId}`);
+      // Redirect to unified cart checkout
+      router.push(`/cart/checkout`);
     } catch (err) {
       console.error('Failed to create hold:', err);
     }

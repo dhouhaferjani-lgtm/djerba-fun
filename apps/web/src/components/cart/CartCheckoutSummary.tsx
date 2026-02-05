@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
-import { Calendar, Clock, Users } from 'lucide-react';
+import { Calendar, Clock, Users, Package } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
 import { resolveTranslation } from '@/lib/utils/translate';
@@ -91,13 +91,66 @@ export function CartCheckoutSummary({ cart, currency }: CartCheckoutSummaryProps
                   </div>
                 </div>
 
+                {/* Person Type Breakdown (for single item, show details) */}
+                {cart.itemCount === 1 &&
+                  item.personTypeBreakdown &&
+                  typeof item.personTypeBreakdown === 'object' && (
+                    <div className="mt-3 space-y-1 text-sm border-t border-neutral-100 pt-3">
+                      {Object.entries(item.personTypeBreakdown).map(([type, qty]) => {
+                        if (!qty || Number(qty) === 0) return null;
+                        const typeLabel =
+                          type === 'adult'
+                            ? tBooking('person_types.free') === 'Free'
+                              ? 'Adult'
+                              : t('person_type.adult')
+                            : type === 'child'
+                              ? t('person_type.child')
+                              : type === 'infant'
+                                ? t('person_type.infant')
+                                : type;
+                        return (
+                          <div key={type} className="flex justify-between text-neutral-600">
+                            <span className="capitalize">
+                              {typeLabel} × {qty}
+                            </span>
+                            <span>
+                              {currency} {((item.unitPrice || 0) * Number(qty)).toFixed(2)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                {/* Extras (for single item, show details) */}
+                {cart.itemCount === 1 && item.extras && item.extras.length > 0 && (
+                  <div className="mt-3 space-y-1 text-sm border-t border-neutral-100 pt-3">
+                    <div className="flex items-center gap-1 text-neutral-700 font-medium mb-1">
+                      <Package className="h-3 w-3" />
+                      <span>{t('extras')}</span>
+                    </div>
+                    {item.extras.map(
+                      (extra: { id: string; name?: string; price?: number; quantity?: number }) => (
+                        <div key={extra.id} className="flex justify-between text-neutral-600">
+                          <span>
+                            {extra.name || 'Extra'} × {extra.quantity || 1}
+                          </span>
+                          <span>
+                            {currency} {((extra.price || 0) * (extra.quantity || 1)).toFixed(2)}
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+
                 {/* Item Price */}
                 <div className="mt-3 flex justify-between text-sm font-medium">
                   <span className="text-neutral-600">{tBooking('subtotal')}</span>
                   <span className="flex items-baseline gap-1">
                     <span className="text-xs font-medium text-neutral-600">{currency}</span>
                     <span className="font-bold text-neutral-900">
-                      {(item.subtotal || 0).toFixed(2)}
+                      {(item.subtotal || item.total || 0).toFixed(2)}
                     </span>
                   </span>
                 </div>

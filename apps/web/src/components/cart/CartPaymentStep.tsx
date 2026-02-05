@@ -8,6 +8,7 @@ import {
   type PaymentMethod,
 } from '@/components/booking/PaymentMethodSelector';
 import CheckoutConsents from '@/components/consent/CheckoutConsents';
+import CouponInput from '@/components/booking/CouponInput';
 import type { Cart } from '@/lib/api/client';
 import type { PrimaryContactData } from './PrimaryContactForm';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
@@ -53,6 +54,16 @@ export function CartPaymentStep({
   const tCheckout = useTranslations('checkout');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | undefined>();
   const consentsRef = useRef<HTMLDivElement>(null);
+
+  // Coupon state
+  const [couponCode, setCouponCode] = useState<string>('');
+  const [couponDiscount, setCouponDiscount] = useState<number>(0);
+
+  // Calculate final total with coupon discount
+  const finalTotal = Math.max(0, cart.subtotal - couponDiscount);
+
+  // Get first listing ID for coupon validation (coupons can be listing-specific)
+  const firstListingId = cart.items[0]?.listingId || '';
 
   const formatPrice = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', {
@@ -128,15 +139,39 @@ export function CartPaymentStep({
           })}
         </div>
 
+        {/* Coupon Input */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <CouponInput
+            listingId={firstListingId}
+            amount={cart.subtotal}
+            onApply={(code, discount) => {
+              setCouponCode(code);
+              setCouponDiscount(discount);
+            }}
+            onRemove={() => {
+              setCouponCode('');
+              setCouponDiscount(0);
+            }}
+            appliedCode={couponCode}
+            appliedDiscount={couponDiscount}
+          />
+        </div>
+
         {/* Totals */}
         <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">{tCart('subtotal')}</span>
             <span className="text-gray-900">{formatPrice(cart.subtotal, cart.currency)}</span>
           </div>
+          {couponDiscount > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-success">{tCart('discount')}</span>
+              <span className="text-success">-{formatPrice(couponDiscount, cart.currency)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-lg font-bold">
             <span className="text-gray-900">{tCart('total')}</span>
-            <span className="text-gray-900">{formatPrice(cart.subtotal, cart.currency)}</span>
+            <span className="text-gray-900">{formatPrice(finalTotal, cart.currency)}</span>
           </div>
         </div>
       </div>
@@ -180,7 +215,7 @@ export function CartPaymentStep({
         >
           {isProcessing
             ? t('processing')
-            : t('pay_now', { amount: formatPrice(cart.subtotal, cart.currency) })}
+            : t('pay_now', { amount: formatPrice(finalTotal, cart.currency) })}
         </Button>
       </div>
     </div>
