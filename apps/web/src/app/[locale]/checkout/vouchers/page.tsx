@@ -398,7 +398,23 @@ export default function CartVouchersPage() {
                                       t('name_not_entered') ||
                                       'Name not entered'}
                                   </p>
+                                  {voucher.participant?.personType && (
+                                    <span className="inline-block mt-1 text-xs bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded">
+                                      {voucher.participant.personType}
+                                    </span>
+                                  )}
                                 </div>
+
+                                {/* Event title */}
+                                {voucher.event?.title && (
+                                  <div>
+                                    <p className="text-neutral-500">{t('event') || 'Event'}</p>
+                                    <p className="font-medium text-neutral-900">
+                                      {getLocalizedString(voucher.event.title)}
+                                    </p>
+                                  </div>
+                                )}
+
                                 <div className="flex gap-4">
                                   <div>
                                     <p className="text-neutral-500">{t('date') || 'Date'}</p>
@@ -413,6 +429,18 @@ export default function CartVouchersPage() {
                                     </p>
                                   </div>
                                 </div>
+
+                                {/* Event location */}
+                                {voucher.event?.location && (
+                                  <div>
+                                    <p className="text-neutral-500">
+                                      {t('location') || 'Location'}
+                                    </p>
+                                    <p className="font-medium text-neutral-900">
+                                      {getLocalizedString(voucher.event.location)}
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             </div>
 
