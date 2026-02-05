@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Vendor\Resources\ListingResource\RelationManagers;
 
-use App\Enums\ExtraCategory;
 use App\Models\Extra;
-use App\Models\ExtraTemplate;
 use App\Models\ListingExtra;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -270,62 +267,15 @@ class ExtrasRelationManager extends RelationManager
                         }
                     }),
 
-                // Action to create a new extra from a template and attach it
-                Tables\Actions\Action::make('createFromTemplate')
-                    ->label('Create from Template')
-                    ->icon('heroicon-o-document-duplicate')
+                // Action to create a new extra and attach it to the listing
+                Tables\Actions\Action::make('createNewExtra')
+                    ->label('Create New Extra')
+                    ->icon('heroicon-o-plus-circle')
                     ->color('success')
-                    ->modalHeading('Create Extra from Template')
-                    ->modalDescription('Select a template to pre-fill the extra creation form.')
-                    ->form([
-                        Forms\Components\Select::make('category')
-                            ->label('Category')
-                            ->options(ExtraCategory::class)
-                            ->placeholder('All categories')
-                            ->live()
-                            ->afterStateUpdated(fn (Forms\Set $set) => $set('template_id', null)),
-
-                        Forms\Components\Select::make('template_id')
-                            ->label('Template')
-                            ->options(function (Get $get) {
-                                $query = ExtraTemplate::active()->ordered();
-
-                                if ($category = $get('category')) {
-                                    $query->where('category', $category);
-                                }
-
-                                return $query->get()->mapWithKeys(function (ExtraTemplate $template) {
-                                    // Safely get translatable name
-                                    $name = $template->getTranslation('name', app()->getLocale());
-
-                                    if (is_array($name)) {
-                                        $name = $name[app()->getLocale()] ?? $name['en'] ?? reset($name) ?: 'Unnamed';
-                                    }
-                                    $name = $name ?: 'Unnamed';
-
-                                    return [
-                                        $template->id => $name .
-                                            ' - ' . ($template->category?->label() ?? 'Other') .
-                                            ' (' . number_format($template->suggested_price_tnd ?? 0, 2) . ' TND)',
-                                    ];
-                                });
-                            })
-                            ->searchable()
-                            ->preload()
-                            ->required()
-                            ->helperText('You will be redirected to the creation form with template data pre-filled.'),
-                    ])
-                    ->action(function (array $data, RelationManager $livewire) {
-                        $listingId = $livewire->getOwnerRecord()->id;
-                        $templateId = $data['template_id'];
-
-                        // Redirect to extra creation page with template and listing params
-                        return redirect()->to(
-                            route('filament.vendor.resources.extras.create') .
-                            '?template_id=' . $templateId .
-                            '&listing_id=' . $listingId
-                        );
-                    }),
+                    ->url(
+                        fn (RelationManager $livewire) => route('filament.vendor.resources.extras.create') .
+                        '?listing_id=' . $livewire->getOwnerRecord()->id
+                    ),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
@@ -373,62 +323,15 @@ class ExtrasRelationManager extends RelationManager
             ->emptyStateDescription('Add extras like equipment, meals, or insurance to enhance your listing.')
             ->emptyStateIcon('heroicon-o-puzzle-piece')
             ->emptyStateActions([
-                // Primary action: Create from Template (most common use case)
-                Tables\Actions\Action::make('createFromTemplateEmpty')
-                    ->label('Create from Template')
-                    ->icon('heroicon-o-document-duplicate')
+                // Primary action: Create a new extra
+                Tables\Actions\Action::make('createNewExtra')
+                    ->label('Create New Extra')
+                    ->icon('heroicon-o-plus-circle')
                     ->color('success')
-                    ->modalHeading('Create Extra from Template')
-                    ->modalDescription('Select a template to pre-fill the extra creation form.')
-                    ->form([
-                        Forms\Components\Select::make('category')
-                            ->label('Category')
-                            ->options(ExtraCategory::class)
-                            ->placeholder('All categories')
-                            ->live()
-                            ->afterStateUpdated(fn (Forms\Set $set) => $set('template_id', null)),
-
-                        Forms\Components\Select::make('template_id')
-                            ->label('Template')
-                            ->options(function (Get $get) {
-                                $query = ExtraTemplate::active()->ordered();
-
-                                if ($category = $get('category')) {
-                                    $query->where('category', $category);
-                                }
-
-                                return $query->get()->mapWithKeys(function (ExtraTemplate $template) {
-                                    // Safely get translatable name
-                                    $name = $template->getTranslation('name', app()->getLocale());
-
-                                    if (is_array($name)) {
-                                        $name = $name[app()->getLocale()] ?? $name['en'] ?? reset($name) ?: 'Unnamed';
-                                    }
-                                    $name = $name ?: 'Unnamed';
-
-                                    return [
-                                        $template->id => $name .
-                                            ' - ' . ($template->category?->label() ?? 'Other') .
-                                            ' (' . number_format($template->suggested_price_tnd ?? 0, 2) . ' TND)',
-                                    ];
-                                });
-                            })
-                            ->searchable()
-                            ->preload()
-                            ->required()
-                            ->helperText('You will be redirected to the creation form with template data pre-filled.'),
-                    ])
-                    ->action(function (array $data, RelationManager $livewire) {
-                        $listingId = $livewire->getOwnerRecord()->id;
-                        $templateId = $data['template_id'];
-
-                        // Redirect to extra creation page with template and listing params
-                        return redirect()->to(
-                            route('filament.vendor.resources.extras.create') .
-                            '?template_id=' . $templateId .
-                            '&listing_id=' . $listingId
-                        );
-                    }),
+                    ->url(
+                        fn (RelationManager $livewire) => route('filament.vendor.resources.extras.create') .
+                        '?listing_id=' . $livewire->getOwnerRecord()->id
+                    ),
 
                 // Secondary action: Add existing extra (only visible if vendor has extras)
                 Tables\Actions\Action::make('attachFirst')
