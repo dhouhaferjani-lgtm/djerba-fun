@@ -36,6 +36,7 @@ class AvailabilitySlot extends Model
         'remaining_capacity',
         'base_price',
         'status',
+        'currency',
     ];
 
     /**
@@ -127,7 +128,7 @@ class AvailabilitySlot extends Model
         return $query->select([
             'id', 'listing_id', 'availability_rule_id', 'date', 'start_time', 'end_time',
             'capacity', 'remaining_capacity', 'base_price', 'status', 'currency',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at',
         ]);
     }
 
@@ -159,8 +160,6 @@ class AvailabilitySlot extends Model
     /**
      * Computed accessor for remaining capacity.
      * Dynamically calculates based on confirmed bookings and active holds.
-     *
-     * @return int
      */
     public function getRemainingCapacityAttribute(): int
     {

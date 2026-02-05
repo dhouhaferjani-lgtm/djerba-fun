@@ -97,6 +97,7 @@ class CalculateAvailabilityJob implements ShouldQueue
                 'remaining_capacity' => $rule->capacity, // Initialize with full capacity
                 'base_price' => $basePrice,
                 'status' => SlotStatus::AVAILABLE,
+                'currency' => 'EUR', // Default currency
             ]
         );
     }
@@ -119,6 +120,7 @@ class CalculateAvailabilityJob implements ShouldQueue
                 'remaining_capacity' => 0, // Blocked slots have 0 capacity
                 'base_price' => 0,
                 'status' => SlotStatus::BLOCKED,
+                'currency' => 'EUR', // Default currency
             ]
         );
     }

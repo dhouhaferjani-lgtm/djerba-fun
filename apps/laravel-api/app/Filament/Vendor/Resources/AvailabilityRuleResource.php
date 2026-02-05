@@ -69,7 +69,14 @@ class AvailabilityRuleResource extends Resource
                             ->required()
                             ->default(AvailabilityRuleType::WEEKLY->value)
                             ->live()
-                            ->afterStateUpdated(fn (Forms\Set $set) => $set('days_of_week', null)),
+                            ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                // Set sensible defaults for days_of_week based on rule type
+                                if (in_array($state, [AvailabilityRuleType::WEEKLY->value, AvailabilityRuleType::DAILY->value])) {
+                                    $set('days_of_week', [0, 1, 2, 3, 4, 5, 6]); // All days by default
+                                } else {
+                                    $set('days_of_week', null);
+                                }
+                            }),
 
                         Forms\Components\Toggle::make('is_active')
                             ->label('Active')
@@ -96,7 +103,12 @@ class AvailabilityRuleResource extends Resource
                                 AvailabilityRuleType::WEEKLY->value,
                                 AvailabilityRuleType::DAILY->value,
                             ]))
-                            ->helperText('Select the days when this tour/event is available'),
+                            ->required(fn (Forms\Get $get): bool => in_array($get('rule_type'), [
+                                AvailabilityRuleType::WEEKLY->value,
+                                AvailabilityRuleType::DAILY->value,
+                            ]))
+                            ->default([0, 1, 2, 3, 4, 5, 6])
+                            ->helperText('Select the days when this tour/event is available. At least one day must be selected.'),
 
                         Forms\Components\TimePicker::make('start_time')
                             ->label('Start Time')
@@ -149,6 +161,7 @@ class AvailabilityRuleResource extends Resource
                     ->label('Listing')
                     ->getStateUsing(function ($record): string {
                         $title = $record->listing?->getTranslation('title', app()->getLocale());
+
                         if (is_string($title) && ! empty($title)) {
                             return $title;
                         }
@@ -177,6 +190,7 @@ class AvailabilityRuleResource extends Resource
                     ->label('Days')
                     ->getStateUsing(function ($record): string {
                         $daysOfWeek = $record->days_of_week;
+
                         if (empty($daysOfWeek)) {
                             return '-';
                         }
