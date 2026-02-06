@@ -61,7 +61,14 @@ class AvailabilityRuleResource extends Resource
                             ])
                             ->required()
                             ->live()
-                            ->afterStateUpdated(fn (Forms\Set $set) => $set('days_of_week', null)),
+                            ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                // Set sensible defaults for days_of_week based on rule type
+                                if (in_array($state, [AvailabilityRuleType::WEEKLY->value, AvailabilityRuleType::DAILY->value])) {
+                                    $set('days_of_week', [0, 1, 2, 3, 4, 5, 6]); // All days by default
+                                } else {
+                                    $set('days_of_week', null);
+                                }
+                            }),
 
                         Forms\Components\Toggle::make('is_active')
                             ->label(__('filament.availability_rule.active'))
@@ -84,7 +91,16 @@ class AvailabilityRuleResource extends Resource
                                 6 => __('filament.availability_rule.saturday'),
                             ])
                             ->columns(7)
-                            ->visible(fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::WEEKLY->value),
+                            ->visible(fn (Forms\Get $get): bool => in_array($get('rule_type'), [
+                                AvailabilityRuleType::WEEKLY->value,
+                                AvailabilityRuleType::DAILY->value,
+                            ]))
+                            ->required(fn (Forms\Get $get): bool => in_array($get('rule_type'), [
+                                AvailabilityRuleType::WEEKLY->value,
+                                AvailabilityRuleType::DAILY->value,
+                            ]))
+                            ->default([0, 1, 2, 3, 4, 5, 6])
+                            ->helperText(__('filament.availability_rule.days_of_week_helper') ?? 'Select the days when this availability applies.'),
 
                         Forms\Components\TimePicker::make('start_time')
                             ->label(__('filament.availability_rule.start_time'))

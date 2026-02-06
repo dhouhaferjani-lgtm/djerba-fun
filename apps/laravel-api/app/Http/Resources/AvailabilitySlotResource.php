@@ -32,8 +32,9 @@ class AvailabilitySlotResource extends JsonResource
             'endTime' => $this->end_time->format('H:i:s'),
             'capacity' => $this->capacity,
             'remainingCapacity' => $this->remainingCapacity, // Uses computed accessor
-            'tndPrice' => (float) ($listing?->pricing['tnd_price'] ?? $this->base_price ?? 0),
-            'eurPrice' => (float) ($listing?->pricing['eur_price'] ?? $this->base_price ?? 0),
+            // Prioritize slot's base_price (includes price_override from rule) over listing pricing
+            'tndPrice' => (float) ($this->base_price ?? $listing?->pricing['tnd_price'] ?? 0),
+            'eurPrice' => (float) ($this->base_price ?? $listing?->pricing['eur_price'] ?? 0),
             'displayCurrency' => $currency,
             'currency' => $currency, // Legacy field for frontend compatibility
             'displayPrice' => $this->getDisplayPrice($request, $listing),
@@ -48,15 +49,22 @@ class AvailabilitySlotResource extends JsonResource
 
     /**
      * Get the display price based on detected currency.
+     * Prioritizes slot's base_price (includes price_override) over listing pricing.
      */
     protected function getDisplayPrice(Request $request, $listing): float
     {
         $currency = $request->attributes->get('user_currency', 'EUR');
 
-        if ($currency === 'TND') {
-            return (float) ($listing?->pricing['tnd_price'] ?? $this->base_price ?? 0);
+        // Slot's base_price already includes price_override from AvailabilityRule
+        // Only fall back to listing pricing if slot has no base_price
+        if ($this->base_price !== null && $this->base_price > 0) {
+            return (float) $this->base_price;
         }
 
-        return (float) ($listing?->pricing['eur_price'] ?? $this->base_price ?? 0);
+        if ($currency === 'TND') {
+            return (float) ($listing?->pricing['tnd_price'] ?? 0);
+        }
+
+        return (float) ($listing?->pricing['eur_price'] ?? 0);
     }
 }

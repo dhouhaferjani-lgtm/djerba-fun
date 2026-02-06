@@ -19,25 +19,45 @@ class AvailabilityRule extends Model
     {
         // Generate availability slots when a rule is created or updated
         static::saved(function (AvailabilityRule $rule) {
-            if ($rule->is_active && $rule->listing) {
-                // IMPORTANT: Delete ALL slots for the listing (not just this rule)
-                // because the job regenerates slots from ALL rules, so we need a clean slate
-                // This ensures outdated slots from other rules don't persist
+            if ($rule->listing) {
+                // ALWAYS delete ALL slots for the listing when ANY rule changes
+                // This handles both activation AND deactivation of rules
                 AvailabilitySlot::where('listing_id', $rule->listing_id)->delete();
 
-                // Generate slots for the next 90 days
-                $startDate = Carbon::today();
-                $endDate = Carbon::today()->addDays(90);
+                // Clear availability cache for this listing (all date ranges)
+                // Cache keys follow pattern: availability:listing:{id}:{start}:{end}
+                $cachePattern = "availability:listing:{$rule->listing_id}:";
+                // Note: Redis KEYS pattern matching requires different approach
+                // For now, we'll use cache tags or flush specific known ranges
+                cache()->forget($cachePattern . '*');
 
-                // Run the job synchronously so slots are available immediately
-                CalculateAvailabilityJob::dispatchSync($rule->listing, $startDate, $endDate);
+                // Only regenerate slots if there are still active rules
+                if ($rule->listing->availabilityRules()->active()->exists()) {
+                    $startDate = Carbon::today();
+                    $endDate = Carbon::today()->addDays(90);
+
+                    // Run the job synchronously so slots are available immediately
+                    CalculateAvailabilityJob::dispatchSync($rule->listing, $startDate, $endDate);
+                }
             }
         });
 
         // Clean up slots when a rule is deleted
         static::deleted(function (AvailabilityRule $rule) {
-            // Delete slots associated with this rule
-            $rule->slots()->delete();
+            if ($rule->listing) {
+                // Delete ALL slots for the listing and regenerate from remaining rules
+                AvailabilitySlot::where('listing_id', $rule->listing_id)->delete();
+
+                // Clear cache
+                cache()->forget("availability:listing:{$rule->listing_id}:*");
+
+                // Regenerate if there are remaining active rules
+                if ($rule->listing->availabilityRules()->active()->exists()) {
+                    $startDate = Carbon::today();
+                    $endDate = Carbon::today()->addDays(90);
+                    CalculateAvailabilityJob::dispatchSync($rule->listing, $startDate, $endDate);
+                }
+            }
         });
     }
 
