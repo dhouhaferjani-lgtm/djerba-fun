@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Enums\AvailabilityRuleType;
 use App\Jobs\CalculateAvailabilityJob;
 use App\Models\AvailabilitySlot;
+use App\Models\BookingHold;
+use App\Models\CartItem;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,16 +22,20 @@ class AvailabilityRule extends Model
         // Generate availability slots when a rule is created or updated
         static::saved(function (AvailabilityRule $rule) {
             if ($rule->listing) {
-                // ALWAYS delete ALL slots for the listing when ANY rule changes
-                // This handles both activation AND deactivation of rules
-                AvailabilitySlot::where('listing_id', $rule->listing_id)->delete();
+                // Get slot IDs that will be deleted
+                $slotIds = AvailabilitySlot::where('listing_id', $rule->listing_id)->pluck('id');
 
-                // Clear availability cache for this listing (all date ranges)
-                // Cache keys follow pattern: availability:listing:{id}:{start}:{end}
-                $cachePattern = "availability:listing:{$rule->listing_id}:";
-                // Note: Redis KEYS pattern matching requires different approach
-                // For now, we'll use cache tags or flush specific known ranges
-                cache()->forget($cachePattern . '*');
+                // Get hold IDs that reference these slots
+                $holdIds = BookingHold::whereIn('slot_id', $slotIds)->pluck('id');
+
+                // Delete cart_items referencing these holds FIRST
+                // (cart_items.hold_id FK has no cascade delete)
+                if ($holdIds->isNotEmpty()) {
+                    CartItem::whereIn('hold_id', $holdIds)->delete();
+                }
+
+                // NOW we can safely delete slots (cascades to holds)
+                AvailabilitySlot::where('listing_id', $rule->listing_id)->delete();
 
                 // Only regenerate slots if there are still active rules
                 if ($rule->listing->availabilityRules()->active()->exists()) {
@@ -45,11 +51,20 @@ class AvailabilityRule extends Model
         // Clean up slots when a rule is deleted
         static::deleted(function (AvailabilityRule $rule) {
             if ($rule->listing) {
-                // Delete ALL slots for the listing and regenerate from remaining rules
-                AvailabilitySlot::where('listing_id', $rule->listing_id)->delete();
+                // Get slot IDs that will be deleted
+                $slotIds = AvailabilitySlot::where('listing_id', $rule->listing_id)->pluck('id');
 
-                // Clear cache
-                cache()->forget("availability:listing:{$rule->listing_id}:*");
+                // Get hold IDs that reference these slots
+                $holdIds = BookingHold::whereIn('slot_id', $slotIds)->pluck('id');
+
+                // Delete cart_items referencing these holds FIRST
+                // (cart_items.hold_id FK has no cascade delete)
+                if ($holdIds->isNotEmpty()) {
+                    CartItem::whereIn('hold_id', $holdIds)->delete();
+                }
+
+                // NOW we can safely delete slots (cascades to holds)
+                AvailabilitySlot::where('listing_id', $rule->listing_id)->delete();
 
                 // Regenerate if there are remaining active rules
                 if ($rule->listing->availabilityRules()->active()->exists()) {
