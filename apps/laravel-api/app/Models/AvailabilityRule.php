@@ -89,6 +89,7 @@ class AvailabilityRule extends Model
         'end_time',
         'start_date',
         'end_date',
+        'specific_dates',
         'capacity',
         'price_override',
         'is_active',
@@ -104,6 +105,7 @@ class AvailabilityRule extends Model
         return [
             'rule_type' => AvailabilityRuleType::class,
             'days_of_week' => 'array',
+            'specific_dates' => 'array',
             'start_time' => 'datetime',
             'end_time' => 'datetime',
             'start_date' => 'date',
@@ -168,6 +170,16 @@ class AvailabilityRule extends Model
             return false;
         }
 
+        // For SPECIFIC_DATES with explicit dates array, check against the array
+        if ($this->rule_type === AvailabilityRuleType::SPECIFIC_DATES) {
+            $specificDates = $this->specific_dates ?? [];
+            if (! empty($specificDates)) {
+                return in_array($date->toDateString(), $specificDates);
+            }
+            // Fallback: if no specific_dates set (old data), use start_date/end_date range
+        }
+
+        // Range checks (for WEEKLY/DAILY bounds, BLOCKED_DATES, and SPECIFIC_DATES fallback)
         if ($this->start_date && $date < $this->start_date) {
             return false;
         }
@@ -191,7 +203,6 @@ class AvailabilityRule extends Model
 
             // Both WEEKLY and DAILY rules require days_of_week to be set
             // If no days selected, no slots should be created
-            // This prevents default/empty rules from creating unwanted slots
             return false;
         }
 

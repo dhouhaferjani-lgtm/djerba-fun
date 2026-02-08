@@ -70,11 +70,14 @@ class AvailabilityRuleResource extends Resource
                             ->default(AvailabilityRuleType::WEEKLY->value)
                             ->live()
                             ->afterStateUpdated(function (Forms\Set $set, $state) {
-                                // Set sensible defaults for days_of_week based on rule type
                                 if (in_array($state, [AvailabilityRuleType::WEEKLY->value, AvailabilityRuleType::DAILY->value])) {
-                                    $set('days_of_week', [0, 1, 2, 3, 4, 5, 6]); // All days by default
+                                    $set('days_of_week', [0, 1, 2, 3, 4, 5, 6]);
+                                    $set('enable_date_range', false);
+                                    $set('start_date', now()->format('Y-m-d'));
+                                    $set('end_date', null);
                                 } else {
                                     $set('days_of_week', null);
+                                    $set('enable_date_range', false);
                                 }
                             }),
 
@@ -120,17 +123,87 @@ class AvailabilityRuleResource extends Resource
                             ->seconds(false)
                             ->required(),
 
+                        Forms\Components\Toggle::make('enable_date_range')
+                            ->label('Limit to Date Range')
+                            ->helperText('Turn on to set a start and end date. When off, the rule applies indefinitely.')
+                            ->default(false)
+                            ->dehydrated(false)
+                            ->live()
+                            ->afterStateHydrated(function (Forms\Components\Toggle $component, $record) {
+                                if ($record && $record->end_date !== null) {
+                                    $component->state(true);
+                                }
+                            })
+                            ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                if (! $state) {
+                                    $set('start_date', now()->format('Y-m-d'));
+                                    $set('end_date', null);
+                                }
+                            })
+                            ->visible(fn (Forms\Get $get): bool => in_array($get('rule_type'), [
+                                AvailabilityRuleType::WEEKLY->value,
+                                AvailabilityRuleType::DAILY->value,
+                            ])),
+
                         Forms\Components\DatePicker::make('start_date')
                             ->label('Start Date')
                             ->native(false)
                             ->default(now())
-                            ->helperText('When does this availability start?'),
+                            ->visible(fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::BLOCKED_DATES->value
+                                || (in_array($get('rule_type'), [
+                                    AvailabilityRuleType::WEEKLY->value,
+                                    AvailabilityRuleType::DAILY->value,
+                                ]) && $get('enable_date_range'))
+                            ),
 
                         Forms\Components\DatePicker::make('end_date')
                             ->label('End Date')
                             ->native(false)
                             ->after('start_date')
-                            ->helperText('When does this availability end? Leave empty for ongoing.'),
+                            ->visible(fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::BLOCKED_DATES->value
+                                || (in_array($get('rule_type'), [
+                                    AvailabilityRuleType::WEEKLY->value,
+                                    AvailabilityRuleType::DAILY->value,
+                                ]) && $get('enable_date_range'))
+                            ),
+
+                        Forms\Components\Repeater::make('specific_dates')
+                            ->label('Specific Dates')
+                            ->schema([
+                                Forms\Components\DatePicker::make('date')
+                                    ->label('Date')
+                                    ->required()
+                                    ->native(false),
+                            ])
+                            ->visible(fn (Forms\Get $get) => $get('rule_type') === AvailabilityRuleType::SPECIFIC_DATES->value)
+                            ->addActionLabel('Add Date')
+                            ->defaultItems(1)
+                            ->reorderable(false)
+                            ->columns(1)
+                            ->afterStateHydrated(function (Forms\Components\Repeater $component, $state) {
+                                if (is_array($state) && ! empty($state)) {
+                                    $first = reset($state);
+                                    if (is_string($first)) {
+                                        $transformed = [];
+                                        foreach ($state as $dateStr) {
+                                            $transformed[] = ['date' => $dateStr];
+                                        }
+                                        $component->state($transformed);
+                                    }
+                                }
+                            })
+                            ->mutateDehydratedStateUsing(function ($state) {
+                                if (! is_array($state)) {
+                                    return [];
+                                }
+
+                                return collect($state)
+                                    ->pluck('date')
+                                    ->filter()
+                                    ->values()
+                                    ->toArray();
+                            })
+                            ->helperText('Add individual dates when this tour/event is available.'),
                     ])
                     ->columns(2),
 

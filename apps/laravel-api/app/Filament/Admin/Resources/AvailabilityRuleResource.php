@@ -62,11 +62,14 @@ class AvailabilityRuleResource extends Resource
                             ->required()
                             ->live()
                             ->afterStateUpdated(function (Forms\Set $set, $state) {
-                                // Set sensible defaults for days_of_week based on rule type
                                 if (in_array($state, [AvailabilityRuleType::WEEKLY->value, AvailabilityRuleType::DAILY->value])) {
-                                    $set('days_of_week', [0, 1, 2, 3, 4, 5, 6]); // All days by default
+                                    $set('days_of_week', [0, 1, 2, 3, 4, 5, 6]);
+                                    $set('enable_date_range', false);
+                                    $set('start_date', now()->format('Y-m-d'));
+                                    $set('end_date', null);
                                 } else {
                                     $set('days_of_week', null);
+                                    $set('enable_date_range', false);
                                 }
                             }),
 
@@ -110,14 +113,86 @@ class AvailabilityRuleResource extends Resource
                             ->label(__('filament.availability_rule.end_time'))
                             ->seconds(false),
 
+                        Forms\Components\Toggle::make('enable_date_range')
+                            ->label('Limit to Date Range')
+                            ->helperText('Turn on to set a start and end date. When off, the rule applies indefinitely.')
+                            ->default(false)
+                            ->dehydrated(false)
+                            ->live()
+                            ->afterStateHydrated(function (Forms\Components\Toggle $component, $record) {
+                                if ($record && $record->end_date !== null) {
+                                    $component->state(true);
+                                }
+                            })
+                            ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                if (! $state) {
+                                    $set('start_date', now()->format('Y-m-d'));
+                                    $set('end_date', null);
+                                }
+                            })
+                            ->visible(fn (Forms\Get $get): bool => in_array($get('rule_type'), [
+                                AvailabilityRuleType::WEEKLY->value,
+                                AvailabilityRuleType::DAILY->value,
+                            ])),
+
                         Forms\Components\DatePicker::make('start_date')
                             ->label(__('filament.availability_rule.start_date'))
-                            ->native(false),
+                            ->native(false)
+                            ->visible(fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::BLOCKED_DATES->value
+                                || (in_array($get('rule_type'), [
+                                    AvailabilityRuleType::WEEKLY->value,
+                                    AvailabilityRuleType::DAILY->value,
+                                ]) && $get('enable_date_range'))
+                            ),
 
                         Forms\Components\DatePicker::make('end_date')
                             ->label(__('filament.availability_rule.end_date'))
                             ->native(false)
-                            ->after('start_date'),
+                            ->after('start_date')
+                            ->visible(fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::BLOCKED_DATES->value
+                                || (in_array($get('rule_type'), [
+                                    AvailabilityRuleType::WEEKLY->value,
+                                    AvailabilityRuleType::DAILY->value,
+                                ]) && $get('enable_date_range'))
+                            ),
+
+                        Forms\Components\Repeater::make('specific_dates')
+                            ->label('Specific Dates')
+                            ->schema([
+                                Forms\Components\DatePicker::make('date')
+                                    ->label('Date')
+                                    ->required()
+                                    ->native(false),
+                            ])
+                            ->visible(fn (Forms\Get $get) => $get('rule_type') === AvailabilityRuleType::SPECIFIC_DATES->value)
+                            ->addActionLabel('Add Date')
+                            ->defaultItems(1)
+                            ->reorderable(false)
+                            ->columns(1)
+                            ->afterStateHydrated(function (Forms\Components\Repeater $component, $state) {
+                                if (is_array($state) && ! empty($state)) {
+                                    $first = reset($state);
+                                    if (is_string($first)) {
+                                        $transformed = [];
+                                        foreach ($state as $dateStr) {
+                                            $transformed[] = ['date' => $dateStr];
+                                        }
+                                        $component->state($transformed);
+                                    }
+                                }
+                            })
+                            ->mutateDehydratedStateUsing(function ($state) {
+                                if (! is_array($state)) {
+                                    return [];
+                                }
+
+                                return collect($state)
+                                    ->pluck('date')
+                                    ->filter()
+                                    ->values()
+                                    ->toArray();
+                            })
+                            ->helperText('Add individual dates when this availability applies.'),
                     ])
                     ->columns(2),
 
@@ -175,11 +250,23 @@ class AvailabilityRuleResource extends Resource
 
                 Tables\Columns\TextColumn::make('start_date')
                     ->label(__('filament.availability_rule.date_range'))
-                    ->formatStateUsing(
-                        fn ($record) => $record->start_date && $record->end_date
-                            ? $record->start_date->format('M d, Y') . ' - ' . $record->end_date->format('M d, Y')
-                            : ($record->start_date ? __('filament.availability_rule.from') . ' ' . $record->start_date->format('M d, Y') : __('filament.availability_rule.ongoing'))
-                    )
+                    ->getStateUsing(function ($record): string {
+                        if ($record->rule_type === AvailabilityRuleType::SPECIFIC_DATES && ! empty($record->specific_dates)) {
+                            $count = count($record->specific_dates);
+
+                            return $count . ' specific date' . ($count !== 1 ? 's' : '');
+                        }
+
+                        if ($record->start_date && $record->end_date) {
+                            return $record->start_date->format('M d, Y') . ' - ' . $record->end_date->format('M d, Y');
+                        }
+
+                        if ($record->start_date) {
+                            return __('filament.availability_rule.from') . ' ' . $record->start_date->format('M d, Y');
+                        }
+
+                        return __('filament.availability_rule.ongoing');
+                    })
                     ->wrap(),
 
                 Tables\Columns\TextColumn::make('capacity')
