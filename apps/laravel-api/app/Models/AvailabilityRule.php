@@ -40,7 +40,7 @@ class AvailabilityRule extends Model
                 // Only regenerate slots if there are still active rules
                 if ($rule->listing->availabilityRules()->active()->exists()) {
                     $startDate = Carbon::today();
-                    $endDate = Carbon::today()->addDays(90);
+                    $endDate = Carbon::today()->addDays(180);
 
                     // Run the job synchronously so slots are available immediately
                     CalculateAvailabilityJob::dispatchSync($rule->listing, $startDate, $endDate);
@@ -69,7 +69,7 @@ class AvailabilityRule extends Model
                 // Regenerate if there are remaining active rules
                 if ($rule->listing->availabilityRules()->active()->exists()) {
                     $startDate = Carbon::today();
-                    $endDate = Carbon::today()->addDays(90);
+                    $endDate = Carbon::today()->addDays(180);
                     CalculateAvailabilityJob::dispatchSync($rule->listing, $startDate, $endDate);
                 }
             }
