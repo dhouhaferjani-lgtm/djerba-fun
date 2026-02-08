@@ -129,15 +129,7 @@ class AvailabilityRuleResource extends Resource
                             ->minValue(1)
                             ->default(1)
                             ->required(),
-
-                        Forms\Components\TextInput::make('price_override')
-                            ->label(__('filament.availability_rule.price_override'))
-                            ->numeric()
-                            ->prefix('$')
-                            ->step('0.01')
-                            ->helperText(__('filament.availability_rule.price_override_helper')),
-                    ])
-                    ->columns(2),
+                    ]),
             ]);
     }
 

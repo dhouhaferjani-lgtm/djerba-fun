@@ -143,13 +143,7 @@ class AvailabilityRuleResource extends Resource
                             ->default(10)
                             ->required()
                             ->helperText('Maximum number of people that can book this time slot'),
-
-                        Forms\Components\TextInput::make('price_override')
-                            ->label('Price Override (cents)')
-                            ->numeric()
-                            ->helperText('Leave empty to use listing base price. Enter price in cents.'),
-                    ])
-                    ->columns(2),
+                    ]),
             ]);
     }
 

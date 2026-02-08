@@ -81,8 +81,8 @@ class CalculateAvailabilityJob implements ShouldQueue
         $startTime = $rule->start_time ?: now()->startOfDay();
         $endTime = $rule->end_time ?: now()->endOfDay();
 
-        // Get base price from listing pricing or rule override
-        $basePrice = $rule->price_override ?? $this->getListingBasePrice();
+        // Always use listing base price (price_override feature removed)
+        $basePrice = $this->getListingBasePrice();
 
         AvailabilitySlot::updateOrCreate(
             [
