@@ -111,16 +111,21 @@ export function SuccessPage({ reference, email, contactInfo }: SuccessPageProps)
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/">
-            <Button variant="primary" size="lg" className="w-full sm:w-auto">
+        <div className="flex flex-col gap-4">
+          <Link href="/" className="w-full">
+            <Button variant="primary" size="lg" className="w-full">
               <Home className="w-5 h-5 mr-2" />
               {t('back_home')}
             </Button>
           </Link>
           {whatsappNumber && (
-            <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
+            <a
+              href={`https://wa.me/${whatsappNumber}`}
+              className="w-full"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" size="lg" className="w-full">
                 <MessageCircle className="w-5 h-5 mr-2" />
                 {t('contact_whatsapp')}
               </Button>
