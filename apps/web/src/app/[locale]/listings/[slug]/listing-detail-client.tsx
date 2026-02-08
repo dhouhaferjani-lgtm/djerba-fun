@@ -722,9 +722,9 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
     return getPersonTypesFromListing(listing);
   }, [listing]);
 
-  // Get availability for the next 3 months (always fetch since booking panel is visible from start)
+  // Get availability for the next 6 months (always fetch since booking panel is visible from start)
   const startDate = format(new Date(), 'yyyy-MM-dd');
-  const endDate = format(addMonths(new Date(), 3), 'yyyy-MM-dd');
+  const endDate = format(addMonths(new Date(), 6), 'yyyy-MM-dd');
   const { data: availabilityData, isLoading: isLoadingAvailability } = useAvailability(
     slug,
     startDate,
