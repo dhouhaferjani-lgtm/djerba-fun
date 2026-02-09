@@ -275,14 +275,14 @@ class PlatformSettingsPage extends Page implements HasForms
                     ]),
 
                 Forms\Components\Section::make('Hero Banner')
-                    ->description('Main banner image displayed on the homepage hero section')
+                    ->description('Main banner displayed on the homepage hero section. Supports images (JPG/PNG/WebP) and videos (MP4/WebM). Videos will autoplay muted on desktop, with the image shown on mobile.')
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('hero_banner')
                             ->collection('hero_banner')
-                            ->label('Hero Banner Image')
-                            ->image()
-                            ->maxSize(10240)
-                            ->helperText('Recommended: 1920x1080 or larger. Max 10MB. JPG/PNG/WebP.'),
+                            ->label('Hero Banner (Image or Video)')
+                            ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp', 'video/mp4', 'video/webm'])
+                            ->maxSize(20480)
+                            ->helperText('Image: 1920x1080+ recommended (max 20MB). Video: MP4/WebM, 720p+, max 20MB. Short looping videos (5-10s) work best.'),
                     ]),
 
                 Forms\Components\Section::make('Hero Section Text')

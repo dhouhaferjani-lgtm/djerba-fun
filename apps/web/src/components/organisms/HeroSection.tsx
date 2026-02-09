@@ -223,15 +223,37 @@ interface HeroData {
   subtitle: string | null;
 }
 
+// Default hero video fallback - used when no CMS video is uploaded
+const DEFAULT_HERO_VIDEO = '/videos/hero-banner.mp4';
+
 interface HeroSectionProps {
   locale: string;
   heroBannerUrl?: string | null;
+  heroBannerIsVideo?: boolean;
   heroData?: HeroData;
 }
 
-export function HeroSection({ locale, heroBannerUrl, heroData }: HeroSectionProps) {
+export function HeroSection({
+  locale,
+  heroBannerUrl,
+  heroBannerIsVideo,
+  heroData,
+}: HeroSectionProps) {
   const t = useTranslations('home');
-  const backgroundImage = heroBannerUrl || DEFAULT_HERO_IMAGE;
+
+  // Show video when: (a) CMS uploaded a video, or (b) no CMS banner at all (use local fallback)
+  // If CMS has an IMAGE banner, NO video renders — preserving the admin's choice
+  const showVideo = heroBannerIsVideo || !heroBannerUrl;
+  const videoSrc = heroBannerIsVideo && heroBannerUrl ? heroBannerUrl : DEFAULT_HERO_VIDEO;
+  const backgroundImage = heroBannerUrl && !heroBannerIsVideo ? heroBannerUrl : DEFAULT_HERO_IMAGE;
+
+  // Video readiness state — poster shows until video is buffered
+  const [videoReady, setVideoReady] = useState(false);
+
+  // Reset video readiness if we switch away from video mode
+  useEffect(() => {
+    if (!showVideo) setVideoReady(false);
+  }, [showVideo]);
 
   // Use CMS values with translation fallbacks
   // Fallback combines the two translation keys for backwards compatibility
@@ -306,17 +328,34 @@ export function HeroSection({ locale, heroBannerUrl, heroData }: HeroSectionProp
 
   return (
     <section className="relative h-[85vh] flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
+      {/* Background — Poster image + Video (desktop only) */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        {/* Poster image — shows immediately, fades out once video is ready on desktop */}
         <Image
           src={backgroundImage}
           alt="Hero Banner"
           fill
-          className="object-cover"
+          className={`object-cover transition-opacity duration-1000 ${showVideo && videoReady ? 'md:opacity-0' : 'opacity-100'}`}
           priority
           unoptimized={shouldUnoptimizeImage(backgroundImage)}
         />
-        {/* Dark Green Gradient Overlay - keeps photo visible but ensures text readability */}
+
+        {/* Video background — only rendered when we have a video to show (CMS video or no CMS banner) */}
+        {showVideo && (
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            onCanPlayThrough={() => setVideoReady(true)}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 hidden md:block ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+            style={{ transform: 'scale(1.08)' }}
+          >
+            <source src={videoSrc} type="video/mp4" />
+          </video>
+        )}
+
+        {/* Dark Green Gradient Overlay */}
         <div
           className="absolute inset-0"
           style={{

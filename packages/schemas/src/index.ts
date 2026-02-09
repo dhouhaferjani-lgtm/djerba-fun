@@ -1232,6 +1232,7 @@ export const platformBrandingSchema = z.object({
   ogImage: z.string().url().nullable(),
   appleTouchIcon: z.string().url().nullable(),
   heroBanner: z.string().url().nullable(),
+  heroBannerIsVideo: z.boolean().optional(),
   brandPillar1: z.string().url().nullable(),
   brandPillar2: z.string().url().nullable(),
   brandPillar3: z.string().url().nullable(),

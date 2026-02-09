@@ -93,6 +93,7 @@ class PlatformSettingsService
                 'ogImage' => $s->og_image_url,
                 'appleTouchIcon' => $s->apple_touch_icon_url,
                 'heroBanner' => $s->hero_banner_url,
+                'heroBannerIsVideo' => str_starts_with($s->getFirstMedia('hero_banner')?->mime_type ?? '', 'video/'),
                 'brandPillar1' => $s->brand_pillar_1_url,
                 'brandPillar2' => $s->brand_pillar_2_url,
                 'brandPillar3' => $s->brand_pillar_3_url,

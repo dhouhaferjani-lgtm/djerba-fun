@@ -316,7 +316,7 @@ class PlatformSettings extends Model implements HasMedia
 
         $this->addMediaCollection('hero_banner')
             ->singleFile()
-            ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp']);
+            ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp', 'video/mp4', 'video/webm']);
 
         // Brand Pillar Images (Marketing Mosaic Section)
         $this->addMediaCollection('brand_pillar_1')

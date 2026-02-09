@@ -51,7 +51,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <MainLayout locale={locale}>
       {/* Always show Hero and Marketing Mosaic - CMS text with translation fallbacks */}
-      <HeroSection locale={locale} heroBannerUrl={branding.heroBanner} heroData={heroData} />
+      <HeroSection
+        locale={locale}
+        heroBannerUrl={branding.heroBanner}
+        heroBannerIsVideo={branding.heroBannerIsVideo}
+        heroData={heroData}
+      />
       <MarketingMosaicSection
         brandPillar1Url={branding.brandPillar1}
         brandPillar2Url={branding.brandPillar2}
