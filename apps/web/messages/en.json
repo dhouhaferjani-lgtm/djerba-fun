@@ -1152,7 +1152,10 @@
     }
   },
   "destinations": {
-    "available_experiences": "Available Experiences"
+    "available_experiences": "Available Experiences",
+    "experiences_coming_soon": "Experiences Coming Soon",
+    "experiences_coming_soon_desc": "We're preparing amazing experiences in {name}. Check back soon!",
+    "explore_on_map": "Explore on Map"
   },
   "listings_page": {
     "title_tours": "Tours & Activities",

@@ -225,6 +225,15 @@ export async function getFeaturedDestinations(locale?: string) {
 }
 
 /**
+ * Get a single CMS destination by slug from platform settings.
+ * Returns null if not found.
+ */
+export async function getCmsDestination(slug: string, locale?: string) {
+  const destinations = await getFeaturedDestinations(locale);
+  return destinations.find((d) => d.id === slug) ?? null;
+}
+
+/**
  * Get Testimonials from platform settings.
  * Returns empty array if settings cannot be fetched (frontend will use hardcoded defaults).
  */

@@ -216,9 +216,7 @@ export function DestinationsBentoGrid({ locale, cmsDestinations }: DestinationsB
             return (
               <Link
                 key={`pos-${posIndex}`}
-                href={
-                  (destination.link || `/${locale}/listings?location=${destination.id}`) as never
-                }
+                href={(destination.link || `/${locale}/destinations/${destination.id}`) as never}
                 className="group relative overflow-hidden rounded-2xl shadow-lg"
                 style={{
                   gridArea: position.gridArea,
@@ -313,7 +311,7 @@ export function DestinationsBentoGrid({ locale, cmsDestinations }: DestinationsB
           {destinations.map((destination, index) => (
             <Link
               key={destination.id}
-              href={(destination.link || `/${locale}/listings?location=${destination.id}`) as never}
+              href={(destination.link || `/${locale}/destinations/${destination.id}`) as never}
               className={`group relative overflow-hidden rounded-2xl shadow-md ${
                 index === 0 ? 'h-56' : 'h-40'
               }`}
