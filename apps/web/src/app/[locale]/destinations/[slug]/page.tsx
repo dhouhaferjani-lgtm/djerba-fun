@@ -53,6 +53,28 @@ async function getLocationData(
   }
 }
 
+// --- Slug Resolution ---
+// CMS destination IDs may differ from our data keys (e.g. "houmet-souk" → "djerba")
+
+const slugToDataKey: Record<string, string> = {
+  djerba: 'djerba',
+  dhaher: 'dhaher',
+  desert: 'desert',
+  'houmet-souk': 'djerba',
+  guellala: 'dhaher',
+  'lile-des-flamants-roses': 'desert',
+};
+
+function resolveDataKey(slug: string, cmsName?: string | null): string {
+  if (slugToDataKey[slug]) return slugToDataKey[slug];
+  const lowerName = (cmsName ?? '').toLowerCase();
+  if (lowerName.includes('djerba')) return 'djerba';
+  if (lowerName.includes('dhaher') || lowerName.includes('dahar')) return 'dhaher';
+  if (lowerName.includes('desert') || lowerName.includes('désert') || lowerName.includes('sahara'))
+    return 'desert';
+  return slug;
+}
+
 // --- Destination-specific SEO metadata ---
 
 const destinationSeoMeta: Record<
@@ -100,7 +122,8 @@ export async function generateMetadata({ params }: DestinationPageProps): Promis
   const name = cmsDestination?.name ?? locationData?.location.name ?? slug;
   const image = cmsDestination?.image ?? locationData?.location.imageUrl;
   const isFr = locale === 'fr';
-  const seoMeta = destinationSeoMeta[slug];
+  const dataKey = resolveDataKey(slug, cmsDestination?.name);
+  const seoMeta = destinationSeoMeta[dataKey];
 
   const title = seoMeta
     ? isFr

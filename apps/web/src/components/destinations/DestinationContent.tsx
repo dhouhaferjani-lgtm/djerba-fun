@@ -586,6 +586,33 @@ const snakeLineCSS = `
 }
 `;
 
+// --- Slug Resolution ---
+// CMS destination IDs may not match our data keys (e.g. "houmet-souk" → "djerba")
+// This map resolves any CMS slug or name to the correct data key.
+
+const slugToDataKey: Record<string, string> = {
+  // Direct matches
+  djerba: 'djerba',
+  dhaher: 'dhaher',
+  desert: 'desert',
+  // CMS IDs (from admin panel Featured Destinations)
+  'houmet-souk': 'djerba',
+  guellala: 'dhaher', // CMS uses "guellala" id for Dhaher destination
+  'lile-des-flamants-roses': 'desert', // CMS uses "lile-des-flamants-roses" id for Desert
+};
+
+// Also try matching by CMS destination name
+function resolveDataKey(slug: string, cmsName?: string | null): string {
+  if (slugToDataKey[slug]) return slugToDataKey[slug];
+  // Try matching by name
+  const lowerName = (cmsName ?? '').toLowerCase();
+  if (lowerName.includes('djerba')) return 'djerba';
+  if (lowerName.includes('dhaher') || lowerName.includes('dahar')) return 'dhaher';
+  if (lowerName.includes('desert') || lowerName.includes('désert') || lowerName.includes('sahara'))
+    return 'desert';
+  return slug;
+}
+
 // --- Component ---
 
 export function DestinationContent({
@@ -610,11 +637,12 @@ export function DestinationContent({
   const center: [number, number] | undefined =
     location?.latitude && location?.longitude ? [location.latitude, location.longitude] : undefined;
 
-  const highlights = destinationHighlights[slug] ?? fallbackHighlights;
-  const facts = destinationFacts[slug];
-  const gallery = destinationGallery[slug];
-  const pois = destinationPOIs[slug];
-  const seoText = destinationSeoText[slug];
+  const dataKey = resolveDataKey(slug, cmsDestination?.name);
+  const highlights = destinationHighlights[dataKey] ?? fallbackHighlights;
+  const facts = destinationFacts[dataKey];
+  const gallery = destinationGallery[dataKey];
+  const pois = destinationPOIs[dataKey];
+  const seoText = destinationSeoText[dataKey];
 
   const comingSoonText = isFr ? 'Expériences à venir' : 'Experiences Coming Soon';
   const { displayed: typedHeading, isComplete: typingDone } = useTypewriter(
