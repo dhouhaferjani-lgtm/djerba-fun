@@ -2,7 +2,10 @@
 
 use App\Http\Controllers\Api\V1\ClictopayCallbackController;
 use App\Http\Controllers\Filament\LocaleSwitchController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 Route::get('/', function () {
     return view('welcome');
@@ -11,6 +14,84 @@ Route::get('/', function () {
 Route::get('/filament/locale/{locale}', LocaleSwitchController::class)
     ->name('filament.locale.switch')
     ->middleware(['web']);
+
+/*
+|--------------------------------------------------------------------------
+| Admin Media Proxy Routes
+|--------------------------------------------------------------------------
+|
+| Serve media files through Laravel to avoid CORS issues in Filament admin.
+| FilePond (used by Filament) uses fetch() which is subject to CORS, while
+| frontend <img> tags are not — so direct S3/MinIO URLs work on frontend
+| but fail in admin panel previews.
+|
+*/
+
+// Proxy for Spatie Media Library files (stored on minio/S3 disk)
+Route::get('/admin/media-proxy/{media}', function (Media $media) {
+    $disk = Storage::disk($media->disk);
+    $path = $media->getPathRelativeToRoot();
+
+    if (! $disk->exists($path)) {
+        abort(404);
+    }
+
+    $stream = $disk->readStream($path);
+
+    return response()->stream(
+        function () use ($stream) {
+            fpassthru($stream);
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        },
+        200,
+        [
+            'Content-Type' => $media->mime_type,
+            'Content-Length' => $media->size,
+            'Content-Disposition' => 'inline; filename="' . $media->file_name . '"',
+            'Cache-Control' => 'private, max-age=3600',
+        ]
+    );
+})->middleware(['web', 'auth'])->name('admin.media.proxy');
+
+// Proxy for disk files (public, minio) — listings media, blog images, destinations, etc.
+Route::get('/admin/storage-proxy', function (Request $request) {
+    $path = $request->query('path');
+    $diskName = $request->query('disk', 'public');
+
+    // Only allow safe disks
+    if (! in_array($diskName, ['public', 'minio'], true)) {
+        abort(400);
+    }
+
+    if (! $path || str_contains($path, '..')) {
+        abort(400);
+    }
+
+    $disk = Storage::disk($diskName);
+    if (! $disk->exists($path)) {
+        abort(404);
+    }
+
+    $stream = $disk->readStream($path);
+
+    return response()->stream(
+        function () use ($stream) {
+            fpassthru($stream);
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        },
+        200,
+        [
+            'Content-Type' => $disk->mimeType($path),
+            'Content-Length' => $disk->size($path),
+            'Content-Disposition' => 'inline',
+            'Cache-Control' => 'private, max-age=3600',
+        ]
+    );
+})->middleware(['web', 'auth'])->name('admin.storage.proxy');
 
 /*
 |--------------------------------------------------------------------------

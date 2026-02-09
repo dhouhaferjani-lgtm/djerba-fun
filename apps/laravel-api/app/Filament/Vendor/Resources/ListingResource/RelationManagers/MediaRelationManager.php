@@ -12,6 +12,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class MediaRelationManager extends RelationManager
 {
@@ -37,6 +38,13 @@ class MediaRelationManager extends RelationManager
                     ->imageResizeTargetHeight('1080')
                     ->imageCropAspectRatio(null) // Allow any aspect ratio
                     ->helperText('Recommended: 1920x1080px or similar, max 10MB')
+                    ->getUploadedFileUrlUsing(function ($file) {
+                        if ($file instanceof TemporaryUploadedFile) {
+                            return $file->temporaryUrl();
+                        }
+
+                        return route('admin.storage.proxy', ['path' => 'listings/media/' . $file]);
+                    })
                     ->columnSpanFull(),
 
                 Forms\Components\TextInput::make('alt')

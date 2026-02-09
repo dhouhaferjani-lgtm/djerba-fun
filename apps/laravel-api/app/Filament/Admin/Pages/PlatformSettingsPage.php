@@ -117,6 +117,35 @@ class PlatformSettingsPage extends Page implements HasForms
         return $this->settings;
     }
 
+    /**
+     * Create a SpatieMediaLibraryFileUpload with admin-proxied preview URLs.
+     *
+     * Avoids CORS issues by serving file previews through Laravel instead of
+     * direct S3/MinIO URLs. FilePond uses fetch() which is subject to CORS,
+     * while frontend <img> tags are not.
+     */
+    private static function proxiedMediaUpload(string $collection): Forms\Components\SpatieMediaLibraryFileUpload
+    {
+        return Forms\Components\SpatieMediaLibraryFileUpload::make($collection)
+            ->collection($collection)
+            ->getUploadedFileUrlUsing(static function (
+                Forms\Components\SpatieMediaLibraryFileUpload $component,
+                string $file,
+            ): ?string {
+                $record = $component->getRecord();
+                if (! $record) {
+                    return null;
+                }
+
+                $media = $record->getRelationValue('media')->firstWhere('uuid', $file);
+                if (! $media) {
+                    return null;
+                }
+
+                return route('admin.media.proxy', $media);
+            });
+    }
+
     public function form(Form $form): Form
     {
         return $form
@@ -230,14 +259,12 @@ class PlatformSettingsPage extends Page implements HasForms
                 Forms\Components\Section::make('Logos')
                     ->description('Upload platform logos. Recommended: SVG or PNG with transparent background.')
                     ->schema([
-                        Forms\Components\SpatieMediaLibraryFileUpload::make('logo_light')
-                            ->collection('logo_light')
+                        self::proxiedMediaUpload('logo_light')
                             ->label('Logo (Light Mode)')
                             ->image()
                             ->maxSize(2048)
                             ->helperText('Used on light backgrounds'),
-                        Forms\Components\SpatieMediaLibraryFileUpload::make('logo_dark')
-                            ->collection('logo_dark')
+                        self::proxiedMediaUpload('logo_dark')
                             ->label('Logo (Dark Mode)')
                             ->image()
                             ->maxSize(2048)
@@ -248,14 +275,12 @@ class PlatformSettingsPage extends Page implements HasForms
                 Forms\Components\Section::make('Favicons & Icons')
                     ->description('Upload favicon and app icons')
                     ->schema([
-                        Forms\Components\SpatieMediaLibraryFileUpload::make('favicon')
-                            ->collection('favicon')
+                        self::proxiedMediaUpload('favicon')
                             ->label('Favicon')
                             ->image()
                             ->maxSize(512)
                             ->helperText('Recommended: 32x32 or 16x16 PNG/ICO'),
-                        Forms\Components\SpatieMediaLibraryFileUpload::make('apple_touch_icon')
-                            ->collection('apple_touch_icon')
+                        self::proxiedMediaUpload('apple_touch_icon')
                             ->label('Apple Touch Icon')
                             ->image()
                             ->maxSize(1024)
@@ -266,8 +291,7 @@ class PlatformSettingsPage extends Page implements HasForms
                 Forms\Components\Section::make('Open Graph Image')
                     ->description('Default image for social sharing')
                     ->schema([
-                        Forms\Components\SpatieMediaLibraryFileUpload::make('og_image')
-                            ->collection('og_image')
+                        self::proxiedMediaUpload('og_image')
                             ->label('OG Image')
                             ->image()
                             ->maxSize(2048)
@@ -277,8 +301,7 @@ class PlatformSettingsPage extends Page implements HasForms
                 Forms\Components\Section::make('Hero Banner')
                     ->description('Main banner displayed on the homepage hero section. Supports images (JPG/PNG/WebP) and videos (MP4/WebM). Videos will autoplay muted on desktop, with the image shown on mobile.')
                     ->schema([
-                        Forms\Components\SpatieMediaLibraryFileUpload::make('hero_banner')
-                            ->collection('hero_banner')
+                        self::proxiedMediaUpload('hero_banner')
                             ->label('Hero Banner (Image or Video)')
                             ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp', 'video/mp4', 'video/webm'])
                             ->maxSize(20480)
@@ -329,20 +352,17 @@ class PlatformSettingsPage extends Page implements HasForms
                 Forms\Components\Section::make('Brand Pillar Images')
                     ->description('Three square images displayed in the marketing mosaic section below the hero')
                     ->schema([
-                        Forms\Components\SpatieMediaLibraryFileUpload::make('brand_pillar_1')
-                            ->collection('brand_pillar_1')
+                        self::proxiedMediaUpload('brand_pillar_1')
                             ->label('Pillar 1: Sustainable Travel')
                             ->image()
                             ->maxSize(5120)
                             ->helperText('Recommended: 1080x1080 square image'),
-                        Forms\Components\SpatieMediaLibraryFileUpload::make('brand_pillar_2')
-                            ->collection('brand_pillar_2')
+                        self::proxiedMediaUpload('brand_pillar_2')
                             ->label('Pillar 2: Authentic Experiences')
                             ->image()
                             ->maxSize(5120)
                             ->helperText('Recommended: 1080x1080 square image'),
-                        Forms\Components\SpatieMediaLibraryFileUpload::make('brand_pillar_3')
-                            ->collection('brand_pillar_3')
+                        self::proxiedMediaUpload('brand_pillar_3')
                             ->label('Pillar 3: Epic Adventures')
                             ->image()
                             ->maxSize(5120)
@@ -531,8 +551,7 @@ class PlatformSettingsPage extends Page implements HasForms
                 Forms\Components\Section::make('Event Image')
                     ->description('Featured image for the event banner')
                     ->schema([
-                        Forms\Components\SpatieMediaLibraryFileUpload::make('event_of_year_image')
-                            ->collection('event_of_year_image')
+                        self::proxiedMediaUpload('event_of_year_image')
                             ->label('Event Banner Image')
                             ->image()
                             ->maxSize(5120)
@@ -596,6 +615,13 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->directory('destinations')
                                     ->disk('public')
                                     ->maxSize(5120)
+                                    ->getUploadedFileUrlUsing(function ($file) {
+                                        if ($file instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                                            return $file->temporaryUrl();
+                                        }
+
+                                        return route('admin.storage.proxy', ['path' => 'destinations/' . $file]);
+                                    })
                                     ->helperText('Recommended: 1200x675px (16:9 ratio). Max 5MB.'),
 
                                 Forms\Components\TextInput::make('link')
@@ -640,6 +666,13 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->imageCropAspectRatio('1:1')
                                     ->imageResizeTargetWidth('300')
                                     ->imageResizeTargetHeight('300')
+                                    ->getUploadedFileUrlUsing(function ($file) {
+                                        if ($file instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                                            return $file->temporaryUrl();
+                                        }
+
+                                        return route('admin.storage.proxy', ['path' => 'testimonials/' . $file]);
+                                    })
                                     ->helperText('Square photo recommended. Max 2MB.'),
 
                                 Forms\Components\Textarea::make('text_fr')
