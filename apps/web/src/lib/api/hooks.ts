@@ -101,11 +101,11 @@ export function useLogout() {
 // LISTINGS HOOKS
 // ============================================================================
 
-export function useListings(params: ListingSearchParams) {
+export function useListings(params: ListingSearchParams, locale: string = 'en') {
   return useQuery({
-    queryKey: ['listings', 'search', params],
+    queryKey: ['listings', 'search', locale, params],
     queryFn: async () => {
-      const result = await listingsApi.search(params);
+      const result = await listingsApi.search(params, locale);
 
       // Store the detected currency in a cookie for server-side requests
       // This ensures consistent currency across client-side (list page) and server-side (detail page) rendering
@@ -123,11 +123,11 @@ export function useListings(params: ListingSearchParams) {
   });
 }
 
-export function useListing(slug: string) {
+export function useListing(slug: string, locale: string = 'en') {
   return useQuery({
-    queryKey: ['listings', 'detail', slug],
+    queryKey: ['listings', 'detail', locale, slug],
     queryFn: async () => {
-      const response = await listingsApi.getBySlug(slug);
+      const response = await listingsApi.getBySlug(slug, locale);
       return response.data;
     },
     enabled: !!slug,
@@ -162,12 +162,13 @@ export function useCreateHold(listingSlug: string) {
 export function useListingExtras(
   listingSlug: string,
   options?: { slotId?: string; personTypes?: string[] },
-  enabled = true
+  enabled = true,
+  locale: string = 'en'
 ) {
   return useQuery({
-    queryKey: ['listings', listingSlug, 'extras', options?.slotId, options?.personTypes],
+    queryKey: ['listings', listingSlug, 'extras', locale, options?.slotId, options?.personTypes],
     queryFn: async () => {
-      const response = await listingsApi.getExtras(listingSlug, options);
+      const response = await listingsApi.getExtras(listingSlug, options, locale);
       return response.data;
     },
     enabled: enabled && !!listingSlug,

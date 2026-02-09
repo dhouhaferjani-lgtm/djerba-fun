@@ -195,7 +195,7 @@ export const authApi = {
 // ============================================================================
 
 export const listingsApi = {
-  search: async (params: ListingSearchParams) => {
+  search: async (params: ListingSearchParams, locale: string = 'en') => {
     const queryParams = new URLSearchParams();
 
     // Map frontend param names to backend param names (camelCase → snake_case)
@@ -217,11 +217,15 @@ export const listingsApi = {
       }
     });
 
-    return fetchApi<ListingSearchResponse>(`/listings?${queryParams.toString()}`);
+    return fetchApi<ListingSearchResponse>(`/listings?${queryParams.toString()}`, {
+      headers: { 'Accept-Language': locale },
+    });
   },
 
-  getBySlug: async (slug: string) => {
-    return fetchApi<{ data: Listing }>(`/listings/${slug}`);
+  getBySlug: async (slug: string, locale: string = 'en') => {
+    return fetchApi<{ data: Listing }>(`/listings/${slug}`, {
+      headers: { 'Accept-Language': locale },
+    });
   },
 
   getAvailability: async (listingSlug: string, startDate: string, endDate: string) => {
@@ -272,7 +276,11 @@ export const listingsApi = {
     }>(`/holds/${holdId}`);
   },
 
-  getExtras: async (listingSlug: string, params?: { slotId?: string; personTypes?: string[] }) => {
+  getExtras: async (
+    listingSlug: string,
+    params?: { slotId?: string; personTypes?: string[] },
+    locale: string = 'en'
+  ) => {
     const queryParams = new URLSearchParams();
     if (params?.slotId) {
       queryParams.append('slot_id', params.slotId);
@@ -282,7 +290,8 @@ export const listingsApi = {
     }
     const queryString = queryParams.toString();
     return fetchApi<{ data: ListingExtraForBooking[] }>(
-      `/listings/${listingSlug}/extras${queryString ? `?${queryString}` : ''}`
+      `/listings/${listingSlug}/extras${queryString ? `?${queryString}` : ''}`,
+      { headers: { 'Accept-Language': locale } }
     );
   },
 

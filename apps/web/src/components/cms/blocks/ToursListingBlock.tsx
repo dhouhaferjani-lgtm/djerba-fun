@@ -47,7 +47,7 @@ export function ToursListingBlock({
           params.order = 'desc';
         }
 
-        const response = await listingsApi.search(params);
+        const response = await listingsApi.search(params, locale);
         setListings(response.data);
       } catch (error) {
         console.error('Failed to fetch listings:', error);

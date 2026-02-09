@@ -34,7 +34,7 @@ function ListingsContent({ locale }: { locale: string }) {
     limit: 20,
   };
 
-  const { data, isLoading, error } = useListings(queryParams);
+  const { data, isLoading, error } = useListings(queryParams, locale);
   const { data: locations } = useLocations();
 
   const handleSearch = (query: string) => {

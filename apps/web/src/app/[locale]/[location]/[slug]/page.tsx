@@ -26,7 +26,7 @@ const RESERVED_ROUTES = [
 
 // Fetch listing with user's currency preference forwarded
 // Using cache: 'no-store' because currency is user-specific
-async function fetchListing(slug: string) {
+async function fetchListing(slug: string, locale: string = 'en') {
   try {
     // Get user's IP from incoming request headers (fallback for first-time visitors)
     const headersList = await headers();
@@ -43,6 +43,7 @@ async function fetchListing(slug: string) {
     const response = await fetch(`${API_URL}/listings/${slug}`, {
       cache: 'no-store', // Disable cache - currency is user-specific
       headers: {
+        'Accept-Language': locale,
         'X-Forwarded-For': userIp,
         ...(userCurrency && { 'X-User-Currency': userCurrency }),
       },
@@ -74,7 +75,7 @@ export async function generateMetadata({
     };
   }
 
-  const listing = await fetchListing(slug);
+  const listing = await fetchListing(slug, locale);
 
   if (!listing) {
     return {
@@ -139,7 +140,7 @@ export default async function ListingDetailPage({
     notFound();
   }
 
-  const listing = await fetchListing(slug);
+  const listing = await fetchListing(slug, locale);
 
   if (!listing) {
     notFound();
