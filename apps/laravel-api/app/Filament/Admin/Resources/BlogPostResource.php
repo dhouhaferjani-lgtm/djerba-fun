@@ -13,7 +13,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use AmidEsfahani\FilamentTinyEditor\TinyEditor;
 use Illuminate\Database\Eloquent\Builder;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 
@@ -150,13 +149,6 @@ class BlogPostResource extends Resource
                             ->visibility('public')
                             ->imageEditor()
                             ->maxSize(10240)
-                            ->getUploadedFileUrlUsing(function ($file) {
-                                if ($file instanceof TemporaryUploadedFile) {
-                                    return $file->temporaryUrl();
-                                }
-
-                                return route('admin.storage.proxy', ['path' => 'blog-images/' . $file]);
-                            })
                             ->helperText(__('filament.helpers.hero_images_help'))
                             ->columnSpanFull(),
                     ]),

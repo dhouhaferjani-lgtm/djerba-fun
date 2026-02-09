@@ -928,14 +928,6 @@ class ListingResource extends Resource
                                                 ->maxSize(5120)
                                                 ->directory('listing-stops')
                                                 ->reorderable()
-                                                ->getUploadedFileUrlUsing(function ($file) {
-                                                    if ($file instanceof TemporaryUploadedFile) {
-                                                        return $file->temporaryUrl();
-                                                    }
-
-                                                    // Default disk is minio — proxy to avoid CORS
-                                                    return route('admin.storage.proxy', ['path' => 'listing-stops/' . $file, 'disk' => 'minio']);
-                                                })
                                                 ->columnSpanFull(),
                                         ])
                                         ->orderColumn('order')

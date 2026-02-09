@@ -596,13 +596,6 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->directory('destinations')
                                     ->disk('public')
                                     ->maxSize(5120)
-                                    ->getUploadedFileUrlUsing(function ($file) {
-                                        if ($file instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                                            return $file->temporaryUrl();
-                                        }
-
-                                        return route('admin.storage.proxy', ['path' => 'destinations/' . $file]);
-                                    })
                                     ->helperText('Recommended: 1200x675px (16:9 ratio). Max 5MB.'),
 
                                 Forms\Components\TextInput::make('link')
@@ -647,13 +640,6 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->imageCropAspectRatio('1:1')
                                     ->imageResizeTargetWidth('300')
                                     ->imageResizeTargetHeight('300')
-                                    ->getUploadedFileUrlUsing(function ($file) {
-                                        if ($file instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                                            return $file->temporaryUrl();
-                                        }
-
-                                        return route('admin.storage.proxy', ['path' => 'testimonials/' . $file]);
-                                    })
                                     ->helperText('Square photo recommended. Max 2MB.'),
 
                                 Forms\Components\Textarea::make('text_fr')
