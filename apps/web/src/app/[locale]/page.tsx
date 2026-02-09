@@ -20,6 +20,7 @@ import {
   getHeroData,
   getBrandPillarsData,
   getFeaturedDestinations,
+  getTestimonials,
 } from '@/lib/api/server';
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -35,6 +36,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     cmsPage,
     featuredListings,
     featuredDestinations,
+    testimonials,
   ] = await Promise.all([
     getBrandingUrls(locale),
     getEventOfYearData(locale),
@@ -43,6 +45,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     getPageByCode({ code: 'HOME', locale }).catch(() => null),
     getFeaturedListings(3),
     getFeaturedDestinations(locale),
+    getTestimonials(locale),
   ]);
 
   return (
@@ -66,7 +69,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <>
           <PromoBannerSection locale={locale} eventOfYear={eventOfYear} />
           <ExperienceCategoriesSection />
-          <TestimonialsSection />
+          <TestimonialsSection testimonials={testimonials} locale={locale} />
           <DestinationsBentoGrid locale={locale} cmsDestinations={featuredDestinations} />
           <CTASectionWithBlobs locale={locale} />
         </>

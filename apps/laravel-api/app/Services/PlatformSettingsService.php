@@ -202,6 +202,13 @@ class PlatformSettingsService
 
                 return $dest;
             })->values()->toArray(),
+            'testimonials' => collect($s->testimonials ?? [])->map(function ($testimonial) {
+                if (! empty($testimonial['photo']) && ! str_starts_with($testimonial['photo'], 'http')) {
+                    $testimonial['photo'] = asset('storage/'.$testimonial['photo']);
+                }
+
+                return $testimonial;
+            })->values()->toArray(),
         ];
     }
 

@@ -12,7 +12,14 @@ interface Testimonial {
   text: string;
 }
 
-const testimonials: Testimonial[] = [
+export interface CmsTestimonial {
+  name: string;
+  photo: string;
+  text_en: string;
+  text_fr: string;
+}
+
+const defaultTestimonials: Testimonial[] = [
   {
     id: '1',
     name: 'Nathalie',
@@ -33,17 +40,38 @@ const testimonials: Testimonial[] = [
   },
 ];
 
-export function TestimonialsSection() {
+interface TestimonialsSectionProps {
+  testimonials?: CmsTestimonial[];
+  locale?: string;
+}
+
+export function TestimonialsSection({
+  testimonials: cmsTestimonials,
+  locale,
+}: TestimonialsSectionProps) {
   const t = useTranslations('home');
+
+  // Map CMS data to internal format, or fall back to hardcoded defaults
+  const testimonials: Testimonial[] =
+    cmsTestimonials && cmsTestimonials.length > 0
+      ? cmsTestimonials.map((item, index) => ({
+          id: String(index + 1),
+          name: item.name,
+          avatar:
+            item.photo || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80',
+          text: locale === 'en' ? item.text_en : item.text_fr,
+        }))
+      : defaultTestimonials;
+
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToPrevious = useCallback(() => {
     setCurrentIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
-  }, []);
+  }, [testimonials.length]);
 
   const goToNext = useCallback(() => {
     setCurrentIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
-  }, []);
+  }, [testimonials.length]);
 
   const currentTestimonial = testimonials[currentIndex];
 

@@ -127,6 +127,7 @@ class PlatformSettingsPage extends Page implements HasForms
                         $this->logoBrandingTab(),
                         $this->eventOfYearTab(),
                         $this->featuredDestinationsTab(),
+                        $this->testimonialsTab(),
                         $this->seoMetadataTab(),
                         $this->contactInformationTab(),
                         $this->physicalAddressTab(),
@@ -596,6 +597,12 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->disk('public')
                                     ->maxSize(5120)
                                     ->helperText('Recommended: 1200x675px (16:9 ratio). Max 5MB.'),
+
+                                Forms\Components\TextInput::make('link')
+                                    ->label('Custom Link (optional)')
+                                    ->placeholder('/en/listings?location=desert or /en/blog/sahara-guide')
+                                    ->helperText('Leave empty to default to listing search by destination. Can be relative or absolute URL.')
+                                    ->maxLength(500),
                             ])
                             ->columns(2)
                             ->reorderable()
@@ -603,6 +610,56 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
                             ->defaultItems(0)
                             ->maxItems(6),
+                    ]),
+            ]);
+    }
+
+    protected function testimonialsTab(): Forms\Components\Tabs\Tab
+    {
+        return Forms\Components\Tabs\Tab::make('Testimonials')
+            ->icon('heroicon-o-chat-bubble-left-right')
+            ->schema([
+                Forms\Components\Section::make('Customer Testimonials')
+                    ->description('Manage testimonials displayed in the "Ils ont vécu l\'aventure avec nous" section on the homepage. Maximum 10 testimonials.')
+                    ->schema([
+                        Forms\Components\Repeater::make('testimonials')
+                            ->label('Testimonials')
+                            ->schema([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Customer Name')
+                                    ->required()
+                                    ->maxLength(100),
+
+                                Forms\Components\FileUpload::make('photo')
+                                    ->label('Photo')
+                                    ->image()
+                                    ->directory('testimonials')
+                                    ->disk('public')
+                                    ->maxSize(2048)
+                                    ->imageResizeMode('cover')
+                                    ->imageCropAspectRatio('1:1')
+                                    ->imageResizeTargetWidth('300')
+                                    ->imageResizeTargetHeight('300')
+                                    ->helperText('Square photo recommended. Max 2MB.'),
+
+                                Forms\Components\Textarea::make('text_fr')
+                                    ->label('Testimonial (Français)')
+                                    ->required()
+                                    ->rows(3)
+                                    ->maxLength(1000),
+
+                                Forms\Components\Textarea::make('text_en')
+                                    ->label('Testimonial (English)')
+                                    ->required()
+                                    ->rows(3)
+                                    ->maxLength(1000),
+                            ])
+                            ->columns(2)
+                            ->reorderable()
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                            ->defaultItems(0)
+                            ->maxItems(10),
                     ]),
             ]);
     }

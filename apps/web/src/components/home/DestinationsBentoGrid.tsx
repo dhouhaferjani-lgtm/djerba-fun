@@ -13,6 +13,7 @@ const defaultDestinations = [
     description: 'Cultural heart of Djerba',
     descriptionFr: 'Cœur culturel de Djerba',
     image: '/images/destinations/houmet-souk.jpg',
+    link: null as string | null,
     blurDataURL:
       'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAKCAYAAAC9vt6cAAAACXBIWXMAAAsTAAALEwEAmpwYAAABEklEQVQokY2RsU7DMBCGP9upEkICA0gsLEhsLIhnYGPgCXgTXoSFN2BhYWRkYGRAYkBCQkJCQuqktnNnBpMoStqe9Ov+s+67/05Uvd1KNBZjDcYYrLWICCLyq4H/NlX9jQMQEay1GGNYXyjQuxxy9fAeO/gkjiOsNQS+TxT4GGNYXyiWAlT1DzDWUq3V6HZ7dLs9arUa1loWF8NSQK1Ww/f9CUCtVgOg0WgQhiHtdptms0kYhtRqNQDq9fq/gGq1ShRFdDod2u02URRRrVYBaDab0wFJkvD+/o6I0Gq1aLVa9Pt9RIQkSQBoNBrTAVEU8fLyQpIkvL6+kiQJz8/PRCGJBAHI4xjyeDwmjuPZgB/yF+d+Af7rJwAAAABJRU5ErkJggg==',
   },
@@ -22,6 +23,7 @@ const defaultDestinations = [
     description: 'Pottery village',
     descriptionFr: 'Village des potiers',
     image: '/images/destinations/guellala.jpg',
+    link: null as string | null,
     blurDataURL:
       'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAKCAYAAAC9vt6cAAAACXBIWXMAAAsTAAALEwEAmpwYAAABDklEQVQokY2RMU7DQBBF38yuHUdJQUEBEhUVEjcAiYKOgoqSC3AGrsANOAM34AZcgIqGgoKCAgkJCQkJydne3aFYJ44TJ4w0mv/1Z2Y0ouPzqxhjMcZgjMFay88G/9tU9TcOQEQwxmCMYX2hQO9iyOXje+zoizgKsdYQ+D5h4GOMYXWhWApQ1T/AWEu5UqbT6dDpdihXylhrWVoMSwHlchnf9ycApVIJgFqtRhAENJtNGo0GQRBQKBQA8H2/FFAsFomiiFarRbPZJIoiisUiAI1Go0RAu93m7e0NEaHRaNBoNOj1eogI7XYbAM/zpgPCMOTl5QURod1u0263eX5+JgxDPM+bDvA8j8fHR0SkFPAD09Dh/tKzf38AAAAASUVORK5CYII=',
   },
@@ -31,6 +33,7 @@ const defaultDestinations = [
     description: 'Flamingo sanctuary',
     descriptionFr: 'Sanctuaire des flamants',
     image: '/images/destinations/ile-flamants-roses.jpg',
+    link: null as string | null,
     blurDataURL:
       'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMCwsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAKABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABwgJ/8QAJBAAAgEDBAICAwAAAAAAAAAAAQIDBAURBgcSIQAIEzFBUWH/xAAVAQEBAAAAAAAAAAAAAAAAAAADBP/EABsRAAICAwEAAAAAAAAAAAAAAAECAAMEESFB/9oADAMBAAIRAxEAPwDU+4b0W+1brbRXyiqruaKoSeNYpfid3Q5XkSCQMj99Dz1i70bg7T+u9Gbj6R01a7ZqN6mspquCrimjqopY+DxSq6xgniyuuGI4n7U9HrnrHQW7VJYKHWFrq7hHaJXltzQ1jUzRO4AdSTG4dCQAN1YAMenw6ftytp9utldLbV6G0zbtOVV5t0lHeK+jqZqir+OSVDI8crOzPwUBDzyOMD9YGdM1iu2X0gRlLyKKbT3P/9k=',
   },
@@ -47,6 +50,7 @@ interface CmsDestination {
   description_en: string;
   description_fr: string;
   image: string;
+  link?: string;
 }
 
 // Grid positions - defines the layout
@@ -80,6 +84,7 @@ export function DestinationsBentoGrid({ locale, cmsDestinations }: DestinationsB
           descriptionFr: d.description_fr,
           image: d.image,
           blurDataURL: DEFAULT_BLUR,
+          link: d.link || null,
         }))
       : defaultDestinations;
   const [rotationOffset, setRotationOffset] = useState(0);
@@ -211,7 +216,9 @@ export function DestinationsBentoGrid({ locale, cmsDestinations }: DestinationsB
             return (
               <Link
                 key={`pos-${posIndex}`}
-                href={`/${locale}/listings?location=${destination.id}`}
+                href={
+                  (destination.link || `/${locale}/listings?location=${destination.id}`) as never
+                }
                 className="group relative overflow-hidden rounded-2xl shadow-lg"
                 style={{
                   gridArea: position.gridArea,
@@ -306,7 +313,7 @@ export function DestinationsBentoGrid({ locale, cmsDestinations }: DestinationsB
           {destinations.map((destination, index) => (
             <Link
               key={destination.id}
-              href={`/${locale}/listings?location=${destination.id}`}
+              href={(destination.link || `/${locale}/listings?location=${destination.id}`) as never}
               className={`group relative overflow-hidden rounded-2xl shadow-md ${
                 index === 0 ? 'h-56' : 'h-40'
               }`}

@@ -227,6 +227,9 @@ class PlatformSettings extends Model implements HasMedia
 
         // Featured Destinations (Bento Grid Section)
         'featured_destinations',
+
+        // Testimonials (Homepage)
+        'testimonials',
     ];
 
     protected function casts(): array
@@ -242,6 +245,7 @@ class PlatformSettings extends Model implements HasMedia
             'rtl_locales' => 'array',
             'vendor_kyc_document_types' => 'array',
             'featured_destinations' => 'array',
+            'testimonials' => 'array',
 
             // Booleans
             'enable_reviews' => 'boolean',

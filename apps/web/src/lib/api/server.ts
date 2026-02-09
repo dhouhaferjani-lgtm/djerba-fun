@@ -218,6 +218,24 @@ export async function getFeaturedDestinations(locale?: string) {
       description_en: string;
       description_fr: string;
       image: string;
+      link?: string;
+    }>) ?? []
+  );
+}
+
+/**
+ * Get Testimonials from platform settings.
+ * Returns empty array if settings cannot be fetched (frontend will use hardcoded defaults).
+ */
+export async function getTestimonials(locale?: string) {
+  const settings = await getPlatformSettings(locale);
+  const testimonials = (settings?.data as Record<string, unknown>)?.testimonials;
+  return (
+    (testimonials as Array<{
+      name: string;
+      photo: string;
+      text_en: string;
+      text_fr: string;
     }>) ?? []
   );
 }
