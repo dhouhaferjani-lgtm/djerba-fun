@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 
 // --- Inline hooks ---
 
@@ -12,7 +13,12 @@ function useCountUp(end: number, duration: number, decimals: number, trigger: bo
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    if (!trigger) return;
+    if (!trigger) {
+      // Reset when trigger goes false (section leaves viewport)
+      setValue(0);
+      setDone(false);
+      return;
+    }
     const start = performance.now();
     const step = (now: number) => {
       const elapsed = now - start;
@@ -31,6 +37,49 @@ function useCountUp(end: number, duration: number, decimals: number, trigger: bo
 
   return { value: decimals > 0 ? value.toFixed(decimals) : Math.floor(value).toString(), done };
 }
+
+// --- Framer-motion variants ---
+
+const containerVariants: Variants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 80 : -80,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      x: { type: 'spring', stiffness: 300, damping: 30 },
+      opacity: { duration: 0.2 },
+      staggerChildren: 0.1,
+    },
+  },
+  exit: (direction: number) => ({
+    x: direction > 0 ? -80 : 80,
+    opacity: 0,
+    transition: {
+      x: { type: 'spring', stiffness: 300, damping: 30 },
+      opacity: { duration: 0.15 },
+    },
+  }),
+};
+
+const childVariants: Variants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 30 : -30,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 300, damping: 30 },
+  },
+  exit: (direction: number) => ({
+    x: direction > 0 ? -30 : 30,
+    opacity: 0,
+    transition: { duration: 0.15 },
+  }),
+};
 
 // --- Interfaces ---
 
@@ -94,7 +143,7 @@ export function TestimonialsSection({
         }))
       : defaultTestimonials;
 
-  // --- IntersectionObserver for scroll-triggered count-up ---
+  // --- IntersectionObserver — replays on every scroll in/out ---
   const statsRef = useRef<HTMLDivElement>(null);
   const [isInView, setIsInView] = useState(false);
 
@@ -103,10 +152,7 @@ export function TestimonialsSection({
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
+        setIsInView(entry.isIntersecting);
       },
       { threshold: 0.3 }
     );
@@ -115,7 +161,6 @@ export function TestimonialsSection({
   }, []);
 
   // --- Count-up animations ---
-  // Parse numeric values from translation strings
   const feedbackCountStr = t('testimonials_feedback_count'); // e.g. "500+"
   const feedbackNum = parseFloat(feedbackCountStr.replace(/[^0-9.]/g, '')) || 500;
   const feedbackSuffix = feedbackCountStr.replace(/[0-9.]/g, ''); // e.g. "+"
@@ -129,7 +174,7 @@ export function TestimonialsSection({
 
   // --- Carousel state ---
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [direction, setDirection] = useState(1);
   const isPausedRef = useRef(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [progressKey, setProgressKey] = useState(0);
@@ -140,11 +185,8 @@ export function TestimonialsSection({
 
     const advance = () => {
       if (isPausedRef.current) return;
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-        setTimeout(() => setIsTransitioning(false), 50);
-      }, 200);
+      setDirection(1);
+      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
     };
 
     intervalRef.current = setInterval(advance, AUTOPLAY_INTERVAL);
@@ -158,20 +200,14 @@ export function TestimonialsSection({
   }, [resetAutoplay]);
 
   const goToPrevious = useCallback(() => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
-      setTimeout(() => setIsTransitioning(false), 50);
-    }, 200);
+    setDirection(-1);
+    setCurrentIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
     resetAutoplay();
   }, [testimonials.length, resetAutoplay]);
 
   const goToNext = useCallback(() => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
-      setTimeout(() => setIsTransitioning(false), 50);
-    }, 200);
+    setDirection(1);
+    setCurrentIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
     resetAutoplay();
   }, [testimonials.length, resetAutoplay]);
 
@@ -188,22 +224,18 @@ export function TestimonialsSection({
   return (
     <section className="py-16 md:py-20 bg-cream">
       {/* Pop animation keyframes */}
-      <style jsx>{`
-        @keyframes pop {
-          0% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.15);
-          }
-          100% {
-            transform: scale(1);
-          }
-        }
-        .animate-pop {
-          animation: pop 0.3s ease-out;
-        }
-      `}</style>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes pop {
+              0% { transform: scale(1); }
+              50% { transform: scale(1.15); }
+              100% { transform: scale(1); }
+            }
+            .animate-pop { animation: pop 0.3s ease-out; }
+          `,
+        }}
+      />
 
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
@@ -260,36 +292,49 @@ export function TestimonialsSection({
 
             {/* Right Side - Testimonial Carousel */}
             <div
-              className="bg-white rounded-2xl p-6 md:p-8 shadow-sm"
+              className="bg-white rounded-2xl p-6 md:p-8 shadow-sm overflow-hidden"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
-              {/* Animated testimonial content */}
-              <div
-                className={`transition-all duration-200 ${
-                  isTransitioning ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0'
-                }`}
-              >
-                {/* Avatar and Name */}
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-primary/20">
-                    <Image
-                      src={currentTestimonial.avatar}
-                      alt={currentTestimonial.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <p className="font-semibold text-lg text-neutral-900">
-                    {currentTestimonial.name}
-                  </p>
-                </div>
+              {/* Animated testimonial content with framer-motion */}
+              <AnimatePresence mode="wait" initial={false} custom={direction}>
+                <motion.div
+                  key={currentIndex}
+                  custom={direction}
+                  variants={containerVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                >
+                  {/* Child 1: Avatar + Name */}
+                  <motion.div
+                    className="flex items-center gap-4 mb-6"
+                    variants={childVariants}
+                    custom={direction}
+                  >
+                    <div className="relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-primary/20 flex-shrink-0">
+                      <Image
+                        src={currentTestimonial.avatar}
+                        alt={currentTestimonial.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <p className="font-semibold text-lg text-neutral-900">
+                      {currentTestimonial.name}
+                    </p>
+                  </motion.div>
 
-                {/* Testimonial Text */}
-                <blockquote className="text-neutral-700 leading-relaxed mb-8 min-h-[120px]">
-                  {currentTestimonial.text}
-                </blockquote>
-              </div>
+                  {/* Child 2: Quote text */}
+                  <motion.blockquote
+                    className="text-neutral-700 leading-relaxed mb-8 min-h-[120px]"
+                    variants={childVariants}
+                    custom={direction}
+                  >
+                    {currentTestimonial.text}
+                  </motion.blockquote>
+                </motion.div>
+              </AnimatePresence>
 
               {/* Navigation */}
               <div className="flex items-center justify-between">
