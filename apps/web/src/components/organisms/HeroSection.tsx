@@ -8,7 +8,7 @@ import { shouldUnoptimizeImage } from '@/lib/utils/image';
 import { travelTipsApi, type TravelTip } from '@/lib/api/client';
 
 // Default hero image - used when no custom banner is set
-const DEFAULT_HERO_IMAGE = '/images/hero/go-adventure-bg.webp';
+const DEFAULT_HERO_IMAGE = '/images/hero/hero-banner.jpg';
 
 // Timing constants
 const TYPING_SPEED = 30; // ms per character
