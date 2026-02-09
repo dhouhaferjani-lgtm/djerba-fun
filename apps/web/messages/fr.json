@@ -13,7 +13,7 @@
     "explore": "Explorer",
     "view_all": "Voir Tout",
     "get_started": "Commencer",
-    "register_now": "S'inscrire Maintenant",
+    "register_now": "Réserver",
     "package": "Forfait",
     "packages": "Forfaits",
     "back": "Retour",
@@ -169,6 +169,24 @@
     "duration": "Durée",
     "difficulty": "Difficulté",
     "group_size": "Taille du Groupe",
+    "default_location": "Tunisie",
+    "default_tour_type": "Visite guidée",
+    "default_event_type": "Événement spécial",
+    "max_guests": "Max {count} voyageurs",
+    "difficulty_level": {
+      "easy": "Facile",
+      "moderate": "Modérée",
+      "hard": "Difficile",
+      "extreme": "Extrême"
+    },
+    "duration_unit": {
+      "days": "jours",
+      "hours": "heures",
+      "minutes": "minutes",
+      "day": "jour",
+      "hour": "heure",
+      "minute": "minute"
+    },
     "check_availability": "Vérifier la Disponibilité",
     "pricing_not_configured": "Tarification pas encore configurée",
     "trust_signals": {

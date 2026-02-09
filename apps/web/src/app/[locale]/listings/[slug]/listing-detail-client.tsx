@@ -931,8 +931,8 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   {listing.serviceType === 'tour'
                     ? listing.activityType
                       ? tr(listing.activityType.name)
-                      : 'Guided Tour'
-                    : 'Special Event'}
+                      : t('default_tour_type')
+                    : t('default_event_type')}
                 </span>
               </div>
 
@@ -945,13 +945,13 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
               <div className="flex flex-wrap gap-4 text-sm text-body">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-primary" />
-                  <span>{listing.meetingPoint?.address || 'Tunisia'}</span>
+                  <span>{listing.meetingPoint?.address || t('default_location')}</span>
                 </div>
                 {listing.serviceType === 'tour' && listing.duration && (
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-primary" />
                     <span>
-                      {listing.duration.value} {listing.duration.unit}
+                      {listing.duration.value} {t(`duration_unit.${listing.duration.unit}`)}
                     </span>
                   </div>
                 )}
@@ -970,18 +970,20 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                         d="M13 10V3L4 14h7v7l9-11h-7z"
                       />
                     </svg>
-                    <span className="capitalize">{listing.difficulty}</span>
+                    <span className="capitalize">
+                      {t(`difficulty_level.${listing.difficulty}`)}
+                    </span>
                   </div>
                 )}
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-primary" />
-                  <span>Max {listing.maxGroupSize} guests</span>
+                  <span>{t('max_guests', { count: listing.maxGroupSize })}</span>
                 </div>
                 {listing.rating && (
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4 fill-secondary text-secondary" />
                     <span className="font-semibold">{listing.rating}</span>
-                    <span>({listing.reviewsCount || 0} reviews)</span>
+                    <span>({tCommon('reviews', { count: listing.reviewsCount || 0 })})</span>
                   </div>
                 )}
               </div>

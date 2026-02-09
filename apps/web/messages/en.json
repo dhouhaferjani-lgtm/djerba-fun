@@ -13,7 +13,7 @@
     "explore": "Explore",
     "view_all": "View All",
     "get_started": "Get Started",
-    "register_now": "Register Now",
+    "register_now": "Book Now",
     "package": "Package",
     "packages": "Packages",
     "back": "Back",
@@ -169,6 +169,24 @@
     "duration": "Duration",
     "difficulty": "Difficulty",
     "group_size": "Group Size",
+    "default_location": "Tunisia",
+    "default_tour_type": "Guided Tour",
+    "default_event_type": "Special Event",
+    "max_guests": "Max {count} guests",
+    "difficulty_level": {
+      "easy": "Easy",
+      "moderate": "Moderate",
+      "hard": "Hard",
+      "extreme": "Extreme"
+    },
+    "duration_unit": {
+      "days": "days",
+      "hours": "hours",
+      "minutes": "minutes",
+      "day": "day",
+      "hour": "hour",
+      "minute": "minute"
+    },
     "check_availability": "Check Availability",
     "pricing_not_configured": "Pricing not yet configured",
     "trust_signals": {
