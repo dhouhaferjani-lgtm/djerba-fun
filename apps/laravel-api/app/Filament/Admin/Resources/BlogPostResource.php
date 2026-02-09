@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Filament\Admin\Resources\BlogPostResource\Pages;
 use App\Models\BlogPost;
 use Filament\Forms;
+use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
@@ -149,6 +150,19 @@ class BlogPostResource extends Resource
                             ->visibility('public')
                             ->imageEditor()
                             ->maxSize(10240)
+                            ->getUploadedFileUsing(static function (BaseFileUpload $component, string $file): ?array {
+                                $storage = $component->getDisk();
+                                if (! $storage->exists($file)) {
+                                    return null;
+                                }
+
+                                return [
+                                    'name' => basename($file),
+                                    'size' => $storage->size($file),
+                                    'type' => $storage->mimeType($file),
+                                    'url' => route('admin.storage.proxy', ['path' => $file]),
+                                ];
+                            })
                             ->helperText(__('filament.helpers.hero_images_help'))
                             ->columnSpanFull(),
                     ]),

@@ -11,6 +11,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -596,6 +597,19 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->directory('destinations')
                                     ->disk('public')
                                     ->maxSize(5120)
+                                    ->getUploadedFileUsing(static function (BaseFileUpload $component, string $file): ?array {
+                                        $storage = $component->getDisk();
+                                        if (! $storage->exists($file)) {
+                                            return null;
+                                        }
+
+                                        return [
+                                            'name' => basename($file),
+                                            'size' => $storage->size($file),
+                                            'type' => $storage->mimeType($file),
+                                            'url' => route('admin.storage.proxy', ['path' => $file]),
+                                        ];
+                                    })
                                     ->helperText('Recommended: 1200x675px (16:9 ratio). Max 5MB.'),
 
                                 Forms\Components\TextInput::make('link')
@@ -640,6 +654,19 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->imageCropAspectRatio('1:1')
                                     ->imageResizeTargetWidth('300')
                                     ->imageResizeTargetHeight('300')
+                                    ->getUploadedFileUsing(static function (BaseFileUpload $component, string $file): ?array {
+                                        $storage = $component->getDisk();
+                                        if (! $storage->exists($file)) {
+                                            return null;
+                                        }
+
+                                        return [
+                                            'name' => basename($file),
+                                            'size' => $storage->size($file),
+                                            'type' => $storage->mimeType($file),
+                                            'url' => route('admin.storage.proxy', ['path' => $file]),
+                                        ];
+                                    })
                                     ->helperText('Square photo recommended. Max 2MB.'),
 
                                 Forms\Components\Textarea::make('text_fr')

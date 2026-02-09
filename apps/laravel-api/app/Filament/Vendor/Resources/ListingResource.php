@@ -14,6 +14,7 @@ use App\Models\Listing;
 use App\Models\Location;
 use App\Services\GpxParserService;
 use Filament\Forms;
+use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -928,6 +929,21 @@ class ListingResource extends Resource
                                                 ->maxSize(5120)
                                                 ->directory('listing-stops')
                                                 ->reorderable()
+                                                ->getUploadedFileUsing(static function (BaseFileUpload $component, string $file): ?array {
+                                                    $storage = $component->getDisk();
+                                                    if (! $storage->exists($file)) {
+                                                        return null;
+                                                    }
+
+                                                    $diskName = $component->getDiskName() ?? 'public';
+
+                                                    return [
+                                                        'name' => basename($file),
+                                                        'size' => $storage->size($file),
+                                                        'type' => $storage->mimeType($file),
+                                                        'url' => route('admin.storage.proxy', ['path' => $file, 'disk' => $diskName]),
+                                                    ];
+                                                })
                                                 ->columnSpanFull(),
                                         ])
                                         ->orderColumn('order')

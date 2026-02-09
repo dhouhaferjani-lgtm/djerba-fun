@@ -7,11 +7,13 @@ namespace App\Filament\Vendor\Resources\ListingResource\RelationManagers;
 use App\Enums\MediaCategory;
 use App\Models\Media;
 use Filament\Forms;
+use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+
 class MediaRelationManager extends RelationManager
 {
     protected static string $relationship = 'media';
@@ -36,6 +38,19 @@ class MediaRelationManager extends RelationManager
                     ->imageResizeTargetHeight('1080')
                     ->imageCropAspectRatio(null) // Allow any aspect ratio
                     ->helperText('Recommended: 1920x1080px or similar, max 10MB')
+                    ->getUploadedFileUsing(static function (BaseFileUpload $component, string $file): ?array {
+                        $storage = $component->getDisk();
+                        if (! $storage->exists($file)) {
+                            return null;
+                        }
+
+                        return [
+                            'name' => basename($file),
+                            'size' => $storage->size($file),
+                            'type' => $storage->mimeType($file),
+                            'url' => route('admin.storage.proxy', ['path' => $file]),
+                        ];
+                    })
                     ->columnSpanFull(),
 
                 Forms\Components\TextInput::make('alt')
