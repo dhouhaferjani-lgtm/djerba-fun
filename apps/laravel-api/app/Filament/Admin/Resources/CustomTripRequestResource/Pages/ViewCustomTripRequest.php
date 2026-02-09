@@ -6,8 +6,11 @@ namespace App\Filament\Admin\Resources\CustomTripRequestResource\Pages;
 
 use App\Enums\CustomTripRequestStatus;
 use App\Filament\Admin\Resources\CustomTripRequestResource;
+use App\Mail\CustomTripRequestConfirmationMail;
 use App\Models\CustomTripRequest;
+use App\Services\EmailLogService;
 use Filament\Actions;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewCustomTripRequest extends ViewRecord
@@ -17,6 +20,37 @@ class ViewCustomTripRequest extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('resend_confirmation')
+                ->label('Resend Confirmation Email')
+                ->icon('heroicon-o-envelope')
+                ->color('warning')
+                ->requiresConfirmation()
+                ->modalHeading('Resend Confirmation Email')
+                ->modalDescription('This will send a new confirmation email to the traveler.')
+                ->action(function (CustomTripRequest $record) {
+                    try {
+                        $service = app(EmailLogService::class);
+                        $service->queue(
+                            $record->contact_email,
+                            new CustomTripRequestConfirmationMail($record),
+                            null,
+                            ['name' => $record->contact_name, 'phone' => $record->contact_phone]
+                        );
+
+                        Notification::make()
+                            ->success()
+                            ->title('Confirmation email queued')
+                            ->body("Email queued for {$record->contact_email}")
+                            ->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()
+                            ->danger()
+                            ->title('Email failed')
+                            ->body($e->getMessage())
+                            ->send();
+                    }
+                }),
+
             Actions\Action::make('mark_contacted')
                 ->label('Mark as Contacted')
                 ->icon('heroicon-o-phone')

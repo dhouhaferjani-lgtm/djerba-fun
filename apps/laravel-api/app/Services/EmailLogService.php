@@ -274,19 +274,8 @@ class EmailLogService
             throw new \RuntimeException('This email cannot be resent.');
         }
 
-        // Get the original mailable class and booking
-        $mailClass = $emailLog->email_class;
+        $mailable = $this->reconstructMailable($emailLog);
         $booking = $emailLog->booking;
-
-        if (! $booking) {
-            throw new \RuntimeException('Cannot resend: booking not found.');
-        }
-
-        // Reload booking with relationships
-        $booking->load(['listing', 'availabilitySlot', 'user']);
-
-        // Instantiate the mailable
-        $mailable = new $mailClass($booking);
 
         // Create new email log entry and queue
         return $this->queue(
@@ -298,5 +287,43 @@ class EmailLogService
                 'phone' => $emailLog->recipient_phone,
             ]
         );
+    }
+
+    /**
+     * Reconstruct the original mailable from an EmailLog record.
+     */
+    protected function reconstructMailable(EmailLog $emailLog): Mailable
+    {
+        $mailClass = $emailLog->email_class;
+
+        // Handle custom trip request emails (no booking)
+        if ($mailClass === \App\Mail\CustomTripRequestConfirmationMail::class) {
+            $customTripRequest = \App\Models\CustomTripRequest::where('contact_email', $emailLog->recipient_email)
+                ->where('created_at', '>=', $emailLog->created_at->subMinutes(5))
+                ->where('created_at', '<=', $emailLog->created_at->addMinutes(5))
+                ->first();
+
+            if (! $customTripRequest) {
+                throw new \RuntimeException('Cannot resend: custom trip request not found for this email.');
+            }
+
+            return new $mailClass($customTripRequest);
+        }
+
+        // Handle contact form emails (no booking)
+        if ($mailClass === \App\Mail\ContactFormMail::class) {
+            throw new \RuntimeException('Contact form emails cannot be resent.');
+        }
+
+        // Default: booking-based emails
+        $booking = $emailLog->booking;
+
+        if (! $booking) {
+            throw new \RuntimeException('Cannot resend: booking not found.');
+        }
+
+        $booking->load(['listing', 'availabilitySlot', 'user']);
+
+        return new $mailClass($booking);
     }
 }

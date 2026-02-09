@@ -6,11 +6,14 @@ namespace App\Filament\Admin\Resources;
 
 use App\Enums\CustomTripRequestStatus;
 use App\Filament\Admin\Resources\CustomTripRequestResource\Pages;
+use App\Mail\CustomTripRequestConfirmationMail;
 use App\Models\CustomTripRequest;
+use App\Services\EmailLogService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -163,6 +166,36 @@ class CustomTripRequestResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\Action::make('resend_confirmation')
+                    ->label('Resend Email')
+                    ->icon('heroicon-o-envelope')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Resend Confirmation Email')
+                    ->modalDescription('This will send a new confirmation email to the traveler.')
+                    ->action(function (CustomTripRequest $record) {
+                        try {
+                            $service = app(EmailLogService::class);
+                            $service->queue(
+                                $record->contact_email,
+                                new CustomTripRequestConfirmationMail($record),
+                                null,
+                                ['name' => $record->contact_name, 'phone' => $record->contact_phone]
+                            );
+
+                            Notification::make()
+                                ->success()
+                                ->title('Confirmation email queued')
+                                ->body("Email queued for {$record->contact_email}")
+                                ->send();
+                        } catch (\Throwable $e) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Email failed')
+                                ->body($e->getMessage())
+                                ->send();
+                        }
+                    }),
                 Tables\Actions\Action::make('mark_contacted')
                     ->label(__('filament.custom_trip.mark_contacted'))
                     ->icon('heroicon-o-phone')

@@ -116,8 +116,8 @@ class EmailLogResource extends Resource
                         Infolists\Components\TextEntry::make('vendor.display_name')
                             ->label('Vendor')
                             ->placeholder('N/A'),
-                        Infolists\Components\TextEntry::make('mailgun_message_id')
-                            ->label('Mailgun ID')
+                        Infolists\Components\TextEntry::make('provider_message_id')
+                            ->label('Provider Message ID')
                             ->placeholder('N/A')
                             ->copyable(),
                     ])

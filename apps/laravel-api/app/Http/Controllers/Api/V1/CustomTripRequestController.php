@@ -124,8 +124,9 @@ class CustomTripRequestController extends Controller
             );
         } catch (\Throwable $e) {
             // Don't let email errors break the request submission
-            Log::warning('Failed to send custom trip request confirmation email', [
+            Log::error('Failed to send custom trip request confirmation email', [
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
                 'request_id' => $customTripRequest->id,
                 'email' => $customTripRequest->contact_email,
             ]);
