@@ -187,6 +187,7 @@
       "hour": "heure",
       "minute": "minute"
     },
+    "price_on_request": "Prix sur demande",
     "check_availability": "Vérifier la Disponibilité",
     "pricing_not_configured": "Tarification pas encore configurée",
     "trust_signals": {
@@ -623,7 +624,9 @@
     "all_tags": "Tous les Tags",
     "newest_first": "Plus Récents",
     "oldest_first": "Plus Anciens",
-    "clear_filters": "Effacer les Filtres"
+    "clear_filters": "Effacer les Filtres",
+    "min_read": "min de lecture",
+    "view_photos": "Voir {count} Photos"
   },
   "footer": {
     "tagline": "Vivez la Tunisie autrement. Des expériences authentiques avec des guides locaux passionnés",

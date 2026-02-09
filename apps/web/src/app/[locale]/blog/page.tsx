@@ -40,10 +40,12 @@ function BlogPostsGrid({
   posts,
   locale,
   noPostsText,
+  minReadLabel,
 }: {
   posts: BlogPost[];
   locale: string;
   noPostsText: string;
+  minReadLabel: string;
 }) {
   // Helper to resolve translations with fallback
   const tr = (field: TranslatableField) => resolveTranslation(field, locale);
@@ -96,7 +98,9 @@ function BlogPostsGrid({
 
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>{post.author.name}</span>
-              <span>{post.readTimeMinutes} min read</span>
+              <span>
+                {post.readTimeMinutes} {minReadLabel}
+              </span>
             </div>
           </div>
         </Link>
@@ -180,7 +184,12 @@ export default async function BlogPage({ params, searchParams }: PageProps) {
         </Suspense>
 
         {/* Posts Grid */}
-        <BlogPostsGrid posts={posts} locale={locale} noPostsText={t('no_posts')} />
+        <BlogPostsGrid
+          posts={posts}
+          locale={locale}
+          noPostsText={t('no_posts')}
+          minReadLabel={t('min_read')}
+        />
       </section>
     </MainLayout>
   );

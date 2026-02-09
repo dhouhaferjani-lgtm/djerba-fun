@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { Images } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
@@ -24,6 +25,7 @@ export function BlogHeroCarousel({
   readTimeMinutes,
   onOpenLightbox,
 }: BlogHeroCarouselProps) {
+  const t = useTranslations('blog');
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Auto-rotate every 5 seconds (only if multiple images)
@@ -69,7 +71,9 @@ export function BlogHeroCarousel({
             <span>•</span>
             <span>{new Date(publishedAt).toLocaleDateString()}</span>
             <span>•</span>
-            <span>{readTimeMinutes} min read</span>
+            <span>
+              {readTimeMinutes} {t('min_read')}
+            </span>
           </div>
         </div>
       </div>
@@ -117,7 +121,9 @@ export function BlogHeroCarousel({
           <span>•</span>
           <span>{new Date(publishedAt).toLocaleDateString()}</span>
           <span>•</span>
-          <span>{readTimeMinutes} min read</span>
+          <span>
+            {readTimeMinutes} {t('min_read')}
+          </span>
         </div>
       </div>
 
@@ -130,7 +136,7 @@ export function BlogHeroCarousel({
                      rounded-full shadow-lg transition-colors"
         >
           <Images className="w-5 h-5" />
-          <span>View {images.length} Photos</span>
+          <span>{t('view_photos', { count: images.length })}</span>
         </button>
       )}
 

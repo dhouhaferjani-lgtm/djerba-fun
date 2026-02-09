@@ -1,3 +1,5 @@
+'use client';
+
 /* eslint-disable @typescript-eslint/no-explicit-any -- next-intl Link requires typed routes, using any for dynamic hrefs */
 /**
  * Performance Optimization: React.memo applied
@@ -13,6 +15,7 @@
 import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { Card } from '@go-adventure/ui';
 import { RatingStars } from './RatingStars';
 import { PriceDisplay } from './PriceDisplay';
@@ -35,7 +38,8 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
   const mainImageUrl = galleryImage || mediaImage?.url;
   const mainImageAlt = mediaImage?.alt;
   const href = getListingUrl(listing.slug, listing.location, locale as Locale) as any;
-  const t = (field: any) => resolveTranslation(field, locale);
+  const tr = (field: any) => resolveTranslation(field, locale);
+  const tDict = useTranslations('listing');
 
   return (
     <Link href={href} className="group">
@@ -49,7 +53,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
           {mainImageUrl ? (
             <Image
               src={normalizeMediaUrl(mainImageUrl)}
-              alt={t(mainImageAlt) || t(listing.title)}
+              alt={tr(mainImageAlt) || tr(listing.title)}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-110"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -73,7 +77,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
                     : { color: '#0D642E' }
                 }
               >
-                {t(listing.activityType.name)}
+                {tr(listing.activityType.name)}
               </span>
             </div>
           )}
@@ -84,7 +88,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
           {/* Title and Rating */}
           <div>
             <h3 className="font-semibold text-lg text-neutral-900 line-clamp-2 mb-1 group-hover:text-primary transition-colors">
-              {t(listing.title)}
+              {tr(listing.title)}
             </h3>
             {listing.rating && (
               <div className="flex items-center gap-1">
@@ -97,7 +101,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
           {/* Location */}
           <div className="flex items-center gap-1.5 text-sm text-neutral-600">
             <MapPin className="h-4 w-4" />
-            <span>{t(listing.location?.name) || 'Tunisia'}</span>
+            <span>{tr(listing.location?.name) || tDict('default_location')}</span>
           </div>
 
           {/* Duration (if available) */}
@@ -105,7 +109,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
             <div className="flex items-center gap-1.5 text-sm text-neutral-600">
               <Clock className="h-4 w-4" />
               <span>
-                {listing.duration.value} {listing.duration.unit}
+                {listing.duration.value} {tDict(`duration_unit.${listing.duration.unit}`)}
               </span>
             </div>
           )}
@@ -120,7 +124,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
                 showFrom
               />
             ) : (
-              <span className="text-sm text-neutral-500">Price on request</span>
+              <span className="text-sm text-neutral-500">{tDict('price_on_request')}</span>
             )}
           </div>
         </div>

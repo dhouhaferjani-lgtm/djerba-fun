@@ -187,6 +187,7 @@
       "hour": "hour",
       "minute": "minute"
     },
+    "price_on_request": "Price on request",
     "check_availability": "Check Availability",
     "pricing_not_configured": "Pricing not yet configured",
     "trust_signals": {
@@ -671,7 +672,9 @@
     "all_tags": "All Tags",
     "newest_first": "Newest First",
     "oldest_first": "Oldest First",
-    "clear_filters": "Clear Filters"
+    "clear_filters": "Clear Filters",
+    "min_read": "min read",
+    "view_photos": "View {count} Photos"
   },
   "footer": {
     "tagline": "Discover authentic Tunisian adventures with eco-friendly practices and local expertise. Your journey to extraordinary experiences starts here",
