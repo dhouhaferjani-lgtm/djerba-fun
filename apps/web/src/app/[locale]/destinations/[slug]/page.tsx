@@ -53,6 +53,39 @@ async function getLocationData(
   }
 }
 
+// --- Destination-specific SEO metadata ---
+
+const destinationSeoMeta: Record<
+  string,
+  { titleEn: string; titleFr: string; descEn: string; descFr: string }
+> = {
+  djerba: {
+    titleEn: 'Djerba, Tunisia — UNESCO Island, Beaches & Culture | Go Adventure',
+    titleFr: 'Djerba, Tunisie — Île UNESCO, Plages & Culture | Go Adventure',
+    descEn:
+      'Explore Djerba, the largest island in North Africa. UNESCO World Heritage Site with 20+ beaches, El Ghriba Synagogue, Djerbahood street art, and Houmt Souk markets. Book authentic tours and activities.',
+    descFr:
+      "Explorez Djerba, la plus grande île d'Afrique du Nord. Site du patrimoine mondial UNESCO avec plus de 20 plages, la synagogue de la Ghriba, le street art Djerbahood et les marchés de Houmt Souk. Réservez des tours et activités authentiques.",
+  },
+  dhaher: {
+    titleEn: 'Dahar Region, Tunisia — Berber Villages, Trekking & Star Wars Sites | Go Adventure',
+    titleFr:
+      'Région du Dahar, Tunisie — Villages Berbères, Randonnée & Sites Star Wars | Go Adventure',
+    descEn:
+      'Discover the Dahar highlands of southern Tunisia. Trek the 194 km Great Dahar Crossing, visit Chenini & Douiret troglodyte villages, explore Star Wars filming locations at Ksar Ouled Soltane, and find dinosaur footprints.',
+    descFr:
+      'Découvrez les hauts plateaux du Dahar dans le sud tunisien. Parcourez les 194 km de la Grande Traversée du Dahar, visitez les villages troglodytiques de Chenini et Douiret, explorez les lieux de tournage Star Wars à Ksar Ouled Soltane.',
+  },
+  desert: {
+    titleEn: 'Tunisian Sahara Desert — Douz, Ksar Ghilane & Chott el Jerid | Go Adventure',
+    titleFr: 'Désert du Sahara Tunisien — Douz, Ksar Ghilane & Chott el Jerid | Go Adventure',
+    descEn:
+      'Explore the Tunisian Sahara: camel treks in Douz, hot springs at Ksar Ghilane oasis, the vast Chott el Jerid salt lake, and Star Wars filming locations near Tozeur. Book desert camps, 4x4 adventures, and more.',
+    descFr:
+      "Explorez le Sahara tunisien : méharées à Douz, sources chaudes à l'oasis de Ksar Ghilane, le vaste lac salé Chott el Jerid et les lieux de tournage Star Wars près de Tozeur. Réservez camps désertiques, aventures en 4x4 et plus.",
+  },
+};
+
 export async function generateMetadata({ params }: DestinationPageProps): Promise<Metadata> {
   const { locale, slug } = await params;
   const [cmsDestination, locationData] = await Promise.all([
@@ -65,21 +98,39 @@ export async function generateMetadata({ params }: DestinationPageProps): Promis
   }
 
   const name = cmsDestination?.name ?? locationData?.location.name ?? slug;
-  const description =
-    locale === 'fr'
-      ? (cmsDestination?.description_fr ?? locationData?.location.description)
-      : (cmsDestination?.description_en ?? locationData?.location.description);
   const image = cmsDestination?.image ?? locationData?.location.imageUrl;
+  const isFr = locale === 'fr';
+  const seoMeta = destinationSeoMeta[slug];
+
+  const title = seoMeta
+    ? isFr
+      ? seoMeta.titleFr
+      : seoMeta.titleEn
+    : `${name} — Tours & Activities | Go Adventure`;
+
+  const description = seoMeta
+    ? isFr
+      ? seoMeta.descFr
+      : seoMeta.descEn
+    : isFr
+      ? `Découvrez des tours et activités à ${name}. Réservez des expériences authentiques avec des guides locaux.`
+      : `Discover amazing tours and activities in ${name}. Book authentic experiences with local guides.`;
 
   return {
-    title: `${name} - Tours & Activities`,
-    description:
-      description ||
-      `Discover amazing tours and activities in ${name}. Book authentic experiences with local guides.`,
+    title,
+    description,
     openGraph: {
-      title: `Explore ${name}`,
-      description: description || `Discover experiences in ${name}`,
+      title: seoMeta ? title : `Explore ${name} | Go Adventure`,
+      description,
       images: image ? [image] : [],
+      type: 'website',
+      locale: isFr ? 'fr_FR' : 'en_US',
+    },
+    alternates: {
+      languages: {
+        en: `/en/destinations/${slug}`,
+        fr: `/fr/destinations/${slug}`,
+      },
     },
   };
 }

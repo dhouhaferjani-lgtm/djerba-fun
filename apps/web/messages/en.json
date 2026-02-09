@@ -1160,7 +1160,10 @@
     "breadcrumb_home": "Home",
     "breadcrumb_destinations": "Destinations",
     "highlights_title": "What awaits you",
-    "description_title": "About this destination"
+    "description_title": "About this destination",
+    "key_facts": "Key Facts",
+    "photo_gallery": "Photo Gallery",
+    "must_see_places": "Must-See Places"
   },
   "listings_page": {
     "title_tours": "Tours & Activities",
