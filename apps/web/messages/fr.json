@@ -1172,7 +1172,12 @@
     "available_experiences": "Expériences disponibles",
     "experiences_coming_soon": "Expériences à venir",
     "experiences_coming_soon_desc": "Nous préparons des expériences incroyables à {name}. Revenez bientôt !",
-    "explore_on_map": "Explorer sur la carte"
+    "explore_on_map": "Explorer sur la carte",
+    "explore_other": "Explorer d'autres destinations",
+    "breadcrumb_home": "Accueil",
+    "breadcrumb_destinations": "Destinations",
+    "highlights_title": "Ce qui vous attend",
+    "description_title": "À propos de cette destination"
   },
   "listings_page": {
     "title_tours": "Circuits & Activités",

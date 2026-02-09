@@ -1155,7 +1155,12 @@
     "available_experiences": "Available Experiences",
     "experiences_coming_soon": "Experiences Coming Soon",
     "experiences_coming_soon_desc": "We're preparing amazing experiences in {name}. Check back soon!",
-    "explore_on_map": "Explore on Map"
+    "explore_on_map": "Explore on Map",
+    "explore_other": "Explore other destinations",
+    "breadcrumb_home": "Home",
+    "breadcrumb_destinations": "Destinations",
+    "highlights_title": "What awaits you",
+    "description_title": "About this destination"
   },
   "listings_page": {
     "title_tours": "Tours & Activities",
