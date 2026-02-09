@@ -7,8 +7,8 @@ import { HeroSearchForm } from '../molecules/HeroSearchForm';
 import { shouldUnoptimizeImage } from '@/lib/utils/image';
 import { travelTipsApi, type TravelTip } from '@/lib/api/client';
 
-// Default hero image (Unsplash) - used when no custom banner is set
-const DEFAULT_HERO_IMAGE = 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=1920';
+// Default hero image - used when no custom banner is set
+const DEFAULT_HERO_IMAGE = '/images/hero/go-adventure-bg.webp';
 
 // Timing constants
 const TYPING_SPEED = 30; // ms per character
