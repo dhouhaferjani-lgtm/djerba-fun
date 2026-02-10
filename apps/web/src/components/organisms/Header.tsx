@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Button } from '@go-adventure/ui';
+import { Button, Dialog } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Menu, User, LogOut } from 'lucide-react';
 import { CartIcon } from '../cart/CartIcon';
@@ -20,8 +20,10 @@ interface HeaderProps {
 export function Header({ locale }: HeaderProps) {
   const t = useTranslations('navigation');
   const tAuth = useTranslations('auth');
+  const tCommon = useTranslations('common');
   const { isAuthenticated, user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const scrolled = useScroll(50);
 
   const navLinks = [
@@ -68,7 +70,7 @@ export function Header({ locale }: HeaderProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => logout()}
+                  onClick={() => setShowLogoutConfirm(true)}
                   className="text-white hover:bg-white/10"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
@@ -109,7 +111,37 @@ export function Header({ locale }: HeaderProps) {
         setIsOpen={setMobileMenuOpen}
         navLinks={navLinks}
         locale={locale}
+        onLogoutClick={() => {
+          setMobileMenuOpen(false);
+          setShowLogoutConfirm(true);
+        }}
       />
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        title={tAuth('logout_confirm_title')}
+        size="sm"
+      >
+        <p className="text-gray-600 mb-6">{tAuth('logout_confirm_message')}</p>
+        <div className="flex gap-3 justify-end">
+          <Button variant="outline" size="sm" onClick={() => setShowLogoutConfirm(false)}>
+            {tCommon('cancel')}
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              logout();
+              setShowLogoutConfirm(false);
+            }}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            {tAuth('logout')}
+          </Button>
+        </div>
+      </Dialog>
     </header>
   );
 }

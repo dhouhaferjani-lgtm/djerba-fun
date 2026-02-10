@@ -16,11 +16,18 @@ interface MobileMenuProps {
   setIsOpen: (isOpen: boolean) => void;
   navLinks: NavLinkItem[];
   locale: string;
+  onLogoutClick?: () => void;
 }
 
-export function MobileMenu({ isOpen, setIsOpen, navLinks, locale }: MobileMenuProps) {
+export function MobileMenu({
+  isOpen,
+  setIsOpen,
+  navLinks,
+  locale,
+  onLogoutClick,
+}: MobileMenuProps) {
   const tAuth = useTranslations('auth');
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   if (!isOpen) return null;
 
@@ -49,10 +56,7 @@ export function MobileMenu({ isOpen, setIsOpen, navLinks, locale }: MobileMenuPr
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start font-bold text-white hover:bg-primary-light"
-                onClick={() => {
-                  logout();
-                  setIsOpen(false);
-                }}
+                onClick={() => onLogoutClick?.()}
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 {tAuth('logout')}

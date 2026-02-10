@@ -548,6 +548,8 @@
     "login": "Connexion",
     "register": "S'inscrire",
     "logout": "Déconnexion",
+    "logout_confirm_title": "Se déconnecter ?",
+    "logout_confirm_message": "Êtes-vous sûr de vouloir vous déconnecter de votre compte ?",
     "email": "Email",
     "password": "Mot de passe",
     "forgot_password": "Mot de passe oublié ?",
