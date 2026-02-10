@@ -68,7 +68,9 @@ class ListingResource extends Resource
 
                         Forms\Components\Select::make('vendor_id')
                             ->relationship('vendor', 'display_name')
-                            ->disabled()
+                            ->required()
+                            ->disabled(fn (string $operation): bool => $operation === 'edit')
+                            ->searchable()
                             ->preload(),
                     ])
                     ->columns(2),
@@ -491,6 +493,11 @@ class ListingResource extends Resource
                             ]);
 
                             // Send database notification to vendor
+                            \Log::info('NOTIF_DEBUG: Approve action reached', [
+                                'listing_id' => $record->id,
+                                'vendor_id' => $record->vendor_id,
+                                'vendor_exists' => $record->vendor !== null,
+                            ]);
                             try {
                                 $vendor = $record->vendor;
                                 if ($vendor) {
@@ -514,9 +521,13 @@ class ListingResource extends Resource
                                             ])
                                             ->getDatabaseMessage(),
                                     ]);
+                                    \Log::info('NOTIF_DEBUG: Approve notification created', [
+                                        'vendor_id' => $vendor->id,
+                                        'notif_count' => $vendor->notifications()->count(),
+                                    ]);
                                 }
                             } catch (\Throwable $e) {
-                                \Log::error('Failed to send listing approved notification to vendor', ['error' => $e->getMessage()]);
+                                \Log::error('Failed to send listing approved notification to vendor', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
                             }
 
                             Notification::make()
@@ -547,6 +558,11 @@ class ListingResource extends Resource
                             ]);
 
                             // Send database notification to vendor with rejection reason
+                            \Log::info('NOTIF_DEBUG: Reject action reached', [
+                                'listing_id' => $record->id,
+                                'vendor_id' => $record->vendor_id,
+                                'vendor_exists' => $record->vendor !== null,
+                            ]);
                             try {
                                 $vendor = $record->vendor;
                                 if ($vendor) {
@@ -571,9 +587,13 @@ class ListingResource extends Resource
                                             ])
                                             ->getDatabaseMessage(),
                                     ]);
+                                    \Log::info('NOTIF_DEBUG: Reject notification created', [
+                                        'vendor_id' => $vendor->id,
+                                        'notif_count' => $vendor->notifications()->count(),
+                                    ]);
                                 }
                             } catch (\Throwable $e) {
-                                \Log::error('Failed to send listing rejected notification to vendor', ['error' => $e->getMessage()]);
+                                \Log::error('Failed to send listing rejected notification to vendor', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
                             }
 
                             Notification::make()
