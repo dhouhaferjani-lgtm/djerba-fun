@@ -125,25 +125,27 @@ export async function generateMetadata({ params }: DestinationPageProps): Promis
   const dataKey = resolveDataKey(slug, cmsDestination?.name);
   const seoMeta = destinationSeoMeta[dataKey];
 
-  const title = seoMeta
-    ? isFr
-      ? seoMeta.titleFr
-      : seoMeta.titleEn
-    : `${name} — Tours & Activities | Go Adventure`;
+  // Priority: CMS SEO fields → hardcoded SEO → generic
+  const cmsSeoTitle = isFr ? cmsDestination?.seo_title_fr : cmsDestination?.seo_title_en;
+  const cmsSeoDesc = isFr ? cmsDestination?.seo_description_fr : cmsDestination?.seo_description_en;
 
-  const description = seoMeta
-    ? isFr
-      ? seoMeta.descFr
-      : seoMeta.descEn
-    : isFr
+  const title =
+    cmsSeoTitle ||
+    (seoMeta ? (isFr ? seoMeta.titleFr : seoMeta.titleEn) : null) ||
+    `${name} — Tours & Activities | Go Adventure`;
+
+  const description =
+    cmsSeoDesc ||
+    (seoMeta ? (isFr ? seoMeta.descFr : seoMeta.descEn) : null) ||
+    (isFr
       ? `Découvrez des tours et activités à ${name}. Réservez des expériences authentiques avec des guides locaux.`
-      : `Discover amazing tours and activities in ${name}. Book authentic experiences with local guides.`;
+      : `Discover amazing tours and activities in ${name}. Book authentic experiences with local guides.`);
 
   return {
     title,
     description,
     openGraph: {
-      title: seoMeta ? title : `Explore ${name} | Go Adventure`,
+      title,
       description,
       images: image ? [image] : [],
       type: 'website',

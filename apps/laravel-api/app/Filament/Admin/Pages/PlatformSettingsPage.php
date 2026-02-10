@@ -548,77 +548,280 @@ class PlatformSettingsPage extends Page implements HasForms
             ->icon('heroicon-o-map')
             ->schema([
                 Forms\Components\Section::make('Featured Destinations')
-                    ->description('Manage destinations displayed in the "La Tunisie vous attend" bento grid on the homepage. Add 3 destinations for best visual results.')
+                    ->description('Manage destinations displayed on the homepage and their informative content pages. Each destination has its own SEO, highlights, key facts, gallery, and must-see places.')
                     ->schema([
                         Forms\Components\Repeater::make('featured_destinations')
                             ->label('Destinations')
                             ->schema([
-                                // Hidden field to track auto-generated slug
-                                Forms\Components\Hidden::make('_auto_slug')
-                                    ->dehydrated(false),
+                                Forms\Components\Tabs::make('destination_tabs')
+                                    ->tabs([
+                                        // --- General Tab ---
+                                        Forms\Components\Tabs\Tab::make('General')
+                                            ->icon('heroicon-o-information-circle')
+                                            ->schema([
+                                                Forms\Components\Hidden::make('_auto_slug')
+                                                    ->dehydrated(false),
 
-                                // Display Name - triggers slug auto-generation
-                                Forms\Components\TextInput::make('name')
-                                    ->label('Display Name')
-                                    ->required()
-                                    ->live(debounce: 500)
-                                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-                                        $currentSlug = $get('id');
-                                        $newSlug = \Illuminate\Support\Str::slug($state ?? '');
-                                        $autoSlug = $get('_auto_slug');
+                                                Forms\Components\TextInput::make('name')
+                                                    ->label('Display Name')
+                                                    ->required()
+                                                    ->live(debounce: 500)
+                                                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                                        $currentSlug = $get('id');
+                                                        $newSlug = \Illuminate\Support\Str::slug($state ?? '');
+                                                        $autoSlug = $get('_auto_slug');
+                                                        if (empty($currentSlug) || $currentSlug === $autoSlug) {
+                                                            $set('id', $newSlug);
+                                                            $set('_auto_slug', $newSlug);
+                                                        }
+                                                    }),
 
-                                        // Only auto-update if slug is empty or matches previous auto-slug
-                                        if (empty($currentSlug) || $currentSlug === $autoSlug) {
-                                            $set('id', $newSlug);
-                                            $set('_auto_slug', $newSlug);
-                                        }
-                                    }),
+                                                Forms\Components\TextInput::make('id')
+                                                    ->label('Slug/ID')
+                                                    ->required()
+                                                    ->helperText('Auto-generated from name. Used in URL, e.g., houmet-souk')
+                                                    ->rules(['regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/']),
 
-                                // Slug/ID - auto-generated but editable
-                                Forms\Components\TextInput::make('id')
-                                    ->label('Slug/ID')
-                                    ->required()
-                                    ->helperText('Auto-generated from name. Used in URL, e.g., houmet-souk')
-                                    ->rules(['regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/']),
+                                                Forms\Components\TextInput::make('description_en')
+                                                    ->label('Short Description (English)')
+                                                    ->required()
+                                                    ->helperText('Shown on homepage card'),
 
-                                Forms\Components\TextInput::make('description_en')
-                                    ->label('Description (English)')
-                                    ->required(),
+                                                Forms\Components\TextInput::make('description_fr')
+                                                    ->label('Short Description (Français)')
+                                                    ->required()
+                                                    ->helperText('Affiché sur la carte de la page d\'accueil'),
 
-                                Forms\Components\TextInput::make('description_fr')
-                                    ->label('Description (Français)')
-                                    ->required(),
+                                                Forms\Components\FileUpload::make('image')
+                                                    ->label('Hero Image')
+                                                    ->required()
+                                                    ->image()
+                                                    ->directory('destinations')
+                                                    ->disk('public')
+                                                    ->maxSize(5120)
+                                                    ->getUploadedFileUsing(static function (BaseFileUpload $component, string $file): ?array {
+                                                        $storage = $component->getDisk();
+                                                        if (! $storage->exists($file)) {
+                                                            return null;
+                                                        }
 
-                                // File Upload instead of text input for image
-                                Forms\Components\FileUpload::make('image')
-                                    ->label('Image')
-                                    ->required()
-                                    ->image()
-                                    ->directory('destinations')
-                                    ->disk('public')
-                                    ->maxSize(5120)
-                                    ->getUploadedFileUsing(static function (BaseFileUpload $component, string $file): ?array {
-                                        $storage = $component->getDisk();
-                                        if (! $storage->exists($file)) {
-                                            return null;
-                                        }
+                                                        return [
+                                                            'name' => basename($file),
+                                                            'size' => $storage->size($file),
+                                                            'type' => $storage->mimeType($file),
+                                                            'url' => route('admin.storage.proxy', ['path' => $file]),
+                                                        ];
+                                                    })
+                                                    ->helperText('Recommended: 1200x675px (16:9 ratio). Max 5MB.'),
 
-                                        return [
-                                            'name' => basename($file),
-                                            'size' => $storage->size($file),
-                                            'type' => $storage->mimeType($file),
-                                            'url' => route('admin.storage.proxy', ['path' => $file]),
-                                        ];
-                                    })
-                                    ->helperText('Recommended: 1200x675px (16:9 ratio). Max 5MB.'),
+                                                Forms\Components\TextInput::make('link')
+                                                    ->label('Adventures Link (optional)')
+                                                    ->placeholder('/en/listings?location=desert')
+                                                    ->helperText('Link for the "Explore adventures" CTA button. Leave empty to link to homepage.')
+                                                    ->maxLength(500),
+                                            ])
+                                            ->columns(2),
 
-                                Forms\Components\TextInput::make('link')
-                                    ->label('Custom Link (optional)')
-                                    ->placeholder('/en/listings?location=desert or /en/blog/sahara-guide')
-                                    ->helperText('Leave empty to default to listing search by destination. Can be relative or absolute URL.')
-                                    ->maxLength(500),
+                                        // --- SEO Tab ---
+                                        Forms\Components\Tabs\Tab::make('SEO')
+                                            ->icon('heroicon-o-magnifying-glass')
+                                            ->schema([
+                                                Forms\Components\TextInput::make('seo_title_en')
+                                                    ->label('SEO Title (English)')
+                                                    ->placeholder('Djerba, Tunisia — UNESCO Island, Beaches & Culture | Go Adventure')
+                                                    ->maxLength(120)
+                                                    ->helperText('Page <title> tag. Max 120 chars.'),
+
+                                                Forms\Components\TextInput::make('seo_title_fr')
+                                                    ->label('SEO Title (Français)')
+                                                    ->placeholder('Djerba, Tunisie — Île UNESCO, Plages & Culture | Go Adventure')
+                                                    ->maxLength(120),
+
+                                                Forms\Components\Textarea::make('seo_description_en')
+                                                    ->label('SEO Meta Description (English)')
+                                                    ->rows(2)
+                                                    ->maxLength(300)
+                                                    ->helperText('Shown in Google results. Max 300 chars.'),
+
+                                                Forms\Components\Textarea::make('seo_description_fr')
+                                                    ->label('SEO Meta Description (Français)')
+                                                    ->rows(2)
+                                                    ->maxLength(300),
+
+                                                Forms\Components\Textarea::make('seo_text_en')
+                                                    ->label('Long SEO Description (English)')
+                                                    ->rows(6)
+                                                    ->helperText('Detailed paragraph displayed on the destination page "About this destination" section.'),
+
+                                                Forms\Components\Textarea::make('seo_text_fr')
+                                                    ->label('Long SEO Description (Français)')
+                                                    ->rows(6)
+                                                    ->helperText('Paragraphe détaillé affiché dans la section "À propos de cette destination".'),
+                                            ])
+                                            ->columns(2),
+
+                                        // --- Highlights Tab ---
+                                        Forms\Components\Tabs\Tab::make('Highlights')
+                                            ->icon('heroicon-o-sparkles')
+                                            ->schema([
+                                                Forms\Components\Repeater::make('highlights')
+                                                    ->label('Highlights ("What awaits you" section)')
+                                                    ->schema([
+                                                        Forms\Components\Select::make('icon')
+                                                            ->label('Icon')
+                                                            ->options(self::getIconOptions())
+                                                            ->searchable()
+                                                            ->required(),
+
+                                                        Forms\Components\TextInput::make('title_en')
+                                                            ->label('Title (English)')
+                                                            ->required(),
+
+                                                        Forms\Components\TextInput::make('title_fr')
+                                                            ->label('Title (Français)')
+                                                            ->required(),
+
+                                                        Forms\Components\Textarea::make('description_en')
+                                                            ->label('Description (English)')
+                                                            ->rows(3)
+                                                            ->required(),
+
+                                                        Forms\Components\Textarea::make('description_fr')
+                                                            ->label('Description (Français)')
+                                                            ->rows(3)
+                                                            ->required(),
+                                                    ])
+                                                    ->columns(2)
+                                                    ->collapsible()
+                                                    ->itemLabel(fn (array $state): ?string => $state['title_en'] ?? null)
+                                                    ->defaultItems(0)
+                                                    ->maxItems(6)
+                                                    ->reorderable(),
+                                            ]),
+
+                                        // --- Key Facts Tab ---
+                                        Forms\Components\Tabs\Tab::make('Key Facts')
+                                            ->icon('heroicon-o-chart-bar')
+                                            ->schema([
+                                                Forms\Components\Repeater::make('key_facts')
+                                                    ->label('Key Facts (quick stats bar)')
+                                                    ->schema([
+                                                        Forms\Components\Select::make('icon')
+                                                            ->label('Icon')
+                                                            ->options(self::getIconOptions())
+                                                            ->searchable()
+                                                            ->required(),
+
+                                                        Forms\Components\TextInput::make('label_en')
+                                                            ->label('Label (English)')
+                                                            ->placeholder('Area')
+                                                            ->required(),
+
+                                                        Forms\Components\TextInput::make('label_fr')
+                                                            ->label('Label (Français)')
+                                                            ->placeholder('Superficie')
+                                                            ->required(),
+
+                                                        Forms\Components\TextInput::make('value')
+                                                            ->label('Value')
+                                                            ->placeholder('514 km²')
+                                                            ->required(),
+                                                    ])
+                                                    ->columns(2)
+                                                    ->collapsible()
+                                                    ->itemLabel(fn (array $state): ?string => ($state['label_en'] ?? '') . ': ' . ($state['value'] ?? ''))
+                                                    ->defaultItems(0)
+                                                    ->maxItems(8)
+                                                    ->reorderable(),
+                                            ]),
+
+                                        // --- Gallery Tab ---
+                                        Forms\Components\Tabs\Tab::make('Gallery')
+                                            ->icon('heroicon-o-photo')
+                                            ->schema([
+                                                Forms\Components\Repeater::make('gallery')
+                                                    ->label('Photo Gallery')
+                                                    ->schema([
+                                                        Forms\Components\FileUpload::make('image')
+                                                            ->label('Image')
+                                                            ->required()
+                                                            ->image()
+                                                            ->directory('destinations/gallery')
+                                                            ->disk('public')
+                                                            ->maxSize(5120)
+                                                            ->getUploadedFileUsing(static function (BaseFileUpload $component, string $file): ?array {
+                                                                $storage = $component->getDisk();
+                                                                if (! $storage->exists($file)) {
+                                                                    return null;
+                                                                }
+
+                                                                return [
+                                                                    'name' => basename($file),
+                                                                    'size' => $storage->size($file),
+                                                                    'type' => $storage->mimeType($file),
+                                                                    'url' => route('admin.storage.proxy', ['path' => $file]),
+                                                                ];
+                                                            })
+                                                            ->helperText('Recommended: 800x600px. Max 5MB.'),
+
+                                                        Forms\Components\TextInput::make('alt_en')
+                                                            ->label('Alt Text (English)')
+                                                            ->required()
+                                                            ->helperText('Accessibility & SEO description'),
+
+                                                        Forms\Components\TextInput::make('alt_fr')
+                                                            ->label('Alt Text (Français)')
+                                                            ->required(),
+
+                                                        Forms\Components\TextInput::make('caption_en')
+                                                            ->label('Caption (English)'),
+
+                                                        Forms\Components\TextInput::make('caption_fr')
+                                                            ->label('Caption (Français)'),
+                                                    ])
+                                                    ->columns(2)
+                                                    ->collapsible()
+                                                    ->itemLabel(fn (array $state): ?string => $state['caption_en'] ?? $state['alt_en'] ?? null)
+                                                    ->defaultItems(0)
+                                                    ->maxItems(10)
+                                                    ->reorderable(),
+                                            ]),
+
+                                        // --- Must-See Places Tab ---
+                                        Forms\Components\Tabs\Tab::make('Must-See Places')
+                                            ->icon('heroicon-o-map-pin')
+                                            ->schema([
+                                                Forms\Components\Repeater::make('points_of_interest')
+                                                    ->label('Must-See Places / Points of Interest')
+                                                    ->schema([
+                                                        Forms\Components\TextInput::make('name_en')
+                                                            ->label('Place Name (English)')
+                                                            ->required(),
+
+                                                        Forms\Components\TextInput::make('name_fr')
+                                                            ->label('Place Name (Français)')
+                                                            ->required(),
+
+                                                        Forms\Components\Textarea::make('description_en')
+                                                            ->label('Description (English)')
+                                                            ->rows(3)
+                                                            ->required(),
+
+                                                        Forms\Components\Textarea::make('description_fr')
+                                                            ->label('Description (Français)')
+                                                            ->rows(3)
+                                                            ->required(),
+                                                    ])
+                                                    ->columns(2)
+                                                    ->collapsible()
+                                                    ->itemLabel(fn (array $state): ?string => $state['name_en'] ?? null)
+                                                    ->defaultItems(0)
+                                                    ->maxItems(8)
+                                                    ->reorderable(),
+                                            ]),
+                                    ])
+                                    ->columnSpanFull(),
                             ])
-                            ->columns(2)
                             ->reorderable()
                             ->collapsible()
                             ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
@@ -626,6 +829,41 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->maxItems(6),
                     ]),
             ]);
+    }
+
+    /**
+     * Get available icon options for destination content.
+     * These map to Lucide icon names used on the frontend.
+     */
+    protected static function getIconOptions(): array
+    {
+        return [
+            'waves' => 'Waves (water/beach)',
+            'landmark' => 'Landmark (heritage/monument)',
+            'mountain' => 'Mountain (hiking/terrain)',
+            'compass' => 'Compass (exploration)',
+            'users' => 'Users (people/community)',
+            'eye' => 'Eye (viewpoint/observation)',
+            'moon' => 'Moon (night/stargazing)',
+            'tree-palm' => 'Palm Tree (oasis/tropical)',
+            'sparkles' => 'Sparkles (special/magic)',
+            'map' => 'Map (geography)',
+            'tent' => 'Tent (camping)',
+            'palette' => 'Palette (art/culture)',
+            'shopping-bag' => 'Shopping Bag (markets)',
+            'bird' => 'Bird (wildlife)',
+            'home' => 'Home (village/dwelling)',
+            'film' => 'Film (cinema/Star Wars)',
+            'droplets' => 'Droplets (water/springs)',
+            'footprints' => 'Footprints (trekking)',
+            'layers' => 'Layers (geology)',
+            'map-pin' => 'Map Pin (location)',
+            'calendar' => 'Calendar (season/events)',
+            'ruler' => 'Ruler (measurements)',
+            'star' => 'Star (rating/highlight)',
+            'utensils-crossed' => 'Utensils (food/gastronomy)',
+            'info' => 'Info (information)',
+        ];
     }
 
     protected function testimonialsTab(): Forms\Components\Tabs\Tab

@@ -53,6 +53,36 @@ interface Location {
   country: string;
 }
 
+interface CmsHighlight {
+  icon: string;
+  title_en: string;
+  title_fr: string;
+  description_en: string;
+  description_fr: string;
+}
+
+interface CmsKeyFact {
+  icon: string;
+  label_en: string;
+  label_fr: string;
+  value: string;
+}
+
+interface CmsGalleryImage {
+  image: string;
+  alt_en: string;
+  alt_fr: string;
+  caption_en?: string;
+  caption_fr?: string;
+}
+
+interface CmsPointOfInterest {
+  name_en: string;
+  name_fr: string;
+  description_en: string;
+  description_fr: string;
+}
+
 interface CmsDestination {
   id: string;
   name: string;
@@ -60,7 +90,47 @@ interface CmsDestination {
   description_fr: string;
   image: string;
   link?: string;
+  seo_title_en?: string;
+  seo_title_fr?: string;
+  seo_description_en?: string;
+  seo_description_fr?: string;
+  seo_text_en?: string;
+  seo_text_fr?: string;
+  highlights?: CmsHighlight[];
+  key_facts?: CmsKeyFact[];
+  gallery?: CmsGalleryImage[];
+  points_of_interest?: CmsPointOfInterest[];
 }
+
+// --- Icon string → component mapping (CMS stores icon names as strings) ---
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  waves: Waves,
+  landmark: Landmark,
+  mountain: Mountain,
+  compass: Compass,
+  users: Users,
+  eye: Eye,
+  moon: Moon,
+  'tree-palm': TreePalm,
+  sparkles: Sparkles,
+  map: Map,
+  tent: Tent,
+  palette: Palette,
+  'shopping-bag': ShoppingBag,
+  bird: Bird,
+  home: Home,
+  film: Film,
+  droplets: Droplets,
+  footprints: Footprints,
+  layers: Layers,
+  'map-pin': MapPin,
+  calendar: Calendar,
+  ruler: Ruler,
+  star: Star,
+  'utensils-crossed': UtensilsCrossed,
+  info: Info,
+};
 
 interface DestinationContentProps {
   locale: string;
@@ -638,11 +708,50 @@ export function DestinationContent({
     location?.latitude && location?.longitude ? [location.latitude, location.longitude] : undefined;
 
   const dataKey = resolveDataKey(slug, cmsDestination?.name);
-  const highlights = destinationHighlights[dataKey] ?? fallbackHighlights;
-  const facts = destinationFacts[dataKey];
-  const gallery = destinationGallery[dataKey];
-  const pois = destinationPOIs[dataKey];
-  const seoText = destinationSeoText[dataKey];
+
+  // CMS data takes priority, hardcoded data serves as fallback
+  const highlights: Highlight[] = cmsDestination?.highlights?.length
+    ? cmsDestination.highlights.map((h) => ({
+        icon: iconMap[h.icon] || Sparkles,
+        titleEn: h.title_en,
+        titleFr: h.title_fr,
+        descEn: h.description_en,
+        descFr: h.description_fr,
+      }))
+    : (destinationHighlights[dataKey] ?? fallbackHighlights);
+
+  const facts: KeyFact[] | undefined = cmsDestination?.key_facts?.length
+    ? cmsDestination.key_facts.map((f) => ({
+        icon: iconMap[f.icon] || Info,
+        labelEn: f.label_en,
+        labelFr: f.label_fr,
+        value: f.value,
+      }))
+    : destinationFacts[dataKey];
+
+  const gallery: GalleryImage[] | undefined = cmsDestination?.gallery?.length
+    ? cmsDestination.gallery.map((g) => ({
+        src: g.image,
+        altEn: g.alt_en,
+        altFr: g.alt_fr,
+        captionEn: g.caption_en ?? '',
+        captionFr: g.caption_fr ?? '',
+      }))
+    : destinationGallery[dataKey];
+
+  const pois: PointOfInterest[] | undefined = cmsDestination?.points_of_interest?.length
+    ? cmsDestination.points_of_interest.map((p) => ({
+        nameEn: p.name_en,
+        nameFr: p.name_fr,
+        descEn: p.description_en,
+        descFr: p.description_fr,
+      }))
+    : destinationPOIs[dataKey];
+
+  const seoText: { en: string; fr: string } | undefined =
+    cmsDestination?.seo_text_en || cmsDestination?.seo_text_fr
+      ? { en: cmsDestination.seo_text_en ?? '', fr: cmsDestination.seo_text_fr ?? '' }
+      : destinationSeoText[dataKey];
 
   const comingSoonText = isFr ? 'Prêt pour l\u2019aventure ?' : 'Ready for Adventure?';
   const { displayed: typedHeading, isComplete: typingDone } = useTypewriter(

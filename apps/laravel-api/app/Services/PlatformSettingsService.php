@@ -201,6 +201,17 @@ class PlatformSettingsService
                     $dest['image'] = asset('storage/'.$dest['image']);
                 }
 
+                // Convert gallery image paths to full URLs
+                if (! empty($dest['gallery']) && is_array($dest['gallery'])) {
+                    $dest['gallery'] = array_map(function ($item) {
+                        if (! empty($item['image']) && ! str_starts_with($item['image'], 'http')) {
+                            $item['image'] = asset('storage/'.$item['image']);
+                        }
+
+                        return $item;
+                    }, $dest['gallery']);
+                }
+
                 return $dest;
             })->values()->toArray(),
             'testimonials' => collect($s->testimonials ?? [])->map(function ($testimonial) {

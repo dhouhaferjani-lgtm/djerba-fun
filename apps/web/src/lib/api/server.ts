@@ -220,6 +220,38 @@ export async function getFeaturedDestinations(locale?: string) {
       description_fr: string;
       image: string;
       link?: string;
+      seo_title_en?: string;
+      seo_title_fr?: string;
+      seo_description_en?: string;
+      seo_description_fr?: string;
+      seo_text_en?: string;
+      seo_text_fr?: string;
+      highlights?: Array<{
+        icon: string;
+        title_en: string;
+        title_fr: string;
+        description_en: string;
+        description_fr: string;
+      }>;
+      key_facts?: Array<{
+        icon: string;
+        label_en: string;
+        label_fr: string;
+        value: string;
+      }>;
+      gallery?: Array<{
+        image: string;
+        alt_en: string;
+        alt_fr: string;
+        caption_en?: string;
+        caption_fr?: string;
+      }>;
+      points_of_interest?: Array<{
+        name_en: string;
+        name_fr: string;
+        description_en: string;
+        description_fr: string;
+      }>;
     }>) ?? []
   );
 }
