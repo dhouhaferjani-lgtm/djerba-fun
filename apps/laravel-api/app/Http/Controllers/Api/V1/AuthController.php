@@ -297,7 +297,11 @@ class AuthController extends Controller
 
         // Email enumeration protection — always return same message
         if ($user && $user->status === UserStatus::PENDING_VERIFICATION) {
-            $this->verificationService->resendVerification($user);
+            try {
+                $this->verificationService->resendVerification($user);
+            } catch (\Exception $e) {
+                report($e);
+            }
         }
 
         return response()->json([
