@@ -20,6 +20,7 @@ interface HeaderProps {
 export function Header({ locale }: HeaderProps) {
   const t = useTranslations('navigation');
   const tAuth = useTranslations('auth');
+  const tCommon = useTranslations('common');
   const { isAuthenticated, user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const scrolled = useScroll(50);
@@ -97,7 +98,7 @@ export function Header({ locale }: HeaderProps) {
             <button
               className="md:hidden p-2 text-white"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Open mobile menu"
+              aria-label={tCommon('open_mobile_menu')}
             >
               <Menu className="h-6 w-6" />
             </button>
