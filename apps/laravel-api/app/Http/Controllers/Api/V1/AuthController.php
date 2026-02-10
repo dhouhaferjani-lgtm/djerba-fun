@@ -68,14 +68,6 @@ class AuthController extends Controller
             }
 
             DB::commit();
-
-            // Send verification email (after commit so user exists)
-            $this->verificationService->sendVerificationEmail($user);
-
-            return response()->json([
-                'message' => 'verification_email_sent',
-                'email' => $user->email,
-            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -86,6 +78,19 @@ class AuthController extends Controller
                 ],
             ], 500);
         }
+
+        // Send verification email (after commit so user exists)
+        // Separate try-catch: if email fails, user still created successfully
+        try {
+            $this->verificationService->sendVerificationEmail($user);
+        } catch (\Exception $e) {
+            report($e);
+        }
+
+        return response()->json([
+            'message' => 'verification_email_sent',
+            'email' => $user->email,
+        ], 201);
     }
 
     /**
