@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Button } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { User, LogOut } from 'lucide-react';
+import { User, UserPlus, LogOut } from 'lucide-react';
 import { NavLink } from '../atoms/NavLink';
 
 interface NavLinkItem {
@@ -63,22 +63,23 @@ export function MobileMenu({
               </Button>
             </>
           ) : (
-            <>
+            <div className="space-y-3">
               <NavLink href={`/${locale}/auth/login`} onClick={() => setIsOpen(false)}>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="w-full justify-start font-bold text-white mb-2 hover:bg-primary-light"
+                  className="w-full justify-start text-white hover:bg-white/10 rounded-xl py-3"
                 >
+                  <User className="h-5 w-5 mr-3" />
                   {tAuth('login')}
                 </Button>
               </NavLink>
               <NavLink href={`/${locale}/auth/register`} onClick={() => setIsOpen(false)}>
-                <Button variant="secondary" size="sm" className="w-full font-bold">
+                <Button className="w-full justify-center bg-white text-primary hover:bg-white/90 font-semibold rounded-xl py-3">
+                  <UserPlus className="h-5 w-5 mr-3" />
                   {tAuth('register')}
                 </Button>
               </NavLink>
-            </>
+            </div>
           )}
         </div>
       </nav>

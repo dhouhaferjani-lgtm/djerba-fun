@@ -121,25 +121,36 @@ export function Header({ locale }: HeaderProps) {
       <Dialog
         isOpen={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
-        title={tAuth('logout_confirm_title')}
         size="sm"
+        showCloseButton={false}
       >
-        <p className="text-gray-600 mb-6">{tAuth('logout_confirm_message')}</p>
-        <div className="flex gap-3 justify-end">
-          <Button variant="outline" size="sm" onClick={() => setShowLogoutConfirm(false)}>
-            {tCommon('cancel')}
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => {
-              logout();
-              setShowLogoutConfirm(false);
-            }}
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            {tAuth('logout')}
-          </Button>
+        <div className="text-center">
+          <div className="mx-auto w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-4">
+            <LogOut className="h-7 w-7 text-red-500" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            {tAuth('logout_confirm_title')}
+          </h3>
+          <p className="text-sm text-gray-500 mb-6">{tAuth('logout_confirm_message')}</p>
+          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-center">
+            <Button
+              variant="outline"
+              onClick={() => setShowLogoutConfirm(false)}
+              className="sm:min-w-[120px]"
+            >
+              {tCommon('cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                logout();
+                setShowLogoutConfirm(false);
+              }}
+              className="sm:min-w-[120px]"
+            >
+              {tAuth('logout')}
+            </Button>
+          </div>
         </div>
       </Dialog>
     </header>
