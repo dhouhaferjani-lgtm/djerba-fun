@@ -3,7 +3,6 @@
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { Lightbulb } from 'lucide-react';
 import { HeroSearchForm } from '../molecules/HeroSearchForm';
 import { shouldUnoptimizeImage } from '@/lib/utils/image';
 import { travelTipsApi, type TravelTip } from '@/lib/api/client';
@@ -399,8 +398,7 @@ export function HeroSection({
 
           {/* Travel Tip Banner - Transparent with white border, typewriter effect with running traveler */}
           <div className="w-full max-w-5xl mx-auto bg-white/10 backdrop-blur-sm border border-white px-8 py-3 rounded-lg">
-            <p className="text-white text-sm flex items-center justify-center">
-              <Lightbulb className="h-4 w-4 text-[#8BC34A] mr-2 flex-shrink-0" />
+            <p className="text-white text-sm text-center">
               <span className="inline-flex items-center">
                 <span className="relative">
                   <span className="invisible">{longestTip}</span>
