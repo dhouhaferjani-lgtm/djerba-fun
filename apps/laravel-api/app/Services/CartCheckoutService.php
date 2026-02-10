@@ -16,6 +16,8 @@ use App\Models\CartPayment;
 use App\Models\PaymentGateway as PaymentGatewayModel;
 use App\Models\User;
 use App\Services\Payment\PaymentGatewayManager;
+use Filament\Notifications\Actions\Action as NotificationAction;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -133,6 +135,9 @@ class CartCheckoutService
 
             // Send confirmation emails
             $this->sendConfirmationEmails($bookings);
+
+            // Notify vendors of confirmed bookings
+            $this->notifyVendorsOfConfirmedBookings($bookings);
 
             return [
                 'success' => true,
@@ -368,6 +373,58 @@ class CartCheckoutService
     }
 
     /**
+     * Notify vendors of confirmed bookings from cart checkout.
+     * Groups by vendor to avoid spamming the same vendor with multiple notifications.
+     */
+    private function notifyVendorsOfConfirmedBookings(array $bookings): void
+    {
+        $vendorBookings = [];
+        foreach ($bookings as $booking) {
+            $vendorId = $booking->listing?->vendor_id;
+            if ($vendorId) {
+                $vendorBookings[$vendorId][] = $booking;
+            }
+        }
+
+        foreach ($vendorBookings as $vendorId => $vendorBookingGroup) {
+            try {
+                $vendor = $vendorBookingGroup[0]->listing->vendor;
+                if (! $vendor) {
+                    continue;
+                }
+
+                $count = count($vendorBookingGroup);
+                if ($count === 1) {
+                    $booking = $vendorBookingGroup[0];
+                    $listingTitle = $booking->listing->getTranslation('title', 'en') ?: $booking->listing->getTranslation('title', 'fr') ?: 'Untitled';
+                    if (is_array($listingTitle)) {
+                        $listingTitle = reset($listingTitle) ?: 'Untitled';
+                    }
+                    Notification::make()
+                        ->title('New Booking Confirmed')
+                        ->icon('heroicon-o-check-circle')
+                        ->body("Booking {$booking->booking_number} for \"{$listingTitle}\" has been confirmed.")
+                        ->actions([
+                            NotificationAction::make('view')
+                                ->label('View Booking')
+                                ->url("/vendor/bookings/{$booking->id}")
+                                ->button(),
+                        ])
+                        ->sendToDatabase($vendor);
+                } else {
+                    Notification::make()
+                        ->title("{$count} New Bookings Confirmed")
+                        ->icon('heroicon-o-check-circle')
+                        ->body("{$count} bookings for your listings have been confirmed.")
+                        ->sendToDatabase($vendor);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Failed to send cart booking notification to vendor', ['error' => $e->getMessage()]);
+            }
+        }
+    }
+
+    /**
      * Get gateway name for payment method.
      */
     protected function getGatewayForMethod(PaymentMethod $method): string
@@ -516,6 +573,9 @@ class CartCheckoutService
 
             // Send confirmation emails
             $this->sendConfirmationEmails($payment->bookings->toArray());
+
+            // Notify vendors of confirmed bookings
+            $this->notifyVendorsOfConfirmedBookings($payment->bookings->toArray());
 
             return [
                 'success' => true,

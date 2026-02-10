@@ -10,6 +10,7 @@ use App\Filament\Admin\Resources\ListingResource\Pages;
 use App\Models\Listing;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Actions\Action as NotificationAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -488,6 +489,31 @@ class ListingResource extends Resource
                                 'published_at' => now(),
                             ]);
 
+                            // Send database notification to vendor
+                            try {
+                                $vendor = $record->vendor;
+                                if ($vendor) {
+                                    $listingTitle = $record->getTranslation('title', 'en') ?: $record->getTranslation('title', 'fr') ?: 'Untitled';
+                                    if (is_array($listingTitle)) {
+                                        $listingTitle = reset($listingTitle) ?: 'Untitled';
+                                    }
+                                    Notification::make()
+                                        ->title('Your Listing Was Approved')
+                                        ->icon('heroicon-o-check-badge')
+                                        ->body("Your listing \"{$listingTitle}\" has been approved and is now visible to travelers.")
+                                        ->success()
+                                        ->actions([
+                                            NotificationAction::make('view')
+                                                ->label('View Listing')
+                                                ->url("/vendor/listings/{$record->id}")
+                                                ->button(),
+                                        ])
+                                        ->sendToDatabase($vendor);
+                                }
+                            } catch (\Throwable $e) {
+                                \Log::warning('Failed to send listing approved notification to vendor', ['error' => $e->getMessage()]);
+                            }
+
                             Notification::make()
                                 ->title(__('filament.notifications.listing_approved'))
                                 ->body(__('filament.notifications.listing_approved_body'))
@@ -515,7 +541,31 @@ class ListingResource extends Resource
                                 'status' => ListingStatus::REJECTED,
                             ]);
 
-                            // TODO: Send notification to vendor with rejection reason
+                            // Send database notification to vendor with rejection reason
+                            try {
+                                $vendor = $record->vendor;
+                                if ($vendor) {
+                                    $listingTitle = $record->getTranslation('title', 'en') ?: $record->getTranslation('title', 'fr') ?: 'Untitled';
+                                    if (is_array($listingTitle)) {
+                                        $listingTitle = reset($listingTitle) ?: 'Untitled';
+                                    }
+                                    $reason = $data['reason'] ?? 'No reason provided';
+                                    Notification::make()
+                                        ->title('Your Listing Was Rejected')
+                                        ->icon('heroicon-o-x-mark')
+                                        ->body("Your listing \"{$listingTitle}\" was rejected. Reason: {$reason}")
+                                        ->warning()
+                                        ->actions([
+                                            NotificationAction::make('edit')
+                                                ->label('Edit Listing')
+                                                ->url("/vendor/listings/{$record->id}/edit")
+                                                ->button(),
+                                        ])
+                                        ->sendToDatabase($vendor);
+                                }
+                            } catch (\Throwable $e) {
+                                \Log::warning('Failed to send listing rejected notification to vendor', ['error' => $e->getMessage()]);
+                            }
 
                             Notification::make()
                                 ->title(__('filament.notifications.listing_rejected'))

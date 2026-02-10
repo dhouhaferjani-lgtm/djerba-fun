@@ -11,6 +11,8 @@ use App\Http\Resources\ReviewResource;
 use App\Models\Booking;
 use App\Models\Listing;
 use App\Models\Review;
+use Filament\Notifications\Actions\Action as NotificationAction;
+use Filament\Notifications\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -106,6 +108,30 @@ class ReviewController extends Controller
 
         // Update listing rating
         $this->updateListingRating($booking->listing);
+
+        // Notify vendor of new review
+        try {
+            $vendor = $booking->listing?->vendor;
+            if ($vendor) {
+                $listingTitle = $booking->listing->getTranslation('title', 'en') ?: $booking->listing->getTranslation('title', 'fr') ?: 'Untitled';
+                if (is_array($listingTitle)) {
+                    $listingTitle = reset($listingTitle) ?: 'Untitled';
+                }
+                Notification::make()
+                    ->title('New Review Received')
+                    ->icon('heroicon-o-star')
+                    ->body("A {$review->rating}-star review was submitted for \"{$listingTitle}\".")
+                    ->actions([
+                        NotificationAction::make('view')
+                            ->label('View Review')
+                            ->url("/vendor/reviews/{$review->id}")
+                            ->button(),
+                    ])
+                    ->sendToDatabase($vendor);
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Failed to send new review notification to vendor', ['error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'message' => 'Review submitted successfully. It will be published after moderation.',

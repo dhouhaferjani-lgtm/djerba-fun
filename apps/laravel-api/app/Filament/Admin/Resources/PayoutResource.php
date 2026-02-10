@@ -167,6 +167,21 @@ class PayoutResource extends Resource
                         ->visible(fn (Payout $record) => $record->status === PayoutStatus::PENDING)
                         ->action(function (Payout $record) {
                             $record->markAsProcessing();
+
+                            // Notify vendor
+                            try {
+                                $vendor = $record->vendor;
+                                if ($vendor) {
+                                    Notification::make()
+                                        ->title('Payout Being Processed')
+                                        ->icon('heroicon-o-banknotes')
+                                        ->body("Your payout of {$record->amount} {$record->currency} is being processed.")
+                                        ->sendToDatabase($vendor);
+                                }
+                            } catch (\Throwable $e) {
+                                \Log::warning('Failed to send payout processing notification', ['error' => $e->getMessage()]);
+                            }
+
                             Notification::make()
                                 ->success()
                                 ->title(__('filament.notifications.payout_approved'))
@@ -188,6 +203,22 @@ class PayoutResource extends Resource
                         ->visible(fn (Payout $record) => $record->status === PayoutStatus::PROCESSING)
                         ->action(function (Payout $record, array $data) {
                             $record->markAsCompleted($data['reference']);
+
+                            // Notify vendor
+                            try {
+                                $vendor = $record->vendor;
+                                if ($vendor) {
+                                    Notification::make()
+                                        ->title('Payout Completed')
+                                        ->icon('heroicon-o-banknotes')
+                                        ->body("Your payout of {$record->amount} {$record->currency} has been completed. Reference: {$data['reference']}")
+                                        ->success()
+                                        ->sendToDatabase($vendor);
+                                }
+                            } catch (\Throwable $e) {
+                                \Log::warning('Failed to send payout completed notification', ['error' => $e->getMessage()]);
+                            }
+
                             Notification::make()
                                 ->success()
                                 ->title(__('filament.notifications.payout_completed'))
@@ -209,6 +240,22 @@ class PayoutResource extends Resource
                         ->visible(fn (Payout $record) => in_array($record->status, [PayoutStatus::PENDING, PayoutStatus::PROCESSING], true))
                         ->action(function (Payout $record, array $data) {
                             $record->markAsFailed($data['reason']);
+
+                            // Notify vendor
+                            try {
+                                $vendor = $record->vendor;
+                                if ($vendor) {
+                                    Notification::make()
+                                        ->title('Payout Failed')
+                                        ->icon('heroicon-o-banknotes')
+                                        ->body("Your payout of {$record->amount} {$record->currency} has failed. Reason: {$data['reason']}")
+                                        ->danger()
+                                        ->sendToDatabase($vendor);
+                                }
+                            } catch (\Throwable $e) {
+                                \Log::warning('Failed to send payout failed notification', ['error' => $e->getMessage()]);
+                            }
+
                             Notification::make()
                                 ->danger()
                                 ->title(__('filament.notifications.payout_failed'))

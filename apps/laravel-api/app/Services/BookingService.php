@@ -13,6 +13,8 @@ use App\Models\BookingHold;
 use App\Models\BookingParticipant;
 use App\Models\PaymentIntent;
 use App\Models\User;
+use Filament\Notifications\Actions\Action as NotificationAction;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -261,6 +263,30 @@ class BookingService
             $this->emailLogService->queue($email, new BookingConfirmationMail($booking), $booking);
         }
 
+        // Notify vendor of new confirmed booking
+        try {
+            $vendor = $booking->listing?->vendor;
+            if ($vendor) {
+                $listingTitle = $booking->listing->getTranslation('title', 'en') ?: $booking->listing->getTranslation('title', 'fr') ?: 'Untitled';
+                if (is_array($listingTitle)) {
+                    $listingTitle = reset($listingTitle) ?: 'Untitled';
+                }
+                Notification::make()
+                    ->title('New Booking Confirmed')
+                    ->icon('heroicon-o-check-circle')
+                    ->body("Booking {$booking->booking_number} for \"{$listingTitle}\" has been confirmed.")
+                    ->actions([
+                        NotificationAction::make('view')
+                            ->label('View Booking')
+                            ->url("/vendor/bookings/{$booking->id}")
+                            ->button(),
+                    ])
+                    ->sendToDatabase($vendor);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Failed to send booking confirmed notification to vendor', ['error' => $e->getMessage()]);
+        }
+
         return $booking->fresh();
     }
 
@@ -289,6 +315,30 @@ class BookingService
 
         if ($email) {
             $this->emailLogService->queue($email, new BookingCancellationMail($booking), $booking);
+        }
+
+        // Notify vendor of booking cancellation
+        try {
+            $vendor = $booking->listing?->vendor;
+            if ($vendor) {
+                $listingTitle = $booking->listing->getTranslation('title', 'en') ?: $booking->listing->getTranslation('title', 'fr') ?: 'Untitled';
+                if (is_array($listingTitle)) {
+                    $listingTitle = reset($listingTitle) ?: 'Untitled';
+                }
+                Notification::make()
+                    ->title('Booking Cancelled')
+                    ->icon('heroicon-o-x-circle')
+                    ->body("Booking {$booking->booking_number} for \"{$listingTitle}\" has been cancelled." . ($reason ? " Reason: {$reason}" : ''))
+                    ->actions([
+                        NotificationAction::make('view')
+                            ->label('View Booking')
+                            ->url("/vendor/bookings/{$booking->id}")
+                            ->button(),
+                    ])
+                    ->sendToDatabase($vendor);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Failed to send booking cancellation notification to vendor', ['error' => $e->getMessage()]);
         }
 
         return $booking->fresh();
