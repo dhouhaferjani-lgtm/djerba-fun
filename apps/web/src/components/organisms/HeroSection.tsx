@@ -277,6 +277,12 @@ export function HeroSection({
   // Get current tip content
   const currentTip = tips.length > 0 ? tips[currentTipIndex]?.content : fallbackTip;
 
+  // Find the longest tip to reserve max container space (prevents layout shift between rotations)
+  const longestTip =
+    tips.length > 0
+      ? tips.reduce((a, b) => (a.content.length > b.content.length ? a : b)).content
+      : fallbackTip;
+
   // Fetch tips on mount
   useEffect(() => {
     const fetchTips = async () => {
@@ -349,8 +355,7 @@ export function HeroSection({
             playsInline
             preload="auto"
             onCanPlay={() => setVideoReady(true)}
-            className={`absolute inset-0 w-full h-full object-cover bg-transparent transition-opacity duration-1000 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
-            style={{ transform: 'scale(1.08)' }}
+            className={`absolute inset-0 w-full h-full object-cover bg-transparent transition-opacity duration-1000 scale-[1.25] md:scale-[1.08] ${videoReady ? 'opacity-100' : 'opacity-0'}`}
           >
             <source src={videoSrc} type="video/mp4" />
           </video>
@@ -397,10 +402,12 @@ export function HeroSection({
               <span className="text-[#8BC34A] font-semibold mr-1">Travel Tip:</span>
               <span className="inline-flex items-center">
                 <span className="relative">
-                  <span className="invisible">{currentTip}</span>
-                  <span className="absolute left-0 top-0">{displayedText}</span>
+                  <span className="invisible">{longestTip}</span>
+                  <span className="absolute left-0 top-0">
+                    {displayedText}
+                    <RunningTraveler isRunning={isTyping} />
+                  </span>
                 </span>
-                <RunningTraveler isRunning={isTyping} />
               </span>
             </p>
           </div>
