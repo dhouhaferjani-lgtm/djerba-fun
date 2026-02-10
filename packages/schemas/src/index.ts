@@ -195,6 +195,7 @@ export const itineraryStopSchema = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
   elevationMeters: z.number().nullable(),
+  day: z.number().int().positive().nullable().optional(), // Day number (1, 2, 3...) for sejours. Null/undefined for regular tours.
   photos: z
     .array(
       z.object({
@@ -280,7 +281,7 @@ export type ActivityType = z.infer<typeof activityTypeSchema>;
 // LISTINGS
 // ============================================================================
 
-export const serviceTypeSchema = z.enum(['tour', 'event']);
+export const serviceTypeSchema = z.enum(['tour', 'event', 'sejour']);
 export const listingStatusSchema = z.enum([
   'draft',
   'pending_review',
@@ -512,7 +513,48 @@ export const eventSchema = z.object({
     .nullable(),
 });
 
-export const listingSchema = z.discriminatedUnion('serviceType', [tourSchema, eventSchema]);
+export const sejourSchema = z.object({
+  ...listingBaseFields,
+  serviceType: z.literal('sejour'),
+  duration: z.object({
+    value: z.number().positive(),
+    unit: z.enum(['hours', 'days']),
+  }),
+  difficulty: difficultyLevelSchema.nullable(),
+  distance: z
+    .object({
+      value: z.number().positive(),
+      unit: z.enum(['km', 'miles']),
+    })
+    .nullable(),
+  itinerary: z.array(
+    z.object({
+      order: z.number().int().nonnegative(),
+      title: translatableSchema,
+      description: translatableSchema,
+      duration: z.number().int().positive().nullable(),
+      locationId: z.string().uuid().nullable(),
+      coordinates: geoPointSchema.nullable(),
+    })
+  ),
+  hasElevationProfile: z.boolean().default(false),
+  numberOfDays: z.number().int().positive().nullable().optional(),
+  accommodationType: z.string().nullable().optional(),
+  mealsIncluded: z
+    .object({
+      breakfast: z.boolean(),
+      lunch: z.boolean(),
+      dinner: z.boolean(),
+    })
+    .nullable()
+    .optional(),
+});
+
+export const listingSchema = z.discriminatedUnion('serviceType', [
+  tourSchema,
+  eventSchema,
+  sejourSchema,
+]);
 
 export const listingSummarySchema = z.object({
   id: z.string().uuid(),

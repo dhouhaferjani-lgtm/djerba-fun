@@ -19,7 +19,7 @@ import { useTranslations } from 'next-intl';
 import { Card } from '@go-adventure/ui';
 import { RatingStars } from './RatingStars';
 import { PriceDisplay } from './PriceDisplay';
-import { Clock, MapPin } from 'lucide-react';
+import { Calendar, Clock, MapPin } from 'lucide-react';
 import type { ListingSummary } from '@go-adventure/schemas';
 import { resolveTranslation } from '@/lib/utils/translate';
 import { getListingUrl } from '@/lib/utils/urls';
@@ -66,18 +66,29 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
             </div>
           )}
 
-          {/* Activity Type Badge (Tours only) */}
-          {listing.serviceType === 'tour' && listing.activityType && (
-            <div className="absolute top-3 left-3">
-              <span
-                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/95 backdrop-blur-sm shadow-sm"
-                style={
-                  listing.activityType.color
-                    ? { color: listing.activityType.color }
-                    : { color: '#0D642E' }
-                }
-              >
-                {tr(listing.activityType.name)}
+          {/* Activity Type Badge (Tours and Sejours) */}
+          {(listing.serviceType === 'tour' || listing.serviceType === 'sejour') &&
+            listing.activityType && (
+              <div className="absolute top-3 left-3">
+                <span
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/95 backdrop-blur-sm shadow-sm"
+                  style={
+                    listing.activityType.color
+                      ? { color: listing.activityType.color }
+                      : { color: '#0D642E' }
+                  }
+                >
+                  {tr(listing.activityType.name)}
+                </span>
+              </div>
+            )}
+
+          {/* Multi-day badge (Sejours) */}
+          {listing.serviceType === 'sejour' && listing.duration?.value && (
+            <div className="absolute top-3 right-3">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 shadow-sm">
+                <Calendar className="h-3 w-3" />
+                {listing.duration.value} {tDict('days')}
               </span>
             </div>
           )}

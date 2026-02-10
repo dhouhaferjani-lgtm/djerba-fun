@@ -172,6 +172,14 @@
     "default_location": "Tunisie",
     "default_tour_type": "Visite guidée",
     "default_event_type": "Événement spécial",
+    "default_sejour_type": "Séjour",
+    "day_experience": "Jours d'Aventure",
+    "sejour_booking_note": "Réservez le package complet multi-jours",
+    "day_by_day_program": "Programme Jour par Jour",
+    "day_number": "Jour {day}",
+    "days": "Jours",
+    "accommodation": "Hébergement",
+    "meals_included": "Repas Inclus",
     "max_guests": "Max {count} voyageurs",
     "difficulty_level": {
       "easy": "Facile",
@@ -1200,6 +1208,7 @@
   "listings_page": {
     "title_tours": "Circuits & Activités",
     "title_events": "Événements",
+    "title_sejours": "Séjours",
     "title_all": "Toutes les Expériences",
     "search_placeholder": "Rechercher des destinations...",
     "filters": "Filtres",

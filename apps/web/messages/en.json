@@ -172,6 +172,14 @@
     "default_location": "Tunisia",
     "default_tour_type": "Guided Tour",
     "default_event_type": "Special Event",
+    "default_sejour_type": "Multi-Day Tour",
+    "day_experience": "Day Experience",
+    "sejour_booking_note": "Book the complete multi-day package",
+    "day_by_day_program": "Day-by-Day Program",
+    "day_number": "Day {day}",
+    "days": "Days",
+    "accommodation": "Accommodation",
+    "meals_included": "Meals Included",
     "max_guests": "Max {count} guests",
     "difficulty_level": {
       "easy": "Easy",
@@ -1183,6 +1191,7 @@
   "listings_page": {
     "title_tours": "Tours & Activities",
     "title_events": "Events",
+    "title_sejours": "Multi-Day Tours",
     "title_all": "All Experiences",
     "search_placeholder": "Search destinations...",
     "filters": "Filters",

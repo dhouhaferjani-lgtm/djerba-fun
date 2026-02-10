@@ -21,14 +21,14 @@ class ListingResource extends BaseResource
             'id' => $this->uuid,
             'vendorId' => $this->vendor?->uuid,
             'serviceType' => $this->service_type?->value,
-            'activityType' => $this->when($this->isTour() && $this->activityType, [
+            'activityType' => $this->when($this->isTourLike() && $this->activityType, [
                 'id' => $this->activityType?->uuid,
                 'name' => $this->getTranslationWithFallback($this->activityType?->getTranslations('name') ?? [], $locale),
                 'slug' => $this->activityType?->slug,
                 'icon' => $this->activityType?->icon,
                 'color' => $this->activityType?->color,
             ]),
-            'activityTypeId' => $this->when($this->isTour(), $this->activityType?->uuid),
+            'activityTypeId' => $this->when($this->isTourLike(), $this->activityType?->uuid),
             'status' => $this->status?->value,
             'title' => $this->getTranslationWithFallback($this->getTranslations('title'), $locale),
             'slug' => $this->slug,
@@ -58,7 +58,7 @@ class ListingResource extends BaseResource
             'extras' => ListingExtraResource::collection($this->whenLoaded('listingExtras')),
             'safetyInfo' => $this->when($this->safety_info, is_array($this->safety_info) ? $this->toCamelCase($this->safety_info) : $this->safety_info),
             'accessibilityInfo' => $this->when($this->accessibility_info, is_array($this->accessibility_info) ? $this->toCamelCase($this->accessibility_info) : $this->accessibility_info),
-            'difficultyDetails' => $this->when($this->isTour() && $this->difficulty_details, is_array($this->difficulty_details) ? $this->toCamelCase($this->difficulty_details) : $this->difficulty_details),
+            'difficultyDetails' => $this->when($this->isTourLike() && $this->difficulty_details, is_array($this->difficulty_details) ? $this->toCamelCase($this->difficulty_details) : $this->difficulty_details),
             'minGroupSize' => $this->min_group_size,
             'maxGroupSize' => $this->max_group_size,
             'minAdvanceBookingHours' => $this->min_advance_booking_hours,
@@ -69,16 +69,21 @@ class ListingResource extends BaseResource
             'updatedAt' => $this->updated_at?->toIso8601String(),
             'publishedAt' => $this->published_at?->toIso8601String(),
 
-            // Tour-specific fields
-            'duration' => $this->when($this->isTour(), $this->duration),
-            'difficulty' => $this->when($this->isTour() && $this->difficulty, $this->difficulty?->value),
-            'distance' => $this->when($this->isTour(), $this->distance),
-            'itinerary' => $this->when($this->isTour(), is_array($this->itinerary) ? $this->toCamelCase($this->itinerary) : $this->itinerary),
-            'hasElevationProfile' => $this->when($this->isTour(), $this->has_elevation_profile),
+            // Tour & Sejour shared fields
+            'duration' => $this->when($this->isTourLike(), $this->duration),
+            'difficulty' => $this->when($this->isTourLike() && $this->difficulty, $this->difficulty?->value),
+            'distance' => $this->when($this->isTourLike(), $this->distance),
+            'itinerary' => $this->when($this->isTourLike(), is_array($this->itinerary) ? $this->toCamelCase($this->itinerary) : $this->itinerary),
+            'hasElevationProfile' => $this->when($this->isTourLike(), $this->has_elevation_profile),
             'elevationProfile' => $this->when(
-                $this->isTour() && $this->has_elevation_profile && $this->elevation_profile,
+                $this->isTourLike() && $this->has_elevation_profile && $this->elevation_profile,
                 fn () => is_array($this->elevation_profile) ? $this->toCamelCase($this->elevation_profile) : $this->elevation_profile
             ),
+
+            // Sejour-specific fields
+            'numberOfDays' => $this->when($this->isSejour(), $this->number_of_days),
+            'accommodationType' => $this->when($this->isSejour(), $this->accommodation_type),
+            'mealsIncluded' => $this->when($this->isSejour(), $this->meals_included),
 
             // Event-specific fields
             'eventType' => $this->when($this->isEvent(), $this->event_type),

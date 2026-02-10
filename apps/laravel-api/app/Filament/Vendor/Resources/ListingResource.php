@@ -93,6 +93,7 @@ class ListingResource extends Resource
                                 ->options([
                                     ServiceType::TOUR->value => ServiceType::TOUR->label(),
                                     ServiceType::EVENT->value => ServiceType::EVENT->label(),
+                                    ServiceType::SEJOUR->value => 'Séjour (Multi-Day)',
                                 ])
                                 ->required() // Only truly required field for drafts
                                 ->live()
@@ -376,7 +377,31 @@ class ListingResource extends Resource
                                     Forms\Components\Hidden::make('elevation_profile')
                                         ->dehydrateStateUsing(fn ($state) => is_array($state) ? $state : null),
                                 ])
-                                ->visible(fn (Get $get): bool => $get('service_type') === ServiceType::TOUR->value),
+                                ->visible(fn (Get $get): bool => in_array($get('service_type'), [ServiceType::TOUR->value, ServiceType::SEJOUR->value])),
+
+                            // Sejour-specific fields
+                            Forms\Components\Section::make('Séjour Details')
+                                ->description('Multi-day tour package settings')
+                                ->schema([
+                                    Forms\Components\Select::make('accommodation_type')
+                                        ->label('Accommodation Type')
+                                        ->options([
+                                            'hotel' => 'Hotel',
+                                            'guesthouse' => 'Guesthouse / Dar',
+                                            'camping' => 'Camping',
+                                            'mixed' => 'Mixed (varies by day)',
+                                            'not_included' => 'Not Included',
+                                        ]),
+                                    Forms\Components\Grid::make(3)->schema([
+                                        Forms\Components\Toggle::make('meals_included.breakfast')
+                                            ->label('Breakfast Included'),
+                                        Forms\Components\Toggle::make('meals_included.lunch')
+                                            ->label('Lunch Included'),
+                                        Forms\Components\Toggle::make('meals_included.dinner')
+                                            ->label('Dinner Included'),
+                                    ]),
+                                ])
+                                ->visible(fn (Get $get): bool => $get('service_type') === ServiceType::SEJOUR->value),
 
                             // Event-specific fields
                             Forms\Components\Section::make('Event Details')
@@ -838,6 +863,15 @@ class ListingResource extends Resource
                                         ->schema([
                                             Forms\Components\Hidden::make('id')
                                                 ->default(fn () => (string) Str::uuid()),
+
+                                            Forms\Components\TextInput::make('day')
+                                                ->label('Day')
+                                                ->numeric()
+                                                ->minValue(1)
+                                                ->default(1)
+                                                ->helperText('Which day of the séjour (e.g., 1, 2, 3)')
+                                                ->visible(fn (Get $get): bool => self::getServiceTypeFromRepeater($get) === ServiceType::SEJOUR->value)
+                                                ->columnSpan(1),
 
                                             Forms\Components\Grid::make(4)
                                                 ->schema([
@@ -1591,6 +1625,10 @@ class ListingResource extends Resource
                             if (empty($record->duration['value'])) {
                                 $errors[] = 'Duration is required for tours';
                             }
+                        } elseif ($record->service_type === ServiceType::SEJOUR) {
+                            if (empty($record->duration['value'])) {
+                                $errors[] = 'Duration (number of days) is required for séjours';
+                            }
                         } elseif ($record->service_type === ServiceType::EVENT) {
                             if (empty($record->event_type)) {
                                 $errors[] = 'Event type is required';
@@ -1751,6 +1789,23 @@ class ListingResource extends Resource
      * Calculate distance between two coordinates using Haversine formula.
      * Returns distance in meters.
      */
+    /**
+     * Get service_type from within a nested repeater context.
+     * Walks up the $get path to find the root-level service_type field.
+     */
+    private static function getServiceTypeFromRepeater(Get $get): ?string
+    {
+        // Try various parent depths since repeater nesting varies
+        foreach (['../../service_type', '../../../service_type', '../../../../service_type'] as $path) {
+            $value = $get($path);
+            if ($value) {
+                return $value;
+            }
+        }
+
+        return null;
+    }
+
     private static function calculateDistance(float $lat1, float $lng1, float $lat2, float $lng2): float
     {
         $earthRadius = 6371000; // meters

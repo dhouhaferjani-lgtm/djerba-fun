@@ -26,7 +26,7 @@ function ListingsContent({ locale }: { locale: string }) {
     | 'rating';
 
   const queryParams = {
-    serviceType: searchParams.get('type') as 'tour' | 'event' | undefined,
+    serviceType: searchParams.get('type') as 'tour' | 'event' | 'sejour' | undefined,
     location: searchParams.get('location') || undefined,
     search: searchParams.get('q') || undefined,
     activityType: searchParams.get('activity_type') || undefined,
@@ -76,7 +76,9 @@ function ListingsContent({ locale }: { locale: string }) {
               ? tListings('title_tours')
               : queryParams.serviceType === 'event'
                 ? tListings('title_events')
-                : tListings('title_all')}
+                : queryParams.serviceType === 'sejour'
+                  ? tListings('title_sejours')
+                  : tListings('title_all')}
           </h1>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -124,6 +126,7 @@ function ListingsContent({ locale }: { locale: string }) {
                     <option value="">{tListings('all_types')}</option>
                     <option value="tour">{tListings('title_tours')}</option>
                     <option value="event">{tListings('title_events')}</option>
+                    <option value="sejour">{tListings('title_sejours')}</option>
                   </select>
                 </div>
 

@@ -99,6 +99,7 @@ import {
   AlertCircle,
   ShoppingCart,
   Camera,
+  Calendar,
   Package,
   ChevronDown,
   Minus,
@@ -625,6 +626,7 @@ interface RouteItineraryTabsProps {
   title: string;
   imageUrl?: string;
   locale: string;
+  isSejour?: boolean;
 }
 
 function RouteItineraryTabs({
@@ -633,6 +635,7 @@ function RouteItineraryTabs({
   title,
   imageUrl,
   locale,
+  isSejour,
 }: RouteItineraryTabsProps) {
   const [activeTab, setActiveTab] = useState<'map' | 'itinerary'>('map');
   const t = useTranslations('listing');
@@ -672,6 +675,7 @@ function RouteItineraryTabs({
               title={title}
               imageUrl={imageUrl}
               itinerary={itinerary}
+              isSejour={isSejour}
               className="h-full w-full"
             />
           </div>
@@ -679,7 +683,7 @@ function RouteItineraryTabs({
 
         {activeTab === 'itinerary' && (
           <div className="bg-white rounded-lg border border-neutral-200 p-6">
-            <ItineraryTimeline stops={itinerary} locale={locale} />
+            <ItineraryTimeline stops={itinerary} locale={locale} isSejour={isSejour} />
           </div>
         )}
       </div>
@@ -915,7 +919,8 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                 <span
                   className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-sm font-semibold uppercase tracking-wider"
                   style={
-                    listing.serviceType === 'tour' && listing.activityType?.color
+                    (listing.serviceType === 'tour' || listing.serviceType === 'sejour') &&
+                    listing.activityType?.color
                       ? { color: listing.activityType.color }
                       : { color: 'var(--color-primary)' }
                   }
@@ -923,15 +928,18 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   <span
                     className="w-2 h-2 rounded-full"
                     style={
-                      listing.serviceType === 'tour' && listing.activityType?.color
+                      (listing.serviceType === 'tour' || listing.serviceType === 'sejour') &&
+                      listing.activityType?.color
                         ? { backgroundColor: listing.activityType.color }
                         : { backgroundColor: 'var(--color-secondary)' }
                     }
                   ></span>
-                  {listing.serviceType === 'tour'
+                  {listing.serviceType === 'tour' || listing.serviceType === 'sejour'
                     ? listing.activityType
                       ? tr(listing.activityType.name)
-                      : t('default_tour_type')
+                      : listing.serviceType === 'sejour'
+                        ? t('default_sejour_type')
+                        : t('default_tour_type')
                     : t('default_event_type')}
                 </span>
               </div>
@@ -947,34 +955,36 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   <MapPin className="h-4 w-4 text-primary" />
                   <span>{listing.meetingPoint?.address || t('default_location')}</span>
                 </div>
-                {listing.serviceType === 'tour' && listing.duration && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <span>
-                      {listing.duration.value} {t(`duration_unit.${listing.duration.unit}`)}
-                    </span>
-                  </div>
-                )}
-                {listing.serviceType === 'tour' && listing.difficulty && (
-                  <div className="flex items-center gap-2">
-                    <svg
-                      className="h-4 w-4 text-primary"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                    <span className="capitalize">
-                      {t(`difficulty_level.${listing.difficulty}`)}
-                    </span>
-                  </div>
-                )}
+                {(listing.serviceType === 'tour' || listing.serviceType === 'sejour') &&
+                  listing.duration && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      <span>
+                        {listing.duration.value} {t(`duration_unit.${listing.duration.unit}`)}
+                      </span>
+                    </div>
+                  )}
+                {(listing.serviceType === 'tour' || listing.serviceType === 'sejour') &&
+                  listing.difficulty && (
+                    <div className="flex items-center gap-2">
+                      <svg
+                        className="h-4 w-4 text-primary"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
+                      <span className="capitalize">
+                        {t(`difficulty_level.${listing.difficulty}`)}
+                      </span>
+                    </div>
+                  )}
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-primary" />
                   <span>{t('max_guests', { count: listing.maxGroupSize })}</span>
@@ -1071,6 +1081,19 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                 );
               })()}
 
+              {/* Séjour Banner */}
+              {listing.serviceType === 'sejour' && listing.duration?.value && (
+                <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 px-6 py-4 flex items-center gap-4">
+                  <Calendar className="h-8 w-8 text-amber-600 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-amber-900 text-lg">
+                      {listing.duration.value}-{t('day_experience')}
+                    </p>
+                    <p className="text-sm text-amber-700">{t('sejour_booking_note')}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Main Content Sections */}
               <div className="border-t border-neutral-200 pt-12 mt-8">
                 <div className="space-y-16">
@@ -1112,7 +1135,9 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   {'itinerary' in listing && listing.itinerary && listing.itinerary.length > 0 && (
                     <section>
                       <h2 className="font-display text-3xl font-bold text-heading mb-6 tracking-tight">
-                        {t('route_itinerary')}
+                        {listing.serviceType === 'sejour'
+                          ? t('day_by_day_program')
+                          : t('route_itinerary')}
                       </h2>
 
                       {/* Tabs */}
@@ -1139,6 +1164,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                             lng,
                             elevationMeters: stop.elevationMeters || null,
                             photos: stop.photos || [],
+                            day: stop.day ?? undefined,
                           };
                         })}
                         center={(() => {
@@ -1152,6 +1178,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                         title={title}
                         imageUrl={normalizeMediaUrl(listing.media?.[0]?.url)}
                         locale={locale}
+                        isSejour={listing.serviceType === 'sejour'}
                       />
 
                       {/* Elevation Profile */}

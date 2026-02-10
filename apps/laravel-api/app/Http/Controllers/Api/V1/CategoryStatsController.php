@@ -19,6 +19,7 @@ class CategoryStatsController extends Controller
             return [
                 'tours' => $this->getStatsForType('tour'),
                 'events' => $this->getStatsForType('event'),
+                'sejours' => $this->getStatsForType('sejour'),
             ];
         });
 

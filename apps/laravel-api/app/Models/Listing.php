@@ -227,6 +227,9 @@ class Listing extends Model
         // Gallery
         'gallery_layout',
         'gallery_images',
+        // Sejour fields
+        'accommodation_type',
+        'meals_included',
     ];
 
     /**
@@ -276,6 +279,7 @@ class Listing extends Model
             'safety_info' => 'array',
             'accessibility_info' => 'array',
             'difficulty_details' => 'array',
+            'meals_included' => 'array',
             'gallery_images' => 'array',
             'is_featured' => 'boolean',
         ];
@@ -453,6 +457,22 @@ class Listing extends Model
     }
 
     /**
+     * Check if listing is a sejour (multi-day tour)
+     */
+    public function isSejour(): bool
+    {
+        return $this->service_type === ServiceType::SEJOUR;
+    }
+
+    /**
+     * Check if listing is tour-like (shares tour fields: duration, itinerary, etc.)
+     */
+    public function isTourLike(): bool
+    {
+        return $this->isTour() || $this->isSejour();
+    }
+
+    /**
      * Check if listing is published
      */
     public function isPublished(): bool
@@ -504,6 +524,28 @@ class Listing extends Model
     public function scopeEvents($query)
     {
         return $query->where('service_type', ServiceType::EVENT);
+    }
+
+    /**
+     * Scope for sejours (multi-day tours)
+     */
+    public function scopeSejours($query)
+    {
+        return $query->where('service_type', ServiceType::SEJOUR);
+    }
+
+    /**
+     * Get the number of days from itinerary day fields.
+     */
+    public function getNumberOfDaysAttribute(): ?int
+    {
+        if (! $this->isSejour() || ! is_array($this->itinerary)) {
+            return null;
+        }
+
+        $days = array_map(fn ($s) => $s['day'] ?? 1, $this->itinerary);
+
+        return count($days) > 0 ? max($days) : null;
     }
 
     /**
