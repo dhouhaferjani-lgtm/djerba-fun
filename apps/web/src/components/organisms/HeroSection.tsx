@@ -349,7 +349,7 @@ export function HeroSection({
             playsInline
             preload="auto"
             onCanPlay={() => setVideoReady(true)}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 w-full h-full object-cover bg-transparent transition-opacity duration-1000 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
             style={{ transform: 'scale(1.08)' }}
           >
             <source src={videoSrc} type="video/mp4" />
@@ -396,7 +396,10 @@ export function HeroSection({
             <p className="text-white text-sm flex items-center justify-center">
               <span className="text-[#8BC34A] font-semibold mr-1">Travel Tip:</span>
               <span className="inline-flex items-center">
-                <span>{displayedText}</span>
+                <span className="relative">
+                  <span className="invisible">{currentTip}</span>
+                  <span className="absolute left-0 top-0">{displayedText}</span>
+                </span>
                 <RunningTraveler isRunning={isTyping} />
               </span>
             </p>
