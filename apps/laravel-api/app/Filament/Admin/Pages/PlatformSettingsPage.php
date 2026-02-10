@@ -661,171 +661,219 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->collapsible()
                                     ->collapsed(),
 
-                                // --- Highlights ---
-                                Forms\Components\Section::make('Highlights')
-                                    ->icon('heroicon-o-sparkles')
+                                // --- Content Sections (managed via modals to avoid nested Repeater bugs) ---
+                                Forms\Components\Section::make('Content Sections')
+                                    ->description('Click each button to manage content in a popup editor.')
                                     ->schema([
-                                        Forms\Components\Repeater::make('highlights')
-                                            ->label('Highlights ("What awaits you" section)')
-                                            ->addActionLabel('Add highlight')
-                                            ->schema([
-                                                Forms\Components\Select::make('icon')
-                                                    ->label('Icon')
-                                                    ->options(self::getIconOptions())
-                                                    ->searchable()
-                                                    ->required(),
+                                        Forms\Components\Actions::make([
+                                            // --- Highlights modal ---
+                                            Forms\Components\Actions\Action::make('edit_highlights')
+                                                ->label(fn (Get $get): string => 'Highlights (' . count($get('highlights') ?? []) . ')')
+                                                ->icon('heroicon-o-sparkles')
+                                                ->color('warning')
+                                                ->modalHeading('Manage Highlights')
+                                                ->modalDescription('These appear in the "What awaits you" section on the destination page.')
+                                                ->modalWidth('5xl')
+                                                ->modalSubmitActionLabel('Save Highlights')
+                                                ->fillForm(fn (Get $get): array => [
+                                                    'highlights' => $get('highlights') ?? [],
+                                                ])
+                                                ->form([
+                                                    Forms\Components\Repeater::make('highlights')
+                                                        ->label('Highlights')
+                                                        ->addActionLabel('Add highlight')
+                                                        ->schema([
+                                                            Forms\Components\Select::make('icon')
+                                                                ->label('Icon')
+                                                                ->options(self::getIconOptions())
+                                                                ->searchable()
+                                                                ->required(),
 
-                                                Forms\Components\TextInput::make('title_en')
-                                                    ->label('Title (English)')
-                                                    ->required(),
+                                                            Forms\Components\TextInput::make('title_en')
+                                                                ->label('Title (English)')
+                                                                ->required(),
 
-                                                Forms\Components\TextInput::make('title_fr')
-                                                    ->label('Title (Français)')
-                                                    ->required(),
+                                                            Forms\Components\TextInput::make('title_fr')
+                                                                ->label('Title (Français)')
+                                                                ->required(),
 
-                                                Forms\Components\Textarea::make('description_en')
-                                                    ->label('Description (English)')
-                                                    ->rows(3)
-                                                    ->required(),
+                                                            Forms\Components\Textarea::make('description_en')
+                                                                ->label('Description (English)')
+                                                                ->rows(3)
+                                                                ->required(),
 
-                                                Forms\Components\Textarea::make('description_fr')
-                                                    ->label('Description (Français)')
-                                                    ->rows(3)
-                                                    ->required(),
-                                            ])
-                                            ->columns(2)
-                                            ->collapsible()
-                                            ->itemLabel(fn (array $state): ?string => $state['title_en'] ?? null)
-                                            ->defaultItems(0)
-                                            ->maxItems(6)
-                                            ->reorderable(),
+                                                            Forms\Components\Textarea::make('description_fr')
+                                                                ->label('Description (Français)')
+                                                                ->rows(3)
+                                                                ->required(),
+                                                        ])
+                                                        ->columns(2)
+                                                        ->collapsible()
+                                                        ->itemLabel(fn (array $state): ?string => $state['title_en'] ?? null)
+                                                        ->defaultItems(0)
+                                                        ->maxItems(6)
+                                                        ->reorderable(),
+                                                ])
+                                                ->action(function (array $data, Set $set): void {
+                                                    $set('highlights', array_values($data['highlights'] ?? []));
+                                                }),
+
+                                            // --- Key Facts modal ---
+                                            Forms\Components\Actions\Action::make('edit_key_facts')
+                                                ->label(fn (Get $get): string => 'Key Facts (' . count($get('key_facts') ?? []) . ')')
+                                                ->icon('heroicon-o-chart-bar')
+                                                ->color('success')
+                                                ->modalHeading('Manage Key Facts')
+                                                ->modalDescription('Quick stats shown in the info bar on the destination page.')
+                                                ->modalWidth('5xl')
+                                                ->modalSubmitActionLabel('Save Key Facts')
+                                                ->fillForm(fn (Get $get): array => [
+                                                    'key_facts' => $get('key_facts') ?? [],
+                                                ])
+                                                ->form([
+                                                    Forms\Components\Repeater::make('key_facts')
+                                                        ->label('Key Facts')
+                                                        ->addActionLabel('Add key fact')
+                                                        ->schema([
+                                                            Forms\Components\Select::make('icon')
+                                                                ->label('Icon')
+                                                                ->options(self::getIconOptions())
+                                                                ->searchable()
+                                                                ->required(),
+
+                                                            Forms\Components\TextInput::make('label_en')
+                                                                ->label('Label (English)')
+                                                                ->placeholder('Area')
+                                                                ->required(),
+
+                                                            Forms\Components\TextInput::make('label_fr')
+                                                                ->label('Label (Français)')
+                                                                ->placeholder('Superficie')
+                                                                ->required(),
+
+                                                            Forms\Components\TextInput::make('value')
+                                                                ->label('Value')
+                                                                ->placeholder('514 km²')
+                                                                ->required(),
+                                                        ])
+                                                        ->columns(2)
+                                                        ->collapsible()
+                                                        ->itemLabel(fn (array $state): ?string => ($state['label_en'] ?? '') . ': ' . ($state['value'] ?? ''))
+                                                        ->defaultItems(0)
+                                                        ->maxItems(8)
+                                                        ->reorderable(),
+                                                ])
+                                                ->action(function (array $data, Set $set): void {
+                                                    $set('key_facts', array_values($data['key_facts'] ?? []));
+                                                }),
+
+                                            // --- Gallery modal ---
+                                            Forms\Components\Actions\Action::make('edit_gallery')
+                                                ->label(fn (Get $get): string => 'Gallery (' . count($get('gallery') ?? []) . ')')
+                                                ->icon('heroicon-o-photo')
+                                                ->color('info')
+                                                ->modalHeading('Manage Photo Gallery')
+                                                ->modalDescription('Upload images via the uploader, then create entries with the file paths below.')
+                                                ->modalWidth('5xl')
+                                                ->modalSubmitActionLabel('Save Gallery')
+                                                ->fillForm(fn (Get $get): array => [
+                                                    'gallery' => $get('gallery') ?? [],
+                                                ])
+                                                ->form([
+                                                    Forms\Components\FileUpload::make('_gallery_uploader')
+                                                        ->label('Upload Gallery Images')
+                                                        ->multiple()
+                                                        ->directory('destinations/gallery')
+                                                        ->disk('public')
+                                                        ->image()
+                                                        ->maxSize(5120)
+                                                        ->dehydrated(false)
+                                                        ->helperText('Upload images here. Then create gallery entries below and type the file path (e.g., destinations/gallery/filename.jpg).'),
+
+                                                    Forms\Components\Repeater::make('gallery')
+                                                        ->label('Gallery Entries')
+                                                        ->addActionLabel('Add gallery image')
+                                                        ->schema([
+                                                            Forms\Components\TextInput::make('image')
+                                                                ->label('Image Path')
+                                                                ->required()
+                                                                ->placeholder('destinations/gallery/photo.jpg')
+                                                                ->helperText('File path relative to storage'),
+
+                                                            Forms\Components\TextInput::make('alt_en')
+                                                                ->label('Alt Text (English)')
+                                                                ->required()
+                                                                ->helperText('Accessibility & SEO description'),
+
+                                                            Forms\Components\TextInput::make('alt_fr')
+                                                                ->label('Alt Text (Français)')
+                                                                ->required(),
+
+                                                            Forms\Components\TextInput::make('caption_en')
+                                                                ->label('Caption (English)'),
+
+                                                            Forms\Components\TextInput::make('caption_fr')
+                                                                ->label('Caption (Français)'),
+                                                        ])
+                                                        ->columns(2)
+                                                        ->collapsible()
+                                                        ->itemLabel(fn (array $state): ?string => $state['caption_en'] ?? $state['alt_en'] ?? null)
+                                                        ->defaultItems(0)
+                                                        ->maxItems(10)
+                                                        ->reorderable(),
+                                                ])
+                                                ->action(function (array $data, Set $set): void {
+                                                    $set('gallery', array_values($data['gallery'] ?? []));
+                                                }),
+
+                                            // --- Must-See Places modal ---
+                                            Forms\Components\Actions\Action::make('edit_points_of_interest')
+                                                ->label(fn (Get $get): string => 'Must-See Places (' . count($get('points_of_interest') ?? []) . ')')
+                                                ->icon('heroicon-o-map-pin')
+                                                ->color('danger')
+                                                ->modalHeading('Manage Must-See Places')
+                                                ->modalDescription('Points of interest displayed on the destination page.')
+                                                ->modalWidth('5xl')
+                                                ->modalSubmitActionLabel('Save Places')
+                                                ->fillForm(fn (Get $get): array => [
+                                                    'points_of_interest' => $get('points_of_interest') ?? [],
+                                                ])
+                                                ->form([
+                                                    Forms\Components\Repeater::make('points_of_interest')
+                                                        ->label('Must-See Places / Points of Interest')
+                                                        ->addActionLabel('Add place')
+                                                        ->schema([
+                                                            Forms\Components\TextInput::make('name_en')
+                                                                ->label('Place Name (English)')
+                                                                ->required(),
+
+                                                            Forms\Components\TextInput::make('name_fr')
+                                                                ->label('Place Name (Français)')
+                                                                ->required(),
+
+                                                            Forms\Components\Textarea::make('description_en')
+                                                                ->label('Description (English)')
+                                                                ->rows(3)
+                                                                ->required(),
+
+                                                            Forms\Components\Textarea::make('description_fr')
+                                                                ->label('Description (Français)')
+                                                                ->rows(3)
+                                                                ->required(),
+                                                        ])
+                                                        ->columns(2)
+                                                        ->collapsible()
+                                                        ->itemLabel(fn (array $state): ?string => $state['name_en'] ?? null)
+                                                        ->defaultItems(0)
+                                                        ->maxItems(8)
+                                                        ->reorderable(),
+                                                ])
+                                                ->action(function (array $data, Set $set): void {
+                                                    $set('points_of_interest', array_values($data['points_of_interest'] ?? []));
+                                                }),
+                                        ])->fullWidth(),
                                     ])
-                                    ->collapsible()
-                                    ->collapsed(),
-
-                                // --- Key Facts ---
-                                Forms\Components\Section::make('Key Facts')
-                                    ->icon('heroicon-o-chart-bar')
-                                    ->schema([
-                                        Forms\Components\Repeater::make('key_facts')
-                                            ->label('Key Facts (quick stats bar)')
-                                            ->addActionLabel('Add key fact')
-                                            ->schema([
-                                                Forms\Components\Select::make('icon')
-                                                    ->label('Icon')
-                                                    ->options(self::getIconOptions())
-                                                    ->searchable()
-                                                    ->required(),
-
-                                                Forms\Components\TextInput::make('label_en')
-                                                    ->label('Label (English)')
-                                                    ->placeholder('Area')
-                                                    ->required(),
-
-                                                Forms\Components\TextInput::make('label_fr')
-                                                    ->label('Label (Français)')
-                                                    ->placeholder('Superficie')
-                                                    ->required(),
-
-                                                Forms\Components\TextInput::make('value')
-                                                    ->label('Value')
-                                                    ->placeholder('514 km²')
-                                                    ->required(),
-                                            ])
-                                            ->columns(2)
-                                            ->collapsible()
-                                            ->itemLabel(fn (array $state): ?string => ($state['label_en'] ?? '') . ': ' . ($state['value'] ?? ''))
-                                            ->defaultItems(0)
-                                            ->maxItems(8)
-                                            ->reorderable(),
-                                    ])
-                                    ->collapsible()
-                                    ->collapsed(),
-
-                                // --- Gallery ---
-                                Forms\Components\Section::make('Gallery')
-                                    ->icon('heroicon-o-photo')
-                                    ->schema([
-                                        Forms\Components\FileUpload::make('_gallery_uploader')
-                                            ->label('Upload Gallery Images')
-                                            ->multiple()
-                                            ->directory('destinations/gallery')
-                                            ->disk('public')
-                                            ->image()
-                                            ->maxSize(5120)
-                                            ->dehydrated(false)
-                                            ->helperText('Upload images here first. Then create gallery entries below and paste the file path (e.g., destinations/gallery/filename.jpg). The uploaded files will appear on the server after saving.'),
-
-                                        Forms\Components\Repeater::make('gallery')
-                                            ->label('Gallery Entries')
-                                            ->addActionLabel('Add gallery image')
-                                            ->schema([
-                                                Forms\Components\TextInput::make('image')
-                                                    ->label('Image Path')
-                                                    ->required()
-                                                    ->placeholder('destinations/gallery/photo.jpg')
-                                                    ->helperText('File path relative to storage (e.g., destinations/gallery/beach-sunset.jpg)'),
-
-                                                Forms\Components\TextInput::make('alt_en')
-                                                    ->label('Alt Text (English)')
-                                                    ->required()
-                                                    ->helperText('Accessibility & SEO description'),
-
-                                                Forms\Components\TextInput::make('alt_fr')
-                                                    ->label('Alt Text (Français)')
-                                                    ->required(),
-
-                                                Forms\Components\TextInput::make('caption_en')
-                                                    ->label('Caption (English)'),
-
-                                                Forms\Components\TextInput::make('caption_fr')
-                                                    ->label('Caption (Français)'),
-                                            ])
-                                            ->columns(2)
-                                            ->collapsible()
-                                            ->itemLabel(fn (array $state): ?string => $state['caption_en'] ?? $state['alt_en'] ?? null)
-                                            ->defaultItems(0)
-                                            ->maxItems(10)
-                                            ->reorderable(),
-                                    ])
-                                    ->collapsible()
-                                    ->collapsed(),
-
-                                // --- Must-See Places ---
-                                Forms\Components\Section::make('Must-See Places')
-                                    ->icon('heroicon-o-map-pin')
-                                    ->schema([
-                                        Forms\Components\Repeater::make('points_of_interest')
-                                            ->label('Must-See Places / Points of Interest')
-                                            ->addActionLabel('Add place')
-                                            ->schema([
-                                                Forms\Components\TextInput::make('name_en')
-                                                    ->label('Place Name (English)')
-                                                    ->required(),
-
-                                                Forms\Components\TextInput::make('name_fr')
-                                                    ->label('Place Name (Français)')
-                                                    ->required(),
-
-                                                Forms\Components\Textarea::make('description_en')
-                                                    ->label('Description (English)')
-                                                    ->rows(3)
-                                                    ->required(),
-
-                                                Forms\Components\Textarea::make('description_fr')
-                                                    ->label('Description (Français)')
-                                                    ->rows(3)
-                                                    ->required(),
-                                            ])
-                                            ->columns(2)
-                                            ->collapsible()
-                                            ->itemLabel(fn (array $state): ?string => $state['name_en'] ?? null)
-                                            ->defaultItems(0)
-                                            ->maxItems(8)
-                                            ->reorderable(),
-                                    ])
-                                    ->collapsible()
-                                    ->collapsed(),
+                                    ->collapsible(),
                             ])
                             ->reorderable()
                             ->collapsible()
@@ -1699,6 +1747,30 @@ class PlatformSettingsPage extends Page implements HasForms
 
             // Sanitize KeyValue fields to prevent array-as-value errors
             $data = $this->sanitizeKeyValueFields($data);
+
+            // Merge nested destination content from raw Livewire state.
+            // Modal actions set highlights/key_facts/gallery/points_of_interest via $set(),
+            // which updates $this->data, but $this->form->getState() only returns
+            // schema-defined fields (name, id, description, image, link, seo_*).
+            $nestedKeys = ['highlights', 'key_facts', 'gallery', 'points_of_interest'];
+            if (isset($data['featured_destinations']) && isset($this->data['featured_destinations'])) {
+                $rawDestinations = $this->data['featured_destinations'];
+                foreach ($data['featured_destinations'] as $index => &$dest) {
+                    // Match by 'id' field (slug) since array indices may differ after dehydration
+                    foreach ($rawDestinations as $rawDest) {
+                        $rawId = is_array($rawDest) ? ($rawDest['id'] ?? null) : null;
+                        if ($rawId && $rawId === ($dest['id'] ?? null)) {
+                            foreach ($nestedKeys as $key) {
+                                if (isset($rawDest[$key]) && ! isset($dest[$key])) {
+                                    $dest[$key] = $rawDest[$key];
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                unset($dest);
+            }
 
             // Fill model with scalar data and save
             $this->settings->fill($data);
