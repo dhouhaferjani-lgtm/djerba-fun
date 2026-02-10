@@ -602,7 +602,19 @@
     "or_sign_in": "ou se connecter",
     "sign_in_email": "Se connecter avec Email",
     "turnstile_error": "La vérification de sécurité a échoué. Veuillez réessayer.",
-    "turnstile_expired": "La vérification de sécurité a expiré. Veuillez vérifier à nouveau."
+    "turnstile_expired": "La vérification de sécurité a expiré. Veuillez vérifier à nouveau.",
+    "verify_email_title": "Vérifiez votre email",
+    "verify_email_message": "Nous avons envoyé un lien de vérification à",
+    "verify_email_resend": "Renvoyer l'email de vérification",
+    "verify_email_resent": "Email de vérification envoyé !",
+    "verify_email_resend_wait": "Renvoyer dans",
+    "verify_email_resend_error": "Échec du renvoi. Veuillez réessayer.",
+    "verification_expired": "Lien de vérification expiré",
+    "verification_expired_message": "Ce lien a expiré ou est invalide. Entrez votre email pour en recevoir un nouveau.",
+    "verification_success": "Email vérifié avec succès !",
+    "continue_with_google": "Continuer avec Google",
+    "continue_with_facebook": "Continuer avec Facebook",
+    "or_continue_with": "ou continuer avec"
   },
   "navigation": {
     "home": "Accueil",

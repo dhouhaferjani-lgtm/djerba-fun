@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Partner\PartnerSearchController;
 use App\Http\Controllers\Api\Partner\PartnerTransactionController;
 use App\Http\Controllers\Api\V1\ActivityTypeController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\OAuthController;
 use App\Http\Controllers\Api\V1\AvailabilityController;
 use App\Http\Controllers\Api\V1\BlogPostController;
 use App\Http\Controllers\Api\V1\BookingController;
@@ -80,6 +81,16 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:5,15'); // 5 attempts per 15 minutes
     Route::post('/auth/magic-link/register', [AuthController::class, 'registerPasswordless'])
         ->middleware('throttle:3,60'); // 3 attempts per hour
+
+    // Email verification routes (public)
+    Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail'])
+        ->middleware('throttle:5,15'); // 5 attempts per 15 minutes
+    Route::post('/auth/resend-verification', [AuthController::class, 'resendVerification'])
+        ->middleware('throttle:3,60'); // 3 attempts per hour
+
+    // OAuth social login routes (public)
+    Route::get('/auth/oauth/{provider}/redirect', [OAuthController::class, 'redirect']);
+    Route::get('/auth/oauth/{provider}/callback', [OAuthController::class, 'callback']);
 
     // Public listing routes
     Route::get('/listings', [ListingController::class, 'index']);

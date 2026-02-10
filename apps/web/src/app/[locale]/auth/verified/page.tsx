@@ -1,36 +1,67 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@go-adventure/ui';
-import { Check, Loader2, Package } from 'lucide-react';
+import { Check, Loader2, Package, AlertCircle } from 'lucide-react';
 import { useClaimableBookings, useLinkBookings } from '@/lib/api/hooks';
+import { authApi } from '@/lib/api/client';
 import type { Booking } from '@go-adventure/schemas';
 
 /**
  * Email verification success page
- * Auto-logs in user and checks for claimable bookings
- * Allows linking of guest bookings to the new account
+ * 1. Verifies the token from the email link
+ * 2. Auto-logs in user (stores API token)
+ * 3. Checks for claimable bookings
+ * 4. Allows linking of guest bookings to the new account
  */
 export default function EmailVerifiedPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
   const t = useTranslations('auth');
   const tBooking = useTranslations('booking');
 
-  const [checkingBookings, setCheckingBookings] = useState(true);
   const [selectedBookingIds, setSelectedBookingIds] = useState<string[]>([]);
+  const [verificationState, setVerificationState] = useState<
+    'verifying' | 'verified' | 'expired' | 'error'
+  >('verifying');
+  const [resendEmail, setResendEmail] = useState('');
+  const [resendSuccess, setResendSuccess] = useState(false);
 
-  // Get auto-login token from URL (sent in verification email)
+  // Get token from URL (sent in verification email)
   const token = searchParams.get('token');
 
-  const { data: claimableData, isLoading: bookingsLoading } = useClaimableBookings();
+  // Only query claimable bookings AFTER verification succeeds
+  const { data: claimableData, isLoading: bookingsLoading } = useClaimableBookings(
+    verificationState === 'verified'
+  );
   const linkBookingsMutation = useLinkBookings();
 
   const claimableBookings = claimableData || [];
   const hasClaimableBookings = claimableBookings.length > 0;
+
+  // Verify the token on mount
+  useEffect(() => {
+    if (!token) {
+      setVerificationState('error');
+      return;
+    }
+
+    const verify = async () => {
+      try {
+        await authApi.verifyEmail(token);
+        setVerificationState('verified');
+      } catch {
+        setVerificationState('expired');
+      }
+    };
+
+    verify();
+  }, [token]);
 
   // Auto-select all bookings by default
   useEffect(() => {
@@ -39,17 +70,19 @@ export default function EmailVerifiedPage() {
     }
   }, [claimableBookings]);
 
-  // Check bookings loading state
-  useEffect(() => {
-    if (!bookingsLoading) {
-      setCheckingBookings(false);
+  const handleResend = async () => {
+    if (!resendEmail) return;
+    try {
+      await authApi.resendVerification(resendEmail);
+      setResendSuccess(true);
+    } catch {
+      // Silent fail
     }
-  }, [bookingsLoading]);
+  };
 
   const handleLinkBookings = async () => {
     try {
       await linkBookingsMutation.mutateAsync(selectedBookingIds);
-      // Redirect to dashboard after successful linking
       setTimeout(() => {
         router.push('/dashboard');
       }, 1500);
@@ -58,9 +91,9 @@ export default function EmailVerifiedPage() {
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = useCallback(() => {
     router.push('/dashboard');
-  };
+  }, [router]);
 
   const toggleBookingSelection = (bookingId: string) => {
     setSelectedBookingIds((prev) =>
@@ -86,7 +119,86 @@ export default function EmailVerifiedPage() {
     }).format(amount);
   };
 
-  if (checkingBookings) {
+  // --- Verifying state ---
+  if (verificationState === 'verifying') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+          <div className="text-center">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                <Loader2 className="w-10 h-10 text-primary animate-spin" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {t('verifying_account') || 'Verifying your email...'}
+            </h1>
+            <p className="text-gray-600">{t('please_wait') || 'Please wait a moment'}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Expired / Error state ---
+  if (verificationState === 'expired' || verificationState === 'error') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+          <div className="text-center">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-10 h-10 text-red-500" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {t('verification_expired') || 'Verification link expired'}
+            </h1>
+            <p className="text-gray-600 mb-6">
+              {t('verification_expired_message') ||
+                'This link has expired or is invalid. Enter your email to receive a new one.'}
+            </p>
+
+            {resendSuccess ? (
+              <div className="p-3 bg-success-light border border-success/20 rounded-lg text-success-dark text-sm mb-4">
+                {t('verify_email_resent') || 'A new verification email has been sent!'}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <input
+                  type="email"
+                  value={resendEmail}
+                  onChange={(e) => setResendEmail(e.target.value)}
+                  placeholder={t('email') || 'Email address'}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                />
+                <Button
+                  variant="primary"
+                  className="w-full"
+                  onClick={handleResend}
+                  disabled={!resendEmail}
+                >
+                  {t('verify_email_resend') || 'Resend verification email'}
+                </Button>
+              </div>
+            )}
+
+            <div className="mt-4">
+              <Link
+                href={`/auth/login`}
+                className="text-sm text-gray-600 hover:text-primary transition-colors"
+              >
+                {t('back_to_login') || 'Back to login'}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Verified: checking bookings ---
+  if (bookingsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
@@ -108,6 +220,7 @@ export default function EmailVerifiedPage() {
     );
   }
 
+  // --- Bookings linked success ---
   if (linkBookingsMutation.isSuccess) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
@@ -136,6 +249,7 @@ export default function EmailVerifiedPage() {
     );
   }
 
+  // --- Verified: main view ---
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="max-w-2xl w-full bg-white rounded-lg shadow-md p-8">

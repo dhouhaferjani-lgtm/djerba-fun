@@ -5,6 +5,7 @@ namespace App\Enums;
 enum UserStatus: string
 {
     case PENDING = 'pending';
+    case PENDING_VERIFICATION = 'pending_verification';
     case ACTIVE = 'active';
     case SUSPENDED = 'suspended';
     case DELETED = 'deleted';
@@ -16,6 +17,7 @@ enum UserStatus: string
     {
         return match ($this) {
             self::PENDING => 'Pending',
+            self::PENDING_VERIFICATION => 'Pending Verification',
             self::ACTIVE => 'Active',
             self::SUSPENDED => 'Suspended',
             self::DELETED => 'Deleted',
@@ -37,6 +39,7 @@ enum UserStatus: string
     {
         return match ($this) {
             self::PENDING => 'warning',
+            self::PENDING_VERIFICATION => 'warning',
             self::ACTIVE => 'success',
             self::SUSPENDED => 'danger',
             self::DELETED => 'gray',

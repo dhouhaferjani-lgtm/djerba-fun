@@ -14,6 +14,7 @@ use App\Http\Resources\UserResource;
 use App\Models\TravelerProfile;
 use App\Models\User;
 use App\Models\VendorProfile;
+use App\Services\EmailVerificationService;
 use App\Services\MagicAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,7 +28,8 @@ class AuthController extends Controller
      * Create a new controller instance.
      */
     public function __construct(
-        private readonly MagicAuthService $magicAuthService
+        private readonly MagicAuthService $magicAuthService,
+        private readonly EmailVerificationService $verificationService
     ) {}
 
     /**
@@ -38,12 +40,12 @@ class AuthController extends Controller
         try {
             DB::beginTransaction();
 
-            // Create user
+            // Create user with pending verification status
             $user = User::create([
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role' => $request->role,
-                'status' => UserStatus::ACTIVE,
+                'status' => UserStatus::PENDING_VERIFICATION,
                 'display_name' => $request->display_name,
             ]);
 
@@ -65,18 +67,14 @@ class AuthController extends Controller
                 ]);
             }
 
-            // Create API token
-            $token = $user->createToken(
-                $request->device_name ?? 'api-token',
-                ['*'],
-                now()->addDays(30)
-            )->plainTextToken;
-
             DB::commit();
 
+            // Send verification email (after commit so user exists)
+            $this->verificationService->sendVerificationEmail($user);
+
             return response()->json([
-                'user' => new UserResource($user->load(['travelerProfile', 'vendorProfile'])),
-                'token' => $token,
+                'message' => 'verification_email_sent',
+                'email' => $user->email,
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -97,10 +95,42 @@ class AuthController extends Controller
     {
         $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        // Check if user exists
+        if (! $user) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
+        }
+
+        // OAuth-only accounts have no password — direct them to social login
+        if ($user->password === null) {
+            $provider = $user->oauth_provider ?? 'social login';
+
+            return response()->json([
+                'error' => [
+                    'code' => 'OAUTH_ACCOUNT',
+                    'message' => "This account uses {$provider}. Please log in with {$provider} or use a magic link.",
+                ],
+            ], 400);
+        }
+
+        if (! Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+
+        // Block unverified users and auto-resend verification email
+        if ($user->status === UserStatus::PENDING_VERIFICATION) {
+            $this->verificationService->sendVerificationEmail($user);
+
+            return response()->json([
+                'error' => [
+                    'code' => 'EMAIL_NOT_VERIFIED',
+                    'message' => 'Please verify your email. A new verification link has been sent.',
+                    'email' => $user->email,
+                ],
+            ], 403);
         }
 
         if (! $user->canAccess()) {
@@ -182,6 +212,16 @@ class AuthController extends Controller
             ], 401);
         }
 
+        // If user proved email ownership via magic link, auto-verify them
+        if ($user->status === UserStatus::PENDING_VERIFICATION) {
+            $user->update([
+                'email_verified_at' => now(),
+                'status' => UserStatus::ACTIVE,
+                'verification_token_hash' => null,
+                'verification_token_expires_at' => null,
+            ]);
+        }
+
         if (! $user->canAccess()) {
             return response()->json([
                 'error' => [
@@ -201,6 +241,62 @@ class AuthController extends Controller
         return response()->json([
             'user' => new UserResource($user->load(['travelerProfile', 'vendorProfile'])),
             'token' => $token,
+        ]);
+    }
+
+    /**
+     * Verify email address using token from verification email.
+     * Auto-logs in the user and returns API token.
+     */
+    public function verifyEmail(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token' => ['required', 'string'],
+        ]);
+
+        $user = $this->verificationService->verifyToken($request->token);
+
+        if (! $user) {
+            return response()->json([
+                'error' => [
+                    'code' => 'INVALID_VERIFICATION_TOKEN',
+                    'message' => 'Invalid or expired verification link. Please request a new one.',
+                ],
+            ], 401);
+        }
+
+        // Create API token (auto-login after verification)
+        $token = $user->createToken(
+            'email-verification',
+            ['*'],
+            now()->addDays(30)
+        )->plainTextToken;
+
+        return response()->json([
+            'user' => new UserResource($user->load(['travelerProfile', 'vendorProfile'])),
+            'token' => $token,
+        ]);
+    }
+
+    /**
+     * Resend verification email.
+     * Email enumeration protection: always returns success message.
+     */
+    public function resendVerification(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        // Email enumeration protection — always return same message
+        if ($user && $user->status === UserStatus::PENDING_VERIFICATION) {
+            $this->verificationService->resendVerification($user);
+        }
+
+        return response()->json([
+            'message' => 'If this email exists and is not yet verified, a verification link has been sent.',
         ]);
     }
 

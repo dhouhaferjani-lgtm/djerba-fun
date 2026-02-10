@@ -10,6 +10,7 @@ import { FloatingInput, Button, Card } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { TurnstileWidget, useTurnstile } from '@/components/atoms/TurnstileWidget';
 import { Mail, Lock } from 'lucide-react';
+import { SocialLoginButtons } from '@/components/molecules/SocialLoginButtons';
 
 export default function LoginPage() {
   const params = useParams();
@@ -32,7 +33,13 @@ export default function LoginPage() {
     try {
       await login(email, password, getTurnstileToken());
       router.push(`/${locale}`);
-    } catch (err) {
+    } catch (err: unknown) {
+      // Redirect unverified users to the verify-email page
+      const apiError = err as { code?: string };
+      if (apiError.code === 'EMAIL_NOT_VERIFIED') {
+        router.push(`/${locale}/auth/verify-email?email=${encodeURIComponent(email)}`);
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setIsLoading(false);
@@ -99,14 +106,19 @@ export default function LoginPage() {
                   <div className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">or</span>
+                  <span className="px-2 bg-white text-gray-500">
+                    {t('or_continue_with') || 'or'}
+                  </span>
                 </div>
               </div>
+
+              {/* Social Login */}
+              <SocialLoginButtons locale={locale} />
 
               {/* Passwordless Login Link */}
               <Link
                 href={`/${locale}/auth/passwordless` as any}
-                className="block w-full text-center px-4 py-2 border-2 border-gray-300 rounded-full text-sm text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                className="block w-full text-center mt-4 px-4 py-2 border-2 border-gray-300 rounded-full text-sm text-gray-700 font-medium hover:bg-gray-50 transition-colors"
               >
                 {t('login_without_password') || 'Login without password'} →
               </Link>

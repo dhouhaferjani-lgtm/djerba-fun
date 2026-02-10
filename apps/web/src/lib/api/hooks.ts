@@ -76,13 +76,9 @@ interface RegisterData {
 }
 
 export function useRegister() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (data: RegisterData) => authApi.register(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user', 'me'] });
-    },
+    // No onSuccess — user is not logged in yet (must verify email first)
   });
 }
 
@@ -852,13 +848,14 @@ export function useRegisterPasswordless() {
 /**
  * Get claimable bookings for authenticated user
  */
-export function useClaimableBookings() {
+export function useClaimableBookings(enabled: boolean = true) {
   return useQuery({
     queryKey: ['bookings', 'claimable'],
     queryFn: async () => {
       const response = await bookingsApi.getClaimable();
       return response.data;
     },
+    enabled,
   });
 }
 

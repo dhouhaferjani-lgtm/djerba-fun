@@ -109,7 +109,7 @@ export const authApi = {
     role: string;
     cfTurnstileResponse?: string;
   }) => {
-    const response = await fetchApi<{ user: User; token: string }>('/auth/register', {
+    const response = await fetchApi<{ message: string; email: string }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
         email: data.email,
@@ -123,10 +123,7 @@ export const authApi = {
       }),
     });
 
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', response.token);
-    }
-
+    // No token storage — user must verify email first
     return response;
   },
 
@@ -163,6 +160,32 @@ export const authApi = {
     }
 
     return data;
+  },
+
+  // Email verification
+  verifyEmail: async (token: string) => {
+    const data = await fetchApi<{ user: User; token: string }>('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_token', data.token);
+    }
+
+    return data;
+  },
+
+  resendVerification: async (email: string) => {
+    return fetchApi<{ message: string }>('/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  // OAuth
+  getOAuthRedirectUrl: async (provider: string) => {
+    return fetchApi<{ url: string }>(`/auth/oauth/${provider}/redirect`);
   },
 
   registerPasswordless: async (data: {

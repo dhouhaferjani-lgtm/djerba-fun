@@ -56,6 +56,10 @@ class User extends Authenticatable implements FilamentUser
         'magic_token_used_at',
         'prefers_passwordless',
         'last_magic_login_at',
+        'verification_token_hash',
+        'verification_token_expires_at',
+        'oauth_provider',
+        'oauth_provider_id',
     ];
 
     /**
@@ -67,6 +71,7 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'remember_token',
         'magic_token_hash',
+        'verification_token_hash',
     ];
 
     /**
@@ -85,6 +90,7 @@ class User extends Authenticatable implements FilamentUser
             'magic_token_used_at' => 'datetime',
             'last_magic_login_at' => 'datetime',
             'prefers_passwordless' => 'boolean',
+            'verification_token_expires_at' => 'datetime',
         ];
     }
 
@@ -166,6 +172,14 @@ class User extends Authenticatable implements FilamentUser
     public function isAgent(): bool
     {
         return $this->role === UserRole::AGENT;
+    }
+
+    /**
+     * Check if user registered via OAuth (Google, Facebook, etc.)
+     */
+    public function isOAuthUser(): bool
+    {
+        return $this->oauth_provider !== null;
     }
 
     /**
