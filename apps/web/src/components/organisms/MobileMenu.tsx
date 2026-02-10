@@ -46,7 +46,7 @@ export function MobileMenu({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start font-bold text-white mb-2 hover:bg-primary-light"
+                  className="w-full justify-center font-bold text-white mb-2 hover:bg-primary-light"
                 >
                   <User className="h-4 w-4 mr-2" />
                   {user.displayName}
@@ -55,7 +55,7 @@ export function MobileMenu({
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start font-bold text-white hover:bg-primary-light"
+                className="w-full justify-center font-bold text-white hover:bg-primary-light"
                 onClick={() => onLogoutClick?.()}
               >
                 <LogOut className="h-4 w-4 mr-2" />
@@ -67,7 +67,7 @@ export function MobileMenu({
               <NavLink href={`/${locale}/auth/login`} onClick={() => setIsOpen(false)}>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start text-white hover:bg-white/10 rounded-xl py-3"
+                  className="w-full justify-center text-white hover:bg-white/10 rounded-xl py-3"
                 >
                   <User className="h-5 w-5 mr-3" />
                   {tAuth('login')}

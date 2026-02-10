@@ -397,12 +397,12 @@ export function HeroSection({
           </div>
 
           {/* Travel Tip Banner - Transparent with white border, typewriter effect with running traveler */}
-          <div className="w-full max-w-5xl mx-auto bg-white/10 backdrop-blur-sm border border-white px-8 py-3 rounded-lg">
+          <div className="w-full max-w-5xl mx-auto bg-white/10 backdrop-blur-sm border border-white px-8 py-3 rounded-lg overflow-hidden">
             <p className="text-white text-sm text-center">
-              <span className="inline-flex items-center">
+              <span className="inline-flex items-center justify-center">
                 <span className="relative">
                   <span className="invisible">{longestTip}</span>
-                  <span className="absolute left-0 top-0">
+                  <span className="absolute inset-0 text-center">
                     {displayedText}
                     <RunningTraveler isRunning={isTyping} />
                   </span>
