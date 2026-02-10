@@ -9,14 +9,18 @@ use App\Filament\Admin\Resources\ListingResource;
 use App\Filament\Vendor\Resources\ListingResource as VendorListingResource;
 use App\Mail\ListingPublishFailedMail;
 use Filament\Actions;
+use Filament\Notifications\Actions\Action as NotificationAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class EditListing extends EditRecord
 {
     protected static string $resource = ListingResource::class;
+
+    protected ?string $previousStatus = null;
 
     protected function getHeaderActions(): array
     {
@@ -30,6 +34,9 @@ class EditListing extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        // Capture old status before save for notification logic in afterSave()
+        $this->previousStatus = $this->record->status->value;
+
         // CRITICAL FIX: Remove empty arrays for disabled fields
         // Filament sends empty arrays for disabled fields which would overwrite existing data
         $disabledFields = ['title', 'summary', 'description', 'pricing', 'slug', 'vendor_id',
@@ -100,6 +107,26 @@ class EditListing extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function afterSave(): void
+    {
+        if ($this->previousStatus === null) {
+            return;
+        }
+
+        $newStatus = $this->record->status;
+        $oldStatus = ListingStatus::from($this->previousStatus);
+
+        if ($oldStatus === $newStatus) {
+            return;
+        }
+
+        if ($oldStatus === ListingStatus::PENDING_REVIEW && $newStatus === ListingStatus::PUBLISHED) {
+            $this->notifyVendorOfApproval();
+        } elseif ($oldStatus === ListingStatus::PENDING_REVIEW && $newStatus === ListingStatus::REJECTED) {
+            $this->notifyVendorOfRejection();
+        }
+    }
+
     /**
      * Notify vendor when their listing cannot be published due to missing fields.
      * Uses rate limiting to prevent notification spam (max 1 per 5 minutes per listing).
@@ -130,18 +157,22 @@ class EditListing extends EditRecord
         // Generate correct vendor panel URL using Filament's URL generator
         $editUrl = VendorListingResource::getUrl('edit', ['record' => $this->record], panel: 'vendor');
 
-        // Send database notification (appears in vendor panel)
-        Notification::make()
-            ->title('Action Required: Listing Cannot Be Published')
-            ->body("Your listing \"{$listingTitle}\" cannot be published. Missing: " . implode(', ', $errors))
-            ->warning()
-            ->actions([
-                \Filament\Notifications\Actions\Action::make('edit')
-                    ->label('Edit Listing')
-                    ->url($editUrl)
-                    ->button(),
-            ])
-            ->sendToDatabase($vendor);
+        // Send database notification (appears in vendor panel) via direct Eloquent insert
+        $vendor->notifications()->create([
+            'id' => Str::uuid()->toString(),
+            'type' => \Filament\Notifications\DatabaseNotification::class,
+            'data' => Notification::make()
+                ->title('Action Required: Listing Cannot Be Published')
+                ->body("Your listing \"{$listingTitle}\" cannot be published. Missing: " . implode(', ', $errors))
+                ->warning()
+                ->actions([
+                    NotificationAction::make('edit')
+                        ->label('Edit Listing')
+                        ->url($editUrl)
+                        ->button(),
+                ])
+                ->getDatabaseMessage(),
+        ]);
 
         // Send email notification as backup (pass edit URL for consistency)
         Mail::to($vendor->email)->queue(new ListingPublishFailedMail(
@@ -150,5 +181,93 @@ class EditListing extends EditRecord
             $errors,
             $editUrl
         ));
+    }
+
+    protected function notifyVendorOfApproval(): void
+    {
+        try {
+            $vendor = $this->record->vendor;
+            if (! $vendor) {
+                return;
+            }
+
+            $listingTitle = $this->record->getTranslation('title', 'en')
+                ?: $this->record->getTranslation('title', 'fr')
+                ?: 'Untitled';
+            if (is_array($listingTitle)) {
+                $listingTitle = reset($listingTitle) ?: 'Untitled';
+            }
+
+            $vendor->notifications()->create([
+                'id' => Str::uuid()->toString(),
+                'type' => \Filament\Notifications\DatabaseNotification::class,
+                'data' => Notification::make()
+                    ->title('Listing Approved')
+                    ->icon('heroicon-o-check-circle')
+                    ->body("Your listing \"{$listingTitle}\" has been approved and is now published!")
+                    ->success()
+                    ->actions([
+                        NotificationAction::make('view')
+                            ->label('View Listing')
+                            ->url("/vendor/listings/{$this->record->id}/edit")
+                            ->button(),
+                    ])
+                    ->getDatabaseMessage(),
+            ]);
+
+            \Log::info('NOTIF_DEBUG: Form-based approval notification created', [
+                'listing_id' => $this->record->id,
+                'vendor_id' => $vendor->id,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Failed to send approval notification via form', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+    }
+
+    protected function notifyVendorOfRejection(): void
+    {
+        try {
+            $vendor = $this->record->vendor;
+            if (! $vendor) {
+                return;
+            }
+
+            $listingTitle = $this->record->getTranslation('title', 'en')
+                ?: $this->record->getTranslation('title', 'fr')
+                ?: 'Untitled';
+            if (is_array($listingTitle)) {
+                $listingTitle = reset($listingTitle) ?: 'Untitled';
+            }
+
+            $vendor->notifications()->create([
+                'id' => Str::uuid()->toString(),
+                'type' => \Filament\Notifications\DatabaseNotification::class,
+                'data' => Notification::make()
+                    ->title('Listing Rejected')
+                    ->icon('heroicon-o-x-circle')
+                    ->body("Your listing \"{$listingTitle}\" has been rejected. Please review and resubmit.")
+                    ->warning()
+                    ->actions([
+                        NotificationAction::make('edit')
+                            ->label('Edit Listing')
+                            ->url("/vendor/listings/{$this->record->id}/edit")
+                            ->button(),
+                    ])
+                    ->getDatabaseMessage(),
+            ]);
+
+            \Log::info('NOTIF_DEBUG: Form-based rejection notification created', [
+                'listing_id' => $this->record->id,
+                'vendor_id' => $vendor->id,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Failed to send rejection notification via form', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
     }
 }
