@@ -711,7 +711,7 @@ class PlatformSettingsPage extends Page implements HasForms
                                                         ->collapsible()
                                                         ->itemLabel(fn (array $state): ?string => $state['title_en'] ?? null)
                                                         ->defaultItems(0)
-                                                        ->maxItems(6)
+                                                        ->maxItems(12)
                                                         ->reorderable(),
                                                 ])
                                                 ->action(function (array $data, Set $set): void {
