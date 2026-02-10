@@ -400,8 +400,10 @@ class CartCheckoutService
                     if (is_array($listingTitle)) {
                         $listingTitle = reset($listingTitle) ?: 'Untitled';
                     }
-                    $vendor->notifyNow(
-                        Notification::make()
+                    $vendor->notifications()->create([
+                        'id' => Str::uuid()->toString(),
+                        'type' => \Filament\Notifications\DatabaseNotification::class,
+                        'data' => Notification::make()
                             ->title('New Booking Confirmed')
                             ->icon('heroicon-o-check-circle')
                             ->body("Booking {$booking->booking_number} for \"{$listingTitle}\" has been confirmed.")
@@ -411,16 +413,18 @@ class CartCheckoutService
                                     ->url("/vendor/bookings/{$booking->id}")
                                     ->button(),
                             ])
-                            ->toDatabase()
-                    );
+                            ->getDatabaseMessage(),
+                    ]);
                 } else {
-                    $vendor->notifyNow(
-                        Notification::make()
+                    $vendor->notifications()->create([
+                        'id' => Str::uuid()->toString(),
+                        'type' => \Filament\Notifications\DatabaseNotification::class,
+                        'data' => Notification::make()
                             ->title("{$count} New Bookings Confirmed")
                             ->icon('heroicon-o-check-circle')
                             ->body("{$count} bookings for your listings have been confirmed.")
-                            ->toDatabase()
-                    );
+                            ->getDatabaseMessage(),
+                    ]);
                 }
             } catch (\Throwable $e) {
                 Log::error('Failed to send cart booking notification to vendor', ['error' => $e->getMessage()]);

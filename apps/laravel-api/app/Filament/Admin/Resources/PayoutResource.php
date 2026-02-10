@@ -14,6 +14,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class PayoutResource extends Resource
 {
@@ -172,13 +173,15 @@ class PayoutResource extends Resource
                             try {
                                 $vendor = $record->vendor;
                                 if ($vendor) {
-                                    $vendor->notifyNow(
-                                        Notification::make()
+                                    $vendor->notifications()->create([
+                                        'id' => Str::uuid()->toString(),
+                                        'type' => \Filament\Notifications\DatabaseNotification::class,
+                                        'data' => Notification::make()
                                             ->title('Payout Being Processed')
                                             ->icon('heroicon-o-banknotes')
                                             ->body("Your payout of {$record->amount} {$record->currency} is being processed.")
-                                            ->toDatabase()
-                                    );
+                                            ->getDatabaseMessage(),
+                                    ]);
                                 }
                             } catch (\Throwable $e) {
                                 \Log::error('Failed to send payout processing notification', ['error' => $e->getMessage()]);
@@ -210,14 +213,16 @@ class PayoutResource extends Resource
                             try {
                                 $vendor = $record->vendor;
                                 if ($vendor) {
-                                    $vendor->notifyNow(
-                                        Notification::make()
+                                    $vendor->notifications()->create([
+                                        'id' => Str::uuid()->toString(),
+                                        'type' => \Filament\Notifications\DatabaseNotification::class,
+                                        'data' => Notification::make()
                                             ->title('Payout Completed')
                                             ->icon('heroicon-o-banknotes')
                                             ->body("Your payout of {$record->amount} {$record->currency} has been completed. Reference: {$data['reference']}")
                                             ->success()
-                                            ->toDatabase()
-                                    );
+                                            ->getDatabaseMessage(),
+                                    ]);
                                 }
                             } catch (\Throwable $e) {
                                 \Log::error('Failed to send payout completed notification', ['error' => $e->getMessage()]);
@@ -249,14 +254,16 @@ class PayoutResource extends Resource
                             try {
                                 $vendor = $record->vendor;
                                 if ($vendor) {
-                                    $vendor->notifyNow(
-                                        Notification::make()
+                                    $vendor->notifications()->create([
+                                        'id' => Str::uuid()->toString(),
+                                        'type' => \Filament\Notifications\DatabaseNotification::class,
+                                        'data' => Notification::make()
                                             ->title('Payout Failed')
                                             ->icon('heroicon-o-banknotes')
                                             ->body("Your payout of {$record->amount} {$record->currency} has failed. Reason: {$data['reason']}")
                                             ->danger()
-                                            ->toDatabase()
-                                    );
+                                            ->getDatabaseMessage(),
+                                    ]);
                                 }
                             } catch (\Throwable $e) {
                                 \Log::error('Failed to send payout failed notification', ['error' => $e->getMessage()]);

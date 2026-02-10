@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class ListingResource extends Resource
 {
@@ -497,8 +498,10 @@ class ListingResource extends Resource
                                     if (is_array($listingTitle)) {
                                         $listingTitle = reset($listingTitle) ?: 'Untitled';
                                     }
-                                    $vendor->notifyNow(
-                                        Notification::make()
+                                    $vendor->notifications()->create([
+                                        'id' => Str::uuid()->toString(),
+                                        'type' => \Filament\Notifications\DatabaseNotification::class,
+                                        'data' => Notification::make()
                                             ->title('Your Listing Was Approved')
                                             ->icon('heroicon-o-check-badge')
                                             ->body("Your listing \"{$listingTitle}\" has been approved and is now visible to travelers.")
@@ -509,8 +512,8 @@ class ListingResource extends Resource
                                                     ->url("/vendor/listings/{$record->id}")
                                                     ->button(),
                                             ])
-                                            ->toDatabase()
-                                    );
+                                            ->getDatabaseMessage(),
+                                    ]);
                                 }
                             } catch (\Throwable $e) {
                                 \Log::error('Failed to send listing approved notification to vendor', ['error' => $e->getMessage()]);
@@ -552,8 +555,10 @@ class ListingResource extends Resource
                                         $listingTitle = reset($listingTitle) ?: 'Untitled';
                                     }
                                     $reason = $data['reason'] ?? 'No reason provided';
-                                    $vendor->notifyNow(
-                                        Notification::make()
+                                    $vendor->notifications()->create([
+                                        'id' => Str::uuid()->toString(),
+                                        'type' => \Filament\Notifications\DatabaseNotification::class,
+                                        'data' => Notification::make()
                                             ->title('Your Listing Was Rejected')
                                             ->icon('heroicon-o-x-mark')
                                             ->body("Your listing \"{$listingTitle}\" was rejected. Reason: {$reason}")
@@ -564,8 +569,8 @@ class ListingResource extends Resource
                                                     ->url("/vendor/listings/{$record->id}/edit")
                                                     ->button(),
                                             ])
-                                            ->toDatabase()
-                                    );
+                                            ->getDatabaseMessage(),
+                                    ]);
                                 }
                             } catch (\Throwable $e) {
                                 \Log::error('Failed to send listing rejected notification to vendor', ['error' => $e->getMessage()]);

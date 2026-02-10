@@ -16,6 +16,7 @@ use Filament\Notifications\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Str;
 
 class ReviewController extends Controller
 {
@@ -117,8 +118,10 @@ class ReviewController extends Controller
                 if (is_array($listingTitle)) {
                     $listingTitle = reset($listingTitle) ?: 'Untitled';
                 }
-                $vendor->notifyNow(
-                    Notification::make()
+                $vendor->notifications()->create([
+                    'id' => Str::uuid()->toString(),
+                    'type' => \Filament\Notifications\DatabaseNotification::class,
+                    'data' => Notification::make()
                         ->title('New Review Received')
                         ->icon('heroicon-o-star')
                         ->body("A {$review->rating}-star review was submitted for \"{$listingTitle}\".")
@@ -128,8 +131,8 @@ class ReviewController extends Controller
                                 ->url("/vendor/reviews/{$review->id}")
                                 ->button(),
                         ])
-                        ->toDatabase()
-                );
+                        ->getDatabaseMessage(),
+                ]);
             }
         } catch (\Throwable $e) {
             \Log::error('Failed to send new review notification to vendor', ['error' => $e->getMessage()]);
