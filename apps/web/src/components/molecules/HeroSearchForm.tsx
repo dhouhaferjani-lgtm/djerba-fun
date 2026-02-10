@@ -77,18 +77,18 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
 
   const destinationsOptions = [
     { value: 'djerba', label: 'Djerba' },
-    { value: 'sahara-desert', label: t('destination_sahara_desert') },
+    { value: 'sahara-desert', label: 'Sahara Desert' },
     { value: 'tunis', label: 'Tunis' },
-    { value: 'sidi-bou-said', label: t('destination_sidi_bou_said') },
+    { value: 'sidi-bou-said', label: 'Sidi Bou Said' },
     { value: 'tozeur', label: 'Tozeur' },
     { value: 'carthage', label: 'Carthage' },
   ];
 
   const activityTypeOptions = [
-    { value: 'tour', label: t('activity_tours') },
-    { value: 'event', label: t('activity_events') },
-    { value: 'workshop', label: t('activity_workshops') },
-    { value: 'adventure', label: t('activity_adventure') },
+    { value: 'tour', label: 'Tours' },
+    { value: 'event', label: 'Events' },
+    { value: 'workshop', label: 'Workshops' },
+    { value: 'adventure', label: 'Adventure' },
   ];
 
   return (

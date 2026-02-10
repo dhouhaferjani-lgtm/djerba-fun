@@ -59,13 +59,13 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
     const newErrors: Record<string, string> = {};
 
     if (rating === 0) {
-      newErrors.rating = t('validation_rating_required');
+      newErrors.rating = 'Please select a rating';
     }
     if (title.length < 5 || title.length > 100) {
-      newErrors.title = t('validation_title_length');
+      newErrors.title = 'Title must be between 5 and 100 characters';
     }
     if (content.length < 20 || content.length > 2000) {
-      newErrors.content = t('validation_content_length');
+      newErrors.content = 'Review must be between 20 and 2000 characters';
     }
 
     setErrors(newErrors);
@@ -133,13 +133,13 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
           onChange={(e) => setTitle(e.target.value)}
           maxLength={100}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-          placeholder={t('placeholder_title')}
+          placeholder="Summarize your experience in a few words"
         />
         <div className="flex justify-between mt-1">
           {errors.title ? (
             <p className="text-sm text-error">{errors.title}</p>
           ) : (
-            <span className="text-sm text-gray-500">{t('helper_min_chars', { count: 5 })}</span>
+            <span className="text-sm text-gray-500">Min. 5 characters</span>
           )}
           <span className="text-sm text-gray-500">{title.length}/100</span>
         </div>
@@ -157,13 +157,13 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
           maxLength={2000}
           rows={6}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-          placeholder={t('placeholder_content')}
+          placeholder="Share your detailed experience..."
         />
         <div className="flex justify-between mt-1">
           {errors.content ? (
             <p className="text-sm text-error">{errors.content}</p>
           ) : (
-            <span className="text-sm text-gray-500">{t('helper_min_chars', { count: 20 })}</span>
+            <span className="text-sm text-gray-500">Min. 20 characters</span>
           )}
           <span className="text-sm text-gray-500">{content.length}/2000</span>
         </div>
@@ -172,7 +172,7 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
       {/* Pros */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          {t('pros')} <span className="text-gray-500">({t('optional')})</span>
+          {t('pros')} <span className="text-gray-500">(optional)</span>
         </label>
         <div className="flex gap-2 mb-2">
           <input
@@ -181,7 +181,7 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
             onChange={(e) => setCurrentPro(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addPro())}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder={t('placeholder_pros')}
+            placeholder="What did you like?"
           />
           <button
             type="button"
@@ -221,7 +221,7 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
       {/* Cons */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          {t('cons')} <span className="text-gray-500">({t('optional')})</span>
+          {t('cons')} <span className="text-gray-500">(optional)</span>
         </label>
         <div className="flex gap-2 mb-2">
           <input
@@ -230,7 +230,7 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
             onChange={(e) => setCurrentCon(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCon())}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder={t('placeholder_cons')}
+            placeholder="What could be improved?"
           />
           <button
             type="button"
@@ -274,7 +274,7 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
           disabled={isSubmitting}
           className="px-8 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? t('submitting') : t('submit')}
+          {isSubmitting ? 'Submitting...' : t('submit')}
         </button>
       </div>
     </form>

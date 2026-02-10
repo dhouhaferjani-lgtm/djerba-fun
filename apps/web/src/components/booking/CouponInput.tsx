@@ -88,7 +88,7 @@ export default function CouponInput({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-success-dark">
-              {t('code_label')} <span className="font-mono font-semibold">{appliedCode}</span>
+              Code: <span className="font-mono font-semibold">{appliedCode}</span>
             </p>
           </div>
           <div className="text-right">
@@ -115,7 +115,7 @@ export default function CouponInput({
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             onKeyPress={handleKeyPress}
-            placeholder={t('placeholder_example')}
+            placeholder="SUMMER2025"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent uppercase font-mono"
             disabled={validateCoupon.isPending}
           />
