@@ -347,7 +347,8 @@ export function HeroSection({
             muted
             loop
             playsInline
-            onCanPlayThrough={() => setVideoReady(true)}
+            preload="auto"
+            onCanPlay={() => setVideoReady(true)}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 hidden md:block ${videoReady ? 'opacity-100' : 'opacity-0'}`}
             style={{ transform: 'scale(1.08)' }}
           >
