@@ -644,7 +644,7 @@ export function DestinationContent({
   const pois = destinationPOIs[dataKey];
   const seoText = destinationSeoText[dataKey];
 
-  const comingSoonText = isFr ? 'Expériences à venir' : 'Experiences Coming Soon';
+  const comingSoonText = isFr ? 'Prêt pour l\u2019aventure ?' : 'Ready for Adventure?';
   const { displayed: typedHeading, isComplete: typingDone } = useTypewriter(
     comingSoonText,
     50,
@@ -1101,11 +1101,11 @@ export function DestinationContent({
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <Link
-                href={`/${locale}#destinations`}
+                href={(cmsDestination?.link || `/${locale}#destinations`) as never}
                 className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white font-semibold rounded-full hover:bg-primary/90 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
               >
-                <Map className="w-5 h-5" />
-                {t('explore_other')}
+                <Compass className="w-5 h-5" />
+                {t('explore_adventures')}
               </Link>
             </motion.div>
           </div>

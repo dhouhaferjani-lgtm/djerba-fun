@@ -1153,9 +1153,10 @@
   },
   "destinations": {
     "available_experiences": "Available Experiences",
-    "experiences_coming_soon": "Experiences Coming Soon",
-    "experiences_coming_soon_desc": "We're preparing amazing experiences in {name}. Check back soon!",
+    "experiences_coming_soon": "Ready for Adventure?",
+    "experiences_coming_soon_desc": "We're crafting unforgettable adventures in {name}. Stay tuned for upcoming experiences!",
     "explore_on_map": "Explore on Map",
+    "explore_adventures": "Explore the adventures",
     "explore_other": "Explore other destinations",
     "breadcrumb_home": "Home",
     "breadcrumb_destinations": "Destinations",
