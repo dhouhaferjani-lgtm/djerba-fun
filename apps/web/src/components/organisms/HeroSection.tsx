@@ -349,7 +349,7 @@ export function HeroSection({
             playsInline
             preload="auto"
             onCanPlay={() => setVideoReady(true)}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 hidden md:block ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
             style={{ transform: 'scale(1.08)' }}
           >
             <source src={videoSrc} type="video/mp4" />
