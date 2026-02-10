@@ -172,14 +172,16 @@ class PayoutResource extends Resource
                             try {
                                 $vendor = $record->vendor;
                                 if ($vendor) {
-                                    Notification::make()
-                                        ->title('Payout Being Processed')
-                                        ->icon('heroicon-o-banknotes')
-                                        ->body("Your payout of {$record->amount} {$record->currency} is being processed.")
-                                        ->sendToDatabase($vendor);
+                                    $vendor->notifyNow(
+                                        Notification::make()
+                                            ->title('Payout Being Processed')
+                                            ->icon('heroicon-o-banknotes')
+                                            ->body("Your payout of {$record->amount} {$record->currency} is being processed.")
+                                            ->toDatabase()
+                                    );
                                 }
                             } catch (\Throwable $e) {
-                                \Log::warning('Failed to send payout processing notification', ['error' => $e->getMessage()]);
+                                \Log::error('Failed to send payout processing notification', ['error' => $e->getMessage()]);
                             }
 
                             Notification::make()
@@ -208,15 +210,17 @@ class PayoutResource extends Resource
                             try {
                                 $vendor = $record->vendor;
                                 if ($vendor) {
-                                    Notification::make()
-                                        ->title('Payout Completed')
-                                        ->icon('heroicon-o-banknotes')
-                                        ->body("Your payout of {$record->amount} {$record->currency} has been completed. Reference: {$data['reference']}")
-                                        ->success()
-                                        ->sendToDatabase($vendor);
+                                    $vendor->notifyNow(
+                                        Notification::make()
+                                            ->title('Payout Completed')
+                                            ->icon('heroicon-o-banknotes')
+                                            ->body("Your payout of {$record->amount} {$record->currency} has been completed. Reference: {$data['reference']}")
+                                            ->success()
+                                            ->toDatabase()
+                                    );
                                 }
                             } catch (\Throwable $e) {
-                                \Log::warning('Failed to send payout completed notification', ['error' => $e->getMessage()]);
+                                \Log::error('Failed to send payout completed notification', ['error' => $e->getMessage()]);
                             }
 
                             Notification::make()
@@ -245,15 +249,17 @@ class PayoutResource extends Resource
                             try {
                                 $vendor = $record->vendor;
                                 if ($vendor) {
-                                    Notification::make()
-                                        ->title('Payout Failed')
-                                        ->icon('heroicon-o-banknotes')
-                                        ->body("Your payout of {$record->amount} {$record->currency} has failed. Reason: {$data['reason']}")
-                                        ->danger()
-                                        ->sendToDatabase($vendor);
+                                    $vendor->notifyNow(
+                                        Notification::make()
+                                            ->title('Payout Failed')
+                                            ->icon('heroicon-o-banknotes')
+                                            ->body("Your payout of {$record->amount} {$record->currency} has failed. Reason: {$data['reason']}")
+                                            ->danger()
+                                            ->toDatabase()
+                                    );
                                 }
                             } catch (\Throwable $e) {
-                                \Log::warning('Failed to send payout failed notification', ['error' => $e->getMessage()]);
+                                \Log::error('Failed to send payout failed notification', ['error' => $e->getMessage()]);
                             }
 
                             Notification::make()

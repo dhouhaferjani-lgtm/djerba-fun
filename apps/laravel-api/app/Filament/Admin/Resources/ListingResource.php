@@ -497,21 +497,23 @@ class ListingResource extends Resource
                                     if (is_array($listingTitle)) {
                                         $listingTitle = reset($listingTitle) ?: 'Untitled';
                                     }
-                                    Notification::make()
-                                        ->title('Your Listing Was Approved')
-                                        ->icon('heroicon-o-check-badge')
-                                        ->body("Your listing \"{$listingTitle}\" has been approved and is now visible to travelers.")
-                                        ->success()
-                                        ->actions([
-                                            NotificationAction::make('view')
-                                                ->label('View Listing')
-                                                ->url("/vendor/listings/{$record->id}")
-                                                ->button(),
-                                        ])
-                                        ->sendToDatabase($vendor);
+                                    $vendor->notifyNow(
+                                        Notification::make()
+                                            ->title('Your Listing Was Approved')
+                                            ->icon('heroicon-o-check-badge')
+                                            ->body("Your listing \"{$listingTitle}\" has been approved and is now visible to travelers.")
+                                            ->success()
+                                            ->actions([
+                                                NotificationAction::make('view')
+                                                    ->label('View Listing')
+                                                    ->url("/vendor/listings/{$record->id}")
+                                                    ->button(),
+                                            ])
+                                            ->toDatabase()
+                                    );
                                 }
                             } catch (\Throwable $e) {
-                                \Log::warning('Failed to send listing approved notification to vendor', ['error' => $e->getMessage()]);
+                                \Log::error('Failed to send listing approved notification to vendor', ['error' => $e->getMessage()]);
                             }
 
                             Notification::make()
@@ -550,21 +552,23 @@ class ListingResource extends Resource
                                         $listingTitle = reset($listingTitle) ?: 'Untitled';
                                     }
                                     $reason = $data['reason'] ?? 'No reason provided';
-                                    Notification::make()
-                                        ->title('Your Listing Was Rejected')
-                                        ->icon('heroicon-o-x-mark')
-                                        ->body("Your listing \"{$listingTitle}\" was rejected. Reason: {$reason}")
-                                        ->warning()
-                                        ->actions([
-                                            NotificationAction::make('edit')
-                                                ->label('Edit Listing')
-                                                ->url("/vendor/listings/{$record->id}/edit")
-                                                ->button(),
-                                        ])
-                                        ->sendToDatabase($vendor);
+                                    $vendor->notifyNow(
+                                        Notification::make()
+                                            ->title('Your Listing Was Rejected')
+                                            ->icon('heroicon-o-x-mark')
+                                            ->body("Your listing \"{$listingTitle}\" was rejected. Reason: {$reason}")
+                                            ->warning()
+                                            ->actions([
+                                                NotificationAction::make('edit')
+                                                    ->label('Edit Listing')
+                                                    ->url("/vendor/listings/{$record->id}/edit")
+                                                    ->button(),
+                                            ])
+                                            ->toDatabase()
+                                    );
                                 }
                             } catch (\Throwable $e) {
-                                \Log::warning('Failed to send listing rejected notification to vendor', ['error' => $e->getMessage()]);
+                                \Log::error('Failed to send listing rejected notification to vendor', ['error' => $e->getMessage()]);
                             }
 
                             Notification::make()

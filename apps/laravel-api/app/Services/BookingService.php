@@ -271,20 +271,22 @@ class BookingService
                 if (is_array($listingTitle)) {
                     $listingTitle = reset($listingTitle) ?: 'Untitled';
                 }
-                Notification::make()
-                    ->title('New Booking Confirmed')
-                    ->icon('heroicon-o-check-circle')
-                    ->body("Booking {$booking->booking_number} for \"{$listingTitle}\" has been confirmed.")
-                    ->actions([
-                        NotificationAction::make('view')
-                            ->label('View Booking')
-                            ->url("/vendor/bookings/{$booking->id}")
-                            ->button(),
-                    ])
-                    ->sendToDatabase($vendor);
+                $vendor->notifyNow(
+                    Notification::make()
+                        ->title('New Booking Confirmed')
+                        ->icon('heroicon-o-check-circle')
+                        ->body("Booking {$booking->booking_number} for \"{$listingTitle}\" has been confirmed.")
+                        ->actions([
+                            NotificationAction::make('view')
+                                ->label('View Booking')
+                                ->url("/vendor/bookings/{$booking->id}")
+                                ->button(),
+                        ])
+                        ->toDatabase()
+                );
             }
         } catch (\Throwable $e) {
-            Log::warning('Failed to send booking confirmed notification to vendor', ['error' => $e->getMessage()]);
+            Log::error('Failed to send booking confirmed notification to vendor', ['error' => $e->getMessage()]);
         }
 
         return $booking->fresh();
@@ -325,20 +327,22 @@ class BookingService
                 if (is_array($listingTitle)) {
                     $listingTitle = reset($listingTitle) ?: 'Untitled';
                 }
-                Notification::make()
-                    ->title('Booking Cancelled')
-                    ->icon('heroicon-o-x-circle')
-                    ->body("Booking {$booking->booking_number} for \"{$listingTitle}\" has been cancelled." . ($reason ? " Reason: {$reason}" : ''))
-                    ->actions([
-                        NotificationAction::make('view')
-                            ->label('View Booking')
-                            ->url("/vendor/bookings/{$booking->id}")
-                            ->button(),
-                    ])
-                    ->sendToDatabase($vendor);
+                $vendor->notifyNow(
+                    Notification::make()
+                        ->title('Booking Cancelled')
+                        ->icon('heroicon-o-x-circle')
+                        ->body("Booking {$booking->booking_number} for \"{$listingTitle}\" has been cancelled." . ($reason ? " Reason: {$reason}" : ''))
+                        ->actions([
+                            NotificationAction::make('view')
+                                ->label('View Booking')
+                                ->url("/vendor/bookings/{$booking->id}")
+                                ->button(),
+                        ])
+                        ->toDatabase()
+                );
             }
         } catch (\Throwable $e) {
-            Log::warning('Failed to send booking cancellation notification to vendor', ['error' => $e->getMessage()]);
+            Log::error('Failed to send booking cancellation notification to vendor', ['error' => $e->getMessage()]);
         }
 
         return $booking->fresh();

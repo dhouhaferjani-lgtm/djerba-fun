@@ -400,26 +400,30 @@ class CartCheckoutService
                     if (is_array($listingTitle)) {
                         $listingTitle = reset($listingTitle) ?: 'Untitled';
                     }
-                    Notification::make()
-                        ->title('New Booking Confirmed')
-                        ->icon('heroicon-o-check-circle')
-                        ->body("Booking {$booking->booking_number} for \"{$listingTitle}\" has been confirmed.")
-                        ->actions([
-                            NotificationAction::make('view')
-                                ->label('View Booking')
-                                ->url("/vendor/bookings/{$booking->id}")
-                                ->button(),
-                        ])
-                        ->sendToDatabase($vendor);
+                    $vendor->notifyNow(
+                        Notification::make()
+                            ->title('New Booking Confirmed')
+                            ->icon('heroicon-o-check-circle')
+                            ->body("Booking {$booking->booking_number} for \"{$listingTitle}\" has been confirmed.")
+                            ->actions([
+                                NotificationAction::make('view')
+                                    ->label('View Booking')
+                                    ->url("/vendor/bookings/{$booking->id}")
+                                    ->button(),
+                            ])
+                            ->toDatabase()
+                    );
                 } else {
-                    Notification::make()
-                        ->title("{$count} New Bookings Confirmed")
-                        ->icon('heroicon-o-check-circle')
-                        ->body("{$count} bookings for your listings have been confirmed.")
-                        ->sendToDatabase($vendor);
+                    $vendor->notifyNow(
+                        Notification::make()
+                            ->title("{$count} New Bookings Confirmed")
+                            ->icon('heroicon-o-check-circle')
+                            ->body("{$count} bookings for your listings have been confirmed.")
+                            ->toDatabase()
+                    );
                 }
             } catch (\Throwable $e) {
-                Log::warning('Failed to send cart booking notification to vendor', ['error' => $e->getMessage()]);
+                Log::error('Failed to send cart booking notification to vendor', ['error' => $e->getMessage()]);
             }
         }
     }

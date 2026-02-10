@@ -117,20 +117,22 @@ class ReviewController extends Controller
                 if (is_array($listingTitle)) {
                     $listingTitle = reset($listingTitle) ?: 'Untitled';
                 }
-                Notification::make()
-                    ->title('New Review Received')
-                    ->icon('heroicon-o-star')
-                    ->body("A {$review->rating}-star review was submitted for \"{$listingTitle}\".")
-                    ->actions([
-                        NotificationAction::make('view')
-                            ->label('View Review')
-                            ->url("/vendor/reviews/{$review->id}")
-                            ->button(),
-                    ])
-                    ->sendToDatabase($vendor);
+                $vendor->notifyNow(
+                    Notification::make()
+                        ->title('New Review Received')
+                        ->icon('heroicon-o-star')
+                        ->body("A {$review->rating}-star review was submitted for \"{$listingTitle}\".")
+                        ->actions([
+                            NotificationAction::make('view')
+                                ->label('View Review')
+                                ->url("/vendor/reviews/{$review->id}")
+                                ->button(),
+                        ])
+                        ->toDatabase()
+                );
             }
         } catch (\Throwable $e) {
-            \Log::warning('Failed to send new review notification to vendor', ['error' => $e->getMessage()]);
+            \Log::error('Failed to send new review notification to vendor', ['error' => $e->getMessage()]);
         }
 
         return response()->json([
