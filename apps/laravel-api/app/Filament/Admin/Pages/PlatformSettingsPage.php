@@ -1742,30 +1742,60 @@ class PlatformSettingsPage extends Page implements HasForms
                 }
             }
 
-            // Validate and get form state
+            // Capture nested destination content BEFORE getState() strips non-schema keys.
+            // Modal $set() calls update $this->data, but getState() only returns fields
+            // defined in the repeater schema (name, id, description, image, link, seo_*).
+            $nestedKeys = ['highlights', 'key_facts', 'gallery', 'points_of_interest'];
+            $nestedDataBySlug = [];
+
+            // Source 1: Livewire state — has any modal edits from this session
+            foreach (($this->data['featured_destinations'] ?? []) as $rawDest) {
+                if (! is_array($rawDest)) {
+                    continue;
+                }
+                $slug = $rawDest['id'] ?? null;
+                if (! $slug) {
+                    continue;
+                }
+                foreach ($nestedKeys as $key) {
+                    if (isset($rawDest[$key]) && is_array($rawDest[$key]) && ! empty($rawDest[$key])) {
+                        $nestedDataBySlug[$slug][$key] = $rawDest[$key];
+                    }
+                }
+            }
+
+            // Source 2: Database — fallback for data not edited this session
+            foreach (($this->settings->featured_destinations ?? []) as $dbDest) {
+                if (! is_array($dbDest)) {
+                    continue;
+                }
+                $slug = $dbDest['id'] ?? null;
+                if (! $slug) {
+                    continue;
+                }
+                foreach ($nestedKeys as $key) {
+                    if (! isset($nestedDataBySlug[$slug][$key]) && isset($dbDest[$key])) {
+                        $nestedDataBySlug[$slug][$key] = $dbDest[$key];
+                    }
+                }
+            }
+
+            // NOW get form state (may strip non-schema keys from $this->data)
             $data = $this->form->getState();
 
             // Sanitize KeyValue fields to prevent array-as-value errors
             $data = $this->sanitizeKeyValueFields($data);
 
-            // Merge nested destination content from raw Livewire state.
-            // Modal actions set highlights/key_facts/gallery/points_of_interest via $set(),
-            // which updates $this->data, but $this->form->getState() only returns
-            // schema-defined fields (name, id, description, image, link, seo_*).
-            $nestedKeys = ['highlights', 'key_facts', 'gallery', 'points_of_interest'];
-            if (isset($data['featured_destinations']) && isset($this->data['featured_destinations'])) {
-                $rawDestinations = $this->data['featured_destinations'];
-                foreach ($data['featured_destinations'] as $index => &$dest) {
-                    // Match by 'id' field (slug) since array indices may differ after dehydration
-                    foreach ($rawDestinations as $rawDest) {
-                        $rawId = is_array($rawDest) ? ($rawDest['id'] ?? null) : null;
-                        if ($rawId && $rawId === ($dest['id'] ?? null)) {
-                            foreach ($nestedKeys as $key) {
-                                if (isset($rawDest[$key]) && ! isset($dest[$key])) {
-                                    $dest[$key] = $rawDest[$key];
-                                }
-                            }
-                            break;
+            // Merge captured nested data back into form state
+            if (isset($data['featured_destinations'])) {
+                foreach ($data['featured_destinations'] as &$dest) {
+                    $slug = $dest['id'] ?? null;
+                    if (! $slug || ! isset($nestedDataBySlug[$slug])) {
+                        continue;
+                    }
+                    foreach ($nestedKeys as $key) {
+                        if (isset($nestedDataBySlug[$slug][$key])) {
+                            $dest[$key] = $nestedDataBySlug[$slug][$key];
                         }
                     }
                 }
