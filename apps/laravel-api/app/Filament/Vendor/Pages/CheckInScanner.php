@@ -15,7 +15,7 @@ class CheckInScanner extends Page
 {
     use SafeTranslation;
 
-    protected static ?string $navigationIcon = 'heroicon-o-qr-code';
+    protected static ?string $navigationIcon = null;
 
     protected static string $view = 'filament.vendor.pages.check-in-scanner';
 
