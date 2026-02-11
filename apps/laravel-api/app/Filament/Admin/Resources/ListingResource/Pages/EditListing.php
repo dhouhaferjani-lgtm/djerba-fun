@@ -198,6 +198,7 @@ class EditListing extends EditRecord
                 $listingTitle = reset($listingTitle) ?: 'Untitled';
             }
 
+            $viewUrl = VendorListingResource::getUrl('view', ['record' => $this->record], panel: 'vendor');
             $vendor->notifications()->create([
                 'id' => Str::uuid()->toString(),
                 'type' => \Filament\Notifications\DatabaseNotification::class,
@@ -209,7 +210,7 @@ class EditListing extends EditRecord
                     ->actions([
                         NotificationAction::make('view')
                             ->label('View Listing')
-                            ->url("/vendor/listings/{$this->record->id}/edit")
+                            ->url($viewUrl)
                             ->button(),
                     ])
                     ->getDatabaseMessage(),
@@ -242,6 +243,7 @@ class EditListing extends EditRecord
                 $listingTitle = reset($listingTitle) ?: 'Untitled';
             }
 
+            $editUrl = VendorListingResource::getUrl('edit', ['record' => $this->record], panel: 'vendor');
             $vendor->notifications()->create([
                 'id' => Str::uuid()->toString(),
                 'type' => \Filament\Notifications\DatabaseNotification::class,
@@ -253,7 +255,7 @@ class EditListing extends EditRecord
                     ->actions([
                         NotificationAction::make('edit')
                             ->label('Edit Listing')
-                            ->url("/vendor/listings/{$this->record->id}/edit")
+                            ->url($editUrl)
                             ->button(),
                     ])
                     ->getDatabaseMessage(),

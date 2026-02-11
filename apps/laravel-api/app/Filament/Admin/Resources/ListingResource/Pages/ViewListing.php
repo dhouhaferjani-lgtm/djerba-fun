@@ -73,6 +73,7 @@ class ViewListing extends ViewRecord
                                 $listingTitle = reset($listingTitle) ?: 'Untitled';
                             }
 
+                            $viewUrl = VendorListingResource::getUrl('view', ['record' => $this->record], panel: 'vendor');
                             $vendor->notifications()->create([
                                 'id' => Str::uuid()->toString(),
                                 'type' => \Filament\Notifications\DatabaseNotification::class,
@@ -84,7 +85,7 @@ class ViewListing extends ViewRecord
                                     ->actions([
                                         NotificationAction::make('view')
                                             ->label('View Listing')
-                                            ->url("/vendor/listings/{$this->record->id}/edit")
+                                            ->url($viewUrl)
                                             ->button(),
                                     ])
                                     ->getDatabaseMessage(),
@@ -138,6 +139,7 @@ class ViewListing extends ViewRecord
                             }
                             $reason = $data['reason'] ?? 'No reason provided';
 
+                            $editUrl = VendorListingResource::getUrl('edit', ['record' => $this->record], panel: 'vendor');
                             $vendor->notifications()->create([
                                 'id' => Str::uuid()->toString(),
                                 'type' => \Filament\Notifications\DatabaseNotification::class,
@@ -149,7 +151,7 @@ class ViewListing extends ViewRecord
                                     ->actions([
                                         NotificationAction::make('edit')
                                             ->label('Edit Listing')
-                                            ->url("/vendor/listings/{$this->record->id}/edit")
+                                            ->url($editUrl)
                                             ->button(),
                                     ])
                                     ->getDatabaseMessage(),

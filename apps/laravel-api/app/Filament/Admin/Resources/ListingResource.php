@@ -7,6 +7,7 @@ namespace App\Filament\Admin\Resources;
 use App\Enums\ListingStatus;
 use App\Enums\ServiceType;
 use App\Filament\Admin\Resources\ListingResource\Pages;
+use App\Filament\Vendor\Resources\ListingResource as VendorListingResource;
 use App\Models\Listing;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -507,6 +508,7 @@ class ListingResource extends Resource
                                     if (is_array($listingTitle)) {
                                         $listingTitle = reset($listingTitle) ?: 'Untitled';
                                     }
+                                    $viewUrl = VendorListingResource::getUrl('view', ['record' => $record], panel: 'vendor');
                                     $vendor->notifications()->create([
                                         'id' => Str::uuid()->toString(),
                                         'type' => \Filament\Notifications\DatabaseNotification::class,
@@ -518,7 +520,7 @@ class ListingResource extends Resource
                                             ->actions([
                                                 NotificationAction::make('view')
                                                     ->label('View Listing')
-                                                    ->url("/vendor/listings/{$record->id}")
+                                                    ->url($viewUrl)
                                                     ->button(),
                                             ])
                                             ->getDatabaseMessage(),
@@ -573,6 +575,7 @@ class ListingResource extends Resource
                                         $listingTitle = reset($listingTitle) ?: 'Untitled';
                                     }
                                     $reason = $data['reason'] ?? 'No reason provided';
+                                    $editUrl = VendorListingResource::getUrl('edit', ['record' => $record], panel: 'vendor');
                                     $vendor->notifications()->create([
                                         'id' => Str::uuid()->toString(),
                                         'type' => \Filament\Notifications\DatabaseNotification::class,
@@ -584,7 +587,7 @@ class ListingResource extends Resource
                                             ->actions([
                                                 NotificationAction::make('edit')
                                                     ->label('Edit Listing')
-                                                    ->url("/vendor/listings/{$record->id}/edit")
+                                                    ->url($editUrl)
                                                     ->button(),
                                             ])
                                             ->getDatabaseMessage(),
