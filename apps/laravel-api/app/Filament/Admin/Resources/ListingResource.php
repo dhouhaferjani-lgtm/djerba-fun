@@ -296,6 +296,7 @@ class ListingResource extends Resource
                     ->color(fn (ServiceType $state): string => match ($state) {
                         ServiceType::TOUR => 'info',
                         ServiceType::EVENT => 'success',
+                        ServiceType::SEJOUR => 'warning',
                     }),
 
                 Tables\Columns\TextColumn::make('status')
