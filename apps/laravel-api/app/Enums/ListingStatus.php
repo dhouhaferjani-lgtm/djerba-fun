@@ -37,7 +37,7 @@ enum ListingStatus: string
      */
     public function canEdit(): bool
     {
-        return in_array($this, [self::DRAFT, self::REJECTED]);
+        return in_array($this, [self::DRAFT, self::PENDING_REVIEW, self::REJECTED]);
     }
 
     /**

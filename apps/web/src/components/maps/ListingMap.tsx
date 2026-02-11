@@ -102,10 +102,10 @@ export default function ListingMap({
           days.forEach((day, dayIndex) => {
             const dayStops = dayGroups.get(day)!;
             const color = DAY_COLORS[dayIndex % DAY_COLORS.length];
-            const positions: LatLngTuple[] = dayStops.map((s) => [s.lat, s.lng]);
 
-            // Day polyline
-            if (positions.length > 1) {
+            // Within-day polyline (if day has 2+ stops)
+            if (dayStops.length > 1) {
+              const positions: LatLngTuple[] = dayStops.map((s) => [s.lat, s.lng]);
               elements.push(
                 <Polyline
                   key={`day-${day}-route`}
@@ -119,23 +119,21 @@ export default function ListingMap({
               );
             }
 
-            // Dashed connector line from previous day's last stop to this day's first stop
-            if (dayIndex > 0) {
-              const prevDayStops = dayGroups.get(days[dayIndex - 1])!;
-              const prevLastStop = prevDayStops[prevDayStops.length - 1];
-              const firstStop = dayStops[0];
+            // Colored segment to next day's first stop
+            if (dayIndex < days.length - 1) {
+              const lastStop = dayStops[dayStops.length - 1];
+              const nextFirstStop = dayGroups.get(days[dayIndex + 1])![0];
               elements.push(
                 <Polyline
-                  key={`connector-${day}`}
+                  key={`segment-${day}-to-${days[dayIndex + 1]}`}
                   positions={[
-                    [prevLastStop.lat, prevLastStop.lng],
-                    [firstStop.lat, firstStop.lng],
+                    [lastStop.lat, lastStop.lng],
+                    [nextFirstStop.lat, nextFirstStop.lng],
                   ]}
                   pathOptions={{
-                    color: '#9CA3AF',
-                    weight: 2,
-                    opacity: 0.5,
-                    dashArray: '8, 8',
+                    color,
+                    weight: 4,
+                    opacity: 0.8,
                   }}
                 />
               );
@@ -195,8 +193,10 @@ export default function ListingMap({
 
   return (
     <MapContainer center={center} zoom={13} className={className}>
-      {/* Main listing marker */}
-      <MarkerPopup position={center} title={title} imageUrl={imageUrl} type="listing" />
+      {/* Main listing marker — hide for séjours since day markers replace it */}
+      {!isSejour && (
+        <MarkerPopup position={center} title={title} imageUrl={imageUrl} type="listing" />
+      )}
 
       {/* Itinerary route and markers */}
       {itinerary && itinerary.length > 0 && (

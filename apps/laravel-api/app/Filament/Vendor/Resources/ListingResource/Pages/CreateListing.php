@@ -354,15 +354,26 @@ class CreateListing extends CreateRecord
                 ->body("Created {$createdCount} availability " . ($createdCount === 1 ? 'rule' : 'rules') . ' for your listing.')
                 ->send();
         } elseif ($skipAvailability) {
+            // Auto-create a default rule with is_active = false so vendor can configure later
+            AvailabilityRule::create([
+                'listing_id' => $this->record->id,
+                'rule_type' => 'daily',
+                'days_of_week' => [0, 1, 2, 3, 4, 5, 6],
+                'start_time' => now()->setTime(9, 0, 0),
+                'end_time' => now()->setTime(17, 0, 0),
+                'capacity' => $this->record->max_group_size ?? 10,
+                'is_active' => false,
+            ]);
+
             Notification::make()
-                ->warning()
-                ->title('Remember to Add Availability')
-                ->body('Your listing has been created, but you need to add availability rules before it can be published.')
+                ->info()
+                ->title('Availability Rule Created (OFF)')
+                ->body('A default availability rule has been created but is turned OFF. Go to Availability Rules to activate and customize it when you\'re ready.')
                 ->persistent()
                 ->actions([
-                    NotificationAction::make('add_availability')
-                        ->label('Add Availability Now')
-                        ->url(AvailabilityRuleResource::getUrl('create', ['listing_id' => $this->record->id]))
+                    NotificationAction::make('customize_availability')
+                        ->label('Customize Availability')
+                        ->url(AvailabilityRuleResource::getUrl('index') . '?tableFilters[listing_id][value]=' . $this->record->id)
                         ->button(),
                 ])
                 ->send();

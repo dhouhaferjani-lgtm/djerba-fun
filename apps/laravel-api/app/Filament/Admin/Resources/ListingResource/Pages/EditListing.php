@@ -25,11 +25,6 @@ class EditListing extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('manage_availability')
-                ->label('Manage Availability')
-                ->icon('heroicon-o-calendar-days')
-                ->color('info')
-                ->url(fn () => \App\Filament\Admin\Resources\AvailabilityRuleResource::getUrl('index') . '?tableFilters[listing_id][value]=' . $this->record->id),
             Actions\ViewAction::make(),
             Actions\DeleteAction::make(),
             Actions\ForceDeleteAction::make(),
