@@ -49,6 +49,7 @@ echo -e "${YELLOW}🧹 Clearing and caching configuration...${NC}"
 docker compose -f docker-compose.prod.yml exec -T api php artisan config:cache
 docker compose -f docker-compose.prod.yml exec -T api php artisan route:cache
 docker compose -f docker-compose.prod.yml exec -T api php artisan view:cache
+docker compose -f docker-compose.prod.yml exec -T api php artisan filament:cache-components
 
 # Optimize
 echo -e "${YELLOW}⚡ Optimizing application...${NC}"
