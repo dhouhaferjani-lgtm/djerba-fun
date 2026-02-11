@@ -328,7 +328,8 @@ class ListingResource extends Resource
                                         })
                                         ->searchable()
                                         ->preload()
-                                        ->helperText(__('filament.helpers.activity_type') ?? 'Select the type of activity for this tour'),
+                                        ->helperText(__('filament.helpers.activity_type') ?? 'Select the type of activity for this tour')
+                                        ->visible(fn (Get $get): bool => $get('service_type') === ServiceType::TOUR->value),
 
                                     Forms\Components\Grid::make(3)
                                         ->schema([
@@ -343,7 +344,13 @@ class ListingResource extends Resource
                                                     'minutes' => 'Minutes',
                                                     'hours' => 'Hours',
                                                     'days' => 'Days',
-                                                ]),
+                                                ])
+                                                ->default(fn (Get $get): ?string => $get('service_type') === ServiceType::SEJOUR->value ? 'days' : null)
+                                                ->afterStateHydrated(function (Forms\Components\Select $component, Get $get) {
+                                                    if ($get('service_type') === ServiceType::SEJOUR->value && empty($component->getState())) {
+                                                        $component->state('days');
+                                                    }
+                                                }),
 
                                             Forms\Components\Select::make('difficulty')
                                                 ->label('Difficulty Level')
@@ -1467,6 +1474,7 @@ class ListingResource extends Resource
                     ->color(fn (ServiceType $state): string => match ($state) {
                         ServiceType::TOUR => 'success',
                         ServiceType::EVENT => 'info',
+                        ServiceType::SEJOUR => 'warning',
                     }),
 
                 Tables\Columns\TextColumn::make('status')
@@ -1518,6 +1526,7 @@ class ListingResource extends Resource
                     ->options([
                         ServiceType::TOUR->value => ServiceType::TOUR->label(),
                         ServiceType::EVENT->value => ServiceType::EVENT->label(),
+                        ServiceType::SEJOUR->value => ServiceType::SEJOUR->label(),
                     ]),
 
                 Tables\Filters\SelectFilter::make('status')

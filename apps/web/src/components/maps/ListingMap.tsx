@@ -14,6 +14,7 @@ interface ListingMapProps {
   imageUrl?: string;
   itinerary?: ItineraryStop[];
   isSejour?: boolean;
+  locale?: string;
   className?: string;
 }
 
@@ -23,6 +24,7 @@ interface RouteProps {
 
 interface SejourRouteProps {
   stops: ItineraryStop[];
+  locale?: string;
 }
 
 export default function ListingMap({
@@ -31,6 +33,7 @@ export default function ListingMap({
   imageUrl,
   itinerary,
   isSejour,
+  locale,
   className,
 }: ListingMapProps) {
   const [RouteComponent, setRouteComponent] = useState<React.ComponentType<RouteProps> | null>(
@@ -68,16 +71,25 @@ export default function ListingMap({
   useEffect(() => {
     if (itinerary && itinerary.length > 0 && isSejour) {
       Promise.all([import('react-leaflet'), import('leaflet')]).then(([reactLeaflet, leaflet]) => {
-        const { Polyline, Marker } = reactLeaflet;
+        const { Polyline, Marker, Popup } = reactLeaflet;
         const L = leaflet.default;
 
-        const Component = ({ stops }: { stops: ItineraryStop[] }) => {
+        const Component = ({ stops, locale: loc }: SejourRouteProps) => {
+          const dayLabel = loc === 'fr' ? 'JOUR' : 'DAY';
+
           // Group stops by day
           const dayGroups = new Map<number, ItineraryStop[]>();
           const sortedStops = [...stops].sort((a, b) => a.order - b.order);
 
-          for (const stop of sortedStops) {
-            const day = (stop as any).day ?? 1;
+          // Check if all stops have the same day value (likely unset defaults)
+          const allSameDay =
+            sortedStops.length > 1 &&
+            sortedStops.every((s) => ((s as any).day ?? 1) === ((sortedStops[0] as any).day ?? 1));
+
+          for (let i = 0; i < sortedStops.length; i++) {
+            const stop = sortedStops[i];
+            // Auto-derive day from index when all stops have same day value
+            const day = allSameDay ? i + 1 : ((stop as any).day ?? i + 1);
             if (!dayGroups.has(day)) {
               dayGroups.set(day, []);
             }
@@ -129,11 +141,21 @@ export default function ListingMap({
               );
             }
 
-            // Day label marker at first stop of each day
+            // Day label marker at first stop of each day — clickable with popup
             const firstStop = dayStops[0];
+            const stopTitle =
+              typeof firstStop.title === 'string'
+                ? firstStop.title
+                : firstStop.title?.en || firstStop.title?.fr || '';
+            const stopDesc = firstStop.description
+              ? typeof firstStop.description === 'string'
+                ? firstStop.description
+                : firstStop.description?.en || firstStop.description?.fr || ''
+              : '';
+
             const dayIcon = L.divIcon({
               className: 'day-label-marker',
-              html: `<div style="background: ${color}; color: white; padding: 4px 12px; border-radius: 12px; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); white-space: nowrap;">DAY ${day}</div>`,
+              html: `<div style="background: ${color}; color: white; padding: 4px 12px; border-radius: 12px; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); white-space: nowrap; cursor: pointer;">${dayLabel} ${day}</div>`,
               iconSize: [70, 28],
               iconAnchor: [35, 40],
             });
@@ -143,8 +165,23 @@ export default function ListingMap({
                 key={`day-label-${day}`}
                 position={[firstStop.lat, firstStop.lng]}
                 icon={dayIcon}
-                interactive={false}
-              />
+              >
+                <Popup>
+                  <div style={{ minWidth: 180 }}>
+                    <strong style={{ color, fontSize: 14 }}>
+                      {dayLabel} {day}
+                    </strong>
+                    {stopTitle && (
+                      <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 500 }}>
+                        {stopTitle}
+                      </p>
+                    )}
+                    {stopDesc && (
+                      <p style={{ margin: '4px 0 0', fontSize: 12, color: '#666' }}>{stopDesc}</p>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
             );
           });
 
@@ -168,35 +205,40 @@ export default function ListingMap({
           {!isSejour && RouteComponent && <RouteComponent stops={itinerary} />}
 
           {/* Day-colored routes for séjours */}
-          {isSejour && SejourRouteComponent && <SejourRouteComponent stops={itinerary} />}
+          {isSejour && SejourRouteComponent && (
+            <SejourRouteComponent stops={itinerary} locale={locale} />
+          )}
 
-          {/* Individual stop markers */}
-          {itinerary.map((stop, index) => (
-            <MarkerPopup
-              key={stop.id}
-              position={[stop.lat, stop.lng]}
-              title={typeof stop.title === 'string' ? stop.title : stop.title.en}
-              description={
-                stop.description
-                  ? typeof stop.description === 'string'
-                    ? stop.description
-                    : stop.description.en
-                  : undefined
-              }
-              type={index === 0 ? 'start' : index === itinerary.length - 1 ? 'end' : 'waypoint'}
-            />
-          ))}
+          {/* Individual stop markers (for tours only — séjours use day markers) */}
+          {!isSejour &&
+            itinerary.map((stop, index) => (
+              <MarkerPopup
+                key={stop.id}
+                position={[stop.lat, stop.lng]}
+                title={typeof stop.title === 'string' ? stop.title : stop.title.en}
+                description={
+                  stop.description
+                    ? typeof stop.description === 'string'
+                      ? stop.description
+                      : stop.description.en
+                    : undefined
+                }
+                type={index === 0 ? 'start' : index === itinerary.length - 1 ? 'end' : 'waypoint'}
+              />
+            ))}
         </>
       )}
 
       {/* Day color legend for séjours */}
-      {isSejour && itinerary && itinerary.length > 0 && <DayLegend stops={itinerary} />}
+      {isSejour && itinerary && itinerary.length > 0 && (
+        <DayLegend stops={itinerary} locale={locale} />
+      )}
     </MapContainer>
   );
 }
 
 // Legend component rendered inside the map
-function DayLegend({ stops }: { stops: ItineraryStop[] }) {
+function DayLegend({ stops, locale }: { stops: ItineraryStop[]; locale?: string }) {
   const [LegendComponent, setLegendComponent] = useState<React.ComponentType | null>(null);
 
   useEffect(() => {
@@ -207,14 +249,21 @@ function DayLegend({ stops }: { stops: ItineraryStop[] }) {
         const map = useMap();
 
         useEffect(() => {
-          // Collect unique days
+          // Collect unique days — auto-derive if all same
+          const allSameDay =
+            stops.length > 1 &&
+            stops.every((s) => ((s as any).day ?? 1) === ((stops[0] as any).day ?? 1));
+
           const days = new Set<number>();
-          for (const stop of stops) {
-            days.add((stop as any).day ?? 1);
+          const sortedStops = [...stops].sort((a, b) => a.order - b.order);
+          for (let i = 0; i < sortedStops.length; i++) {
+            days.add(allSameDay ? i + 1 : ((sortedStops[i] as any).day ?? i + 1));
           }
           const sortedDays = Array.from(days).sort((a, b) => a - b);
 
           if (sortedDays.length <= 1) return;
+
+          const dayLabel = locale === 'fr' ? 'Jour' : 'Day';
 
           // Create legend control
           const L = (window as any).L;
@@ -228,7 +277,7 @@ function DayLegend({ stops }: { stops: ItineraryStop[] }) {
             div.innerHTML = sortedDays
               .map((day, i) => {
                 const color = DAY_COLORS[i % DAY_COLORS.length];
-                return `<div style="display: flex; align-items: center; gap: 6px; margin: 2px 0;"><span style="width: 16px; height: 4px; background: ${color}; border-radius: 2px; display: inline-block;"></span><span style="font-weight: 500;">Day ${day}</span></div>`;
+                return `<div style="display: flex; align-items: center; gap: 6px; margin: 2px 0;"><span style="width: 16px; height: 4px; background: ${color}; border-radius: 2px; display: inline-block;"></span><span style="font-weight: 500;">${dayLabel} ${day}</span></div>`;
               })
               .join('');
             return div;
@@ -246,7 +295,7 @@ function DayLegend({ stops }: { stops: ItineraryStop[] }) {
 
       setLegendComponent(() => Legend);
     });
-  }, [stops]);
+  }, [stops, locale]);
 
   if (!LegendComponent) return null;
   return <LegendComponent />;

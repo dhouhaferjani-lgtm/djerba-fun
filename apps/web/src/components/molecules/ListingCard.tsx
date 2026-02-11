@@ -120,7 +120,10 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
             <div className="flex items-center gap-1.5 text-sm text-neutral-600">
               <Clock className="h-4 w-4" />
               <span>
-                {listing.duration.value} {tDict(`duration_unit.${listing.duration.unit}`)}
+                {listing.duration.value}{' '}
+                {tDict(
+                  `duration_unit.${listing.duration.unit || (listing.serviceType === 'sejour' ? 'days' : 'hours')}`
+                )}
               </span>
             </div>
           )}

@@ -676,6 +676,7 @@ function RouteItineraryTabs({
               imageUrl={imageUrl}
               itinerary={itinerary}
               isSejour={isSejour}
+              locale={locale}
               className="h-full w-full"
             />
           </div>
@@ -960,7 +961,10 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-primary" />
                       <span>
-                        {listing.duration.value} {t(`duration_unit.${listing.duration.unit}`)}
+                        {listing.duration.value}{' '}
+                        {t(
+                          `duration_unit.${listing.duration.unit || (listing.serviceType === 'sejour' ? 'days' : 'hours')}`
+                        )}
                       </span>
                     </div>
                   )}

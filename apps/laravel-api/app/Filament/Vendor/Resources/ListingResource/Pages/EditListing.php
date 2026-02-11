@@ -145,6 +145,20 @@ class EditListing extends EditRecord
                     $this->redirect($this->getResource()::getUrl('index'));
                 }),
 
+            Actions\Action::make('manage_availability')
+                ->label('Manage Availability')
+                ->icon('heroicon-o-calendar-days')
+                ->color('info')
+                ->url(fn () => \App\Filament\Vendor\Resources\AvailabilityRuleResource::getUrl('index') . '?tableFilters[listing_id][value]=' . $this->record->id)
+                ->visible(fn () => $this->record->exists),
+
+            Actions\Action::make('add_availability_rule')
+                ->label('Add Availability Rule')
+                ->icon('heroicon-o-plus-circle')
+                ->color('success')
+                ->url(fn () => \App\Filament\Vendor\Resources\AvailabilityRuleResource::getUrl('create') . '?listing_id=' . $this->record->id)
+                ->visible(fn () => $this->record->exists),
+
             Actions\Action::make('auto_translate')
                 ->label(__('filament.actions.auto_translate'))
                 ->icon('heroicon-o-language')
