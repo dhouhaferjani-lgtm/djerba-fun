@@ -6,6 +6,7 @@ import type { LatLngTuple } from 'leaflet';
 interface MapContainerProps {
   center: LatLngTuple;
   zoom?: number;
+  bounds?: LatLngTuple[];
   className?: string;
   children?: React.ReactNode;
 }
@@ -13,6 +14,7 @@ interface MapContainerProps {
 export default function MapContainer({
   center,
   zoom = 13,
+  bounds,
   className = 'h-96 w-full rounded-lg',
   children,
 }: MapContainerProps) {
@@ -22,27 +24,42 @@ export default function MapContainer({
 
   useEffect(() => {
     // Lazy load Leaflet to avoid SSR issues
-    import('react-leaflet').then((module) => {
-      const { MapContainer: LeafletMap, TileLayer } = module;
+    Promise.all([import('react-leaflet'), import('leaflet')]).then(
+      ([reactLeafletModule, leafletModule]) => {
+        const { MapContainer: LeafletMap, TileLayer } = reactLeafletModule;
+        const L = leafletModule.default;
 
-      const Component = ({ center, zoom, className, children }: MapContainerProps) => (
-        <LeafletMap
-          center={center}
-          zoom={zoom}
-          scrollWheelZoom={false}
-          className={className}
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {children}
-        </LeafletMap>
-      );
+        const Component = ({ center, zoom, bounds, className, children }: MapContainerProps) => {
+          // Use bounds for initial viewport if provided, otherwise center/zoom
+          const useBounds = bounds && bounds.length >= 2;
+          const leafletBounds = useBounds
+            ? L.latLngBounds(bounds.map((b) => L.latLng(b[0], b[1])))
+            : undefined;
 
-      setMapComponent(() => Component);
-    });
+          return (
+            <LeafletMap
+              {...(leafletBounds
+                ? {
+                    bounds: leafletBounds,
+                    boundsOptions: { padding: [50, 50] as [number, number] },
+                  }
+                : { center, zoom })}
+              scrollWheelZoom={false}
+              className={className}
+              style={{ height: '100%', width: '100%' }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {children}
+            </LeafletMap>
+          );
+        };
+
+        setMapComponent(() => Component);
+      }
+    );
 
     // Load Leaflet CSS
     if (typeof document !== 'undefined') {
@@ -64,7 +81,7 @@ export default function MapContainer({
   }
 
   return (
-    <MapComponent center={center} zoom={zoom} className={className}>
+    <MapComponent center={center} zoom={zoom} bounds={bounds} className={className}>
       {children}
     </MapComponent>
   );

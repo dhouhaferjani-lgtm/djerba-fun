@@ -18,6 +18,7 @@ import type { LatLngTuple } from 'leaflet';
 interface MapContainerProps {
   center: LatLngTuple;
   zoom?: number;
+  bounds?: LatLngTuple[];
   className?: string;
   children?: React.ReactNode;
 }

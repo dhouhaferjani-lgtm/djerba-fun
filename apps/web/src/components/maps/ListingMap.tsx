@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { LatLngTuple } from 'leaflet';
 import MapContainer from './MapContainer';
 import MarkerPopup from './MarkerPopup';
@@ -41,6 +41,16 @@ export default function ListingMap({
   );
   const [SejourRouteComponent, setSejourRouteComponent] =
     useState<React.ComponentType<SejourRouteProps> | null>(null);
+
+  // Compute bounds for séjours from all itinerary stops
+  const sejourBounds: LatLngTuple[] | undefined = useMemo(() => {
+    if (!isSejour || !itinerary || itinerary.length < 2) return undefined;
+    const points = itinerary.map((stop) => [stop.lat, stop.lng] as LatLngTuple);
+    // Check if all points are identical (degenerate bounds — fall back to center/zoom)
+    const allSame = points.every((p) => p[0] === points[0][0] && p[1] === points[0][1]);
+    if (allSame) return undefined;
+    return points;
+  }, [isSejour, itinerary]);
 
   // Standard single-color route for tours
   useEffect(() => {
@@ -192,9 +202,9 @@ export default function ListingMap({
   }, [itinerary, isSejour]);
 
   return (
-    <MapContainer center={center} zoom={13} className={className}>
-      {/* Main listing marker — hide for séjours since day markers replace it */}
-      {!isSejour && (
+    <MapContainer center={center} zoom={13} bounds={sejourBounds} className={className}>
+      {/* Main listing marker — hide for séjours (day markers) and when itinerary exists (stop markers) */}
+      {!isSejour && (!itinerary || itinerary.length === 0) && (
         <MarkerPopup position={center} title={title} imageUrl={imageUrl} type="listing" />
       )}
 
@@ -228,9 +238,6 @@ export default function ListingMap({
             ))}
         </>
       )}
-
-      {/* Auto-fit map to show all itinerary stops for séjours */}
-      {isSejour && itinerary && itinerary.length > 1 && <FitBounds stops={itinerary} />}
 
       {/* Day color legend for séjours */}
       {isSejour && itinerary && itinerary.length > 0 && (
@@ -302,33 +309,4 @@ function DayLegend({ stops, locale }: { stops: ItineraryStop[]; locale?: string 
 
   if (!LegendComponent) return null;
   return <LegendComponent />;
-}
-
-// Auto-fit map bounds to show all itinerary stops
-function FitBounds({ stops }: { stops: ItineraryStop[] }) {
-  const [Component, setComponent] = useState<React.ComponentType | null>(null);
-
-  useEffect(() => {
-    import('react-leaflet').then((mod) => {
-      const { useMap } = mod;
-
-      const Inner = () => {
-        const map = useMap();
-
-        useEffect(() => {
-          const bounds: LatLngTuple[] = stops.map((s) => [s.lat, s.lng]);
-          if (bounds.length > 1) {
-            map.fitBounds(bounds, { padding: [50, 50] });
-          }
-        }, [map]);
-
-        return null;
-      };
-
-      setComponent(() => Inner);
-    });
-  }, [stops]);
-
-  if (!Component) return null;
-  return <Component />;
 }
