@@ -1,6 +1,7 @@
 # Ignore build artifacts
 **/node_modules
 **/vendor
+!apps/laravel-api/resources/views/filament/vendor
 **/.next
 **/dist
 **/build
