@@ -127,7 +127,7 @@ class OAuthController extends Controller
      */
     private function getFrontendUrl(string $path): string
     {
-        $baseUrl = config('app.frontend_url', 'https://dev.go-adventure.net');
+        $baseUrl = config('app.frontend_url', 'https://www.go-adventure.net');
 
         return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
     }

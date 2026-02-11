@@ -43,7 +43,7 @@ class AccountVerificationMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
-        $frontendUrl = config('app.frontend_url', 'https://dev.go-adventure.net');
+        $frontendUrl = config('app.frontend_url', 'https://www.go-adventure.net');
         $verificationLink = "{$frontendUrl}/auth/verified?token={$this->token}";
 
         return new Content(
