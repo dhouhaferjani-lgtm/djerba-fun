@@ -111,6 +111,7 @@ class ViewListing extends ViewRecord
                             ->color(fn (ServiceType $state): string => match ($state) {
                                 ServiceType::TOUR => 'info',
                                 ServiceType::EVENT => 'success',
+                                ServiceType::SEJOUR => 'warning',
                             }),
 
                         Infolists\Components\TextEntry::make('status')
@@ -187,7 +188,7 @@ class ViewListing extends ViewRecord
                             ),
                     ])
                     ->columns(3)
-                    ->visible(fn ($record): bool => $record->service_type === ServiceType::TOUR),
+                    ->visible(fn ($record): bool => in_array($record->service_type, [ServiceType::TOUR, ServiceType::SEJOUR])),
 
                 Infolists\Components\Section::make('Event Details')
                     ->schema([

@@ -373,6 +373,7 @@ class ListingResource extends Resource
                     ->options([
                         ServiceType::TOUR->value => __('filament.options.tours'),
                         ServiceType::EVENT->value => __('filament.options.events'),
+                        ServiceType::SEJOUR->value => 'Séjours',
                     ]),
 
                 Tables\Filters\Filter::make('pending_review')
