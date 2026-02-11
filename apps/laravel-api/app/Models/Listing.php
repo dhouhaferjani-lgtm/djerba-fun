@@ -124,7 +124,7 @@ class Listing extends Model
                         ->actions([
                             NotificationAction::make('view')
                                 ->label('View Listing')
-                                ->url("/admin/listings/{$listing->id}")
+                                ->url("/admin/listings/{$listing->slug}")
                                 ->button(),
                         ])
                         ->sendToDatabase($admin);

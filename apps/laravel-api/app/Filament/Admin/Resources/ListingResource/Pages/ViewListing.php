@@ -14,10 +14,12 @@ use App\Mail\ListingPublishFailedMail;
 use Filament\Actions;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Actions\Action as NotificationAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class ViewListing extends ViewRecord
 {
@@ -60,6 +62,46 @@ class ViewListing extends ViewRecord
                         'published_at' => now(),
                     ]);
 
+                    // Send vendor bell notification
+                    try {
+                        $vendor = $this->record->vendor;
+                        if ($vendor) {
+                            $listingTitle = $this->record->getTranslation('title', 'en')
+                                ?: $this->record->getTranslation('title', 'fr')
+                                ?: 'Untitled';
+                            if (is_array($listingTitle)) {
+                                $listingTitle = reset($listingTitle) ?: 'Untitled';
+                            }
+
+                            $vendor->notifications()->create([
+                                'id' => Str::uuid()->toString(),
+                                'type' => \Filament\Notifications\DatabaseNotification::class,
+                                'data' => Notification::make()
+                                    ->title('Listing Approved')
+                                    ->icon('heroicon-o-check-circle')
+                                    ->body("Your listing \"{$listingTitle}\" has been approved and is now published!")
+                                    ->success()
+                                    ->actions([
+                                        NotificationAction::make('view')
+                                            ->label('View Listing')
+                                            ->url("/vendor/listings/{$this->record->id}/edit")
+                                            ->button(),
+                                    ])
+                                    ->getDatabaseMessage(),
+                            ]);
+
+                            \Log::info('NOTIF_DEBUG: ViewListing approval notification created', [
+                                'listing_id' => $this->record->id,
+                                'vendor_id' => $vendor->id,
+                            ]);
+                        }
+                    } catch (\Throwable $e) {
+                        \Log::error('Failed to send approval notification from ViewListing', [
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                        ]);
+                    }
+
                     Notification::make()
                         ->title('Listing Approved')
                         ->body('The listing has been published.')
@@ -83,6 +125,47 @@ class ViewListing extends ViewRecord
                     $this->record->update([
                         'status' => ListingStatus::REJECTED,
                     ]);
+
+                    // Send vendor bell notification with rejection reason
+                    try {
+                        $vendor = $this->record->vendor;
+                        if ($vendor) {
+                            $listingTitle = $this->record->getTranslation('title', 'en')
+                                ?: $this->record->getTranslation('title', 'fr')
+                                ?: 'Untitled';
+                            if (is_array($listingTitle)) {
+                                $listingTitle = reset($listingTitle) ?: 'Untitled';
+                            }
+                            $reason = $data['reason'] ?? 'No reason provided';
+
+                            $vendor->notifications()->create([
+                                'id' => Str::uuid()->toString(),
+                                'type' => \Filament\Notifications\DatabaseNotification::class,
+                                'data' => Notification::make()
+                                    ->title('Listing Rejected')
+                                    ->icon('heroicon-o-x-circle')
+                                    ->body("Your listing \"{$listingTitle}\" was rejected. Reason: {$reason}")
+                                    ->warning()
+                                    ->actions([
+                                        NotificationAction::make('edit')
+                                            ->label('Edit Listing')
+                                            ->url("/vendor/listings/{$this->record->id}/edit")
+                                            ->button(),
+                                    ])
+                                    ->getDatabaseMessage(),
+                            ]);
+
+                            \Log::info('NOTIF_DEBUG: ViewListing rejection notification created', [
+                                'listing_id' => $this->record->id,
+                                'vendor_id' => $vendor->id,
+                            ]);
+                        }
+                    } catch (\Throwable $e) {
+                        \Log::error('Failed to send rejection notification from ViewListing', [
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                        ]);
+                    }
 
                     Notification::make()
                         ->title('Listing Rejected')
@@ -304,18 +387,22 @@ class ViewListing extends ViewRecord
         // Generate correct vendor panel URL using Filament's URL generator
         $editUrl = VendorListingResource::getUrl('edit', ['record' => $this->record], panel: 'vendor');
 
-        // Send database notification (appears in vendor panel)
-        Notification::make()
-            ->title('Action Required: Listing Cannot Be Published')
-            ->body("Your listing \"{$listingTitle}\" cannot be published. Missing: " . implode(', ', $errors))
-            ->warning()
-            ->actions([
-                \Filament\Notifications\Actions\Action::make('edit')
-                    ->label('Edit Listing')
-                    ->url($editUrl)
-                    ->button(),
-            ])
-            ->sendToDatabase($vendor);
+        // Send database notification (appears in vendor panel) via direct Eloquent insert
+        $vendor->notifications()->create([
+            'id' => Str::uuid()->toString(),
+            'type' => \Filament\Notifications\DatabaseNotification::class,
+            'data' => Notification::make()
+                ->title('Action Required: Listing Cannot Be Published')
+                ->body("Your listing \"{$listingTitle}\" cannot be published. Missing: " . implode(', ', $errors))
+                ->warning()
+                ->actions([
+                    NotificationAction::make('edit')
+                        ->label('Edit Listing')
+                        ->url($editUrl)
+                        ->button(),
+                ])
+                ->getDatabaseMessage(),
+        ]);
 
         // Send email notification as backup (pass edit URL for consistency)
         Mail::to($vendor->email)->queue(new ListingPublishFailedMail(
