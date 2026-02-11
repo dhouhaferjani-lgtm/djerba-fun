@@ -229,6 +229,9 @@ export default function ListingMap({
         </>
       )}
 
+      {/* Auto-fit map to show all itinerary stops for séjours */}
+      {isSejour && itinerary && itinerary.length > 1 && <FitBounds stops={itinerary} />}
+
       {/* Day color legend for séjours */}
       {isSejour && itinerary && itinerary.length > 0 && (
         <DayLegend stops={itinerary} locale={locale} />
@@ -299,4 +302,33 @@ function DayLegend({ stops, locale }: { stops: ItineraryStop[]; locale?: string 
 
   if (!LegendComponent) return null;
   return <LegendComponent />;
+}
+
+// Auto-fit map bounds to show all itinerary stops
+function FitBounds({ stops }: { stops: ItineraryStop[] }) {
+  const [Component, setComponent] = useState<React.ComponentType | null>(null);
+
+  useEffect(() => {
+    import('react-leaflet').then((mod) => {
+      const { useMap } = mod;
+
+      const Inner = () => {
+        const map = useMap();
+
+        useEffect(() => {
+          const bounds: LatLngTuple[] = stops.map((s) => [s.lat, s.lng]);
+          if (bounds.length > 1) {
+            map.fitBounds(bounds, { padding: [50, 50] });
+          }
+        }, [map]);
+
+        return null;
+      };
+
+      setComponent(() => Inner);
+    });
+  }, [stops]);
+
+  if (!Component) return null;
+  return <Component />;
 }
