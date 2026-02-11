@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Vendor\Pages;
 
 use App\Enums\BookingStatus;
+use App\Enums\ListingStatus;
 use App\Filament\Concerns\SafeTranslation;
 use App\Models\BookingParticipant;
 use App\Models\Listing;
@@ -51,13 +52,14 @@ class CheckInScanner extends Page
     public function getVendorListingsProperty(): array
     {
         return Listing::where('vendor_id', auth()->id())
-            ->whereIn('status', ['published', 'archived'])
-            ->orderBy('title')
+            ->whereIn('status', [ListingStatus::PUBLISHED, ListingStatus::ARCHIVED])
             ->get()
             ->map(fn (Listing $listing) => [
                 'id' => $listing->id,
                 'title' => self::extractTranslation($listing->title),
             ])
+            ->sortBy('title')
+            ->values()
             ->toArray();
     }
 
