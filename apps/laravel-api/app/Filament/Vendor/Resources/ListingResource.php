@@ -1038,7 +1038,7 @@ class ListingResource extends Resource
                                 ]),
 
                             Forms\Components\Section::make('Person Type Pricing')
-                                ->description('Configure pricing for different person types. At least one person type is required. The system suggests EUR prices based on income parity.')
+                                ->description('Configure pricing for different person types. At least one person type is required. Both TND and EUR prices must be set.')
                                 ->schema([
                                     Forms\Components\Repeater::make('pricing.person_types')
                                         ->label('Person Types')
@@ -1066,7 +1066,7 @@ class ListingResource extends Resource
                                                     ->columnSpan(1),
                                             ]),
 
-                                            // Pricing (TND/EUR with real-time income parity calculator)
+                                            // Pricing (TND/EUR - vendors set each independently)
                                             Forms\Components\Grid::make(2)->schema([
                                                 Forms\Components\TextInput::make('tnd_price')
                                                     ->label('Price in Tunisian Dinar')
@@ -1075,28 +1075,6 @@ class ListingResource extends Resource
                                                     ->step(0.01)
                                                     ->minValue(0)
                                                     ->required()
-                                                    ->live(debounce: 500)
-                                                    ->afterStateUpdated(function ($state, $set, $get) {
-                                                        if (! $state) {
-                                                            return;
-                                                        }
-
-                                                        $service = app(\App\Services\IncomePricingService::class);
-                                                        $calculatedEur = $service->calculateExpectedPrice((float) $state);
-
-                                                        $currentEur = $get('eur_price');
-                                                        $autoEur = $get('_auto_eur');
-
-                                                        // If EUR is empty, or matches the auto-generated value, update it
-                                                        // This respects manual overrides
-                                                        if (empty($currentEur) || (float) $currentEur === (float) $autoEur) {
-                                                            $set('eur_price', $calculatedEur);
-                                                            $set('_auto_eur', $calculatedEur);
-                                                        }
-
-                                                        // Clear the auto TND tracker since user is entering TND manually
-                                                        $set('_auto_tnd', null);
-                                                    })
                                                     ->columnSpan(1),
 
                                                 Forms\Components\TextInput::make('eur_price')
@@ -1106,54 +1084,8 @@ class ListingResource extends Resource
                                                     ->step(0.01)
                                                     ->minValue(0)
                                                     ->required()
-                                                    ->live(debounce: 500)
-                                                    ->afterStateUpdated(function ($state, $set, $get) {
-                                                        if (empty($state)) {
-                                                            return;
-                                                        }
-
-                                                        // Reverse calculation: EUR → TND
-                                                        $service = app(\App\Services\IncomePricingService::class);
-                                                        $ratio = $service->getParityRatio('TND', 'EUR') ?? 0.1286;
-                                                        $calculatedTnd = round((float) $state / $ratio, 2);
-
-                                                        $currentTnd = $get('tnd_price');
-                                                        $autoTnd = $get('_auto_tnd');
-
-                                                        // Only auto-update if TND is empty or matches previous auto-value
-                                                        if (empty($currentTnd) || (float) $currentTnd === (float) $autoTnd) {
-                                                            $set('tnd_price', $calculatedTnd);
-                                                            $set('_auto_tnd', $calculatedTnd);
-                                                        }
-
-                                                        // Clear the auto EUR tracker since user is entering EUR manually
-                                                        $set('_auto_eur', null);
-                                                    })
-                                                    ->suffixAction(
-                                                        Forms\Components\Actions\Action::make('calculate_eur')
-                                                            ->icon('heroicon-o-calculator')
-                                                            ->tooltip('Auto-calculate from TND price')
-                                                            ->action(function ($set, $get) {
-                                                                $tnd = $get('tnd_price');
-
-                                                                if ($tnd) {
-                                                                    $service = app(\App\Services\IncomePricingService::class);
-                                                                    $suggested = $service->calculateExpectedPrice((float) $tnd);
-                                                                    $set('eur_price', $suggested);
-                                                                    $set('_auto_eur', $suggested);
-                                                                }
-                                                            })
-                                                    )
                                                     ->columnSpan(1),
                                             ]),
-
-                                            // Hidden field to track auto-generated EUR price
-                                            Forms\Components\Hidden::make('_auto_eur')
-                                                ->dehydrated(false),
-
-                                            // Hidden field to track auto-generated TND price
-                                            Forms\Components\Hidden::make('_auto_tnd')
-                                                ->dehydrated(false),
 
                                             // Age Range + Quantity Constraints
                                             Forms\Components\Grid::make(4)->schema([
@@ -1190,37 +1122,6 @@ class ListingResource extends Resource
                                                     ->columnSpan(1),
                                             ]),
 
-                                            // Income Parity Check per person type
-                                            Forms\Components\Placeholder::make('parity_check_individual')
-                                                ->label('Income Parity Check')
-                                                ->content(function ($get) {
-                                                    $tnd = $get('tnd_price');
-                                                    $eur = $get('eur_price');
-
-                                                    if (! $tnd || ! $eur) {
-                                                        return new \Illuminate\Support\HtmlString(
-                                                            '<div class="text-xs text-gray-500">Enter both prices to see parity analysis</div>'
-                                                        );
-                                                    }
-
-                                                    $service = app(\App\Services\IncomePricingService::class);
-                                                    $validation = $service->validatePricing((float) $tnd, (float) $eur);
-
-                                                    if ($validation['is_valid']) {
-                                                        return new \Illuminate\Support\HtmlString(
-                                                            '<div class="text-xs text-green-600 bg-green-50 p-2 rounded">
-                                                                ✅ Within parity tolerance
-                                                            </div>'
-                                                        );
-                                                    }
-
-                                                    return new \Illuminate\Support\HtmlString(
-                                                        '<div class="text-xs text-orange-600 bg-orange-50 p-2 rounded">
-                                                            ⚠️ ' . e($validation['message']) . '
-                                                        </div>'
-                                                    );
-                                                })
-                                                ->dehydrated(false),
                                         ])
                                         ->defaultItems(1)
                                         ->minItems(1)
@@ -1247,9 +1148,8 @@ class ListingResource extends Resource
                                         ->content(new \Illuminate\Support\HtmlString(
                                             '<div class="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
                                                 <strong>How Person Type Pricing Works:</strong> Configure different prices for different types of participants
-                                                (e.g., Adults, Children, Infants). Tunisian users see TND prices, international users see EUR prices.
-                                                The system suggests EUR prices based on income parity to make services more accessible locally
-                                                while maintaining sustainable international pricing.
+                                                (e.g., Adults, Children, Infants). Both TND and EUR prices are required.
+                                                Tunisian users will see TND prices, international users will see EUR prices.
                                             </div>'
                                         ))
                                         ->dehydrated(false),

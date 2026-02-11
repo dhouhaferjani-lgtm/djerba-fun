@@ -282,8 +282,12 @@ class ExtrasService
                 'unit_price_tnd' => $listingExtra->getEffectivePrice('TND'),
                 'unit_price_eur' => $listingExtra->getEffectivePrice('EUR'),
                 'person_type_breakdown' => $calculation['breakdown'] ?? null,
-                'subtotal_tnd' => $currency === 'TND' ? $calculation['subtotal'] : $this->convertToTnd($calculation['subtotal']),
-                'subtotal_eur' => $currency === 'EUR' ? $calculation['subtotal'] : $this->convertToEur($calculation['subtotal']),
+                'subtotal_tnd' => $currency === 'TND'
+                    ? $calculation['subtotal']
+                    : $listingExtra->calculateTotal($quantity, $personTypeBreakdown, 'TND')['subtotal'],
+                'subtotal_eur' => $currency === 'EUR'
+                    ? $calculation['subtotal']
+                    : $listingExtra->calculateTotal($quantity, $personTypeBreakdown, 'EUR')['subtotal'],
                 'extra_name' => $extra->name,
                 'extra_category' => $extra->category?->value,
                 'inventory_reserved' => false,
@@ -376,20 +380,5 @@ class ExtrasService
             ->lowInventory($threshold)
             ->active()
             ->get();
-    }
-
-    /**
-     * Simple currency conversion (placeholder - should use real rates).
-     */
-    private function convertToTnd(float $eurAmount): float
-    {
-        // Approximate rate - should be fetched from a currency service
-        return $eurAmount * 3.3;
-    }
-
-    private function convertToEur(float $tndAmount): float
-    {
-        // Approximate rate - should be fetched from a currency service
-        return $tndAmount / 3.3;
     }
 }
