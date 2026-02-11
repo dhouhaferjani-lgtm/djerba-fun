@@ -41,9 +41,14 @@ class EmailVerificationService
         ]);
 
         // Count claimable bookings for this email (shown in email template)
-        $claimableCount = Booking::where('guest_email', $user->email)
-            ->whereNull('user_id')
-            ->count();
+        $claimableCount = 0;
+        try {
+            $claimableCount = Booking::where('guest_email', $user->email)
+                ->whereNull('user_id')
+                ->count();
+        } catch (\Exception $e) {
+            // Column may not exist in production — non-essential feature
+        }
 
         // Send verification email (queued)
         Mail::to($user->email)->queue(
