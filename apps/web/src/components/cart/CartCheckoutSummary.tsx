@@ -114,7 +114,11 @@ export function CartCheckoutSummary({ cart, currency }: CartCheckoutSummaryProps
                               {typeLabel} × {qty}
                             </span>
                             <span>
-                              {currency} {((item.unitPrice || 0) * Number(qty)).toFixed(2)}
+                              {currency}{' '}
+                              {(
+                                ((item.personTypePricing?.[type] ?? item.unitPrice) || 0) *
+                                Number(qty)
+                              ).toFixed(2)}
                             </span>
                           </div>
                         );

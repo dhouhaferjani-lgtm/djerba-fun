@@ -53,8 +53,8 @@ export function CartItemCard({ item, locale }: CartItemCardProps) {
             key: type,
             label: label.charAt(0).toUpperCase() + label.slice(1),
             quantity: qty,
-            unitPrice: item.unitPrice,
-            subtotal: item.unitPrice * qty,
+            unitPrice: item.personTypePricing?.[type] ?? item.unitPrice,
+            subtotal: (item.personTypePricing?.[type] ?? item.unitPrice) * qty,
           });
         }
       }

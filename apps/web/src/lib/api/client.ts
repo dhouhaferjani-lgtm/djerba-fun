@@ -840,6 +840,7 @@ export interface CartItem {
   slotEnd: string;
   quantity: number;
   personTypeBreakdown: Record<string, number> | null;
+  personTypePricing: Record<string, number> | null;
   unitPrice: number;
   currency: string;
   primaryContact: {

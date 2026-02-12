@@ -205,12 +205,12 @@ class CartService
 
             // Calculate item price using person type breakdown if available
             if (! empty($item->person_type_breakdown)) {
-                $result = $this->priceService->calculateTotal($listing, $item->person_type_breakdown);
+                $result = $this->priceService->calculateTotal($listing, $item->person_type_breakdown, $item->currency);
                 $itemSubtotal = $result['total'];
                 $currency = $result['currency'];
                 $breakdown = $result['breakdown'];
             } else {
-                $result = $this->priceService->calculateSimpleTotal($listing, $item->quantity);
+                $result = $this->priceService->calculateSimpleTotal($listing, $item->quantity, $item->currency);
                 $itemSubtotal = $result['total'];
                 $currency = $result['currency'];
                 $breakdown = null;

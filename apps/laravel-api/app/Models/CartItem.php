@@ -73,12 +73,19 @@ class CartItem extends Model
      */
     public function getSubtotal(): float
     {
-        // If we have person type breakdown, calculate from that
+        // Use PriceCalculationService when listing is available for accurate per-type pricing
+        if (! empty($this->person_type_breakdown) && $this->relationLoaded('listing') && $this->listing) {
+            $priceService = app(\App\Services\PriceCalculationService::class);
+            $result = $priceService->calculateTotal($this->listing, $this->person_type_breakdown, $this->currency);
+
+            return $result['total'];
+        }
+
+        // Fallback: use cached unit_price (less accurate for multi-type bookings)
         if (! empty($this->person_type_breakdown)) {
             $total = 0;
 
             foreach ($this->person_type_breakdown as $type => $qty) {
-                // Use unit_price as base, or calculate per type if pricing is available
                 $total += $this->unit_price * $qty;
             }
 
@@ -87,6 +94,33 @@ class CartItem extends Model
 
         // Simple calculation: unit price * quantity
         return (float) $this->unit_price * $this->quantity;
+    }
+
+    /**
+     * Get per-person-type pricing map for the item's currency.
+     * Returns e.g. ['adult' => 50.0, 'child' => 20.0] or null if listing not loaded.
+     */
+    public function getPersonTypePricing(): ?array
+    {
+        if (! $this->relationLoaded('listing') || ! $this->listing) {
+            return null;
+        }
+
+        $pricing = $this->listing->pricing;
+        $personTypes = $pricing['person_types'] ?? $pricing['personTypes'] ?? [];
+        $priceKey = $this->currency === 'TND' ? 'tnd_price' : 'eur_price';
+
+        $map = [];
+
+        foreach ($personTypes as $pt) {
+            $key = $pt['key'] ?? null;
+
+            if ($key) {
+                $map[$key] = (float) ($pt[$priceKey] ?? $pt['price'] ?? 0);
+            }
+        }
+
+        return ! empty($map) ? $map : null;
     }
 
     /**

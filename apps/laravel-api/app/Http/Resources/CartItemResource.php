@@ -25,6 +25,7 @@ class CartItemResource extends BaseResource
             'slotEnd' => $this->slot_end?->toIso8601String(),
             'quantity' => $this->quantity,
             'personTypeBreakdown' => $this->person_type_breakdown,
+            'personTypePricing' => $this->getPersonTypePricing(),
             'unitPrice' => (float) $this->unit_price,
             'currency' => $this->currency,
             'primaryContact' => $this->primary_contact,
