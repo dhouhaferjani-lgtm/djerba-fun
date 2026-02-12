@@ -27,7 +27,7 @@ const CheckoutConsents = forwardRef<HTMLDivElement, CheckoutConsentsProps>(
         className={`
           space-y-4 mt-6 pt-6 border-t border-gray-200
           transition-all duration-300 ease-in-out
-          ${highlight ? 'scale-[1.02] bg-yellow-50 p-4 -mx-4 rounded-lg border-2 border-primary shadow-lg ring-2 ring-primary/30' : ''}
+          ${highlight ? 'scale-[1.02] bg-green-50 p-4 -mx-4 rounded-lg border-2 border-green-500 shadow-lg ring-2 ring-green-400/30 animate-pulse' : ''}
         `}
       >
         <h3 className="font-medium text-gray-900">{t('legal_agreements') || 'Legal Agreements'}</h3>

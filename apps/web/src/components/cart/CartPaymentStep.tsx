@@ -54,6 +54,8 @@ export function CartPaymentStep({
   const tCheckout = useTranslations('checkout');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | undefined>();
   const consentsRef = useRef<HTMLDivElement>(null);
+  const paymentRef = useRef<HTMLDivElement>(null);
+  const [highlightPayment, setHighlightPayment] = useState(false);
 
   // Coupon state
   const [couponCode, setCouponCode] = useState<string>('');
@@ -81,25 +83,26 @@ export function CartPaymentStep({
   };
 
   const handleSubmit = () => {
-    // Validate terms acceptance first
+    // Validate payment method selection first
+    if (!selectedMethod) {
+      setHighlightPayment(true);
+      paymentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => setHighlightPayment(false), 3000);
+      return;
+    }
+
+    // Validate terms acceptance
     if (!termsAccepted) {
       setTermsError(tCheckout('terms_required') || 'You must accept the terms and conditions');
       setHighlightConsents(true);
-
-      // Scroll to consents section
       consentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      // Auto-clear highlight after 3 seconds
       setTimeout(() => setHighlightConsents(false), 3000);
       return;
     }
 
-    // Clear any previous error
+    // Clear any previous error and submit
     setTermsError(undefined);
-
-    if (selectedMethod) {
-      onSubmit(selectedMethod);
-    }
+    onSubmit(selectedMethod);
   };
 
   return (
@@ -177,9 +180,16 @@ export function CartPaymentStep({
       </div>
 
       {/* Payment Method Selection */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div
+        ref={paymentRef}
+        className={`bg-white rounded-lg p-4 transition-all duration-300 ease-in-out ${
+          highlightPayment
+            ? 'scale-[1.02] bg-green-50 border-2 border-green-500 shadow-lg ring-2 ring-green-400/30 animate-pulse'
+            : 'border border-gray-200'
+        }`}
+      >
         <PaymentMethodSelector
-          availableMethods={['mock', 'offline', 'click_to_pay']}
+          availableMethods={['offline', 'click_to_pay']}
           onSelect={setSelectedMethod}
           selectedMethod={selectedMethod}
         />
@@ -208,11 +218,7 @@ export function CartPaymentStep({
           <ArrowLeft className="w-4 h-4 mr-2" />
           {t('back')}
         </Button>
-        <Button
-          className="flex-1"
-          onClick={handleSubmit}
-          disabled={!selectedMethod || !termsAccepted || isProcessing}
-        >
+        <Button className="flex-1" onClick={handleSubmit} disabled={isProcessing}>
           {isProcessing
             ? t('processing')
             : t('pay_now', { amount: formatPrice(finalTotal, cart.currency) })}

@@ -331,7 +331,7 @@ export function BookingWizard({
             />
             <div className="border-t pt-6">
               <PaymentMethodSelector
-                availableMethods={['mock', 'offline', 'click_to_pay']}
+                availableMethods={['offline', 'click_to_pay']}
                 onSelect={setPaymentMethod}
                 selectedMethod={paymentMethod}
               />
