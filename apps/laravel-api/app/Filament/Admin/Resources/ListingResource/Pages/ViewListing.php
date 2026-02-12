@@ -62,19 +62,9 @@ class ViewListing extends ViewRecord
                         'published_at' => now(),
                     ]);
 
-                    \Log::info('NOTIF_DEBUG: ViewListing approve - update succeeded', [
-                        'listing_id' => $this->record->id,
-                        'new_status' => $this->record->status->value,
-                        'vendor_id' => $this->record->vendor_id,
-                    ]);
-
                     // Send vendor bell notification
                     try {
                         $vendor = $this->record->vendor;
-                        \Log::info('NOTIF_DEBUG: ViewListing approve - vendor check', [
-                            'vendor_exists' => $vendor !== null,
-                            'vendor_id' => $vendor?->id,
-                        ]);
                         if ($vendor) {
                             $listingTitle = $this->record->getTranslation('title', 'en')
                                 ?: $this->record->getTranslation('title', 'fr')
@@ -101,10 +91,6 @@ class ViewListing extends ViewRecord
                                     ->getDatabaseMessage(),
                             ]);
 
-                            \Log::info('NOTIF_DEBUG: ViewListing approval notification created', [
-                                'listing_id' => $this->record->id,
-                                'vendor_id' => $vendor->id,
-                            ]);
                         }
                     } catch (\Throwable $e) {
                         \Log::error('Failed to send approval notification from ViewListing', [
@@ -167,10 +153,6 @@ class ViewListing extends ViewRecord
                                     ->getDatabaseMessage(),
                             ]);
 
-                            \Log::info('NOTIF_DEBUG: ViewListing rejection notification created', [
-                                'listing_id' => $this->record->id,
-                                'vendor_id' => $vendor->id,
-                            ]);
                         }
                     } catch (\Throwable $e) {
                         \Log::error('Failed to send rejection notification from ViewListing', [

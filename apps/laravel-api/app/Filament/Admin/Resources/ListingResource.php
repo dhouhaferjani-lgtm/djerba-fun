@@ -496,11 +496,6 @@ class ListingResource extends Resource
                             ]);
 
                             // Send database notification to vendor
-                            \Log::info('NOTIF_DEBUG: Approve action reached', [
-                                'listing_id' => $record->id,
-                                'vendor_id' => $record->vendor_id,
-                                'vendor_exists' => $record->vendor !== null,
-                            ]);
                             try {
                                 $vendor = $record->vendor;
                                 if ($vendor) {
@@ -524,10 +519,6 @@ class ListingResource extends Resource
                                                     ->button(),
                                             ])
                                             ->getDatabaseMessage(),
-                                    ]);
-                                    \Log::info('NOTIF_DEBUG: Approve notification created', [
-                                        'vendor_id' => $vendor->id,
-                                        'notif_count' => $vendor->notifications()->count(),
                                     ]);
                                 }
                             } catch (\Throwable $e) {
@@ -562,11 +553,6 @@ class ListingResource extends Resource
                             ]);
 
                             // Send database notification to vendor with rejection reason
-                            \Log::info('NOTIF_DEBUG: Reject action reached', [
-                                'listing_id' => $record->id,
-                                'vendor_id' => $record->vendor_id,
-                                'vendor_exists' => $record->vendor !== null,
-                            ]);
                             try {
                                 $vendor = $record->vendor;
                                 if ($vendor) {
@@ -591,10 +577,6 @@ class ListingResource extends Resource
                                                     ->button(),
                                             ])
                                             ->getDatabaseMessage(),
-                                    ]);
-                                    \Log::info('NOTIF_DEBUG: Reject notification created', [
-                                        'vendor_id' => $vendor->id,
-                                        'notif_count' => $vendor->notifications()->count(),
                                     ]);
                                 }
                             } catch (\Throwable $e) {

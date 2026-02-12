@@ -37,14 +37,6 @@ class EditListing extends EditRecord
         // Capture old status before save for notification logic in afterSave()
         $this->previousStatus = $this->record->status->value;
 
-        \Log::info('NOTIF_DEBUG: mutateFormDataBeforeSave() called', [
-            'previousStatus' => $this->previousStatus,
-            'newStatus' => $data['status'] ?? 'not set',
-            'has_title_in_data' => array_key_exists('title', $data),
-            'title_type' => isset($data['title']) ? gettype($data['title']) : 'not set',
-            'title_value' => isset($data['title']) ? (is_array($data['title']) ? json_encode($data['title']) : $data['title']) : 'not set',
-        ]);
-
         // CRITICAL FIX: Remove empty/null values for disabled fields
         // Filament sends empty arrays for disabled fields which would overwrite existing data
         $disabledFields = ['title', 'summary', 'description', 'pricing', 'slug', 'vendor_id',
@@ -121,12 +113,6 @@ class EditListing extends EditRecord
 
     protected function afterSave(): void
     {
-        \Log::info('NOTIF_DEBUG: EditListing afterSave() called', [
-            'listing_id' => $this->record->id,
-            'previousStatus' => $this->previousStatus,
-            'currentStatus' => $this->record->status->value,
-        ]);
-
         if ($this->previousStatus === null) {
             return;
         }
@@ -135,21 +121,13 @@ class EditListing extends EditRecord
         $oldStatus = ListingStatus::from($this->previousStatus);
 
         if ($oldStatus === $newStatus) {
-            \Log::info('NOTIF_DEBUG: EditListing afterSave() - status unchanged, skipping', [
-                'status' => $newStatus->value,
-            ]);
-
             return;
         }
 
-        \Log::info('NOTIF_DEBUG: EditListing afterSave() - status changed', [
-            'from' => $oldStatus->value,
-            'to' => $newStatus->value,
-        ]);
-
-        if ($oldStatus === ListingStatus::PENDING_REVIEW && $newStatus === ListingStatus::PUBLISHED) {
+        // Notify vendor for ANY transition to PUBLISHED or REJECTED (not just from PENDING_REVIEW)
+        if ($newStatus === ListingStatus::PUBLISHED) {
             $this->notifyVendorOfApproval();
-        } elseif ($oldStatus === ListingStatus::PENDING_REVIEW && $newStatus === ListingStatus::REJECTED) {
+        } elseif ($newStatus === ListingStatus::REJECTED) {
             $this->notifyVendorOfRejection();
         }
     }
@@ -212,16 +190,9 @@ class EditListing extends EditRecord
 
     protected function notifyVendorOfApproval(): void
     {
-        \Log::info('NOTIF_DEBUG: notifyVendorOfApproval() called', [
-            'listing_id' => $this->record->id,
-            'vendor_id' => $this->record->vendor_id,
-        ]);
-
         try {
             $vendor = $this->record->vendor;
             if (! $vendor) {
-                \Log::warning('NOTIF_DEBUG: notifyVendorOfApproval() - no vendor found');
-
                 return;
             }
 
@@ -250,10 +221,6 @@ class EditListing extends EditRecord
                     ->getDatabaseMessage(),
             ]);
 
-            \Log::info('NOTIF_DEBUG: Form-based approval notification created', [
-                'listing_id' => $this->record->id,
-                'vendor_id' => $vendor->id,
-            ]);
         } catch (\Throwable $e) {
             \Log::error('Failed to send approval notification via form', [
                 'error' => $e->getMessage(),
@@ -295,10 +262,6 @@ class EditListing extends EditRecord
                     ->getDatabaseMessage(),
             ]);
 
-            \Log::info('NOTIF_DEBUG: Form-based rejection notification created', [
-                'listing_id' => $this->record->id,
-                'vendor_id' => $vendor->id,
-            ]);
         } catch (\Throwable $e) {
             \Log::error('Failed to send rejection notification via form', [
                 'error' => $e->getMessage(),

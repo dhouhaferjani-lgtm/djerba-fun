@@ -36,11 +36,6 @@ class Listing extends Model
         // Validate and set published_at when status changes to PUBLISHED
         static::updating(function (Listing $listing) {
             if ($listing->isDirty('status') && $listing->status === ListingStatus::PUBLISHED) {
-                \Log::info('NOTIF_DEBUG: Model updating() - status changing to PUBLISHED', [
-                    'listing_id' => $listing->id,
-                    'dirty_fields' => array_keys($listing->getDirty()),
-                ]);
-
                 // CRITICAL: Validate required fields before allowing publish
                 $errors = [];
 
@@ -76,11 +71,6 @@ class Listing extends Model
                 }
 
                 if (!empty($errors)) {
-                    \Log::warning('NOTIF_DEBUG: Model updating() - validation FAILED, blocking publish', [
-                        'listing_id' => $listing->id,
-                        'errors' => $errors,
-                    ]);
-
                     // Try to show Filament notification if in admin context
                     try {
                         Notification::make()
@@ -101,10 +91,6 @@ class Listing extends Model
                     );
                     $validator->validate(); // This will throw ValidationException
                 }
-
-                \Log::info('NOTIF_DEBUG: Model updating() - validation PASSED, allowing publish', [
-                    'listing_id' => $listing->id,
-                ]);
 
                 // Set published_at if not already set
                 if (empty($listing->published_at)) {
