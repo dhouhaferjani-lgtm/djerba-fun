@@ -5,6 +5,7 @@ import type { LatLngTuple } from 'leaflet';
 import MapContainer from './MapContainer';
 import MarkerPopup from './MarkerPopup';
 import type { ItineraryStop } from '@go-adventure/schemas';
+import { fetchRoute } from '@/lib/utils/fetchRoute';
 
 const DAY_COLORS = ['#0D642E', '#E67E22', '#3498DB', '#9B59B6', '#E74C3C', '#1ABC9C', '#F39C12'];
 
@@ -58,21 +59,33 @@ export default function ListingMap({
     return points;
   }, [isSejour, itinerary]);
 
-  // Standard single-color route for tours
+  // Standard single-color route for tours (road-following via OSRM)
   useEffect(() => {
     if (itinerary && itinerary.length > 0 && !isSejour) {
       import('react-leaflet').then((module) => {
         const { Polyline } = module;
 
         const Component = ({ stops }: { stops: ItineraryStop[] }) => {
-          const positions: LatLngTuple[] = stops.map((stop) => [stop.lat, stop.lng]);
+          const straightPositions: LatLngTuple[] = stops.map((stop) => [stop.lat, stop.lng]);
+          const [positions, setPositions] = useState<LatLngTuple[]>(straightPositions);
+
+          useEffect(() => {
+            let cancelled = false;
+            fetchRoute(straightPositions).then((road) => {
+              if (!cancelled && road) setPositions(road);
+            });
+            return () => {
+              cancelled = true;
+            };
+          }, [straightPositions]);
+
           return (
             <Polyline
               positions={positions}
               pathOptions={{
                 color: '#0D642E',
-                weight: 3,
-                opacity: 0.8,
+                weight: 4,
+                opacity: 0.85,
               }}
             />
           );
@@ -83,7 +96,7 @@ export default function ListingMap({
     }
   }, [itinerary, isSejour]);
 
-  // Day-colored routes for séjours
+  // Day-colored routes for séjours (road-following via OSRM)
   useEffect(() => {
     if (itinerary && itinerary.length > 0 && isSejour) {
       Promise.all([import('react-leaflet'), import('leaflet')]).then(([reactLeaflet, leaflet]) => {
@@ -92,6 +105,9 @@ export default function ListingMap({
 
         const Component = ({ stops, locale: loc }: SejourRouteProps) => {
           const dayLabel = loc === 'fr' ? 'JOUR' : 'DAY';
+
+          // Road-following route segments keyed by segment id
+          const [roadSegments, setRoadSegments] = useState<Map<string, LatLngTuple[]>>(new Map());
 
           // Group stops by day
           const dayGroups = new Map<number, ItineraryStop[]>();
@@ -104,7 +120,6 @@ export default function ListingMap({
 
           for (let i = 0; i < sortedStops.length; i++) {
             const stop = sortedStops[i];
-            // Auto-derive day from index when all stops have same day value
             const day = allSameDay ? i + 1 : ((stop as any).day ?? i + 1);
             if (!dayGroups.has(day)) {
               dayGroups.set(day, []);
@@ -113,6 +128,53 @@ export default function ListingMap({
           }
 
           const days = Array.from(dayGroups.keys()).sort((a, b) => a - b);
+
+          // Fetch road-following routes for all segments
+          useEffect(() => {
+            let cancelled = false;
+            const fetches: Promise<void>[] = [];
+
+            days.forEach((day, dayIndex) => {
+              const dayStops = dayGroups.get(day)!;
+
+              // Within-day route
+              if (dayStops.length > 1) {
+                const waypoints: LatLngTuple[] = dayStops.map((s) => [s.lat, s.lng]);
+                fetches.push(
+                  fetchRoute(waypoints).then((road) => {
+                    if (!cancelled && road) {
+                      setRoadSegments((prev) => new Map(prev).set(`day-${day}`, road));
+                    }
+                  })
+                );
+              }
+
+              // Connecting segment to next day
+              if (dayIndex < days.length - 1) {
+                const lastStop = dayStops[dayStops.length - 1];
+                const nextFirstStop = dayGroups.get(days[dayIndex + 1])![0];
+                const waypoints: LatLngTuple[] = [
+                  [lastStop.lat, lastStop.lng],
+                  [nextFirstStop.lat, nextFirstStop.lng],
+                ];
+                const segKey = `seg-${day}-${days[dayIndex + 1]}`;
+                fetches.push(
+                  fetchRoute(waypoints).then((road) => {
+                    if (!cancelled && road) {
+                      setRoadSegments((prev) => new Map(prev).set(segKey, road));
+                    }
+                  })
+                );
+              }
+            });
+
+            Promise.all(fetches);
+            return () => {
+              cancelled = true;
+            };
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+          }, []);
+
           const elements: React.ReactNode[] = [];
 
           // Track used positions to offset overlapping day icons
@@ -124,7 +186,8 @@ export default function ListingMap({
 
             // Within-day polyline (if day has 2+ stops)
             if (dayStops.length > 1) {
-              const positions: LatLngTuple[] = dayStops.map((s) => [s.lat, s.lng]);
+              const straightPositions: LatLngTuple[] = dayStops.map((s) => [s.lat, s.lng]);
+              const positions = roadSegments.get(`day-${day}`) ?? straightPositions;
               elements.push(
                 <Polyline
                   key={`day-${day}-route`}
@@ -132,7 +195,7 @@ export default function ListingMap({
                   pathOptions={{
                     color,
                     weight: 4,
-                    opacity: 0.8,
+                    opacity: 0.85,
                   }}
                 />
               );
@@ -142,17 +205,20 @@ export default function ListingMap({
             if (dayIndex < days.length - 1) {
               const lastStop = dayStops[dayStops.length - 1];
               const nextFirstStop = dayGroups.get(days[dayIndex + 1])![0];
+              const segKey = `seg-${day}-${days[dayIndex + 1]}`;
+              const straightPositions: LatLngTuple[] = [
+                [lastStop.lat, lastStop.lng],
+                [nextFirstStop.lat, nextFirstStop.lng],
+              ];
+              const positions = roadSegments.get(segKey) ?? straightPositions;
               elements.push(
                 <Polyline
                   key={`segment-${day}-to-${days[dayIndex + 1]}`}
-                  positions={[
-                    [lastStop.lat, lastStop.lng],
-                    [nextFirstStop.lat, nextFirstStop.lng],
-                  ]}
+                  positions={positions}
                   pathOptions={{
                     color,
                     weight: 4,
-                    opacity: 0.8,
+                    opacity: 0.85,
                   }}
                 />
               );
