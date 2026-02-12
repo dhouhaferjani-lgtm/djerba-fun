@@ -151,6 +151,7 @@ class PlatformSettingsService
                 'enabledCurrencies' => $s->enabled_currencies,
                 'minBookingAmount' => (float) $s->min_booking_amount,
                 'maxBookingAmount' => (float) $s->max_booking_amount,
+                'enabledPaymentMethods' => $this->mapPaymentMethods($s->enabled_payment_methods ?? []),
             ],
             'legal' => [
                 'termsUrl' => $s->terms_url,
@@ -320,5 +321,29 @@ class PlatformSettingsService
     {
         PlatformSettings::clearCache();
         $this->settings = null;
+    }
+
+    /**
+     * Map stored payment method values to frontend-compatible names.
+     *
+     * Handles backward compatibility: old admin values (card, bank_transfer)
+     * are mapped to the correct frontend values (click_to_pay, offline).
+     *
+     * @param  array<string>  $methods
+     * @return array<string>
+     */
+    protected function mapPaymentMethods(array $methods): array
+    {
+        $map = [
+            'card' => 'click_to_pay',
+            'bank_transfer' => 'offline',
+            'offline' => 'offline',
+            'cash' => 'cash',
+            'click_to_pay' => 'click_to_pay',
+        ];
+
+        return array_values(array_unique(array_filter(
+            array_map(fn ($m) => $map[$m] ?? $m, $methods)
+        )));
     }
 }

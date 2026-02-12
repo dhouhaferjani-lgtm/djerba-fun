@@ -14,7 +14,7 @@ import {
 } from '@/components/pricing/PricingDisclosureModal';
 import CheckoutConsents from '@/components/consent/CheckoutConsents';
 import HoldTimer from '@/components/availability/HoldTimer';
-import { useCreateBooking, useProcessPayment } from '@/lib/api/hooks';
+import { useCreateBooking, useProcessPayment, usePlatformSettings } from '@/lib/api/hooks';
 import { getGuestSessionId } from '@/lib/utils/session';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { consentApi } from '@/lib/api/client';
@@ -54,6 +54,14 @@ export function BookingWizard({
 }: BookingWizardProps) {
   const t = useTranslations('booking');
   const { user } = useAuth();
+
+  // Fetch enabled payment methods from platform settings
+  const { data: platformSettings } = usePlatformSettings();
+  const enabledMethods = (platformSettings?.booking?.enabledPaymentMethods ?? [
+    'offline',
+    'cash',
+    'click_to_pay',
+  ]) as PaymentMethod[];
 
   // Simplified: Start with email collection
   const [currentStep, setCurrentStep] = useState<Step>('email');
@@ -331,7 +339,7 @@ export function BookingWizard({
             />
             <div className="border-t pt-6">
               <PaymentMethodSelector
-                availableMethods={['offline', 'cash', 'click_to_pay']}
+                availableMethods={enabledMethods}
                 onSelect={setPaymentMethod}
                 selectedMethod={paymentMethod}
               />

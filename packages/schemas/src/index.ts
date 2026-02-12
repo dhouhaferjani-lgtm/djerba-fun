@@ -1363,6 +1363,7 @@ export const platformBookingSchema = z.object({
   enabledCurrencies: z.array(z.string()),
   minBookingAmount: z.number(),
   maxBookingAmount: z.number(),
+  enabledPaymentMethods: z.array(z.string()).optional(),
 });
 
 /** Platform legal settings */

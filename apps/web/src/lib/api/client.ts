@@ -367,7 +367,7 @@ export const listingsApi = {
 // ============================================================================
 
 export interface ProcessPaymentRequest {
-  paymentMethod: 'mock' | 'offline' | 'click_to_pay' | 'stripe' | 'paypal';
+  paymentMethod: 'mock' | 'offline' | 'cash' | 'click_to_pay' | 'stripe' | 'paypal';
   paymentData?: Record<string, unknown>;
   sessionId?: string;
 }

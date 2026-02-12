@@ -10,7 +10,7 @@ import { CheckoutContactForm, type ContactInfo } from './CheckoutContactForm';
 import { CurrencyNoticeModal } from './CurrencyNoticeModal';
 import CheckoutConsents from '@/components/consent/CheckoutConsents';
 import HoldTimer from '@/components/availability/HoldTimer';
-import { useCreateBooking, useProcessPayment } from '@/lib/api/hooks';
+import { useCreateBooking, useProcessPayment, usePlatformSettings } from '@/lib/api/hooks';
 import { getGuestSessionId } from '@/lib/utils/session';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { consentApi } from '@/lib/api/client';
@@ -50,6 +50,14 @@ export function BookingWizard({
 }: BookingWizardProps) {
   const t = useTranslations('booking');
   const { user } = useAuth();
+
+  // Fetch enabled payment methods from platform settings
+  const { data: platformSettings } = usePlatformSettings();
+  const enabledMethods = (platformSettings?.booking?.enabledPaymentMethods ?? [
+    'offline',
+    'cash',
+    'click_to_pay',
+  ]) as PaymentMethod[];
 
   // Check if extras were pre-selected on listing page
   const hasPreselectedExtras = initialExtras.length > 0;
@@ -417,7 +425,7 @@ export function BookingWizard({
                 {t('payment_method') || 'Payment Method'}
               </h3>
               <PaymentMethodSelector
-                availableMethods={['offline', 'cash', 'click_to_pay']}
+                availableMethods={enabledMethods}
                 onSelect={setPaymentMethod}
                 selectedMethod={paymentMethod}
               />

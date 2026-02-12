@@ -1337,22 +1337,15 @@ class PlatformSettingsPage extends Page implements HasForms
 
                 Forms\Components\Section::make('Payment Gateway')
                     ->schema([
-                        Forms\Components\Select::make('default_payment_gateway')
-                            ->label('Default Gateway')
-                            ->options([
-                                'mock' => 'Mock (Development)',
-                                'stripe' => 'Stripe',
-                                'offline' => 'Offline/Bank Transfer',
-                            ])
-                            ->default('mock'),
                         Forms\Components\CheckboxList::make('enabled_payment_methods')
                             ->label('Enabled Payment Methods')
                             ->options([
-                                'card' => 'Credit/Debit Card',
-                                'bank_transfer' => 'Bank Transfer',
-                                'cash' => 'Cash on Delivery',
+                                'offline' => 'Virement Bancaire (Bank Transfer)',
+                                'cash' => 'Espèces à l\'Arrivée (Cash on Arrival)',
+                                'click_to_pay' => 'Clictopay (Paiement par Carte)',
                             ])
-                            ->columns(3),
+                            ->columns(3)
+                            ->helperText('Select which payment methods are available to customers on checkout.'),
                     ]),
 
                 Forms\Components\Section::make('Fees & Limits')

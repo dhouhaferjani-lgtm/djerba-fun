@@ -13,6 +13,7 @@ import type { Cart } from '@/lib/api/client';
 import type { PrimaryContactData } from './PrimaryContactForm';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
+import { usePlatformSettings } from '@/lib/api/hooks';
 
 interface CartPaymentStepProps {
   cart: Cart;
@@ -56,6 +57,14 @@ export function CartPaymentStep({
   const consentsRef = useRef<HTMLDivElement>(null);
   const paymentRef = useRef<HTMLDivElement>(null);
   const [highlightPayment, setHighlightPayment] = useState(false);
+
+  // Fetch enabled payment methods from platform settings
+  const { data: platformSettings } = usePlatformSettings(locale);
+  const enabledMethods = (platformSettings?.booking?.enabledPaymentMethods ?? [
+    'offline',
+    'cash',
+    'click_to_pay',
+  ]) as PaymentMethod[];
 
   // Coupon state
   const [couponCode, setCouponCode] = useState<string>('');
@@ -189,7 +198,7 @@ export function CartPaymentStep({
         }`}
       >
         <PaymentMethodSelector
-          availableMethods={['offline', 'cash', 'click_to_pay']}
+          availableMethods={enabledMethods}
           onSelect={setSelectedMethod}
           selectedMethod={selectedMethod}
         />
