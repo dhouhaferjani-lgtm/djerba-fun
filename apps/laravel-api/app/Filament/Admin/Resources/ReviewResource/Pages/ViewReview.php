@@ -25,6 +25,7 @@ class ViewReview extends ViewRecord
                 ->requiresConfirmation()
                 ->action(function () {
                     $this->record->publish();
+                    $this->record->load('listing');
                     Review::recalculateListingRating($this->record->listing);
 
                     Notification::make()
@@ -47,6 +48,7 @@ class ViewReview extends ViewRecord
                 ->requiresConfirmation()
                 ->action(function (array $data) {
                     $this->record->reject($data['reason']);
+                    $this->record->load('listing');
                     Review::recalculateListingRating($this->record->listing);
 
                     Notification::make()
@@ -63,6 +65,7 @@ class ViewReview extends ViewRecord
                 ->requiresConfirmation()
                 ->action(function () {
                     $this->record->unpublish();
+                    $this->record->load('listing');
                     Review::recalculateListingRating($this->record->listing);
 
                     Notification::make()

@@ -220,8 +220,20 @@ class Review extends Model
             ->first();
 
         $listing->update([
-            'rating' => $stats->avg_rating ? round($stats->avg_rating, 2) : null,
-            'reviews_count' => $stats->total_reviews,
+            'rating' => $stats?->avg_rating ? round($stats->avg_rating, 2) : null,
+            'reviews_count' => $stats?->total_reviews ?? 0,
         ]);
+
+        // Clear review caches so frontend gets fresh data immediately
+        cache()->forget("reviews:summary:{$listing->id}");
+        $sorts = ['latest', 'helpful'];
+        $ratings = ['all', '1', '2', '3', '4', '5'];
+        foreach ($sorts as $sort) {
+            foreach ($ratings as $rating) {
+                for ($page = 1; $page <= 5; $page++) {
+                    cache()->forget("reviews:listing:{$listing->id}:rating:{$rating}:sort:{$sort}:page:{$page}");
+                }
+            }
+        }
     }
 }

@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trust all proxies (required for signed URL validation behind reverse proxy)
         $middleware->trustProxies(at: '*');
 
+        // Redirect expired sessions to Filament login (prevents Route [login] 500)
+        $middleware->redirectGuestsTo('/admin/login');
+
         // Register middleware aliases
         $middleware->alias([
             'partner.auth' => \App\Http\Middleware\PartnerAuthMiddleware::class,

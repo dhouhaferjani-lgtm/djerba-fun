@@ -49,13 +49,11 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
   }, [listingSlug]);
 
   useEffect(() => {
-    if (reviewsCount > 0) {
-      fetchReviews();
-    }
-  }, [reviewsCount, fetchReviews]);
+    fetchReviews();
+  }, [fetchReviews]);
 
   // Empty state - no reviews yet
-  if (reviewsCount === 0 && !loading) {
+  if (totalCount === 0 && !loading) {
     return (
       <section className="border-t border-neutral-200 pt-12">
         <div className="bg-accent-light border border-accent-dark rounded-2xl p-12 text-center">

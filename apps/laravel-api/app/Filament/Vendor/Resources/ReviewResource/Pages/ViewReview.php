@@ -28,6 +28,7 @@ class ViewReview extends ViewRecord
                 ->modalDescription('This review will be published and visible to all travelers.')
                 ->action(function () {
                     $this->record->publish();
+                    $this->record->load('listing');
                     Review::recalculateListingRating($this->record->listing);
 
                     Notification::make()
@@ -52,6 +53,7 @@ class ViewReview extends ViewRecord
                 ->modalHeading('Reject Review')
                 ->action(function (array $data) {
                     $this->record->reject($data['reason']);
+                    $this->record->load('listing');
                     Review::recalculateListingRating($this->record->listing);
 
                     Notification::make()
