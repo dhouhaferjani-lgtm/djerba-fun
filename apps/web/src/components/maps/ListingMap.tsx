@@ -5,7 +5,7 @@ import type { LatLngTuple } from 'leaflet';
 import MapContainer from './MapContainer';
 import MarkerPopup from './MarkerPopup';
 import type { ItineraryStop } from '@go-adventure/schemas';
-import { fetchRoute } from '@/lib/utils/fetchRoute';
+import { fetchRoute, type RoutingProfile } from '@/lib/utils/fetchRoute';
 
 const DAY_COLORS = ['#0D642E', '#E67E22', '#3498DB', '#9B59B6', '#E74C3C', '#1ABC9C', '#F39C12'];
 
@@ -16,16 +16,19 @@ interface ListingMapProps {
   itinerary?: ItineraryStop[];
   isSejour?: boolean;
   skipRouting?: boolean;
+  routingProfile?: RoutingProfile;
   locale?: string;
   className?: string;
 }
 
 interface RouteProps {
   stops: ItineraryStop[];
+  profile: RoutingProfile;
 }
 
 interface SejourRouteProps {
   stops: ItineraryStop[];
+  profile: RoutingProfile;
   locale?: string;
 }
 
@@ -36,6 +39,7 @@ export default function ListingMap({
   itinerary,
   isSejour,
   skipRouting,
+  routingProfile = 'foot',
   locale,
   className,
 }: ListingMapProps) {
@@ -67,20 +71,26 @@ export default function ListingMap({
       import('react-leaflet').then((module) => {
         const { Polyline } = module;
 
-        const Component = ({ stops }: { stops: ItineraryStop[] }) => {
+        const Component = ({
+          stops,
+          profile,
+        }: {
+          stops: ItineraryStop[];
+          profile: RoutingProfile;
+        }) => {
           const straightPositions: LatLngTuple[] = stops.map((stop) => [stop.lat, stop.lng]);
           const [positions, setPositions] = useState<LatLngTuple[]>(straightPositions);
 
           useEffect(() => {
             if (skipRouting) return;
             let cancelled = false;
-            fetchRoute(straightPositions).then((road) => {
+            fetchRoute(straightPositions, profile).then((road) => {
               if (!cancelled && road) setPositions(road);
             });
             return () => {
               cancelled = true;
             };
-          }, [straightPositions]);
+          }, [straightPositions, profile]);
 
           return (
             <Polyline
@@ -106,7 +116,7 @@ export default function ListingMap({
         const { Polyline, Marker, Popup } = reactLeaflet;
         const L = leaflet.default;
 
-        const Component = ({ stops, locale: loc }: SejourRouteProps) => {
+        const Component = ({ stops, profile, locale: loc }: SejourRouteProps) => {
           const dayLabel = loc === 'fr' ? 'JOUR' : 'DAY';
 
           // Road-following route segments keyed by segment id
@@ -145,7 +155,7 @@ export default function ListingMap({
               if (dayStops.length > 1) {
                 const waypoints: LatLngTuple[] = dayStops.map((s) => [s.lat, s.lng]);
                 fetches.push(
-                  fetchRoute(waypoints).then((road) => {
+                  fetchRoute(waypoints, profile).then((road) => {
                     if (!cancelled && road) {
                       setRoadSegments((prev) => new Map(prev).set(`day-${day}`, road));
                     }
@@ -163,7 +173,7 @@ export default function ListingMap({
                 ];
                 const segKey = `seg-${day}-${days[dayIndex + 1]}`;
                 fetches.push(
-                  fetchRoute(waypoints).then((road) => {
+                  fetchRoute(waypoints, profile).then((road) => {
                     if (!cancelled && road) {
                       setRoadSegments((prev) => new Map(prev).set(segKey, road));
                     }
@@ -296,11 +306,13 @@ export default function ListingMap({
       {itinerary && itinerary.length > 0 && (
         <>
           {/* Standard route for tours */}
-          {!isSejour && RouteComponent && <RouteComponent stops={itinerary} />}
+          {!isSejour && RouteComponent && (
+            <RouteComponent stops={itinerary} profile={routingProfile} />
+          )}
 
           {/* Day-colored routes for séjours */}
           {isSejour && SejourRouteComponent && (
-            <SejourRouteComponent stops={itinerary} locale={locale} />
+            <SejourRouteComponent stops={itinerary} profile={routingProfile} locale={locale} />
           )}
 
           {/* Intermediate waypoint markers (tours only — séjours use day labels instead) */}

@@ -17,12 +17,20 @@ class RouteProxyController extends Controller
      *
      * GET /api/v1/route?waypoints=lat1,lng1;lat2,lng2;...
      */
+    private const ALLOWED_PROFILES = ['driving', 'foot', 'cycling'];
+
     public function __invoke(Request $request): JsonResponse
     {
         $waypoints = $request->query('waypoints');
 
         if (! $waypoints || ! is_string($waypoints)) {
             return response()->json(['coordinates' => null], 400);
+        }
+
+        // Validate profile parameter (default to foot — most tours are walking/hiking)
+        $profile = $request->query('profile', 'foot');
+        if (! in_array($profile, self::ALLOWED_PROFILES, true)) {
+            $profile = 'foot';
         }
 
         // Parse and validate waypoints
@@ -46,34 +54,36 @@ class RouteProxyController extends Controller
             $coords[] = "{$lng},{$lat}";
         }
 
-        $cacheKey = 'route:' . md5($waypoints);
+        $cacheKey = "route:{$profile}:" . md5($waypoints);
 
-        $coordinates = Cache::remember($cacheKey, 86400, function () use ($coords) {
+        // Only cache successful results — never cache null (transient failures)
+        $coordinates = Cache::get($cacheKey);
+
+        if ($coordinates === null) {
             try {
                 $osrmCoords = implode(';', $coords);
-                $url = "https://router.project-osrm.org/route/v1/driving/{$osrmCoords}?overview=full&geometries=geojson";
+                $osrmProfile = $profile === 'cycling' ? 'bike' : $profile;
+                $url = "https://router.project-osrm.org/route/v1/{$osrmProfile}/{$osrmCoords}?overview=full&geometries=geojson";
 
                 $response = Http::timeout(10)->get($url);
 
-                if (! $response->successful()) {
-                    return null;
+                if ($response->successful()) {
+                    $data = $response->json();
+
+                    if (($data['code'] ?? '') === 'Ok' && ! empty($data['routes'][0]['geometry']['coordinates'])) {
+                        // OSRM returns [lng, lat] — flip to [lat, lng]
+                        $coordinates = array_map(
+                            fn (array $coord) => [$coord[1], $coord[0]],
+                            $data['routes'][0]['geometry']['coordinates']
+                        );
+
+                        Cache::put($cacheKey, $coordinates, 86400);
+                    }
                 }
-
-                $data = $response->json();
-
-                if (($data['code'] ?? '') !== 'Ok' || empty($data['routes'][0]['geometry']['coordinates'])) {
-                    return null;
-                }
-
-                // OSRM returns [lng, lat] — flip to [lat, lng]
-                return array_map(
-                    fn (array $coord) => [$coord[1], $coord[0]],
-                    $data['routes'][0]['geometry']['coordinates']
-                );
             } catch (\Throwable) {
-                return null;
+                // Don't cache failures — let next request retry
             }
-        });
+        }
 
         return response()->json(['coordinates' => $coordinates]);
     }
