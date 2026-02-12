@@ -286,20 +286,32 @@ export async function getTestimonials(locale?: string) {
  * Fetch featured listings from the API (server-side).
  * Returns listings marked as featured by admin for the home page.
  *
- * Currency detection: Forwards the user's currency preference from cookie
- * via X-User-Currency header. The cookie is set client-side when user
- * visits the listings page (see hooks.ts useListings).
+ * Currency detection: Forwards IP headers for geo-based currency detection
+ * and the user's currency cookie (if available) via X-User-Currency header.
+ * Uses cache: 'no-store' because currency varies per user (IP-based).
  */
 export async function getFeaturedListings(limit: number = 3): Promise<ListingSummary[]> {
   try {
-    // Build headers - only forward X-User-Currency, not IP headers
-    // (forwarding IP headers caused 403 errors due to proxy trust issues)
     const fetchHeaders: HeadersInit = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     };
 
-    // Try to get user's currency preference from cookie
+    // Forward user IP for geo-based currency detection (same pattern as listing detail page)
+    try {
+      const headersList = await headers();
+      const forwardedFor = headersList.get('x-forwarded-for');
+      const realIp = headersList.get('x-real-ip');
+      const cfConnectingIp = headersList.get('cf-connecting-ip');
+      const userIp = forwardedFor?.split(',')[0]?.trim() || realIp || cfConnectingIp || '';
+      if (userIp) {
+        fetchHeaders['X-Forwarded-For'] = userIp;
+      }
+    } catch {
+      // headers() not available in some contexts (e.g., during build)
+    }
+
+    // Forward currency cookie if available (takes priority over IP detection)
     try {
       const cookieStore = await cookies();
       const userCurrency = cookieStore.get('user_currency')?.value;
@@ -312,7 +324,7 @@ export async function getFeaturedListings(limit: number = 3): Promise<ListingSum
 
     const response = await fetch(`${API_URL}/listings/featured?limit=${limit}`, {
       headers: fetchHeaders,
-      next: { revalidate: 300 }, // Cache for 5 minutes
+      cache: 'no-store', // Must be per-user (currency varies by IP)
     });
 
     if (!response.ok) {

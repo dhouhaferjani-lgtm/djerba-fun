@@ -202,8 +202,9 @@ class ListingController extends Controller
             abort(404);
         }
 
-        // Cache individual listing for 5 minutes
-        $cacheKey = 'listing:show:' . $listing->id;
+        // Cache individual listing for 5 minutes (per-currency to avoid serving wrong prices)
+        $userCurrency = request()->attributes->get('user_currency', 'EUR');
+        $cacheKey = 'listing:show:' . $userCurrency . ':' . $listing->id;
         $cacheTtl = 300; // 5 minutes
 
         $cachedListing = cache()->remember($cacheKey, $cacheTtl, function () use ($listing) {
@@ -230,8 +231,9 @@ class ListingController extends Controller
     {
         $limit = min((int) $request->input('limit', 3), 10);
 
-        // Cache featured listings for 5 minutes
-        $cacheKey = 'listings:featured:' . $limit;
+        // Cache featured listings for 5 minutes (per-currency to avoid serving wrong prices)
+        $userCurrency = $request->attributes->get('user_currency', 'EUR');
+        $cacheKey = 'listings:featured:' . $userCurrency . ':' . $limit;
         $cacheTtl = 300;
 
         $listings = cache()->remember($cacheKey, $cacheTtl, function () use ($limit) {
