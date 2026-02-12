@@ -220,7 +220,7 @@ class Review extends Model
             ->first();
 
         $listing->update([
-            'rating' => $stats?->avg_rating ? round($stats->avg_rating, 2) : null,
+            'rating' => $stats?->avg_rating ? round((float) $stats->avg_rating, 2) : null,
             'reviews_count' => $stats?->total_reviews ?? 0,
         ]);
 
