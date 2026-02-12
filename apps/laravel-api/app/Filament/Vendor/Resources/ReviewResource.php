@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin\Resources;
+namespace App\Filament\Vendor\Resources;
 
-use App\Filament\Admin\Resources\ReviewResource\Pages;
 use App\Filament\Concerns\SafeTranslation;
+use App\Filament\Vendor\Resources\ReviewResource\Pages;
+use App\Models\Listing;
 use App\Models\Review;
 use App\Models\ReviewReply;
 use Filament\Forms;
@@ -25,11 +26,11 @@ class ReviewResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-star';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 3;
 
     public static function getNavigationGroup(): ?string
     {
-        return __('filament.nav.content');
+        return __('filament.nav.bookings');
     }
 
     public static function getNavigationLabel(): string
@@ -40,7 +41,10 @@ class ReviewResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['listing', 'user', 'reply', 'listing.vendor']);
+            ->whereHas('listing', function (Builder $query) {
+                $query->where('vendor_id', auth()->id());
+            })
+            ->with(['listing', 'user', 'reply']);
     }
 
     public static function canCreate(): bool
@@ -74,10 +78,8 @@ class ReviewResource extends Resource
                 Tables\Columns\TextColumn::make('listing.title')
                     ->label('Listing')
                     ->formatStateUsing(fn ($record) => self::extractTranslation($record->listing?->getTranslation('title', app()->getLocale()), 'Untitled'))
-                    ->limit(25),
-
-                Tables\Columns\TextColumn::make('listing.vendor.display_name')
-                    ->label('Vendor'),
+                    ->limit(25)
+                    ->tooltip(fn ($record) => self::extractTranslation($record->listing?->getTranslation('title', app()->getLocale()), 'Untitled')),
 
                 Tables\Columns\TextColumn::make('moderation_status')
                     ->label('Status')
@@ -88,6 +90,15 @@ class ReviewResource extends Resource
                         'rejected' => 'danger',
                     })
                     ->formatStateUsing(fn (string $state): string => ucfirst($state)),
+
+                Tables\Columns\IconColumn::make('reply_exists')
+                    ->label('Replied')
+                    ->state(fn (Review $record): bool => $record->reply !== null)
+                    ->boolean()
+                    ->trueIcon('heroicon-o-chat-bubble-left-right')
+                    ->falseIcon('heroicon-o-minus')
+                    ->trueColor('success')
+                    ->falseColor('gray'),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Submitted')
@@ -119,6 +130,16 @@ class ReviewResource extends Resource
                         2 => '2 Stars',
                         1 => '1 Star',
                     ]),
+
+                Tables\Filters\SelectFilter::make('listing_id')
+                    ->label('Listing')
+                    ->options(
+                        fn () => Listing::query()
+                            ->where('vendor_id', auth()->id())
+                            ->get()
+                            ->mapWithKeys(fn ($listing) => [$listing->id => self::extractTranslation($listing->getTranslation('title', app()->getLocale()), 'Untitled')])
+                    )
+                    ->searchable(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -128,12 +149,15 @@ class ReviewResource extends Resource
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
+                    ->modalHeading('Approve Review')
+                    ->modalDescription('This review will be published and visible to all travelers.')
                     ->action(function (Review $record) {
                         $record->publish();
                         Review::recalculateListingRating($record->listing);
 
                         Notification::make()
                             ->title('Review Approved')
+                            ->body('The review is now published.')
                             ->success()
                             ->send();
                     })
@@ -147,41 +171,52 @@ class ReviewResource extends Resource
                         Forms\Components\Textarea::make('reason')
                             ->label('Rejection Reason')
                             ->required()
-                            ->rows(3),
+                            ->rows(3)
+                            ->placeholder('Explain why this review is being rejected...'),
                     ])
                     ->requiresConfirmation()
+                    ->modalHeading('Reject Review')
                     ->action(function (Review $record, array $data) {
                         $record->reject($data['reason']);
                         Review::recalculateListingRating($record->listing);
 
                         Notification::make()
                             ->title('Review Rejected')
+                            ->body('The review has been rejected.')
                             ->warning()
                             ->send();
                     })
                     ->visible(fn (Review $record): bool => $record->moderation_status !== 'rejected'),
 
-                Tables\Actions\Action::make('unpublish')
-                    ->label('Unpublish')
-                    ->icon('heroicon-o-eye-slash')
-                    ->color('gray')
-                    ->requiresConfirmation()
-                    ->action(function (Review $record) {
-                        $record->unpublish();
-                        Review::recalculateListingRating($record->listing);
+                Tables\Actions\Action::make('reply')
+                    ->label('Reply')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->color('primary')
+                    ->form([
+                        Forms\Components\Textarea::make('content')
+                            ->label('Your Reply')
+                            ->required()
+                            ->rows(4)
+                            ->placeholder('Write your response to this review...'),
+                    ])
+                    ->action(function (Review $record, array $data) {
+                        ReviewReply::create([
+                            'review_id' => $record->id,
+                            'vendor_id' => auth()->id(),
+                            'content' => $data['content'],
+                        ]);
 
                         Notification::make()
-                            ->title('Review Unpublished')
-                            ->warning()
+                            ->title('Reply Posted')
+                            ->body('Your reply has been added to the review.')
+                            ->success()
                             ->send();
                     })
-                    ->visible(fn (Review $record): bool => $record->is_published),
-
-                Tables\Actions\DeleteAction::make(),
+                    ->visible(fn (Review $record): bool => $record->reply === null),
             ])
             ->defaultSort('created_at', 'desc')
-            ->emptyStateHeading('No reviews')
-            ->emptyStateDescription('No reviews have been submitted yet.')
+            ->emptyStateHeading('No reviews yet')
+            ->emptyStateDescription('When travelers review your listings, they will appear here.')
             ->emptyStateIcon('heroicon-o-star');
     }
 
@@ -217,12 +252,13 @@ class ReviewResource extends Resource
                             ->label('Listing')
                             ->formatStateUsing(fn ($record) => self::extractTranslation($record->listing?->getTranslation('title', app()->getLocale()), 'Untitled')),
 
-                        Infolists\Components\TextEntry::make('listing.vendor.display_name')
-                            ->label('Vendor'),
-
                         Infolists\Components\TextEntry::make('created_at')
                             ->label('Submitted')
                             ->dateTime(),
+
+                        Infolists\Components\IconEntry::make('is_verified_booking')
+                            ->label('Verified Booking')
+                            ->boolean(),
                     ])
                     ->columns(3),
 
@@ -261,7 +297,7 @@ class ReviewResource extends Resource
                 Infolists\Components\Section::make('Vendor Reply')
                     ->schema([
                         Infolists\Components\TextEntry::make('reply.content')
-                            ->label('Reply'),
+                            ->label('Your Reply'),
                         Infolists\Components\TextEntry::make('reply.created_at')
                             ->label('Replied At')
                             ->dateTime(),
@@ -277,12 +313,14 @@ class ReviewResource extends Resource
                             ->label('Published At')
                             ->dateTime()
                             ->placeholder('Not published'),
-                        Infolists\Components\IconEntry::make('is_verified_booking')
-                            ->label('Verified Booking')
-                            ->boolean(),
                     ])
-                    ->columns(3),
+                    ->columns(2),
             ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [];
     }
 
     public static function getPages(): array
