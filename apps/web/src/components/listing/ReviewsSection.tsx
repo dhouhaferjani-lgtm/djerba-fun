@@ -225,13 +225,13 @@ function ReviewCard({ review }: { review: Review }) {
       <p className="text-neutral-700 leading-relaxed mb-4">{review.content}</p>
 
       {/* Pros & Cons */}
-      {(review.pros.length > 0 || review.cons.length > 0) && (
+      {((review.pros?.length ?? 0) > 0 || (review.cons?.length ?? 0) > 0) && (
         <div className="grid md:grid-cols-2 gap-4 mb-4">
-          {review.pros.length > 0 && (
+          {(review.pros?.length ?? 0) > 0 && (
             <div>
               <p className="text-sm font-semibold text-success-dark mb-2">Highlights</p>
               <ul className="space-y-1">
-                {review.pros.map((pro, index) => (
+                {review.pros?.map((pro, index) => (
                   <li key={index} className="text-sm text-neutral-700 flex items-start gap-2">
                     <span className="text-success-dark">✓</span>
                     <span>{pro}</span>
@@ -240,11 +240,11 @@ function ReviewCard({ review }: { review: Review }) {
               </ul>
             </div>
           )}
-          {review.cons.length > 0 && (
+          {(review.cons?.length ?? 0) > 0 && (
             <div>
               <p className="text-sm font-semibold text-neutral-700 mb-2">Could improve</p>
               <ul className="space-y-1">
-                {review.cons.map((con, index) => (
+                {review.cons?.map((con, index) => (
                   <li key={index} className="text-sm text-neutral-700 flex items-start gap-2">
                     <span className="text-neutral-400">•</span>
                     <span>{con}</span>
@@ -257,9 +257,9 @@ function ReviewCard({ review }: { review: Review }) {
       )}
 
       {/* Review Photos */}
-      {review.photos.length > 0 && (
+      {(review.photos?.length ?? 0) > 0 && (
         <div className="flex gap-2 mb-4">
-          {review.photos.slice(0, 4).map((photo, index) => (
+          {review.photos?.slice(0, 4).map((photo, index) => (
             <div key={index} className="w-24 h-24 rounded-lg overflow-hidden bg-neutral-200">
               <img
                 src={photo.url}
