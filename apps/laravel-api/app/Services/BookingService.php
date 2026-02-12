@@ -116,6 +116,7 @@ class BookingService
                 'person_type_breakdown' => $hold->person_type_breakdown,
                 'total_amount' => is_array($pricing) ? $pricing['total'] : $pricing,
                 'currency' => $hold->currency ?? request()->attributes->get('user_currency', 'TND'),
+                'locale' => app()->getLocale(),
                 'status' => BookingStatus::PENDING_PAYMENT,
                 'traveler_info' => $primaryTraveler, // Backward compatibility
                 'travelers' => $normalizedTravelers, // Full travelers array

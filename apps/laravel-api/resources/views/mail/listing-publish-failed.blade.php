@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Action Required: Listing Cannot Be Published</title>
+    <title>{{ __('mail.action_required') }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -79,30 +79,30 @@
 </head>
 <body>
     <div class="header">
-        <h1>Action Required</h1>
+        <h1>{{ __('mail.action_required') }}</h1>
     </div>
 
     <div class="content">
-        <p>Dear {{ $vendor->display_name ?? $vendor->name ?? 'Vendor' }},</p>
+        <p>{{ __('mail.dear') }} {{ $vendor->display_name ?? $vendor->name ?? __('mail.vendor') }},</p>
 
-        <p>Our team tried to publish your listing but couldn't complete the action because some required information is missing.</p>
+        <p>{{ __('mail.publish_failed_body') }}</p>
 
         <div class="listing-details">
-            <h2 style="margin-top: 0; color: #0D642E;">Listing Details</h2>
+            <h2 style="margin-top: 0; color: #0D642E;">{{ __('mail.listing_details') }}</h2>
 
             <div class="detail-row">
-                <span class="label">Title:</span> {{ $listingTitle }}
+                <span class="label">{{ __('mail.title') }}:</span> {{ $listingTitle }}
             </div>
 
             @if($listing->location)
             <div class="detail-row">
-                <span class="label">Location:</span> {{ $listing->location->name ?? 'Not set' }}
+                <span class="label">{{ __('mail.location') }}:</span> {{ $listing->location->name ?? __('mail.not_set') }}
             </div>
             @endif
         </div>
 
         <div class="errors-box">
-            <h3>Missing Information</h3>
+            <h3>{{ __('mail.missing_info') }}</h3>
             <ul>
                 @foreach($errors as $error)
                     <li>{{ $error }}</li>
@@ -110,18 +110,18 @@
             </ul>
         </div>
 
-        <p>Please update your listing with the required information so we can publish it and make it visible to travelers.</p>
+        <p>{{ __('mail.update_listing') }}</p>
 
         <p style="text-align: center;">
-            <a href="{{ $editUrl }}" class="button">Edit Your Listing</a>
+            <a href="{{ $editUrl }}" class="button">{{ __('mail.edit_listing') }}</a>
         </p>
 
-        <p>If you have any questions, please don't hesitate to contact our support team.</p>
+        <p>{{ __('mail.questions_contact') }}</p>
     </div>
 
     <div class="footer">
-        <p>Thank you for being a Go Adventure partner!</p>
-        <p>&copy; {{ date('Y') }} Go Adventure. All rights reserved.</p>
+        <p>{{ __('mail.partner_thanks') }}</p>
+        <p>&copy; {{ date('Y') }} {{ __('mail.go_adventure') }}. {{ __('mail.all_rights_reserved') }}</p>
     </div>
 </body>
 </html>

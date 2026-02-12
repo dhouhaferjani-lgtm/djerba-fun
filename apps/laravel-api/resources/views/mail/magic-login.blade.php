@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Magic Login Link</title>
+    <title>{{ __('mail.magic_login_header') }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -76,38 +76,38 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔐 Your Magic Login Link</h1>
+            <h1>{{ __('mail.magic_login_header') }}</h1>
         </div>
 
         <div class="content">
-            <p>Hello{{ $user->first_name ? ', ' . $user->first_name : '' }}!</p>
+            <p>{{ __('mail.hello') }}{{ $user->first_name ? ', ' . $user->first_name : '' }}!</p>
 
-            <p>You requested a magic link to log in to your Go Adventure account. Click the button below to log in instantly:</p>
+            <p>{{ __('mail.magic_login_body') }}</p>
 
             <div class="button-container">
-                <a href="{{ $magicLink }}" class="button">Log In Now</a>
+                <a href="{{ $magicLink }}" class="button">{{ __('mail.log_in_now') }}</a>
             </div>
 
-            <p>Or copy and paste this link into your browser:</p>
+            <p>{{ __('mail.copy_paste_link') }}</p>
             <p style="word-break: break-all; color: #0D642E; font-size: 14px;">
                 {{ $magicLink }}
             </p>
 
             <div class="security-notice">
-                <p style="margin: 0;"><strong>⚠️ Security Notice:</strong></p>
+                <p style="margin: 0;"><strong>{{ __('mail.security_notice') }}</strong></p>
                 <ul style="margin: 10px 0 0 0; padding-left: 20px;">
-                    <li>This link expires in <span class="expiration">{{ $expiresInMinutes }} minutes</span></li>
-                    <li>This link can only be used once</li>
-                    <li>If you didn't request this, you can safely ignore this email</li>
+                    <li>{{ __('mail.link_expires_minutes', ['minutes' => $expiresInMinutes]) }}</li>
+                    <li>{{ __('mail.link_one_use') }}</li>
+                    <li>{{ __('mail.didnt_request') }}</li>
                 </ul>
             </div>
 
-            <p>After logging in, you can access your bookings, update your profile, and more.</p>
+            <p>{{ __('mail.after_login') }}</p>
         </div>
 
         <div class="footer">
-            <p>© {{ date('Y') }} Go Adventure. All rights reserved.</p>
-            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>&copy; {{ date('Y') }} {{ __('mail.go_adventure') }}. {{ __('mail.all_rights_reserved') }}</p>
+            <p>{{ __('mail.automated_message') }}</p>
         </div>
     </div>
 </body>

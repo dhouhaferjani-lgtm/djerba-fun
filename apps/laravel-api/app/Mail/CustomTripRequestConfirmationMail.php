@@ -23,7 +23,9 @@ class CustomTripRequestConfirmationMail extends Mailable implements ShouldQueue
      */
     public function __construct(
         public CustomTripRequest $customTripRequest
-    ) {}
+    ) {
+        $this->locale($customTripRequest->locale ?? 'fr');
+    }
 
     /**
      * Get the message envelope.
@@ -32,7 +34,7 @@ class CustomTripRequestConfirmationMail extends Mailable implements ShouldQueue
     {
         return new Envelope(
             from: new Address(config('mail.from.address'), config('mail.from.name')),
-            subject: 'Your Custom Trip Request - ' . $this->customTripRequest->reference,
+            subject: __('mail.subject_custom_trip', ['reference' => $this->customTripRequest->reference]),
         );
     }
 
@@ -41,13 +43,14 @@ class CustomTripRequestConfirmationMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
-        $travelDates = $this->customTripRequest->travel_start_date->format('F j, Y')
-            . ' - ' . $this->customTripRequest->travel_end_date->format('F j, Y');
+        $dateFormat = __('mail.date_format_long');
+        $travelDates = $this->customTripRequest->travel_start_date->translatedFormat($dateFormat)
+            . ' - ' . $this->customTripRequest->travel_end_date->translatedFormat($dateFormat);
 
         $totalTravelers = $this->customTripRequest->adults + $this->customTripRequest->children;
-        $travelerSummary = $this->customTripRequest->adults . ' adult' . ($this->customTripRequest->adults > 1 ? 's' : '');
+        $travelerSummary = $this->customTripRequest->adults . ' ' . ($this->customTripRequest->adults > 1 ? __('mail.adult_plural') : __('mail.adult_singular'));
         if ($this->customTripRequest->children > 0) {
-            $travelerSummary .= ', ' . $this->customTripRequest->children . ' child' . ($this->customTripRequest->children > 1 ? 'ren' : '');
+            $travelerSummary .= ', ' . $this->customTripRequest->children . ' ' . ($this->customTripRequest->children > 1 ? __('mail.child_plural') : __('mail.child_singular'));
         }
 
         // Format interests as readable list

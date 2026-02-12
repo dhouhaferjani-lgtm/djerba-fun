@@ -24,8 +24,7 @@ class BookingCancellationMail extends Mailable implements ShouldQueue
     public function __construct(
         public Booking $booking
     ) {
-        // Note: Don't load relationships here - they're lost after serialization
-        // when using SerializesModels trait. Load them in content() instead.
+        $this->locale($booking->locale ?? 'fr');
     }
 
     /**
@@ -35,7 +34,7 @@ class BookingCancellationMail extends Mailable implements ShouldQueue
     {
         return new Envelope(
             from: new Address(config('mail.from.address'), config('mail.from.name')),
-            subject: 'Booking Cancelled - ' . $this->booking->booking_number,
+            subject: __('mail.subject_booking_cancellation', ['number' => $this->booking->booking_number]),
         );
     }
 
@@ -48,14 +47,14 @@ class BookingCancellationMail extends Mailable implements ShouldQueue
         // This is required because SerializesModels only stores model IDs
         $this->booking->loadMissing(['listing', 'availabilitySlot', 'user']);
 
-        // Get listing title as string (title is translatable, returns array if accessed directly)
-        $listingTitle = 'Activity';
+        $locale = $this->booking->locale ?? 'fr';
+        $listingTitle = __('mail.activity_fallback');
         if ($this->booking->listing) {
-            $title = $this->booking->listing->getTranslation('title', 'en');
+            $title = $this->booking->listing->getTranslation('title', $locale);
             if (is_string($title) && ! empty($title)) {
                 $listingTitle = $title;
             } elseif (is_array($title)) {
-                $listingTitle = $title['en'] ?? $title['fr'] ?? reset($title) ?: 'Activity';
+                $listingTitle = $title[$locale] ?? $title['en'] ?? $title['fr'] ?? reset($title) ?: __('mail.activity_fallback');
             }
         }
 

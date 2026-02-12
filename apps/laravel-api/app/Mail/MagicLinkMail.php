@@ -19,12 +19,14 @@ class MagicLinkMail extends Mailable implements ShouldQueue
 
     public function __construct(
         public readonly Booking $booking
-    ) {}
+    ) {
+        $this->locale($booking->locale ?? 'fr');
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Access Your Booking #{$this->booking->booking_number}",
+            subject: __('mail.subject_magic_link', ['number' => $this->booking->booking_number]),
         );
     }
 
@@ -37,7 +39,7 @@ class MagicLinkMail extends Mailable implements ShouldQueue
                 'magicLink' => $this->booking->getMagicLinkUrl(),
                 'participantsLink' => $this->booking->getMagicLinkUrl() . '/participants',
                 'vouchersLink' => $this->booking->getMagicLinkUrl() . '/vouchers',
-                'expiresAt' => $this->booking->magic_token_expires_at?->format('F j, Y'),
+                'expiresAt' => $this->booking->magic_token_expires_at?->translatedFormat(__('mail.date_format_long')),
             ],
         );
     }

@@ -32,6 +32,7 @@ class ListingPublishFailedMail extends Mailable implements ShouldQueue
         public ?string $editUrl = null
     ) {
         $this->listing->load(['location']);
+        $this->locale($vendor->preferred_locale ?? 'fr');
     }
 
     /**
@@ -39,14 +40,15 @@ class ListingPublishFailedMail extends Mailable implements ShouldQueue
      */
     public function envelope(): Envelope
     {
-        $listingTitle = $this->listing->getTranslation('title', 'en') ?: 'Untitled Listing';
+        $locale = app()->getLocale();
+        $listingTitle = $this->listing->getTranslation('title', $locale) ?: __('mail.untitled_listing');
         if (is_array($listingTitle)) {
-            $listingTitle = $listingTitle['en'] ?? reset($listingTitle) ?: 'Untitled Listing';
+            $listingTitle = $listingTitle[$locale] ?? $listingTitle['en'] ?? reset($listingTitle) ?: __('mail.untitled_listing');
         }
 
         return new Envelope(
             from: new Address(config('mail.from.address'), config('mail.from.name')),
-            subject: 'Action Required: Your listing "' . $listingTitle . '" cannot be published',
+            subject: __('mail.subject_listing_failed', ['title' => $listingTitle]),
         );
     }
 
@@ -55,9 +57,10 @@ class ListingPublishFailedMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
-        $listingTitle = $this->listing->getTranslation('title', 'en') ?: 'Untitled Listing';
+        $locale = app()->getLocale();
+        $listingTitle = $this->listing->getTranslation('title', $locale) ?: __('mail.untitled_listing');
         if (is_array($listingTitle)) {
-            $listingTitle = $listingTitle['en'] ?? reset($listingTitle) ?: 'Untitled Listing';
+            $listingTitle = $listingTitle[$locale] ?? $listingTitle['en'] ?? reset($listingTitle) ?: __('mail.untitled_listing');
         }
 
         // Use provided URL or generate fallback

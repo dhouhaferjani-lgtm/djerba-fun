@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Voucher{{ $isSingleVoucher ? '' : 's' }}</title>
+    <title>{{ $isSingleVoucher ? __('mail.your_voucher') : __('mail.your_vouchers') }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -90,90 +90,90 @@
         @if($logoUrl)
             <img src="{{ $logoUrl }}" alt="{{ $platformName }}" style="height: 40px; margin-bottom: 10px;">
         @endif
-        <h1>Your {{ $isSingleVoucher ? 'Voucher' : 'Vouchers' }}</h1>
+        <h1>{{ $isSingleVoucher ? __('mail.your_voucher') : __('mail.your_vouchers') }}</h1>
     </div>
 
     <div class="content">
-        <p>Dear {{ $booking->billing_contact['first_name'] ?? 'Traveler' }},</p>
+        <p>{{ __('mail.dear') }} {{ $booking->billing_contact['first_name'] ?? __('mail.traveler') }},</p>
 
         <p>
             @if($isSingleVoucher)
-                Your voucher for <strong>{{ $listing->getTranslation('title', 'en') }}</strong> is attached to this email.
+                {{ __('mail.voucher_attached_single', ['listing' => $listing->getTranslation('title', app()->getLocale())]) }}
             @else
-                Your vouchers for <strong>{{ $listing->getTranslation('title', 'en') }}</strong> are attached to this email.
+                {{ __('mail.voucher_attached_plural', ['listing' => $listing->getTranslation('title', app()->getLocale())]) }}
             @endif
         </p>
 
         <div class="booking-details">
-            <h2>{{ $listing->isEvent() ? 'Event' : 'Tour' }} Information</h2>
+            <h2>{{ $listing->isEvent() ? __('mail.event_info') : __('mail.tour_info') }}</h2>
 
             <div class="detail-row">
-                <span class="detail-label">Date:</span> {{ $slot?->date->format('l, F j, Y') ?? 'TBD' }}
+                <span class="detail-label">{{ __('mail.date') }}:</span> {{ $slot?->date->translatedFormat(__('mail.date_format_day')) ?? 'TBD' }}
             </div>
 
             <div class="detail-row">
-                <span class="detail-label">Time:</span> {{ $slot?->start_time->format('g:i A') ?? 'TBD' }}
+                <span class="detail-label">{{ __('mail.time') }}:</span> {{ $slot?->start_time->translatedFormat(__('mail.time_format')) ?? 'TBD' }}
             </div>
 
             @if($listing->meeting_point && isset($listing->meeting_point['address']))
             <div class="detail-row">
-                <span class="detail-label">Location:</span> {{ $listing->meeting_point['address'] }}
+                <span class="detail-label">{{ __('mail.location') }}:</span> {{ $listing->meeting_point['address'] }}
             </div>
             @endif
 
             <div class="detail-row">
-                <span class="detail-label">Booking Number:</span> {{ $booking->booking_number }}
+                <span class="detail-label">{{ __('mail.booking_number') }}:</span> {{ $booking->booking_number }}
             </div>
 
             @if($listing->isEvent() && !$isSingleVoucher)
             <div class="detail-row">
-                <span class="detail-label">Participants:</span> {{ $booking->participants()->count() }}
+                <span class="detail-label">{{ __('mail.participants') }}:</span> {{ $booking->participants()->count() }}
             </div>
             @endif
         </div>
 
         @if($listing->isEvent())
         <div class="instructions-box event">
-            <h3>📋 Check-in Instructions</h3>
-            <p>Each participant will need their individual voucher for check-in:</p>
+            <h3>{{ __('mail.checkin_instructions') }}</h3>
+            <p>{{ __('mail.checkin_event_intro') }}</p>
             <ul>
-                <li>Print your voucher or save it to your mobile device</li>
-                <li>Bring a valid photo ID matching the name on the voucher</li>
+                <li>{{ __('mail.checkin_print_voucher') }}</li>
+                <li>{{ __('mail.checkin_photo_id') }}</li>
                 @if($participant && $participant->badge_number)
-                <li>Your badge number is <strong>#{{ $participant->badge_number }}</strong></li>
+                <li>{{ __('mail.checkin_badge', ['number' => $participant->badge_number]) }}</li>
                 @else
-                <li>Your badge number is displayed prominently on your voucher</li>
+                <li>{{ __('mail.checkin_badge_on_voucher') }}</li>
                 @endif
-                <li>Arrive at least 15 minutes before the event start time</li>
+                <li>{{ __('mail.checkin_arrive_early') }}</li>
             </ul>
         </div>
         @else
         <div class="instructions-box tour">
-            <h3>📋 Check-in Instructions</h3>
-            <p>Please bring your voucher{{ $isSingleVoucher ? '' : 's' }} with you:</p>
+            <h3>{{ __('mail.checkin_instructions') }}</h3>
+            <p>{{ $isSingleVoucher ? __('mail.checkin_tour_intro_single') : __('mail.checkin_tour_intro_plural') }}</p>
             <ul>
-                <li>Print or save to your mobile device</li>
-                <li>The QR code will be scanned at check-in</li>
-                <li>Arrive at the meeting point on time</li>
+                <li>{{ __('mail.checkin_print_save') }}</li>
+                <li>{{ __('mail.checkin_qr') }}</li>
+                <li>{{ __('mail.checkin_on_time') }}</li>
             </ul>
         </div>
         @endif
 
         @if($booking->magic_token)
         <a href="{{ url("/api/v1/bookings/magic/{$booking->magic_token}") }}" class="button">
-            View Booking Details
+            {{ __('mail.view_booking_details') }}
         </a>
         @endif
 
-        <p><strong>Need help?</strong></p>
-        <p>If you have any questions or need assistance, please don't hesitate to contact us.</p>
+        <p><strong>{{ __('mail.need_help') }}</strong></p>
+        <p>{{ __('mail.need_help_body') }}</p>
 
-        <p>We look forward to seeing you!</p>
-        <p>The {{ $platformName }} Team</p>
+        <p>{{ __('mail.look_forward') }}</p>
+        <p>{{ __('mail.the_team') }}</p>
     </div>
 
     <div class="footer">
-        <p>&copy; {{ date('Y') }} {{ $platformName }}. All rights reserved.</p>
+        <p>&copy; {{ date('Y') }} {{ $platformName }}. {{ __('mail.all_rights_reserved') }}</p>
     </div>
 </body>
 </html>

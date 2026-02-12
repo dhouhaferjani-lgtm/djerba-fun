@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Access Your Booking</title>
+    <title>{{ __('mail.access_booking_header') }}</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -88,62 +88,62 @@
 </head>
 <body>
     <div class="header">
-        <h1>Go Adventure</h1>
+        <h1>{{ __('mail.go_adventure') }}</h1>
     </div>
 
     <div class="content">
-        <p>Hello,</p>
+        <p>{{ __('mail.hello') }},</p>
 
-        <p>Here is your secure link to access your booking. Use it to view details, enter participant names, and download your vouchers.</p>
+        <p>{{ __('mail.access_booking_body') }}</p>
 
         <div class="booking-info">
-            <h2>Booking #{{ $booking->booking_number }}</h2>
+            <h2>{{ __('mail.booking_number') }} #{{ $booking->booking_number }}</h2>
             @if($booking->listing)
-                <p><strong>Activity:</strong> {{ $booking->listing->title }}</p>
+                <p><strong>{{ __('mail.activity') }}:</strong> {{ $booking->listing->title }}</p>
             @endif
             @if($booking->availabilitySlot)
-                <p><strong>Date:</strong> {{ $booking->availabilitySlot->start_time->format('l, F j, Y') }}</p>
-                <p><strong>Time:</strong> {{ $booking->availabilitySlot->start_time->format('g:i A') }}</p>
+                <p><strong>{{ __('mail.date') }}:</strong> {{ $booking->availabilitySlot->start_time->translatedFormat(__('mail.date_format_day')) }}</p>
+                <p><strong>{{ __('mail.time') }}:</strong> {{ $booking->availabilitySlot->start_time->translatedFormat(__('mail.time_format')) }}</p>
             @endif
-            <p><strong>Guests:</strong> {{ $booking->quantity }}</p>
+            <p><strong>{{ __('mail.guests') }}:</strong> {{ $booking->quantity }}</p>
         </div>
 
         <div class="links-section">
-            <h3>Manage Your Booking</h3>
+            <h3>{{ __('mail.manage_booking') }}</h3>
 
             <a href="{{ $magicLink }}" class="link-button">
-                View Booking Details
+                {{ __('mail.view_booking_details') }}
             </a>
 
             <a href="{{ $participantsLink }}" class="link-button secondary">
-                Enter Participant Names
+                {{ __('mail.enter_participant_names') }}
             </a>
 
             <a href="{{ $vouchersLink }}" class="link-button secondary">
-                Download Vouchers
+                {{ __('mail.download_vouchers') }}
             </a>
         </div>
 
         <div class="expiry-notice">
-            <strong>Note:</strong> These links expire on {{ $expiresAt }}. If they expire, you can request new links at any time by visiting our website and entering your email and booking number.
+            <strong>Note:</strong> {{ __('mail.links_expire_on', ['date' => $expiresAt]) }}
         </div>
 
-        <p>If you have any questions about your booking, please don't hesitate to contact us.</p>
+        <p>{{ __('mail.questions_contact') }}</p>
 
-        <p>Thank you for choosing Go Adventure!</p>
+        <p>{{ __('mail.thank_you') }}</p>
     </div>
 
     <div class="footer">
         <p>
-            Go Adventure<br>
+            {{ __('mail.go_adventure') }}<br>
             <a href="{{ config('app.frontend_url') }}">{{ config('app.frontend_url') }}</a>
         </p>
         <p>
-            <a href="{{ config('app.frontend_url') }}/privacy">Privacy Policy</a> |
-            <a href="{{ config('app.frontend_url') }}/terms">Terms of Service</a>
+            <a href="{{ config('app.frontend_url') }}/privacy">{{ __('mail.privacy_policy') }}</a> |
+            <a href="{{ config('app.frontend_url') }}/terms">{{ __('mail.terms_of_service') }}</a>
         </p>
         <p>
-            You're receiving this email because you requested access to your booking on Go Adventure.
+            {{ __('mail.receiving_because_requested') }}
         </p>
     </div>
 </body>

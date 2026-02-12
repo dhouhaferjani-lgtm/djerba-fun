@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Trip Request Received</title>
+    <title>{{ __('mail.custom_trip_header') }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -77,81 +77,81 @@
 </head>
 <body>
     <div class="header">
-        <h1>We've Received Your Request!</h1>
+        <h1>{{ __('mail.custom_trip_header') }}</h1>
     </div>
 
     <div class="content">
-        <p>Dear {{ $contactName }},</p>
+        <p>{{ __('mail.dear') }} {{ $contactName }},</p>
 
-        <p>Thank you for choosing Go Adventure for your custom trip! We've received your request and our travel experts are excited to start crafting your perfect Tunisia experience.</p>
+        <p>{{ __('mail.custom_trip_intro') }}</p>
 
         <div class="reference-box">
-            <p style="margin: 0 0 5px 0; color: #666;">Your Reference Number</p>
+            <p style="margin: 0 0 5px 0; color: #666;">{{ __('mail.reference_number') }}</p>
             <div class="reference-number">{{ $reference }}</div>
-            <p style="margin: 10px 0 0 0; font-size: 0.85em; color: #666;">Please save this for future correspondence</p>
+            <p style="margin: 10px 0 0 0; font-size: 0.85em; color: #666;">{{ __('mail.save_reference') }}</p>
         </div>
 
         <div class="request-details">
-            <h2 style="margin-top: 0; color: #0D642E;">Your Trip Summary</h2>
+            <h2 style="margin-top: 0; color: #0D642E;">{{ __('mail.trip_summary') }}</h2>
 
             <div class="detail-row">
-                <span class="label">Travel Dates:</span> {{ $travelDates }}
+                <span class="label">{{ __('mail.travel_dates') }}:</span> {{ $travelDates }}
                 @if($datesFlexible)
-                    <span style="color: #666;">(Flexible)</span>
+                    <span style="color: #666;">({{ __('mail.flexible') }})</span>
                 @endif
             </div>
 
             <div class="detail-row">
-                <span class="label">Duration:</span> {{ $durationDays }} days
+                <span class="label">{{ __('mail.duration') }}:</span> {{ trans_choice('mail.days', $durationDays, ['count' => $durationDays]) }}
             </div>
 
             <div class="detail-row">
-                <span class="label">Travelers:</span> {{ $travelerSummary }}
+                <span class="label">{{ __('mail.travelers_label') }}:</span> {{ $travelerSummary }}
             </div>
 
             @if($interests)
             <div class="detail-row">
-                <span class="label">Interests:</span> {{ $interests }}
+                <span class="label">{{ __('mail.interests') }}:</span> {{ $interests }}
             </div>
             @endif
 
             <div class="detail-row">
-                <span class="label">Budget:</span> {{ $budgetCurrency }} {{ number_format($budget, 0) }} per person
+                <span class="label">{{ __('mail.budget') }}:</span> {{ $budgetCurrency }} {{ number_format($budget, 0) }} {{ __('mail.per_person') }}
             </div>
 
             @if($accommodationStyle)
             <div class="detail-row">
-                <span class="label">Accommodation Style:</span> {{ $accommodationStyle }}
+                <span class="label">{{ __('mail.accommodation_style') }}:</span> {{ $accommodationStyle }}
             </div>
             @endif
 
             @if($travelPace)
             <div class="detail-row">
-                <span class="label">Travel Pace:</span> {{ $travelPace }}
+                <span class="label">{{ __('mail.travel_pace') }}:</span> {{ $travelPace }}
             </div>
             @endif
 
             @if($specialRequests)
             <div class="detail-row">
-                <span class="label">Special Requests:</span><br>
+                <span class="label">{{ __('mail.special_requests') }}:</span><br>
                 <span style="color: #666;">{{ $specialRequests }}</span>
             </div>
             @endif
         </div>
 
         <div class="next-steps">
-            <h3 style="margin-top: 0; color: #0D642E;">What Happens Next?</h3>
+            <h3 style="margin-top: 0; color: #0D642E;">{{ __('mail.what_happens_next_title') }}</h3>
             <ol style="margin: 0; padding-left: 20px;">
-                <li style="margin-bottom: 10px;"><strong>Review:</strong> Our travel experts will review your preferences</li>
-                <li style="margin-bottom: 10px;"><strong>Contact:</strong> We'll reach out within 24-48 hours to discuss your trip</li>
-                <li style="margin-bottom: 10px;"><strong>Proposal:</strong> You'll receive a personalized itinerary and quote</li>
-                <li><strong>Finalize:</strong> We'll refine the details until it's perfect for you</li>
+                <li style="margin-bottom: 10px;">{{ __('mail.step_review') }}</li>
+                <li style="margin-bottom: 10px;">{{ __('mail.step_contact') }}</li>
+                <li style="margin-bottom: 10px;">{{ __('mail.step_proposal') }}</li>
+                <li>{{ __('mail.step_finalize') }}</li>
             </ol>
         </div>
 
         <div class="contact-info">
-            <h3 style="margin-top: 0; color: #0D642E;">Need to Reach Us Sooner?</h3>
-            <p style="margin-bottom: 10px;">If you have urgent questions or additional details to share:</p>
+            <h3 style="margin-top: 0; color: #0D642E;">{{ __('mail.reach_sooner') }}</h3>
+            <p style="margin-bottom: 10px;">{{ __('mail.urgent_questions') }}</p>
             <p style="margin: 5px 0;">
                 <strong>Email:</strong> <a href="mailto:hello@go-adventure.net" style="color: #0D642E;">hello@go-adventure.net</a>
             </p>
@@ -159,24 +159,24 @@
                 <strong>WhatsApp:</strong> <a href="https://wa.me/21612345678" style="color: #0D642E;">+216 12 345 678</a>
             </p>
             <p style="margin: 5px 0; font-size: 0.9em; color: #666;">
-                Please include your reference number: <strong>{{ $reference }}</strong>
+                {{ __('mail.include_reference', ['reference' => $reference]) }}
             </p>
         </div>
 
-        <p>We can't wait to help you discover the beauty of Tunisia!</p>
+        <p>{{ __('mail.discover_tunisia') }}</p>
 
-        <p>Warm regards,<br>
-        <strong>The Go Adventure Team</strong></p>
+        <p>{{ __('mail.warm_regards') }}<br>
+        <strong>{{ __('mail.the_team') }}</strong></p>
     </div>
 
     <div class="footer">
-        <p>&copy; {{ date('Y') }} Go Adventure. All rights reserved.</p>
+        <p>&copy; {{ date('Y') }} {{ __('mail.go_adventure') }}. {{ __('mail.all_rights_reserved') }}</p>
         <p>
-            <a href="{{ config('app.frontend_url') }}/privacy" style="color: #0D642E;">Privacy Policy</a> |
-            <a href="{{ config('app.frontend_url') }}/terms" style="color: #0D642E;">Terms of Service</a>
+            <a href="{{ config('app.frontend_url') }}/privacy" style="color: #0D642E;">{{ __('mail.privacy_policy') }}</a> |
+            <a href="{{ config('app.frontend_url') }}/terms" style="color: #0D642E;">{{ __('mail.terms_of_service') }}</a>
         </p>
         <p style="font-size: 0.85em;">
-            You're receiving this email because you submitted a custom trip request on Go Adventure.
+            {{ __('mail.receiving_because_trip') }}
         </p>
     </div>
 </body>

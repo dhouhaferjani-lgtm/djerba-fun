@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking Cancellation</title>
+    <title>{{ __('mail.booking_cancelled_header') }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -56,63 +56,62 @@
 </head>
 <body>
     <div class="header">
-        <h1>Booking Cancelled</h1>
+        <h1>{{ __('mail.booking_cancelled_header') }}</h1>
     </div>
 
     <div class="content">
-        <p>Dear {{ $travelerInfo['firstName'] ?? 'Traveler' }} {{ $travelerInfo['lastName'] ?? '' }},</p>
+        <p>{{ __('mail.dear') }} {{ $travelerInfo['firstName'] ?? __('mail.traveler') }} {{ $travelerInfo['lastName'] ?? '' }},</p>
 
-        <p>This email confirms that your booking has been cancelled.</p>
+        <p>{{ __('mail.booking_cancelled_body') }}</p>
 
         <div class="booking-details">
-            <h2 style="margin-top: 0; color: #dc2626;">Cancelled Booking</h2>
+            <h2 style="margin-top: 0; color: #dc2626;">{{ __('mail.cancelled_booking') }}</h2>
 
             <div class="detail-row">
-                <span class="label">Booking Number:</span> {{ $booking->booking_number }}
+                <span class="label">{{ __('mail.booking_number') }}:</span> {{ $booking->booking_number }}
             </div>
 
             <div class="detail-row">
-                <span class="label">Listing:</span> {{ $listingTitle }}
+                <span class="label">{{ __('mail.listing') }}:</span> {{ $listingTitle }}
             </div>
 
             <div class="detail-row">
-                <span class="label">Total Amount:</span> {{ $booking->currency }} {{ number_format($booking->total_amount, 2) }}
+                <span class="label">{{ __('mail.total_amount') }}:</span> {{ $booking->currency }} {{ number_format($booking->total_amount, 2) }}
             </div>
 
             <div class="detail-row">
-                <span class="label">Cancelled On:</span> {{ $booking->cancelled_at->format('F j, Y \a\t g:i A') }}
+                <span class="label">{{ __('mail.cancelled_on') }}:</span> {{ $booking->cancelled_at->translatedFormat(__('mail.date_format_full')) }}
             </div>
 
             @if($cancellationReason)
             <div class="detail-row">
-                <span class="label">Reason:</span> {{ $cancellationReason }}
+                <span class="label">{{ __('mail.reason') }}:</span> {{ $cancellationReason }}
             </div>
             @endif
         </div>
 
         <div class="warning-box">
-            <strong>Refund Information</strong>
+            <strong>{{ __('mail.refund_info') }}</strong>
             <p style="margin: 10px 0 0 0;">
-                If you are eligible for a refund according to the cancellation policy,
-                it will be processed within 5-10 business days to your original payment method.
+                {{ __('mail.refund_body') }}
             </p>
         </div>
 
-        <p><strong>What happens next?</strong></p>
+        <p><strong>{{ __('mail.what_happens_next') }}</strong></p>
         <ul>
-            <li>Your reservation has been released and is no longer active</li>
-            <li>Any applicable refunds will be processed according to the cancellation policy</li>
-            <li>You will receive a separate email when the refund is processed (if applicable)</li>
+            <li>{{ __('mail.reservation_released') }}</li>
+            <li>{{ __('mail.refund_processed') }}</li>
+            <li>{{ __('mail.refund_email') }}</li>
         </ul>
 
-        <p>We're sorry to see you cancel. If you have any questions or concerns, please don't hesitate to contact us.</p>
+        <p>{{ __('mail.sorry_cancel') }}</p>
 
-        <p>We hope to serve you again in the future!</p>
+        <p>{{ __('mail.hope_serve_again') }}</p>
     </div>
 
     <div class="footer">
-        <p>&copy; {{ date('Y') }} Go Adventure. All rights reserved.</p>
-        <p>This is an automated message, please do not reply directly to this email.</p>
+        <p>&copy; {{ date('Y') }} {{ __('mail.go_adventure') }}. {{ __('mail.all_rights_reserved') }}</p>
+        <p>{{ __('mail.automated_message') }}</p>
     </div>
 </body>
 </html>

@@ -22,7 +22,9 @@ class ParticipantNamesReminderMail extends Mailable
     public function __construct(
         public Booking $booking,
         public int $daysUntilActivity = 0
-    ) {}
+    ) {
+        $this->locale($booking->locale ?? 'fr');
+    }
 
     /**
      * Get the message envelope.
@@ -31,8 +33,8 @@ class ParticipantNamesReminderMail extends Mailable
     {
         $urgent = $this->daysUntilActivity <= 7;
         $subject = $urgent
-            ? "Action Required: Participant Names Needed - {$this->booking->booking_number}"
-            : "Reminder: Add Participant Names - {$this->booking->booking_number}";
+            ? __('mail.subject_participant_reminder_urgent', ['number' => $this->booking->booking_number])
+            : __('mail.subject_participant_reminder', ['number' => $this->booking->booking_number]);
 
         return new Envelope(
             subject: $subject,

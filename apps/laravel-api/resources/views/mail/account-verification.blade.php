@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Email</title>
+    <title>{{ __('mail.welcome_header') }}</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -121,57 +121,57 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>✨ Welcome to Go Adventure!</h1>
+            <h1>{{ __('mail.welcome_header') }}</h1>
         </div>
 
         <div class="content">
             <div class="greeting">
-                Hello {{ $user->first_name ?? $user->display_name ?? 'Adventurer' }}! 👋
+                {{ __('mail.hello') }} {{ $user->first_name ?? $user->display_name ?? __('mail.adventurer') }}!
             </div>
 
             <div class="message">
-                <p>Thank you for creating your Go Adventure account!</p>
-                <p>To get started, please verify your email address by clicking the button below:</p>
+                <p>{{ __('mail.thank_you_account') }}</p>
+                <p>{{ __('mail.verify_email_intro') }}</p>
             </div>
 
             @if($claimableBookingsCount > 0)
             <div class="bookings-banner">
-                <div>🎉 Great News!</div>
+                <div>{{ __('mail.great_news') }}</div>
                 <div class="bookings-count">{{ $claimableBookingsCount }}</div>
                 <div>
-                    {{ $claimableBookingsCount === 1 ? 'Booking Found!' : 'Bookings Found!' }}
+                    {{ $claimableBookingsCount === 1 ? __('mail.booking_found_singular') : __('mail.booking_found_plural') }}
                 </div>
                 <div style="margin-top: 10px; font-size: 14px; font-weight: normal;">
-                    We found {{ $claimableBookingsCount }} {{ $claimableBookingsCount === 1 ? 'booking' : 'bookings' }} matching your email.
-                    You can link {{ $claimableBookingsCount === 1 ? 'it' : 'them' }} to your account after verifying.
+                    {{ $claimableBookingsCount === 1 ? __('mail.bookings_matching_singular', ['count' => $claimableBookingsCount]) : __('mail.bookings_matching_plural', ['count' => $claimableBookingsCount]) }}
+                    {{ $claimableBookingsCount === 1 ? __('mail.link_after_verify_singular') : __('mail.link_after_verify_plural') }}
                 </div>
             </div>
             @endif
 
             <div class="button-container">
                 <a href="{{ $verificationLink }}" class="verify-button">
-                    Verify Email Address
+                    {{ __('mail.verify_email') }}
                 </a>
             </div>
 
             <div class="link-section">
-                <p><strong>If the button doesn't work, copy and paste this link into your browser:</strong></p>
+                <p><strong>{{ __('mail.button_not_working') }}</strong></p>
                 <div class="link-url">{{ $verificationLink }}</div>
             </div>
 
             <div class="expiration-notice">
-                <strong>⏰ Important:</strong> This verification link will expire in {{ $expiresInHours }} hours for your security.
+                <strong>{{ __('mail.link_expires_hours', ['hours' => $expiresInHours]) }}</strong>
             </div>
 
             <div class="message" style="margin-top: 30px;">
-                <p>If you didn't create this account, you can safely ignore this email.</p>
-                <p>Happy adventuring! 🏔️</p>
+                <p>{{ __('mail.didnt_create_account') }}</p>
+                <p>{{ __('mail.happy_adventuring') }}</p>
             </div>
         </div>
 
         <div class="footer">
-            <p>&copy; {{ date('Y') }} Go Adventure. All rights reserved.</p>
-            <p>This is an automated email. Please do not reply to this message.</p>
+            <p>&copy; {{ date('Y') }} {{ __('mail.go_adventure') }}. {{ __('mail.all_rights_reserved') }}</p>
+            <p>{{ __('mail.automated_message') }}</p>
         </div>
     </div>
 </body>

@@ -25,7 +25,9 @@ class AccountVerificationMail extends Mailable implements ShouldQueue
         public User $user,
         public string $token,
         public int $claimableBookingsCount = 0
-    ) {}
+    ) {
+        $this->locale($user->preferred_locale ?? 'fr');
+    }
 
     /**
      * Get the message envelope.
@@ -34,7 +36,7 @@ class AccountVerificationMail extends Mailable implements ShouldQueue
     {
         return new Envelope(
             from: new Address(config('mail.from.address'), config('mail.from.name')),
-            subject: 'Verify Your Email - Go Adventure',
+            subject: __('mail.subject_account_verification'),
         );
     }
 

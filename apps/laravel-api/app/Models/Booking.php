@@ -33,6 +33,7 @@ class Booking extends Model
         'total_amount',
         'discount_amount',
         'currency',
+        'locale',
         'billing_country_code',
         'billing_city',
         'billing_postal_code',

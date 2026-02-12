@@ -9,12 +9,13 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, HasLocalePreference
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens;
@@ -212,5 +213,13 @@ class User extends Authenticatable implements FilamentUser
     public function getNameAttribute(): string
     {
         return $this->display_name ?? $this->email;
+    }
+
+    /**
+     * Get the user's preferred locale for notifications and emails.
+     */
+    public function preferredLocale(): ?string
+    {
+        return $this->preferred_locale;
     }
 }

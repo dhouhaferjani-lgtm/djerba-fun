@@ -24,7 +24,9 @@ class MagicLoginMail extends Mailable implements ShouldQueue
     public function __construct(
         public User $user,
         public string $token
-    ) {}
+    ) {
+        $this->locale($user->preferred_locale ?? 'fr');
+    }
 
     /**
      * Get the message envelope.
@@ -33,7 +35,7 @@ class MagicLoginMail extends Mailable implements ShouldQueue
     {
         return new Envelope(
             from: new Address(config('mail.from.address'), config('mail.from.name')),
-            subject: 'Your Magic Login Link - Go Adventure',
+            subject: __('mail.subject_magic_login'),
         );
     }
 

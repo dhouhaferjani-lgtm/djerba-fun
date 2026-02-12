@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Participant Names Reminder</title>
+    <title>{{ __('mail.participant_reminder_header') }}</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -129,79 +129,79 @@
     <div class="container">
         @if($isUrgent)
         <div class="urgent-banner">
-            <strong>⏰ Urgent: {{ $daysUntilActivity }} {{ $daysUntilActivity === 1 ? 'day' : 'days' }} until your activity!</strong>
-            <p style="margin: 10px 0 0 0;">Please provide participant names as soon as possible to ensure smooth check-in.</p>
+            <strong>{{ $daysUntilActivity === 1 ? __('mail.participant_reminder_upcoming_singular', ['days' => $daysUntilActivity]) : __('mail.participant_reminder_upcoming_plural', ['days' => $daysUntilActivity]) }}</strong>
+            <p style="margin: 10px 0 0 0;">{{ __('mail.participant_reminder_urgent_desc') }}</p>
         </div>
         @endif
 
         <div class="header">
-            <h1>{{ $isUrgent ? '⚠️' : '📝' }} Participant Names Needed</h1>
+            <h1>{{ __('mail.participant_reminder_header') }}</h1>
         </div>
 
         <div class="content">
             <div class="greeting">
-                Hello {{ $travelerName }}! 👋
+                {{ __('mail.hello') }} {{ $travelerName }}!
             </div>
 
             <div class="message">
                 @if($isUrgent)
-                <p><strong>Your upcoming activity is just {{ $daysUntilActivity }} {{ $daysUntilActivity === 1 ? 'day' : 'days' }} away!</strong></p>
-                <p>We still need the names of all participants for your booking. Adding them now will help ensure a quick and smooth check-in when you arrive.</p>
+                <p><strong>{{ $daysUntilActivity === 1 ? __('mail.participant_reminder_upcoming_singular', ['days' => $daysUntilActivity]) : __('mail.participant_reminder_upcoming_plural', ['days' => $daysUntilActivity]) }}</strong></p>
+                <p>{{ __('mail.participant_reminder_need_names') }}</p>
                 @else
-                <p>We're looking forward to having you join us for your upcoming adventure!</p>
-                <p>To help us prepare for your arrival, please take a moment to provide the names of all participants in your booking.</p>
+                <p>{{ __('mail.participant_reminder_looking_forward') }}</p>
+                <p>{{ __('mail.participant_reminder_take_moment') }}</p>
                 @endif
             </div>
 
             <div class="booking-summary">
-                <h3>Booking Summary</h3>
+                <h3>{{ __('mail.booking_summary') }}</h3>
                 <div class="detail-row">
-                    <span class="label">Booking Number:</span>
+                    <span class="label">{{ __('mail.booking_number') }}:</span>
                     <strong>{{ $booking->booking_number }}</strong>
                 </div>
                 <div class="detail-row">
-                    <span class="label">Activity:</span>
+                    <span class="label">{{ __('mail.activity') }}:</span>
                     {{ $listing->title }}
                 </div>
                 @if($slot)
                 <div class="detail-row">
-                    <span class="label">Date & Time:</span>
-                    {{ $slot->start_time->format('l, F j, Y \a\t g:i A') }}
+                    <span class="label">{{ __('mail.date_time') }}:</span>
+                    {{ $slot->start_time->translatedFormat(__('mail.date_format_day_full')) }}
                 </div>
                 @endif
                 <div class="detail-row">
-                    <span class="label">Participants:</span>
-                    {{ $booking->quantity }} {{ $booking->quantity > 1 ? 'people' : 'person' }}
+                    <span class="label">{{ __('mail.participants') }}:</span>
+                    {{ $booking->quantity }} {{ $booking->quantity > 1 ? __('mail.person_plural') : __('mail.person_singular') }}
                 </div>
             </div>
 
             <div class="button-container">
                 <a href="{{ $participantsLink }}" class="add-names-button">
-                    {{ $isUrgent ? 'Add Names Now' : 'Provide Participant Names' }}
+                    {{ $isUrgent ? __('mail.add_names_now') : __('mail.provide_participant_names') }}
                 </a>
             </div>
 
             <div class="why-section">
-                <h3>Why do we need participant names?</h3>
+                <h3>{{ __('mail.why_names') }}</h3>
                 <ul>
-                    <li>✅ Faster check-in process when you arrive</li>
-                    <li>✅ Personalized vouchers for each participant</li>
-                    <li>✅ Better preparation by our activity providers</li>
-                    <li>✅ Improved safety and emergency contact procedures</li>
+                    <li>{{ __('mail.why_faster_checkin') }}</li>
+                    <li>{{ __('mail.why_personalized') }}</li>
+                    <li>{{ __('mail.why_preparation') }}</li>
+                    <li>{{ __('mail.why_safety') }}</li>
                 </ul>
             </div>
 
             <div class="message" style="margin-top: 30px;">
-                <p>It only takes a minute and makes everyone's experience better!</p>
-                <p>If you have any questions, feel free to reach out to our support team.</p>
-                <p>We can't wait to see you! 🏔️</p>
+                <p>{{ __('mail.takes_a_minute') }}</p>
+                <p>{{ __('mail.support_questions') }}</p>
+                <p>{{ __('mail.cant_wait') }}</p>
             </div>
         </div>
 
         <div class="footer">
-            <p>&copy; {{ date('Y') }} Go Adventure. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} {{ __('mail.go_adventure') }}. {{ __('mail.all_rights_reserved') }}</p>
             <p style="font-size: 0.85em; margin-top: 10px;">
-                You're receiving this reminder because participant names are still pending for booking {{ $booking->booking_number }}.
+                {{ __('mail.receiving_because_pending', ['number' => $booking->booking_number]) }}
             </p>
         </div>
     </div>

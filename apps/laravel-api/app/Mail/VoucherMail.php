@@ -33,6 +33,7 @@ class VoucherMail extends Mailable implements ShouldQueue
     ) {
         $this->booking->load(['listing', 'availabilitySlot']);
         $this->settings = PlatformSettings::instance();
+        $this->locale($booking->locale ?? 'fr');
     }
 
     /**
@@ -41,8 +42,8 @@ class VoucherMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         $subject = $this->participant
-            ? "Your Voucher - {$this->booking->booking_number}"
-            : "Your Vouchers - {$this->booking->booking_number}";
+            ? __('mail.subject_voucher_single', ['number' => $this->booking->booking_number])
+            : __('mail.subject_voucher_plural', ['number' => $this->booking->booking_number]);
 
         return new Envelope(
             from: new Address(config('mail.from.address'), config('mail.from.name')),
