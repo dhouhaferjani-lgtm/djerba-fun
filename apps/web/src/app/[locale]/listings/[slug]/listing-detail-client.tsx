@@ -1352,7 +1352,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
 
                   {/* Reviews Section */}
                   <ReviewsSection
-                    listingId={listing.id}
+                    listingSlug={slug}
                     rating={listing.rating ?? undefined}
                     reviewsCount={listing.reviewsCount || 0}
                   />

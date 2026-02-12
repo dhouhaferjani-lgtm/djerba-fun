@@ -9,6 +9,7 @@ import type {
   CreateHoldResponse,
   CreateBookingRequest,
   Review,
+  ReviewSummary,
   CreateReviewRequest,
   CouponValidation,
   VendorPublicProfile,
@@ -797,6 +798,16 @@ export const reviewsApi = {
     return fetchApi<{ success: boolean }>(`/reviews/${reviewId}/helpful`, {
       method: 'POST',
     });
+  },
+
+  getSummary: async (listingSlug: string) => {
+    return fetchApi<{ data: ReviewSummary }>(`/listings/${listingSlug}/reviews/summary`);
+  },
+
+  canReview: async (listingSlug: string) => {
+    return fetchApi<{ canReview: boolean; bookingId: string | null }>(
+      `/listings/${listingSlug}/can-review`
+    );
   },
 };
 

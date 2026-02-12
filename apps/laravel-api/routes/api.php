@@ -107,6 +107,7 @@ Route::prefix('v1')->group(function () {
 
     // Public review routes
     Route::get('/listings/{listing:slug}/reviews', [ReviewController::class, 'index']);
+    Route::get('/listings/{listing:slug}/reviews/summary', [ReviewController::class, 'summary']);
 
     // Public CMS page routes
     Route::get('/pages', [PageController::class, 'index']);
@@ -243,6 +244,7 @@ Route::prefix('v1')->group(function () {
             ->middleware('throttle:5,1'); // Stricter limit for claim attempts
 
         // Review management
+        Route::get('/listings/{listing:slug}/can-review', [ReviewController::class, 'canReview']);
         Route::post('/bookings/{booking}/review', [ReviewController::class, 'store']);
         Route::post('/reviews/{review}/helpful', [ReviewController::class, 'markHelpful']);
 

@@ -462,6 +462,23 @@ export function useMarkReviewHelpful() {
   });
 }
 
+export function useReviewSummary(listingSlug: string) {
+  return useQuery({
+    queryKey: ['reviews', 'summary', listingSlug],
+    queryFn: () => reviewsApi.getSummary(listingSlug),
+    enabled: !!listingSlug,
+  });
+}
+
+export function useCanReview(listingSlug: string, isAuthenticated: boolean) {
+  return useQuery({
+    queryKey: ['reviews', 'canReview', listingSlug],
+    queryFn: () => reviewsApi.canReview(listingSlug),
+    enabled: !!listingSlug && isAuthenticated,
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
 // ============================================================================
 // COUPONS HOOKS
 // ============================================================================

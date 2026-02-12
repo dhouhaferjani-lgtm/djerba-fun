@@ -79,10 +79,10 @@ class ReviewController extends Controller
             ], 403);
         }
 
-        // Check if booking is completed
-        if ($booking->status !== BookingStatus::CONFIRMED) {
+        // Check if booking is completed or confirmed
+        if (! in_array($booking->status, [BookingStatus::CONFIRMED, BookingStatus::COMPLETED])) {
             return response()->json([
-                'message' => 'You can only review completed bookings.',
+                'message' => 'You can only review confirmed or completed bookings.',
             ], 400);
         }
 
@@ -104,11 +104,11 @@ class ReviewController extends Controller
             'cons' => $request->validated('cons'),
             'photos' => $request->validated('photos'),
             'is_verified_booking' => true,
-            'is_published' => false, // Admin approval required
+            'is_published' => false, // Vendor/admin approval required
         ]);
 
-        // Update listing rating
-        $this->updateListingRating($booking->listing);
+        // NOTE: Rating is NOT recalculated here — only on approval via Filament
+        // Review::recalculateListingRating() is called when vendor approves the review
 
         // Notify vendor of new review
         try {
@@ -118,17 +118,19 @@ class ReviewController extends Controller
                 if (is_array($listingTitle)) {
                     $listingTitle = reset($listingTitle) ?: 'Untitled';
                 }
+
+                $reviewUrl = \App\Filament\Vendor\Resources\ReviewResource::getUrl('view', ['record' => $review], panel: 'vendor');
                 $vendor->notifications()->create([
                     'id' => Str::uuid()->toString(),
                     'type' => \Filament\Notifications\DatabaseNotification::class,
                     'data' => Notification::make()
                         ->title('New Review Received')
                         ->icon('heroicon-o-star')
-                        ->body("A {$review->rating}-star review was submitted for \"{$listingTitle}\".")
+                        ->body("A {$review->rating}-star review was submitted for \"{$listingTitle}\". Please approve or reject it.")
                         ->actions([
                             NotificationAction::make('view')
                                 ->label('View Review')
-                                ->url("/vendor/reviews/{$review->id}")
+                                ->url($reviewUrl)
                                 ->button(),
                         ])
                         ->getDatabaseMessage(),
@@ -158,24 +160,58 @@ class ReviewController extends Controller
     }
 
     /**
-     * Update listing rating based on published reviews.
-     *
-     * Performance: Clear review cache for this listing after update
+     * Check if the authenticated user can write a review for a listing.
      */
-    private function updateListingRating(Listing $listing): void
+    public function canReview(Request $request, Listing $listing): JsonResponse
     {
-        $stats = Review::query()
-            ->forListing($listing->id)
-            ->published()
-            ->selectRaw('AVG(rating) as avg_rating, COUNT(*) as total_reviews')
+        $user = $request->user();
+
+        $reviewableBooking = Booking::where('user_id', $user->id)
+            ->where('listing_id', $listing->id)
+            ->whereIn('status', [BookingStatus::CONFIRMED->value, BookingStatus::COMPLETED->value])
+            ->whereDoesntHave('review')
             ->first();
 
-        $listing->update([
-            'rating' => $stats->avg_rating ? round($stats->avg_rating, 2) : null,
-            'reviews_count' => $stats->total_reviews,
+        return response()->json([
+            'canReview' => $reviewableBooking !== null,
+            'bookingId' => $reviewableBooking?->id,
         ]);
+    }
 
-        // Performance: Clear cache for this listing's reviews
-        cache()->tags(['reviews', 'listing:' . $listing->id])->flush();
+    /**
+     * Get review summary (rating breakdown) for a listing.
+     */
+    public function summary(Listing $listing): JsonResponse
+    {
+        $cacheKey = "reviews:summary:{$listing->id}";
+
+        $summary = cache()->remember($cacheKey, 300, function () use ($listing) {
+            $breakdown = Review::query()
+                ->forListing($listing->id)
+                ->published()
+                ->selectRaw('rating, COUNT(*) as count')
+                ->groupBy('rating')
+                ->pluck('count', 'rating')
+                ->toArray();
+
+            $totalReviews = array_sum($breakdown);
+            $avgRating = $totalReviews > 0
+                ? collect($breakdown)->reduce(fn ($carry, $count, $rating) => $carry + ($rating * $count), 0) / $totalReviews
+                : 0;
+
+            return [
+                'averageRating' => round($avgRating, 1),
+                'totalCount' => $totalReviews,
+                'ratingBreakdown' => [
+                    5 => $breakdown[5] ?? 0,
+                    4 => $breakdown[4] ?? 0,
+                    3 => $breakdown[3] ?? 0,
+                    2 => $breakdown[2] ?? 0,
+                    1 => $breakdown[1] ?? 0,
+                ],
+            ];
+        });
+
+        return response()->json(['data' => $summary]);
     }
 }

@@ -28,6 +28,8 @@ class Review extends Model
         'is_verified_booking',
         'is_published',
         'published_at',
+        'rejected_at',
+        'rejection_reason',
         'helpful_count',
     ];
 
@@ -41,6 +43,7 @@ class Review extends Model
             'is_verified_booking' => 'boolean',
             'is_published' => 'boolean',
             'published_at' => 'datetime',
+            'rejected_at' => 'datetime',
             'helpful_count' => 'integer',
         ];
     }
@@ -78,13 +81,15 @@ class Review extends Model
     }
 
     /**
-     * Publish the review.
+     * Publish the review (approve).
      */
     public function publish(): void
     {
         $this->update([
             'is_published' => true,
             'published_at' => now(),
+            'rejected_at' => null,
+            'rejection_reason' => null,
         ]);
     }
 
@@ -97,6 +102,35 @@ class Review extends Model
             'is_published' => false,
             'published_at' => null,
         ]);
+    }
+
+    /**
+     * Reject the review with a reason.
+     */
+    public function reject(string $reason): void
+    {
+        $this->update([
+            'is_published' => false,
+            'published_at' => null,
+            'rejected_at' => now(),
+            'rejection_reason' => $reason,
+        ]);
+    }
+
+    /**
+     * Get the moderation status of the review.
+     */
+    public function getModerationStatusAttribute(): string
+    {
+        if ($this->is_published) {
+            return 'published';
+        }
+
+        if ($this->rejected_at !== null) {
+            return 'rejected';
+        }
+
+        return 'pending';
     }
 
     /**
@@ -113,6 +147,22 @@ class Review extends Model
     public function scopePublished($query)
     {
         return $query->where('is_published', true);
+    }
+
+    /**
+     * Scope to filter pending reviews (not published, not rejected).
+     */
+    public function scopePending($query)
+    {
+        return $query->where('is_published', false)->whereNull('rejected_at');
+    }
+
+    /**
+     * Scope to filter rejected reviews.
+     */
+    public function scopeRejected($query)
+    {
+        return $query->where('is_published', false)->whereNotNull('rejected_at');
     }
 
     /**
@@ -150,6 +200,24 @@ class Review extends Model
             'title', 'content', 'pros', 'cons', 'photos',
             'is_verified_booking', 'is_published', 'helpful_count',
             'created_at', 'updated_at'
+        ]);
+    }
+
+    /**
+     * Recalculate listing rating based on published reviews.
+     * Called after review approval/rejection to update listing stats.
+     */
+    public static function recalculateListingRating(Listing $listing): void
+    {
+        $stats = static::query()
+            ->forListing($listing->id)
+            ->published()
+            ->selectRaw('AVG(rating) as avg_rating, COUNT(*) as total_reviews')
+            ->first();
+
+        $listing->update([
+            'rating' => $stats->avg_rating ? round($stats->avg_rating, 2) : null,
+            'reviews_count' => $stats->total_reviews,
         ]);
     }
 }

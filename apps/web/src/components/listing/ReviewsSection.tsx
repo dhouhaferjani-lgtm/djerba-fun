@@ -1,31 +1,61 @@
 'use client';
 
-import { Star, ThumbsUp, MessageSquare } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Star, ThumbsUp, MessageSquare, Loader2, PenLine } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Badge } from '@go-adventure/ui';
 import type { Review, ReviewSummary } from '@go-adventure/schemas';
 import { format } from 'date-fns';
+import { reviewsApi } from '@/lib/api/client';
+import { useCanReview } from '@/lib/api/hooks';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import Link from 'next/link';
 
 interface ReviewsSectionProps {
-  listingId: string;
+  listingSlug: string;
   rating?: number;
   reviewsCount: number;
-  reviews?: Review[];
-  summary?: ReviewSummary;
 }
 
-export function ReviewsSection({
-  listingId,
-  rating,
-  reviewsCount,
-  reviews = [],
-  summary,
-}: ReviewsSectionProps) {
+export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSectionProps) {
   const t = useTranslations('reviews');
   const tCommon = useTranslations('common');
+  const { isAuthenticated } = useAuth();
+  const { data: canReviewData } = useCanReview(listingSlug, isAuthenticated);
+
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [summary, setSummary] = useState<ReviewSummary | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(reviewsCount);
+
+  const fetchReviews = useCallback(async () => {
+    if (!listingSlug) return;
+    setLoading(true);
+    try {
+      const [reviewsRes, summaryRes] = await Promise.all([
+        reviewsApi.getForListing(listingSlug),
+        reviewsApi.getSummary(listingSlug),
+      ]);
+      setReviews(reviewsRes.data ?? []);
+      if (summaryRes.data) {
+        setSummary(summaryRes.data);
+        setTotalCount(summaryRes.data.totalCount);
+      }
+    } catch {
+      // Silently fail — show empty state
+    } finally {
+      setLoading(false);
+    }
+  }, [listingSlug]);
+
+  useEffect(() => {
+    if (reviewsCount > 0) {
+      fetchReviews();
+    }
+  }, [reviewsCount, fetchReviews]);
 
   // Empty state - no reviews yet
-  if (reviewsCount === 0) {
+  if (reviewsCount === 0 && !loading) {
     return (
       <section className="border-t border-neutral-200 pt-12">
         <div className="bg-accent-light border border-accent-dark rounded-2xl p-12 text-center">
@@ -34,6 +64,26 @@ export function ReviewsSection({
             {t('no_reviews_title')}
           </h3>
           <p className="text-neutral-600 max-w-md mx-auto">{t('no_reviews_message')}</p>
+          {canReviewData?.canReview && canReviewData.bookingId && (
+            <Link
+              href={`/dashboard/bookings/${canReviewData.bookingId}/review` as never}
+              className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              <PenLine className="h-4 w-4" />
+              {t('be_first')}
+            </Link>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  // Loading state
+  if (loading && reviews.length === 0) {
+    return (
+      <section className="border-t border-neutral-200 pt-12">
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </section>
     );
@@ -41,17 +91,28 @@ export function ReviewsSection({
 
   // Calculate rating breakdown percentages
   const getRatingPercentage = (count: number) => {
-    return reviewsCount > 0 ? (count / reviewsCount) * 100 : 0;
+    return totalCount > 0 ? (count / totalCount) * 100 : 0;
   };
 
   return (
     <section className="border-t border-neutral-200 pt-12">
       {/* Section Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <Star className="h-6 w-6 text-primary fill-secondary" />
-        <h2 className="font-display text-3xl font-bold text-heading tracking-tight">
-          {tCommon('reviews', { count: reviewsCount })}
-        </h2>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <Star className="h-6 w-6 text-primary fill-secondary" />
+          <h2 className="font-display text-3xl font-bold text-heading tracking-tight">
+            {tCommon('reviews', { count: totalCount })}
+          </h2>
+        </div>
+        {canReviewData?.canReview && canReviewData.bookingId && (
+          <Link
+            href={`/dashboard/bookings/${canReviewData.bookingId}/review` as never}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            <PenLine className="h-4 w-4" />
+            {t('write_review')}
+          </Link>
+        )}
       </div>
 
       {/* Review Summary */}
@@ -74,7 +135,7 @@ export function ReviewsSection({
                 />
               ))}
             </div>
-            <p className="text-sm text-neutral-600">{t('based_on', { count: reviewsCount })}</p>
+            <p className="text-sm text-neutral-600">{t('based_on', { count: totalCount })}</p>
           </div>
 
           {/* Rating Breakdown */}
@@ -112,7 +173,7 @@ export function ReviewsSection({
 
           {reviews.length > 5 && (
             <button className="text-primary font-semibold hover:underline">
-              Show all {reviewsCount} reviews
+              Show all {totalCount} reviews
             </button>
           )}
         </div>

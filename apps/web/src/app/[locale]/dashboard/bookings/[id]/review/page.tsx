@@ -68,8 +68,8 @@ export default function ReviewSubmissionPage() {
 
   const booking = bookingData;
 
-  // Check if booking is completed
-  if (booking.status !== 'completed') {
+  // Check if booking is confirmed or completed
+  if (booking.status !== 'completed' && booking.status !== 'confirmed') {
     return (
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="container mx-auto px-4 max-w-3xl">
@@ -89,7 +89,7 @@ export default function ReviewSubmissionPage() {
             </svg>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Cannot Review Yet</h1>
             <p className="text-gray-600 mb-4">
-              You can only review bookings that have been completed.
+              You can only review confirmed or completed bookings.
             </p>
             <Link
               href={`/${locale}/dashboard/bookings/${bookingId}`}
