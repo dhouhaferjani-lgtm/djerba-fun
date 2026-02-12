@@ -189,7 +189,7 @@ export function CartPaymentStep({
         }`}
       >
         <PaymentMethodSelector
-          availableMethods={['offline', 'click_to_pay']}
+          availableMethods={['offline', 'cash', 'click_to_pay']}
           onSelect={setSelectedMethod}
           selectedMethod={selectedMethod}
         />

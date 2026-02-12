@@ -417,7 +417,7 @@ export function BookingWizard({
                 {t('payment_method') || 'Payment Method'}
               </h3>
               <PaymentMethodSelector
-                availableMethods={['offline', 'click_to_pay']}
+                availableMethods={['offline', 'cash', 'click_to_pay']}
                 onSelect={setPaymentMethod}
                 selectedMethod={paymentMethod}
               />

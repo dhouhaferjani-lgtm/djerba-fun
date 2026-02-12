@@ -429,7 +429,8 @@ export const bookingsApi = {
     }>(`/bookings/${bookingId}/pay`, {
       method: 'POST',
       body: JSON.stringify({
-        payment_method: request.paymentMethod,
+        payment_method:
+          request.paymentMethod === 'cash' ? 'cash_on_arrival' : request.paymentMethod,
         payment_data: request.paymentData,
         session_id: request.sessionId,
       }),
@@ -1124,6 +1125,8 @@ export const cartApi = {
 
   // Checkout endpoints
   initiateCheckout: async (paymentMethod: string, sessionId?: string) => {
+    // Map frontend method names to backend enum values
+    const backendMethod = paymentMethod === 'cash' ? 'cash_on_arrival' : paymentMethod;
     return fetchApi<{
       message: string;
       payment_id: string;
@@ -1132,7 +1135,7 @@ export const cartApi = {
     }>('/cart/checkout', {
       method: 'POST',
       body: JSON.stringify({
-        payment_method: paymentMethod,
+        payment_method: backendMethod,
         session_id: sessionId,
       }),
     });

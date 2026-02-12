@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 
-export type PaymentMethod = 'mock' | 'offline' | 'click_to_pay' | 'stripe' | 'paypal';
+export type PaymentMethod = 'mock' | 'offline' | 'cash' | 'click_to_pay' | 'stripe' | 'paypal';
 
 interface PaymentMethodSelectorProps {
   availableMethods: PaymentMethod[];
@@ -42,6 +42,11 @@ export function PaymentMethodSelector({
       label: t('bank_transfer'),
       description: t('bank_transfer_description'),
       icon: '🏦',
+    },
+    cash: {
+      label: t('cash'),
+      description: t('cash_description'),
+      icon: '💵',
     },
     click_to_pay: {
       label: t('clictopay'),
@@ -115,6 +120,13 @@ export function PaymentMethodSelector({
             <p className="font-mono">BIC: ABCDEFGH</p>
             <p className="mt-2 text-xs">{t('bank_transfer_note')}</p>
           </div>
+        </div>
+      )}
+
+      {selected === 'cash' && (
+        <div className="mt-4 p-4 bg-success-light border border-success/20 rounded-lg">
+          <h4 className="font-medium text-success-dark mb-2">{t('cash_instructions')}</h4>
+          <p className="text-sm text-success-dark">{t('cash_info')}</p>
         </div>
       )}
 

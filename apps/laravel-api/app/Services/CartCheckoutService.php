@@ -159,7 +159,8 @@ class CartCheckoutService
             // Create bookings with pending payment status
             $bookings = $this->createBookingsFromCart($cart, $payment, BookingStatus::PENDING_PAYMENT);
 
-            // Cart remains in checking_out status until payment confirmed
+            // Send confirmation email immediately (booking received, payment pending)
+            $this->sendConfirmationEmails($bookings);
 
             return [
                 'success' => true,
