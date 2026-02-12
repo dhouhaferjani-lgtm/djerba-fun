@@ -47,7 +47,6 @@ const StarSelector = ({
 export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) {
   const t = useTranslations('reviews');
   const [rating, setRating] = useState(0);
-  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [pros, setPros] = useState<string[]>([]);
   const [cons, setCons] = useState<string[]>([]);
@@ -61,11 +60,8 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
     if (rating === 0) {
       newErrors.rating = 'Please select a rating';
     }
-    if (title.length < 5 || title.length > 100) {
-      newErrors.title = 'Title must be between 5 and 100 characters';
-    }
-    if (content.length < 20 || content.length > 2000) {
-      newErrors.content = 'Review must be between 20 and 2000 characters';
+    if (content.length < 5 || content.length > 2000) {
+      newErrors.content = 'Review must be between 5 and 2000 characters';
     }
 
     setErrors(newErrors);
@@ -81,7 +77,6 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
 
     onSubmit({
       rating,
-      title,
       content,
       pros: pros.length > 0 ? pros : undefined,
       cons: cons.length > 0 ? cons : undefined,
@@ -121,30 +116,6 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
         {errors.rating && <p className="mt-1 text-sm text-error">{errors.rating}</p>}
       </div>
 
-      {/* Title */}
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-          {t('review_title')} <span className="text-error">*</span>
-        </label>
-        <input
-          type="text"
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          maxLength={100}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-          placeholder="Summarize your experience in a few words"
-        />
-        <div className="flex justify-between mt-1">
-          {errors.title ? (
-            <p className="text-sm text-error">{errors.title}</p>
-          ) : (
-            <span className="text-sm text-gray-500">Min. 5 characters</span>
-          )}
-          <span className="text-sm text-gray-500">{title.length}/100</span>
-        </div>
-      </div>
-
       {/* Content */}
       <div>
         <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
@@ -163,7 +134,7 @@ export default function ReviewForm({ onSubmit, isSubmitting }: ReviewFormProps) 
           {errors.content ? (
             <p className="text-sm text-error">{errors.content}</p>
           ) : (
-            <span className="text-sm text-gray-500">Min. 20 characters</span>
+            <span className="text-sm text-gray-500">Min. 5 characters</span>
           )}
           <span className="text-sm text-gray-500">{content.length}/2000</span>
         </div>

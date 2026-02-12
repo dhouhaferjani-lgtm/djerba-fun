@@ -1045,8 +1045,8 @@ export const reviewSchema = z.object({
 
 export const createReviewRequestSchema = z.object({
   rating: z.number().int().min(1).max(5),
-  title: z.string().min(5).max(100),
-  content: z.string().min(20).max(2000),
+  title: z.string().max(100).optional(),
+  content: z.string().min(5).max(2000),
   pros: z.array(z.string()).optional(),
   cons: z.array(z.string()).optional(),
 });

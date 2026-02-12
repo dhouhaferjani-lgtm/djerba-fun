@@ -53,7 +53,7 @@ class ReviewController extends Controller
                 ->with([
                     'user:id,uuid,first_name,last_name,display_name,avatar_url',
                     'reply:id,review_id,vendor_id,content,created_at',
-                    'reply.vendor:id,uuid'
+                    'reply.vendor:id,uuid,first_name,last_name,display_name'
                 ])
                 ->when($rating, fn ($q, $r) => $q->withRating((int) $r))
                 ->when(

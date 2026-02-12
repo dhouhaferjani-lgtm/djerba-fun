@@ -27,6 +27,27 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
   const [summary, setSummary] = useState<ReviewSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(reviewsCount);
+  const [markingHelpfulId, setMarkingHelpfulId] = useState<string | null>(null);
+
+  const handleMarkHelpful = useCallback(
+    async (reviewId: string) => {
+      if (markingHelpfulId) return;
+      setMarkingHelpfulId(reviewId);
+      try {
+        await reviewsApi.markHelpful(reviewId);
+        setReviews((prev) =>
+          prev.map((r) =>
+            r.id === reviewId ? { ...r, helpfulCount: (r.helpfulCount ?? 0) + 1 } : r
+          )
+        );
+      } catch {
+        // Silently fail
+      } finally {
+        setMarkingHelpfulId(null);
+      }
+    },
+    [markingHelpfulId]
+  );
 
   const fetchReviews = useCallback(async () => {
     if (!listingSlug) return;
@@ -166,7 +187,12 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
       {reviews.length > 0 && (
         <div className="space-y-8">
           {reviews.slice(0, 5).map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <ReviewCard
+              key={review.id}
+              review={review}
+              onMarkHelpful={handleMarkHelpful}
+              isMarkingHelpful={markingHelpfulId === review.id}
+            />
           ))}
 
           {reviews.length > 5 && (
@@ -181,7 +207,15 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
 }
 
 // Individual Review Card Component
-function ReviewCard({ review }: { review: Review }) {
+function ReviewCard({
+  review,
+  onMarkHelpful,
+  isMarkingHelpful,
+}: {
+  review: Review;
+  onMarkHelpful: (reviewId: string) => void;
+  isMarkingHelpful: boolean;
+}) {
   return (
     <article className="border-b border-neutral-200 pb-8 last:border-0">
       {/* Reviewer Info */}
@@ -217,9 +251,6 @@ function ReviewCard({ review }: { review: Review }) {
           </div>
         </div>
       </div>
-
-      {/* Review Title */}
-      {review.title && <h4 className="font-semibold text-heading mb-2">{review.title}</h4>}
 
       {/* Review Content */}
       <p className="text-neutral-700 leading-relaxed mb-4">{review.content}</p>
@@ -285,7 +316,11 @@ function ReviewCard({ review }: { review: Review }) {
       )}
 
       {/* Helpful Button */}
-      <button className="flex items-center gap-2 text-sm text-neutral-600 hover:text-primary transition-colors mt-4">
+      <button
+        onClick={() => onMarkHelpful(review.id)}
+        disabled={isMarkingHelpful}
+        className="flex items-center gap-2 text-sm text-neutral-600 hover:text-primary transition-colors mt-4 disabled:opacity-50"
+      >
         <ThumbsUp className="h-4 w-4" />
         <span>Helpful ({review.helpfulCount})</span>
       </button>

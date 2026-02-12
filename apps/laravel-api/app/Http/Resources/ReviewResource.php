@@ -32,7 +32,7 @@ class ReviewResource extends BaseResource
             'photos' => is_array($this->photos) ? $this->toCamelCase($this->photos) : $this->photos,
             'isVerifiedBooking' => $this->is_verified_booking,
             'helpfulCount' => $this->helpful_count,
-            'reply' => $this->when($this->reply, function () {
+            'vendorReply' => $this->when($this->reply, function () {
                 return [
                     'id' => $this->reply->id,
                     'vendor' => [
@@ -40,7 +40,7 @@ class ReviewResource extends BaseResource
                         'displayName' => $this->reply->vendor->display_name,
                     ],
                     'content' => $this->reply->content,
-                    'createdAt' => $this->reply->created_at->toIso8601String(),
+                    'repliedAt' => $this->reply->created_at->toIso8601String(),
                 ];
             }),
             'createdAt' => $this->created_at->toIso8601String(),

@@ -23,8 +23,8 @@ class CreateReviewRequest extends BaseFormRequest
     {
         return [
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
-            'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string', 'min:10'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'content' => ['required', 'string', 'min:5'],
             'pros' => ['nullable', 'array'],
             'pros.*' => ['string', 'max:255'],
             'cons' => ['nullable', 'array'],
@@ -43,9 +43,8 @@ class CreateReviewRequest extends BaseFormRequest
             'rating.required' => 'Please provide a rating.',
             'rating.min' => 'Rating must be at least 1 star.',
             'rating.max' => 'Rating cannot exceed 5 stars.',
-            'title.required' => 'Please provide a review title.',
             'content.required' => 'Please write a review.',
-            'content.min' => 'Review must be at least 10 characters.',
+            'content.min' => 'Review must be at least 5 characters.',
             'photos.max' => 'You can upload a maximum of 5 photos.',
         ];
     }
