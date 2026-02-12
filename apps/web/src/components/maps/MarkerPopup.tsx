@@ -97,7 +97,11 @@ export default function MarkerPopup({
       };
 
       const Component = (props: MarkerPopupProps) => (
-        <Marker position={props.position} icon={getMarkerIcon(props.type || 'listing')}>
+        <Marker
+          position={props.position}
+          icon={getMarkerIcon(props.type || 'listing')}
+          zIndexOffset={props.type === 'start' ? 1000 : props.type === 'end' ? 900 : 0}
+        >
           <Popup className="custom-popup">
             <div className="min-w-[200px]">
               {props.imageUrl && (

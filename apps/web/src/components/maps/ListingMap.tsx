@@ -42,6 +42,12 @@ export default function ListingMap({
   const [SejourRouteComponent, setSejourRouteComponent] =
     useState<React.ComponentType<SejourRouteProps> | null>(null);
 
+  // Sort itinerary by order for reliable first/last detection
+  const sortedItinerary = useMemo(() => {
+    if (!itinerary || itinerary.length === 0) return [];
+    return [...itinerary].sort((a, b) => a.order - b.order);
+  }, [itinerary]);
+
   // Compute bounds for séjours from all itinerary stops
   const sejourBounds: LatLngTuple[] | undefined = useMemo(() => {
     if (!isSejour || !itinerary || itinerary.length < 2) return undefined;
@@ -219,23 +225,52 @@ export default function ListingMap({
             <SejourRouteComponent stops={itinerary} locale={locale} />
           )}
 
-          {/* Individual stop markers (for tours only — séjours use day markers) */}
+          {/* Intermediate waypoint markers (tours only — séjours use day labels instead) */}
           {!isSejour &&
-            itinerary.map((stop, index) => (
-              <MarkerPopup
-                key={stop.id}
-                position={[stop.lat, stop.lng]}
-                title={typeof stop.title === 'string' ? stop.title : stop.title.en}
-                description={
-                  stop.description
-                    ? typeof stop.description === 'string'
-                      ? stop.description
-                      : stop.description.en
-                    : undefined
-                }
-                type={index === 0 ? 'start' : index === itinerary.length - 1 ? 'end' : 'waypoint'}
-              />
-            ))}
+            sortedItinerary
+              .filter((_, index) => index !== 0 && index !== sortedItinerary.length - 1)
+              .map((stop) => (
+                <MarkerPopup
+                  key={stop.id}
+                  position={[stop.lat, stop.lng]}
+                  title={typeof stop.title === 'string' ? stop.title : stop.title.en}
+                  description={
+                    stop.description
+                      ? typeof stop.description === 'string'
+                        ? stop.description
+                        : stop.description.en
+                      : undefined
+                  }
+                  type="waypoint"
+                />
+              ))}
+
+          {/* Start and End markers — rendered last so they appear on top (all listing types) */}
+          {sortedItinerary.length > 0 &&
+            (() => {
+              const first = sortedItinerary[0];
+              const last = sortedItinerary[sortedItinerary.length - 1];
+              const getTitle = (stop: (typeof sortedItinerary)[0]) =>
+                typeof stop.title === 'string' ? stop.title : stop.title.en || stop.title.fr || '';
+              return (
+                <>
+                  {sortedItinerary.length > 1 && (
+                    <MarkerPopup
+                      key={`end-${last.id}`}
+                      position={[last.lat, last.lng]}
+                      title={getTitle(last)}
+                      type="end"
+                    />
+                  )}
+                  <MarkerPopup
+                    key={`start-${first.id}`}
+                    position={[first.lat, first.lng]}
+                    title={getTitle(first)}
+                    type="start"
+                  />
+                </>
+              );
+            })()}
         </>
       )}
 
