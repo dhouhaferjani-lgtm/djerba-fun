@@ -37,13 +37,25 @@ class EditListing extends EditRecord
         // Capture old status before save for notification logic in afterSave()
         $this->previousStatus = $this->record->status->value;
 
-        // CRITICAL FIX: Remove empty arrays for disabled fields
+        \Log::info('NOTIF_DEBUG: mutateFormDataBeforeSave() called', [
+            'previousStatus' => $this->previousStatus,
+            'newStatus' => $data['status'] ?? 'not set',
+            'has_title_in_data' => array_key_exists('title', $data),
+            'title_type' => isset($data['title']) ? gettype($data['title']) : 'not set',
+            'title_value' => isset($data['title']) ? (is_array($data['title']) ? json_encode($data['title']) : $data['title']) : 'not set',
+        ]);
+
+        // CRITICAL FIX: Remove empty/null values for disabled fields
         // Filament sends empty arrays for disabled fields which would overwrite existing data
         $disabledFields = ['title', 'summary', 'description', 'pricing', 'slug', 'vendor_id',
                           'min_group_size', 'max_group_size'];
         foreach ($disabledFields as $field) {
-            if (isset($data[$field]) && (is_array($data[$field]) && empty($data[$field]))) {
-                unset($data[$field]);
+            if (array_key_exists($field, $data)) {
+                $value = $data[$field];
+                // Remove empty arrays, null values, and empty strings for disabled fields
+                if ($value === null || $value === '' || (is_array($value) && empty($value))) {
+                    unset($data[$field]);
+                }
             }
         }
 
@@ -109,6 +121,12 @@ class EditListing extends EditRecord
 
     protected function afterSave(): void
     {
+        \Log::info('NOTIF_DEBUG: EditListing afterSave() called', [
+            'listing_id' => $this->record->id,
+            'previousStatus' => $this->previousStatus,
+            'currentStatus' => $this->record->status->value,
+        ]);
+
         if ($this->previousStatus === null) {
             return;
         }
@@ -117,8 +135,17 @@ class EditListing extends EditRecord
         $oldStatus = ListingStatus::from($this->previousStatus);
 
         if ($oldStatus === $newStatus) {
+            \Log::info('NOTIF_DEBUG: EditListing afterSave() - status unchanged, skipping', [
+                'status' => $newStatus->value,
+            ]);
+
             return;
         }
+
+        \Log::info('NOTIF_DEBUG: EditListing afterSave() - status changed', [
+            'from' => $oldStatus->value,
+            'to' => $newStatus->value,
+        ]);
 
         if ($oldStatus === ListingStatus::PENDING_REVIEW && $newStatus === ListingStatus::PUBLISHED) {
             $this->notifyVendorOfApproval();
@@ -185,9 +212,16 @@ class EditListing extends EditRecord
 
     protected function notifyVendorOfApproval(): void
     {
+        \Log::info('NOTIF_DEBUG: notifyVendorOfApproval() called', [
+            'listing_id' => $this->record->id,
+            'vendor_id' => $this->record->vendor_id,
+        ]);
+
         try {
             $vendor = $this->record->vendor;
             if (! $vendor) {
+                \Log::warning('NOTIF_DEBUG: notifyVendorOfApproval() - no vendor found');
+
                 return;
             }
 

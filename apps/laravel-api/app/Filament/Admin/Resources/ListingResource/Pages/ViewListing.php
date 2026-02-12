@@ -62,9 +62,19 @@ class ViewListing extends ViewRecord
                         'published_at' => now(),
                     ]);
 
+                    \Log::info('NOTIF_DEBUG: ViewListing approve - update succeeded', [
+                        'listing_id' => $this->record->id,
+                        'new_status' => $this->record->status->value,
+                        'vendor_id' => $this->record->vendor_id,
+                    ]);
+
                     // Send vendor bell notification
                     try {
                         $vendor = $this->record->vendor;
+                        \Log::info('NOTIF_DEBUG: ViewListing approve - vendor check', [
+                            'vendor_exists' => $vendor !== null,
+                            'vendor_id' => $vendor?->id,
+                        ]);
                         if ($vendor) {
                             $listingTitle = $this->record->getTranslation('title', 'en')
                                 ?: $this->record->getTranslation('title', 'fr')
