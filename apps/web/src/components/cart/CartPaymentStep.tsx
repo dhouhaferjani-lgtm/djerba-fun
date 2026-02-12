@@ -184,7 +184,7 @@ export function CartPaymentStep({
         ref={paymentRef}
         className={`bg-white rounded-lg p-4 transition-all duration-300 ease-in-out ${
           highlightPayment
-            ? 'scale-[1.02] bg-green-50 border-2 border-green-500 shadow-lg ring-2 ring-green-400/30 animate-pulse'
+            ? 'bg-green-50 border-2 border-green-500 shadow-lg ring-2 ring-green-400/30 animate-attention'
             : 'border border-gray-200'
         }`}
       >
