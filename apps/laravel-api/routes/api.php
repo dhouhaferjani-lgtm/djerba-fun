@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\V1\ParticipantController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PlatformSettingsController;
 use App\Http\Controllers\Api\V1\ReviewController;
+use App\Http\Controllers\Api\V1\RouteProxyController;
 use App\Http\Controllers\Api\V1\TravelTipController;
 use App\Http\Controllers\Api\V1\CategoryStatsController;
 use App\Http\Controllers\Api\V1\ContactController;
@@ -91,6 +92,9 @@ Route::prefix('v1')->group(function () {
     // OAuth social login routes (public)
     Route::get('/auth/oauth/{provider}/redirect', [OAuthController::class, 'redirect']);
     Route::get('/auth/oauth/{provider}/callback', [OAuthController::class, 'callback']);
+
+    // Map route proxy (OSRM with Redis caching)
+    Route::get('/route', RouteProxyController::class);
 
     // Public listing routes
     Route::get('/listings', [ListingController::class, 'index']);

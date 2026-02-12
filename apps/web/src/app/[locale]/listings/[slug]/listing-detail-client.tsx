@@ -630,6 +630,7 @@ interface RouteItineraryTabsProps {
   imageUrl?: string;
   locale: string;
   isSejour?: boolean;
+  skipRouting?: boolean;
 }
 
 function RouteItineraryTabs({
@@ -639,6 +640,7 @@ function RouteItineraryTabs({
   imageUrl,
   locale,
   isSejour,
+  skipRouting,
 }: RouteItineraryTabsProps) {
   const [activeTab, setActiveTab] = useState<'map' | 'itinerary'>('map');
   const t = useTranslations('listing');
@@ -679,6 +681,7 @@ function RouteItineraryTabs({
               imageUrl={imageUrl}
               itinerary={itinerary}
               isSejour={isSejour}
+              skipRouting={skipRouting}
               locale={locale}
               className="h-full w-full"
             />
@@ -1252,6 +1255,14 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                         imageUrl={normalizeMediaUrl(listing.media?.[0]?.url)}
                         locale={locale}
                         isSejour={listing.serviceType === 'sejour'}
+                        skipRouting={[
+                          'fishing',
+                          'boat',
+                          'diving',
+                          'snorkeling',
+                          'sailing',
+                          'kayak',
+                        ].some((w) => listing.activityType?.slug?.includes(w))}
                       />
 
                       {/* Elevation Profile */}

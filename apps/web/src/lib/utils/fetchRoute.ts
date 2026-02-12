@@ -1,6 +1,6 @@
 import type { LatLngTuple } from 'leaflet';
 
-const OSRM_BASE = 'https://router.project-osrm.org/route/v1/driving';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 const routeCache = new Map<string, LatLngTuple[]>();
 
 function cacheKey(waypoints: LatLngTuple[]): string {
@@ -8,7 +8,7 @@ function cacheKey(waypoints: LatLngTuple[]): string {
 }
 
 /**
- * Fetch a road-following route from OSRM between waypoints.
+ * Fetch a road-following route between waypoints via our API proxy.
  * Returns an array of [lat, lng] points following roads, or null on failure.
  */
 export async function fetchRoute(waypoints: LatLngTuple[]): Promise<LatLngTuple[] | null> {
@@ -17,20 +17,18 @@ export async function fetchRoute(waypoints: LatLngTuple[]): Promise<LatLngTuple[
   const key = cacheKey(waypoints);
   if (routeCache.has(key)) return routeCache.get(key)!;
 
-  // OSRM expects lng,lat pairs separated by semicolons
-  const coords = waypoints.map(([lat, lng]) => `${lng},${lat}`).join(';');
-  const url = `${OSRM_BASE}/${coords}?overview=full&geometries=geojson`;
+  const waypointsParam = waypoints.map(([lat, lng]) => `${lat},${lng}`).join(';');
+  const url = `${API_BASE}/route?waypoints=${waypointsParam}`;
 
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (!res.ok) return null;
 
     const data = await res.json();
-    if (data.code !== 'Ok' || !data.routes?.[0]?.geometry?.coordinates) return null;
+    if (!data.coordinates) return null;
 
-    // OSRM GeoJSON coordinates are [lng, lat] — flip to [lat, lng]
-    const points: LatLngTuple[] = data.routes[0].geometry.coordinates.map(
-      ([lng, lat]: [number, number]) => [lat, lng] as LatLngTuple
+    const points: LatLngTuple[] = data.coordinates.map(
+      ([lat, lng]: [number, number]) => [lat, lng] as LatLngTuple
     );
 
     routeCache.set(key, points);

@@ -15,6 +15,7 @@ interface ListingMapProps {
   imageUrl?: string;
   itinerary?: ItineraryStop[];
   isSejour?: boolean;
+  skipRouting?: boolean;
   locale?: string;
   className?: string;
 }
@@ -34,6 +35,7 @@ export default function ListingMap({
   imageUrl,
   itinerary,
   isSejour,
+  skipRouting,
   locale,
   className,
 }: ListingMapProps) {
@@ -70,6 +72,7 @@ export default function ListingMap({
           const [positions, setPositions] = useState<LatLngTuple[]>(straightPositions);
 
           useEffect(() => {
+            if (skipRouting) return;
             let cancelled = false;
             fetchRoute(straightPositions).then((road) => {
               if (!cancelled && road) setPositions(road);
@@ -131,6 +134,7 @@ export default function ListingMap({
 
           // Fetch road-following routes for all segments
           useEffect(() => {
+            if (skipRouting) return;
             let cancelled = false;
             const fetches: Promise<void>[] = [];
 
