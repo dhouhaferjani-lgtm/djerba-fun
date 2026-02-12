@@ -27,15 +27,25 @@ class ViewReview extends ViewRecord
                 ->modalHeading('Approve Review')
                 ->modalDescription('This review will be published and visible to all travelers.')
                 ->action(function () {
-                    $this->record->publish();
-                    $this->record->load('listing');
-                    Review::recalculateListingRating($this->record->listing);
+                    try {
+                        $this->record->publish();
+                        $this->record->load('listing');
+                        Review::recalculateListingRating($this->record->listing);
+                        $this->refreshFormData(['is_published', 'published_at', 'rejected_at', 'rejection_reason']);
 
-                    Notification::make()
-                        ->title('Review Approved')
-                        ->body('The review is now published.')
-                        ->success()
-                        ->send();
+                        Notification::make()
+                            ->title('Review Approved')
+                            ->body('The review is now published.')
+                            ->success()
+                            ->send();
+                    } catch (\Throwable $e) {
+                        report($e);
+                        Notification::make()
+                            ->title('Failed to approve review')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
                 })
                 ->visible(fn () => $this->record->moderation_status !== 'published'),
 
@@ -52,14 +62,24 @@ class ViewReview extends ViewRecord
                 ->requiresConfirmation()
                 ->modalHeading('Reject Review')
                 ->action(function (array $data) {
-                    $this->record->reject($data['reason']);
-                    $this->record->load('listing');
-                    Review::recalculateListingRating($this->record->listing);
+                    try {
+                        $this->record->reject($data['reason']);
+                        $this->record->load('listing');
+                        Review::recalculateListingRating($this->record->listing);
+                        $this->refreshFormData(['is_published', 'published_at', 'rejected_at', 'rejection_reason']);
 
-                    Notification::make()
-                        ->title('Review Rejected')
-                        ->warning()
-                        ->send();
+                        Notification::make()
+                            ->title('Review Rejected')
+                            ->warning()
+                            ->send();
+                    } catch (\Throwable $e) {
+                        report($e);
+                        Notification::make()
+                            ->title('Failed to reject review')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
                 })
                 ->visible(fn () => $this->record->moderation_status !== 'rejected'),
 
@@ -75,17 +95,26 @@ class ViewReview extends ViewRecord
                         ->placeholder('Write your response to this review...'),
                 ])
                 ->action(function (array $data) {
-                    ReviewReply::create([
-                        'review_id' => $this->record->id,
-                        'vendor_id' => auth()->id(),
-                        'content' => $data['content'],
-                    ]);
+                    try {
+                        ReviewReply::create([
+                            'review_id' => $this->record->id,
+                            'vendor_id' => auth()->id(),
+                            'content' => $data['content'],
+                        ]);
 
-                    Notification::make()
-                        ->title('Reply Posted')
-                        ->body('Your reply has been added to the review.')
-                        ->success()
-                        ->send();
+                        Notification::make()
+                            ->title('Reply Posted')
+                            ->body('Your reply has been added to the review.')
+                            ->success()
+                            ->send();
+                    } catch (\Throwable $e) {
+                        report($e);
+                        Notification::make()
+                            ->title('Failed to post reply')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
                 })
                 ->visible(fn () => $this->record->reply === null),
         ];

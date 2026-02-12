@@ -24,14 +24,24 @@ class ViewReview extends ViewRecord
                 ->color('success')
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->record->publish();
-                    $this->record->load('listing');
-                    Review::recalculateListingRating($this->record->listing);
+                    try {
+                        $this->record->publish();
+                        $this->record->load('listing');
+                        Review::recalculateListingRating($this->record->listing);
+                        $this->refreshFormData(['is_published', 'published_at', 'rejected_at', 'rejection_reason']);
 
-                    Notification::make()
-                        ->title('Review Approved')
-                        ->success()
-                        ->send();
+                        Notification::make()
+                            ->title('Review Approved')
+                            ->success()
+                            ->send();
+                    } catch (\Throwable $e) {
+                        report($e);
+                        Notification::make()
+                            ->title('Failed to approve review')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
                 })
                 ->visible(fn () => $this->record->moderation_status !== 'published'),
 
@@ -47,14 +57,24 @@ class ViewReview extends ViewRecord
                 ])
                 ->requiresConfirmation()
                 ->action(function (array $data) {
-                    $this->record->reject($data['reason']);
-                    $this->record->load('listing');
-                    Review::recalculateListingRating($this->record->listing);
+                    try {
+                        $this->record->reject($data['reason']);
+                        $this->record->load('listing');
+                        Review::recalculateListingRating($this->record->listing);
+                        $this->refreshFormData(['is_published', 'published_at', 'rejected_at', 'rejection_reason']);
 
-                    Notification::make()
-                        ->title('Review Rejected')
-                        ->warning()
-                        ->send();
+                        Notification::make()
+                            ->title('Review Rejected')
+                            ->warning()
+                            ->send();
+                    } catch (\Throwable $e) {
+                        report($e);
+                        Notification::make()
+                            ->title('Failed to reject review')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
                 })
                 ->visible(fn () => $this->record->moderation_status !== 'rejected'),
 
@@ -64,14 +84,24 @@ class ViewReview extends ViewRecord
                 ->color('gray')
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->record->unpublish();
-                    $this->record->load('listing');
-                    Review::recalculateListingRating($this->record->listing);
+                    try {
+                        $this->record->unpublish();
+                        $this->record->load('listing');
+                        Review::recalculateListingRating($this->record->listing);
+                        $this->refreshFormData(['is_published', 'published_at', 'rejected_at', 'rejection_reason']);
 
-                    Notification::make()
-                        ->title('Review Unpublished')
-                        ->warning()
-                        ->send();
+                        Notification::make()
+                            ->title('Review Unpublished')
+                            ->warning()
+                            ->send();
+                    } catch (\Throwable $e) {
+                        report($e);
+                        Notification::make()
+                            ->title('Failed to unpublish review')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
                 })
                 ->visible(fn () => $this->record->is_published),
 

@@ -86,6 +86,7 @@ class ReviewResource extends Resource
                         'published' => 'success',
                         'pending' => 'warning',
                         'rejected' => 'danger',
+                        default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => ucfirst($state)),
 
@@ -129,14 +130,23 @@ class ReviewResource extends Resource
                     ->color('success')
                     ->requiresConfirmation()
                     ->action(function (Review $record) {
-                        $record->publish();
-                        $record->load('listing');
-                        Review::recalculateListingRating($record->listing);
+                        try {
+                            $record->publish();
+                            $record->load('listing');
+                            Review::recalculateListingRating($record->listing);
 
-                        Notification::make()
-                            ->title('Review Approved')
-                            ->success()
-                            ->send();
+                            Notification::make()
+                                ->title('Review Approved')
+                                ->success()
+                                ->send();
+                        } catch (\Throwable $e) {
+                            report($e);
+                            Notification::make()
+                                ->title('Failed to approve review')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     })
                     ->visible(fn (Review $record): bool => $record->moderation_status !== 'published'),
 
@@ -152,14 +162,23 @@ class ReviewResource extends Resource
                     ])
                     ->requiresConfirmation()
                     ->action(function (Review $record, array $data) {
-                        $record->reject($data['reason']);
-                        $record->load('listing');
-                        Review::recalculateListingRating($record->listing);
+                        try {
+                            $record->reject($data['reason']);
+                            $record->load('listing');
+                            Review::recalculateListingRating($record->listing);
 
-                        Notification::make()
-                            ->title('Review Rejected')
-                            ->warning()
-                            ->send();
+                            Notification::make()
+                                ->title('Review Rejected')
+                                ->warning()
+                                ->send();
+                        } catch (\Throwable $e) {
+                            report($e);
+                            Notification::make()
+                                ->title('Failed to reject review')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     })
                     ->visible(fn (Review $record): bool => $record->moderation_status !== 'rejected'),
 
@@ -169,14 +188,23 @@ class ReviewResource extends Resource
                     ->color('gray')
                     ->requiresConfirmation()
                     ->action(function (Review $record) {
-                        $record->unpublish();
-                        $record->load('listing');
-                        Review::recalculateListingRating($record->listing);
+                        try {
+                            $record->unpublish();
+                            $record->load('listing');
+                            Review::recalculateListingRating($record->listing);
 
-                        Notification::make()
-                            ->title('Review Unpublished')
-                            ->warning()
-                            ->send();
+                            Notification::make()
+                                ->title('Review Unpublished')
+                                ->warning()
+                                ->send();
+                        } catch (\Throwable $e) {
+                            report($e);
+                            Notification::make()
+                                ->title('Failed to unpublish review')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     })
                     ->visible(fn (Review $record): bool => $record->is_published),
 
@@ -210,6 +238,7 @@ class ReviewResource extends Resource
                                 'published' => 'success',
                                 'pending' => 'warning',
                                 'rejected' => 'danger',
+                                default => 'gray',
                             })
                             ->formatStateUsing(fn (string $state): string => ucfirst($state)),
 

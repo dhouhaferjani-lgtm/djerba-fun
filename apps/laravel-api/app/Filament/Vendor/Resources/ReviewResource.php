@@ -88,6 +88,7 @@ class ReviewResource extends Resource
                         'published' => 'success',
                         'pending' => 'warning',
                         'rejected' => 'danger',
+                        default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => ucfirst($state)),
 
@@ -152,15 +153,24 @@ class ReviewResource extends Resource
                     ->modalHeading('Approve Review')
                     ->modalDescription('This review will be published and visible to all travelers.')
                     ->action(function (Review $record) {
-                        $record->publish();
-                        $record->load('listing');
-                        Review::recalculateListingRating($record->listing);
+                        try {
+                            $record->publish();
+                            $record->load('listing');
+                            Review::recalculateListingRating($record->listing);
 
-                        Notification::make()
-                            ->title('Review Approved')
-                            ->body('The review is now published.')
-                            ->success()
-                            ->send();
+                            Notification::make()
+                                ->title('Review Approved')
+                                ->body('The review is now published.')
+                                ->success()
+                                ->send();
+                        } catch (\Throwable $e) {
+                            report($e);
+                            Notification::make()
+                                ->title('Failed to approve review')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     })
                     ->visible(fn (Review $record): bool => $record->moderation_status !== 'published'),
 
@@ -178,15 +188,24 @@ class ReviewResource extends Resource
                     ->requiresConfirmation()
                     ->modalHeading('Reject Review')
                     ->action(function (Review $record, array $data) {
-                        $record->reject($data['reason']);
-                        $record->load('listing');
-                        Review::recalculateListingRating($record->listing);
+                        try {
+                            $record->reject($data['reason']);
+                            $record->load('listing');
+                            Review::recalculateListingRating($record->listing);
 
-                        Notification::make()
-                            ->title('Review Rejected')
-                            ->body('The review has been rejected.')
-                            ->warning()
-                            ->send();
+                            Notification::make()
+                                ->title('Review Rejected')
+                                ->body('The review has been rejected.')
+                                ->warning()
+                                ->send();
+                        } catch (\Throwable $e) {
+                            report($e);
+                            Notification::make()
+                                ->title('Failed to reject review')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     })
                     ->visible(fn (Review $record): bool => $record->moderation_status !== 'rejected'),
 
@@ -244,6 +263,7 @@ class ReviewResource extends Resource
                                 'published' => 'success',
                                 'pending' => 'warning',
                                 'rejected' => 'danger',
+                                default => 'gray',
                             })
                             ->formatStateUsing(fn (string $state): string => ucfirst($state)),
 
