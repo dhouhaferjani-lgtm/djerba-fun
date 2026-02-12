@@ -42,6 +42,11 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
     Accept: 'application/json',
   };
 
+  // Auto-detect locale from next-intl's <html lang="..."> attribute
+  if (typeof document !== 'undefined' && document.documentElement.lang) {
+    headers['Accept-Language'] = document.documentElement.lang;
+  }
+
   if (options.headers) {
     Object.assign(headers, options.headers);
   }

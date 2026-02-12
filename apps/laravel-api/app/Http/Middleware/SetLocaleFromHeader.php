@@ -16,7 +16,7 @@ class SetLocaleFromHeader
     /**
      * Default locale.
      */
-    private string $defaultLocale = 'en';
+    private string $defaultLocale = 'fr';
 
     /**
      * Handle an incoming request.
