@@ -22,7 +22,10 @@ class ReviewPolicy
      */
     public function view(User $user, Review $review): bool
     {
-        return $review->is_published || $user->isAdmin() || $review->user_id === $user->id;
+        return $review->is_published
+            || $user->isAdmin()
+            || $review->user_id === $user->id
+            || ($user->isVendor() && $review->listing?->vendor_id === $user->id);
     }
 
     /**

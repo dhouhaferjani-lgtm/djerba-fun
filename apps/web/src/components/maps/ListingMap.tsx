@@ -115,6 +115,9 @@ export default function ListingMap({
           const days = Array.from(dayGroups.keys()).sort((a, b) => a - b);
           const elements: React.ReactNode[] = [];
 
+          // Track used positions to offset overlapping day icons
+          const usedPositions = new Map<string, number>();
+
           days.forEach((day, dayIndex) => {
             const dayStops = dayGroups.get(day)!;
             const color = DAY_COLORS[dayIndex % DAY_COLORS.length];
@@ -167,11 +170,16 @@ export default function ListingMap({
                 : firstStop.description?.en || firstStop.description?.fr || ''
               : '';
 
+            // Offset overlapping day icons vertically
+            const posKey = `${firstStop.lat.toFixed(5)},${firstStop.lng.toFixed(5)}`;
+            const overlapIndex = usedPositions.get(posKey) ?? 0;
+            usedPositions.set(posKey, overlapIndex + 1);
+
             const dayIcon = L.divIcon({
               className: 'day-label-marker',
               html: `<div style="background: ${color}; color: white; padding: 4px 12px; border-radius: 12px; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); white-space: nowrap; cursor: pointer;">${dayLabel} ${day}</div>`,
               iconSize: [70, 28],
-              iconAnchor: [35, 40],
+              iconAnchor: [35, 40 + overlapIndex * 32],
             });
 
             elements.push(
@@ -245,8 +253,9 @@ export default function ListingMap({
                 />
               ))}
 
-          {/* Start and End markers — rendered last so they appear on top (all listing types) */}
-          {sortedItinerary.length > 0 &&
+          {/* Start and End markers — tours only, séjours use day labels instead */}
+          {!isSejour &&
+            sortedItinerary.length > 0 &&
             (() => {
               const first = sortedItinerary[0];
               const last = sortedItinerary[sortedItinerary.length - 1];

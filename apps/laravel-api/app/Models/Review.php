@@ -207,8 +207,12 @@ class Review extends Model
      * Recalculate listing rating based on published reviews.
      * Called after review approval/rejection to update listing stats.
      */
-    public static function recalculateListingRating(Listing $listing): void
+    public static function recalculateListingRating(?Listing $listing): void
     {
+        if (! $listing) {
+            return;
+        }
+
         $stats = static::query()
             ->forListing($listing->id)
             ->published()

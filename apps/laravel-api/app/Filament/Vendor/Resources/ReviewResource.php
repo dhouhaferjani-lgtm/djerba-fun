@@ -153,6 +153,7 @@ class ReviewResource extends Resource
                     ->modalDescription('This review will be published and visible to all travelers.')
                     ->action(function (Review $record) {
                         $record->publish();
+                        $record->load('listing');
                         Review::recalculateListingRating($record->listing);
 
                         Notification::make()
@@ -178,6 +179,7 @@ class ReviewResource extends Resource
                     ->modalHeading('Reject Review')
                     ->action(function (Review $record, array $data) {
                         $record->reject($data['reason']);
+                        $record->load('listing');
                         Review::recalculateListingRating($record->listing);
 
                         Notification::make()

@@ -130,6 +130,7 @@ class ReviewResource extends Resource
                     ->requiresConfirmation()
                     ->action(function (Review $record) {
                         $record->publish();
+                        $record->load('listing');
                         Review::recalculateListingRating($record->listing);
 
                         Notification::make()
@@ -152,6 +153,7 @@ class ReviewResource extends Resource
                     ->requiresConfirmation()
                     ->action(function (Review $record, array $data) {
                         $record->reject($data['reason']);
+                        $record->load('listing');
                         Review::recalculateListingRating($record->listing);
 
                         Notification::make()
@@ -168,6 +170,7 @@ class ReviewResource extends Resource
                     ->requiresConfirmation()
                     ->action(function (Review $record) {
                         $record->unpublish();
+                        $record->load('listing');
                         Review::recalculateListingRating($record->listing);
 
                         Notification::make()
