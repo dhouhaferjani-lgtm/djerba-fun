@@ -40,8 +40,10 @@ class SetLocaleFromHeader
         app()->setLocale($locale);
 
         // Sync authenticated user's preferred_locale with current browsing language
-        if (auth()->check() && auth()->user()->preferred_locale !== $locale) {
-            auth()->user()->updateQuietly(['preferred_locale' => $locale]);
+        // Use 'sanctum' guard since API requests use Bearer tokens, not session auth
+        $user = auth('sanctum')->user();
+        if ($user && $user->preferred_locale !== $locale) {
+            $user->updateQuietly(['preferred_locale' => $locale]);
         }
 
         return $next($request);
