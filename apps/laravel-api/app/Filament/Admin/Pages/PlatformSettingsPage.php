@@ -1249,6 +1249,15 @@ class PlatformSettingsPage extends Page implements HasForms
                 Forms\Components\Section::make('Exchange Rates & PPP')
                     ->description('Configure exchange rates and purchasing power parity adjustments')
                     ->schema([
+                        Forms\Components\TextInput::make('eur_to_tnd_rate')
+                            ->label('EUR → TND Exchange Rate')
+                            ->numeric()
+                            ->step(0.0001)
+                            ->default(3.3000)
+                            ->required()
+                            ->helperText('How many TND for 1 EUR. Update this daily. Used for ClikToPay payment display to show EUR users the TND equivalent.')
+                            ->columnSpanFull(),
+
                         Forms\Components\TextInput::make('exchange_rate_api_key')
                             ->label('Exchange Rate API Key')
                             ->password()

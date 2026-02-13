@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BookingResource;
 use App\Models\Cart;
 use App\Models\CartPayment;
+use App\Models\PlatformSettings;
 use App\Services\CartCheckoutService;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
@@ -226,28 +227,12 @@ class CartCheckoutController extends Controller
     }
 
     /**
-     * Calculate TND equivalent total for a cart (used for ClikToPay currency notice).
+     * Calculate TND equivalent for a cart using the manual exchange rate from admin settings.
      */
     private function getTndEquivalent(Cart $cart): float
     {
-        $tndTotal = 0;
-        $priceService = app(\App\Services\PriceCalculationService::class);
+        $rate = (float) (PlatformSettings::instance()->eur_to_tnd_rate ?? 3.30);
 
-        foreach ($cart->items as $item) {
-            $listing = $item->listing;
-            if (! $listing) {
-                continue;
-            }
-
-            if (! empty($item->person_type_breakdown)) {
-                $result = $priceService->calculateTotal($listing, $item->person_type_breakdown, 'TND');
-                $tndTotal += $result['total'];
-            } else {
-                $result = $priceService->calculateTotal($listing, ['adult' => $item->quantity], 'TND');
-                $tndTotal += $result['total'];
-            }
-        }
-
-        return round($tndTotal, 2);
+        return round($cart->getSubtotal() * $rate, 2);
     }
 }

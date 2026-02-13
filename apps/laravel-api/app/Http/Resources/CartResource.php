@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
-use App\Services\PriceCalculationService;
+use App\Models\PlatformSettings;
 use Illuminate\Http\Request;
 
 class CartResource extends BaseResource
@@ -35,7 +35,7 @@ class CartResource extends BaseResource
             'totalGuests' => $this->getTotalGuests(),
             'subtotal' => $subtotal,
             'currency' => $currency,
-            'tndSubtotal' => $currency === 'TND' ? $subtotal : $this->getTndEquivalent(),
+            'tndSubtotal' => $currency === 'TND' ? $subtotal : $this->getTndEquivalent($subtotal),
             'items' => CartItemResource::collection($this->whenLoaded('items')),
             'createdAt' => $this->created_at?->toIso8601String(),
             'updatedAt' => $this->updated_at?->toIso8601String(),
@@ -43,28 +43,12 @@ class CartResource extends BaseResource
     }
 
     /**
-     * Calculate TND equivalent total for EUR carts (for ClikToPay currency notice).
+     * Calculate TND equivalent for EUR carts using the manual exchange rate from admin settings.
      */
-    private function getTndEquivalent(): float
+    private function getTndEquivalent(float $eurSubtotal): float
     {
-        $tndTotal = 0;
-        $priceService = app(PriceCalculationService::class);
+        $rate = (float) (PlatformSettings::instance()->eur_to_tnd_rate ?? 3.30);
 
-        foreach ($this->items as $item) {
-            $listing = $item->listing;
-            if (! $listing) {
-                continue;
-            }
-
-            if (! empty($item->person_type_breakdown)) {
-                $result = $priceService->calculateTotal($listing, $item->person_type_breakdown, 'TND');
-                $tndTotal += $result['total'];
-            } else {
-                $result = $priceService->calculateTotal($listing, ['adult' => $item->quantity], 'TND');
-                $tndTotal += $result['total'];
-            }
-        }
-
-        return round($tndTotal, 2);
+        return round($eurSubtotal * $rate, 2);
     }
 }

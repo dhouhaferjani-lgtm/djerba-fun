@@ -146,6 +146,7 @@ class PlatformSettings extends Model implements HasMedia
         'ppp_factor_eur',
         'ppp_factor_usd',
         'ppp_factor_gbp',
+        'eur_to_tnd_rate',
 
         // Booking Settings
         'hold_duration_minutes',
@@ -277,6 +278,7 @@ class PlatformSettings extends Model implements HasMedia
             'ppp_factor_eur' => 'decimal:4',
             'ppp_factor_usd' => 'decimal:4',
             'ppp_factor_gbp' => 'decimal:4',
+            'eur_to_tnd_rate' => 'decimal:4',
 
             // Integers
             'hold_duration_minutes' => 'integer',
