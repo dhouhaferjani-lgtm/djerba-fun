@@ -96,11 +96,11 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
       <style dangerouslySetInnerHTML={{ __html: shineAnimationStyles }} />
       <form
         onSubmit={handleSearch}
-        className="bg-white/95 backdrop-blur-md rounded-lg p-6 shadow-2xl"
+        className="bg-white/95 backdrop-blur-md rounded-lg p-6 shadow-2xl overflow-hidden"
       >
         <div className="grid md:grid-cols-4 gap-4">
           {/* Destination */}
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs font-semibold text-primary mb-2 uppercase tracking-wider">
               {t('search_destination')}
             </label>
@@ -114,7 +114,7 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
           </div>
 
           {/* Activity Type */}
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs font-semibold text-primary mb-2 uppercase tracking-wider">
               {t('search_activity')}
             </label>
@@ -128,7 +128,7 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
           </div>
 
           {/* Date */}
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs font-semibold text-primary mb-2 uppercase tracking-wider">
               {t('search_date')}
             </label>
@@ -142,7 +142,7 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
           </div>
 
           {/* Search Button */}
-          <div className="flex items-end">
+          <div className="flex items-end min-w-0">
             <Button
               type="submit"
               className="shine-button w-full h-[46px] px-6 text-base font-semibold bg-primary hover:bg-primary-700 text-white rounded-md whitespace-nowrap"
