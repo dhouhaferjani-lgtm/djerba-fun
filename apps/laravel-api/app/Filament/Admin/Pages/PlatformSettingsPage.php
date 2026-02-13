@@ -1357,6 +1357,36 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->helperText('Select which payment methods are available to customers on checkout.'),
                     ]),
 
+                Forms\Components\Section::make('Bank Transfer Details')
+                    ->description('Configure the bank account details shown to customers who choose bank transfer.')
+                    ->collapsed()
+                    ->schema([
+                        Forms\Components\TextInput::make('bank_transfer_bank_name')
+                            ->label('Bank Name')
+                            ->placeholder('e.g. Banque Nationale Agricole')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('bank_transfer_account_holder')
+                            ->label('Account Holder Name')
+                            ->placeholder('e.g. Go Adventure SARL')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('bank_transfer_iban')
+                            ->label('IBAN')
+                            ->placeholder('e.g. TN59 1000 6035 1835 9847 8831')
+                            ->maxLength(34),
+                        Forms\Components\TextInput::make('bank_transfer_swift_bic')
+                            ->label('SWIFT / BIC Code')
+                            ->placeholder('e.g. BNATNTTXXX')
+                            ->maxLength(11),
+                        Forms\Components\TextInput::make('bank_transfer_account_number')
+                            ->label('Account Number (RIB)')
+                            ->placeholder('e.g. 10006035183598478831')
+                            ->maxLength(30),
+                        Forms\Components\Textarea::make('bank_transfer_instructions')
+                            ->label('Additional Instructions')
+                            ->placeholder('e.g. Please include your booking reference in the transfer description.')
+                            ->rows(3),
+                    ]),
+
                 Forms\Components\Section::make('Fees & Limits')
                     ->schema([
                         Forms\Components\TextInput::make('platform_commission_percent')

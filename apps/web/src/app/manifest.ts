@@ -12,7 +12,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Go Adventure - Tourism Marketplace',
     short_name: 'Go Adventure',
     description:
-      'Discover and book unique tours, activities, and events. Your trusted marketplace for unforgettable travel experiences.',
+      'Discover and book unique activities and events. Your trusted marketplace for unforgettable travel experiences.',
     start_url: '/',
     display: 'standalone',
     background_color: colors.neutral.white,

@@ -32,7 +32,7 @@
     "search_date": "When",
     "search_date_placeholder": "Select dates",
     "search_button": "Search Adventures",
-    "featured_tours": "Featured Tours",
+    "featured_tours": "Featured Activities",
     "upcoming_events": "Upcoming Events",
     "popular_destinations": "Popular Destinations",
     "usp_authentic_title": "Live More Than Just a Simple Travel",
@@ -354,7 +354,7 @@
   },
   "navigation": {
     "home": "Home",
-    "tours": "Tours",
+    "tours": "Activities",
     "events": "Events",
     "about": "About",
     "contact": "Contact"

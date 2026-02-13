@@ -21,8 +21,6 @@ import { useLocale } from 'next-intl';
 
 interface ReviewCardProps {
   review: Review;
-  onMarkHelpful?: (reviewId: string) => void;
-  isMarkingHelpful?: boolean;
 }
 
 // Memoized StarRating component
@@ -46,7 +44,7 @@ const StarRating = memo(({ rating }: { rating: number }) => {
 
 StarRating.displayName = 'StarRating';
 
-function ReviewCardComponent({ review, onMarkHelpful, isMarkingHelpful }: ReviewCardProps) {
+function ReviewCardComponent({ review }: ReviewCardProps) {
   const t = useTranslations('reviews');
   const locale = useLocale();
   const [imageError, setImageError] = useState(false);
@@ -63,13 +61,6 @@ function ReviewCardComponent({ review, onMarkHelpful, isMarkingHelpful }: Review
   const handleImageError = useCallback(() => {
     setImageError(true);
   }, []);
-
-  // Memoize the helpful button click handler
-  const handleMarkHelpful = useCallback(() => {
-    if (onMarkHelpful) {
-      onMarkHelpful(review.id);
-    }
-  }, [onMarkHelpful, review.id]);
 
   return (
     <div className="border border-gray-200 rounded-lg p-6 bg-white">
@@ -212,25 +203,6 @@ function ReviewCardComponent({ review, onMarkHelpful, isMarkingHelpful }: Review
           <p className="text-gray-700 text-sm">{review.vendorReply.content}</p>
         </div>
       )}
-
-      {/* Helpful Button */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <button
-          onClick={handleMarkHelpful}
-          disabled={isMarkingHelpful}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-            />
-          </svg>
-          {t('helpful')} ({review.helpfulCount})
-        </button>
-      </div>
     </div>
   );
 }

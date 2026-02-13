@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Star, ThumbsUp, MessageSquare, Loader2, PenLine } from 'lucide-react';
+import { Star, MessageSquare, Loader2, PenLine } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Badge } from '@go-adventure/ui';
 import type { Review, ReviewSummary } from '@go-adventure/schemas';
@@ -27,28 +27,6 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
   const [summary, setSummary] = useState<ReviewSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(reviewsCount);
-  const [markingHelpfulId, setMarkingHelpfulId] = useState<string | null>(null);
-
-  const handleMarkHelpful = useCallback(
-    async (reviewId: string) => {
-      if (markingHelpfulId) return;
-      setMarkingHelpfulId(reviewId);
-      try {
-        await reviewsApi.markHelpful(reviewId);
-        setReviews((prev) =>
-          prev.map((r) =>
-            r.id === reviewId ? { ...r, helpfulCount: (r.helpfulCount ?? 0) + 1 } : r
-          )
-        );
-      } catch {
-        // Silently fail
-      } finally {
-        setMarkingHelpfulId(null);
-      }
-    },
-    [markingHelpfulId]
-  );
-
   const fetchReviews = useCallback(async () => {
     if (!listingSlug) return;
     setLoading(true);
@@ -187,12 +165,7 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
       {reviews.length > 0 && (
         <div className="space-y-8">
           {reviews.slice(0, 5).map((review) => (
-            <ReviewCard
-              key={review.id}
-              review={review}
-              onMarkHelpful={handleMarkHelpful}
-              isMarkingHelpful={markingHelpfulId === review.id}
-            />
+            <ReviewCard key={review.id} review={review} />
           ))}
 
           {reviews.length > 5 && (
@@ -207,15 +180,7 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
 }
 
 // Individual Review Card Component
-function ReviewCard({
-  review,
-  onMarkHelpful,
-  isMarkingHelpful,
-}: {
-  review: Review;
-  onMarkHelpful: (reviewId: string) => void;
-  isMarkingHelpful: boolean;
-}) {
+function ReviewCard({ review }: { review: Review }) {
   return (
     <article className="border-b border-neutral-200 pb-8 last:border-0">
       {/* Reviewer Info */}
@@ -314,16 +279,6 @@ function ReviewCard({
           <p className="text-sm text-neutral-700">{review.vendorReply.content}</p>
         </div>
       )}
-
-      {/* Helpful Button */}
-      <button
-        onClick={() => onMarkHelpful(review.id)}
-        disabled={isMarkingHelpful}
-        className="flex items-center gap-2 text-sm text-neutral-600 hover:text-primary transition-colors mt-4 disabled:opacity-50"
-      >
-        <ThumbsUp className="h-4 w-4" />
-        <span>Helpful ({review.helpfulCount})</span>
-      </button>
     </article>
   );
 }

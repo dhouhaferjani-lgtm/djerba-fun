@@ -201,6 +201,7 @@ export function CartPaymentStep({
           availableMethods={enabledMethods}
           onSelect={setSelectedMethod}
           selectedMethod={selectedMethod}
+          bankTransferDetails={platformSettings?.booking?.bankTransfer}
         />
       </div>
 

@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
 // Default metadata values (fallback if API fails)
 const DEFAULT_TITLE = 'Go Adventure - Tourism Marketplace';
 const DEFAULT_DESCRIPTION =
-  'Discover and book unique tours, activities, and events. Your trusted marketplace for unforgettable travel experiences.';
+  'Discover and book unique activities and events. Your trusted marketplace for unforgettable travel experiences.';
 
 /**
  * Generate dynamic metadata from platform settings.
@@ -50,7 +50,6 @@ export async function generateMetadata({
     description,
     keywords: [
       'tourism',
-      'tours',
       'activities',
       'events',
       'adventure',
@@ -58,7 +57,7 @@ export async function generateMetadata({
       'marketplace',
       'experiences',
       'outdoor activities',
-      'guided tours',
+      'guided activities',
     ],
     authors: [{ name: platformName }],
     creator: platformName,
@@ -174,7 +173,7 @@ export default async function LocaleLayout({
           logo={branding.logoLight || `${SITE_URL}/logo.png`}
           description={
             branding.description ||
-            'Discover and book unique tours, activities, and events. Your trusted marketplace for unforgettable travel experiences.'
+            'Discover and book unique activities and events. Your trusted marketplace for unforgettable travel experiences.'
           }
           sameAs={[
             'https://facebook.com/goadventure',

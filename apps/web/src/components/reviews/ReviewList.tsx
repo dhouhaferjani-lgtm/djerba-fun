@@ -12,8 +12,6 @@ interface ReviewListProps {
   onPageChange?: (page: number) => void;
   onSortChange?: (sort: string) => void;
   onFilterChange?: (rating: number | null) => void;
-  onMarkHelpful?: (reviewId: string) => void;
-  isMarkingHelpful?: boolean;
   isLoading?: boolean;
 }
 
@@ -24,8 +22,6 @@ export default function ReviewList({
   onPageChange,
   onSortChange,
   onFilterChange,
-  onMarkHelpful,
-  isMarkingHelpful,
   isLoading,
 }: ReviewListProps) {
   const t = useTranslations('reviews');
@@ -130,7 +126,6 @@ export default function ReviewList({
           >
             <option value="newest">{t('sort_newest')}</option>
             <option value="highest">{t('sort_highest')}</option>
-            <option value="helpful">{t('sort_helpful')}</option>
           </select>
         </div>
       </div>
@@ -138,12 +133,7 @@ export default function ReviewList({
       {/* Reviews */}
       <div className="space-y-4">
         {reviews.map((review) => (
-          <ReviewCard
-            key={review.id}
-            review={review}
-            onMarkHelpful={onMarkHelpful}
-            isMarkingHelpful={isMarkingHelpful}
-          />
+          <ReviewCard key={review.id} review={review} />
         ))}
       </div>
 

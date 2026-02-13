@@ -85,7 +85,7 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
   ];
 
   const activityTypeOptions = [
-    { value: 'tour', label: 'Tours' },
+    { value: 'tour', label: 'Activities' },
     { value: 'event', label: 'Events' },
     { value: 'workshop', label: 'Workshops' },
     { value: 'adventure', label: 'Adventure' },

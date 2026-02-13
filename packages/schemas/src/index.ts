@@ -1355,6 +1355,16 @@ export const platformFeaturesSchema = z.object({
   customPackages: z.boolean(),
 });
 
+/** Bank transfer details (configured in admin panel) */
+export const bankTransferDetailsSchema = z.object({
+  bankName: z.string().nullable().optional(),
+  accountHolder: z.string().nullable().optional(),
+  iban: z.string().nullable().optional(),
+  swiftBic: z.string().nullable().optional(),
+  accountNumber: z.string().nullable().optional(),
+  instructions: z.string().nullable().optional(),
+});
+
 /** Platform booking settings */
 export const platformBookingSchema = z.object({
   holdDurationMinutes: z.number().int(),
@@ -1364,6 +1374,7 @@ export const platformBookingSchema = z.object({
   minBookingAmount: z.number(),
   maxBookingAmount: z.number(),
   enabledPaymentMethods: z.array(z.string()).optional(),
+  bankTransfer: bankTransferDetailsSchema.optional(),
 });
 
 /** Platform legal settings */
@@ -1563,6 +1574,7 @@ export type PlatformAddress = z.infer<typeof platformAddressSchema>;
 export type PlatformSocial = z.infer<typeof platformSocialSchema>;
 export type PlatformLocalization = z.infer<typeof platformLocalizationSchema>;
 export type PlatformFeatures = z.infer<typeof platformFeaturesSchema>;
+export type BankTransferDetails = z.infer<typeof bankTransferDetailsSchema>;
 export type PlatformBooking = z.infer<typeof platformBookingSchema>;
 export type PlatformLegal = z.infer<typeof platformLegalSchema>;
 export type PlatformAnalytics = z.infer<typeof platformAnalyticsSchema>;

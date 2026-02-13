@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import type { BankTransferDetails } from '@go-adventure/schemas';
 
 export type PaymentMethod = 'mock' | 'offline' | 'cash' | 'click_to_pay' | 'stripe' | 'paypal';
 
@@ -9,12 +10,14 @@ interface PaymentMethodSelectorProps {
   availableMethods: PaymentMethod[];
   onSelect: (method: PaymentMethod) => void;
   selectedMethod?: PaymentMethod;
+  bankTransferDetails?: BankTransferDetails | null;
 }
 
 export function PaymentMethodSelector({
   availableMethods,
   onSelect,
   selectedMethod,
+  bankTransferDetails,
 }: PaymentMethodSelectorProps) {
   const t = useTranslations('payment');
   const tCheckout = useTranslations('checkout');
@@ -115,9 +118,39 @@ export function PaymentMethodSelector({
         <div className="mt-4 p-4 bg-success-light border border-success/20 rounded-lg">
           <h4 className="font-medium text-success-dark mb-2">{t('bank_transfer_instructions')}</h4>
           <div className="text-sm text-success-dark space-y-1">
-            <p>{t('bank_transfer_info')}</p>
-            <p className="font-mono mt-2">IBAN: FR76 1234 5678 9012 3456 7890 123</p>
-            <p className="font-mono">BIC: ABCDEFGH</p>
+            {bankTransferDetails?.iban ? (
+              <>
+                <p>{t('bank_transfer_info')}</p>
+                {bankTransferDetails.bankName && (
+                  <p>
+                    <strong>{t('bank_name')}:</strong> {bankTransferDetails.bankName}
+                  </p>
+                )}
+                {bankTransferDetails.accountHolder && (
+                  <p>
+                    <strong>{t('account_holder')}:</strong> {bankTransferDetails.accountHolder}
+                  </p>
+                )}
+                <p className="font-mono mt-2">
+                  <strong>IBAN:</strong> {bankTransferDetails.iban}
+                </p>
+                {bankTransferDetails.swiftBic && (
+                  <p className="font-mono">
+                    <strong>BIC/SWIFT:</strong> {bankTransferDetails.swiftBic}
+                  </p>
+                )}
+                {bankTransferDetails.accountNumber && (
+                  <p className="font-mono">
+                    <strong>RIB:</strong> {bankTransferDetails.accountNumber}
+                  </p>
+                )}
+                {bankTransferDetails.instructions && (
+                  <p className="mt-2 text-xs">{bankTransferDetails.instructions}</p>
+                )}
+              </>
+            ) : (
+              <p>{t('bank_transfer_info')}</p>
+            )}
             <p className="mt-2 text-xs">{t('bank_transfer_note')}</p>
           </div>
         </div>

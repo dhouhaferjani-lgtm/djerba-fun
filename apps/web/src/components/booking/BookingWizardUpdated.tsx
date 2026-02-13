@@ -342,6 +342,7 @@ export function BookingWizard({
                 availableMethods={enabledMethods}
                 onSelect={setPaymentMethod}
                 selectedMethod={paymentMethod}
+                bankTransferDetails={platformSettings?.booking?.bankTransfer}
               />
             </div>
             <CheckoutConsents

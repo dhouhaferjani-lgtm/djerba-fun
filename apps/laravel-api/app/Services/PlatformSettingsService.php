@@ -152,6 +152,14 @@ class PlatformSettingsService
                 'minBookingAmount' => (float) $s->min_booking_amount,
                 'maxBookingAmount' => (float) $s->max_booking_amount,
                 'enabledPaymentMethods' => $this->mapPaymentMethods($s->enabled_payment_methods ?? []),
+                'bankTransfer' => [
+                    'bankName' => $s->bank_transfer_bank_name,
+                    'accountHolder' => $s->bank_transfer_account_holder,
+                    'iban' => $s->bank_transfer_iban,
+                    'swiftBic' => $s->bank_transfer_swift_bic,
+                    'accountNumber' => $s->bank_transfer_account_number,
+                    'instructions' => $s->bank_transfer_instructions,
+                ],
             ],
             'legal' => [
                 'termsUrl' => $s->terms_url,
