@@ -7,12 +7,18 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useEffect } from 'react';
+import { isValidPhoneNumber } from '@/lib/utils/validation';
 
 const primaryContactSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Invalid email address'),
-  phone: z.string().min(1, 'Phone number is required'),
+  phone: z
+    .string()
+    .min(1, 'Phone number is required')
+    .refine((val) => isValidPhoneNumber(val), {
+      message: 'Please enter a valid phone number (e.g., +216 52 665 202)',
+    }),
   specialRequests: z.string().optional(),
 });
 

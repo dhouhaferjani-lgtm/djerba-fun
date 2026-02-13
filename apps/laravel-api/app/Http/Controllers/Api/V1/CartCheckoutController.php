@@ -83,11 +83,17 @@ class CartCheckoutController extends Controller
             ], 422);
         }
 
+        $payment = $result['payment'];
+        $tndAmount = $payment->currency === 'TND'
+            ? $payment->amount
+            : $this->getTndEquivalent($cart);
+
         return response()->json([
             'message' => 'Checkout initiated',
-            'payment_id' => $result['payment']->id,
-            'amount' => $result['payment']->amount,
-            'currency' => $result['payment']->currency,
+            'payment_id' => $payment->id,
+            'amount' => $payment->amount,
+            'currency' => $payment->currency,
+            'tnd_amount' => $tndAmount,
         ]);
     }
 
@@ -217,5 +223,31 @@ class CartCheckoutController extends Controller
                 ? BookingResource::collection($payment->bookings)
                 : [],
         ]);
+    }
+
+    /**
+     * Calculate TND equivalent total for a cart (used for ClikToPay currency notice).
+     */
+    private function getTndEquivalent(Cart $cart): float
+    {
+        $tndTotal = 0;
+        $priceService = app(\App\Services\PriceCalculationService::class);
+
+        foreach ($cart->items as $item) {
+            $listing = $item->listing;
+            if (! $listing) {
+                continue;
+            }
+
+            if (! empty($item->person_type_breakdown)) {
+                $result = $priceService->calculateTotal($listing, $item->person_type_breakdown, 'TND');
+                $tndTotal += $result['total'];
+            } else {
+                $result = $priceService->calculateTotal($listing, ['adult' => $item->quantity], 'TND');
+                $tndTotal += $result['total'];
+            }
+        }
+
+        return round($tndTotal, 2);
     }
 }

@@ -30,7 +30,7 @@ class CreateBookingRequest extends BaseFormRequest
             'traveler_info.first_name' => ['required_with:traveler_info', 'string', 'max:255'],
             'traveler_info.last_name' => ['required_with:traveler_info', 'string', 'max:255'],
             'traveler_info.email' => ['required_with:traveler_info', 'email', 'max:255'],
-            'traveler_info.phone' => ['required_with:traveler_info', 'string', 'max:50'],
+            'traveler_info.phone' => ['required_with:traveler_info', 'string', 'max:50', 'regex:/^\+?[\d\s\-\(\)\.]{8,20}$/'],
             'traveler_info.special_requests' => ['nullable', 'string', 'max:1000'],
 
             // New: Array of travelers for multi-guest bookings (email-only checkout)
@@ -38,7 +38,7 @@ class CreateBookingRequest extends BaseFormRequest
             'travelers.*.first_name' => ['nullable', 'string', 'max:255'],
             'travelers.*.last_name' => ['nullable', 'string', 'max:255'],
             'travelers.*.email' => ['required', 'email', 'max:255'],
-            'travelers.*.phone' => ['nullable', 'string', 'max:50'],
+            'travelers.*.phone' => ['nullable', 'string', 'max:50', 'regex:/^\+?[\d\s\-\(\)\.]{8,20}$/'],
             'travelers.*.person_type' => ['nullable', 'string', 'in:adult,child,infant'],
             'travelers.*.special_requests' => ['nullable', 'string', 'max:1000'],
 
@@ -129,6 +129,8 @@ class CreateBookingRequest extends BaseFormRequest
             'travelers.required_without' => 'At least one traveler is required.',
             'travelers.*.email.required' => 'Email is required for all travelers.',
             'travelers.*.email.email' => 'Please provide a valid email address.',
+            'traveler_info.phone.regex' => 'Please enter a valid phone number (e.g., +216 52 665 202).',
+            'travelers.*.phone.regex' => 'Please enter a valid phone number (e.g., +216 52 665 202).',
         ];
     }
 }

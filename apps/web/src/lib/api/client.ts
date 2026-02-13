@@ -1153,6 +1153,7 @@ export const cartApi = {
       payment_id: string;
       amount: number;
       currency: string;
+      tnd_amount?: number;
     }>('/cart/checkout', {
       method: 'POST',
       body: JSON.stringify({

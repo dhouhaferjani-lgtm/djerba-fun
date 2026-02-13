@@ -999,7 +999,8 @@
     "confirm_payment_title": "Confirmer le Paiement",
     "you_will_be_charged": "Vous serez débité de",
     "equivalent_to": "équivalent à",
-    "currency_notice_message": "La page de paiement affichera le montant en TND ({tndAmount}). Ne vous inquiétez pas - votre carte sera débitée exactement de {eurAmount} dans votre devise.",
+    "currency_notice_message": "Vous serez redirigé vers ClikToPay, la passerelle de paiement sécurisée de la Tunisie. La page de paiement affichera le montant en Dinar Tunisien ({tndAmount}). Ne vous inquiétez pas — vous serez débité exactement de {eurAmount} dans votre devise. Aucun frais caché.",
+    "currency_notice_message_tnd": "Vous serez redirigé vers ClikToPay, la passerelle de paiement sécurisée de la Tunisie, pour finaliser votre paiement de {amount}.",
     "no_hidden_fees": "Sans frais cachés",
     "confirm_and_pay": "Confirmer et Payer",
     "redirect_notice_tnd": "Vous serez redirigé en toute sécurité vers Clictopay, la passerelle de paiement officielle de Tunisie, pour finaliser votre paiement. Votre carte sera débitée exactement du montant affiché ci-dessus."

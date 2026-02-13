@@ -18,7 +18,8 @@ interface CurrencyNoticeModalProps {
  * Payment Confirmation Modal
  *
  * Clean, professional design that reassures users about currency conversion.
- * Shows EUR amount prominently with TND equivalent and a clear explanation.
+ * For EUR users: Shows EUR amount prominently with TND equivalent and explanation.
+ * For TND users: Shows simpler confirmation without currency confusion messaging.
  */
 export function CurrencyNoticeModal({
   isOpen,
@@ -41,6 +42,7 @@ export function CurrencyNoticeModal({
 
   const formattedAmount = formatCurrency(amount, currency);
   const formattedTnd = formatCurrency(tndAmount, 'TND');
+  const isTndUser = currency === 'TND';
 
   return (
     <Dialog isOpen={isOpen} onClose={onCancel} size="md" showCloseButton={true}>
@@ -52,20 +54,24 @@ export function CurrencyNoticeModal({
         <div className="mb-6">
           <p className="text-sm text-neutral-500 mb-2">{t('you_will_be_charged')}</p>
           <p className="text-4xl font-bold text-primary mb-1">{formattedAmount}</p>
-          <p className="text-sm text-neutral-500">
-            ({t('equivalent_to')} {formattedTnd})
-          </p>
+          {!isTndUser && (
+            <p className="text-sm text-neutral-500">
+              ({t('equivalent_to')} {formattedTnd})
+            </p>
+          )}
         </div>
 
-        {/* Payment Notice - Always show same message */}
+        {/* Payment Notice */}
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-left">
           <div className="flex gap-3">
             <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-blue-800">
-              {t('currency_notice_message', {
-                eurAmount: formattedAmount,
-                tndAmount: formattedTnd,
-              })}
+              {isTndUser
+                ? t('currency_notice_message_tnd', { amount: formattedAmount })
+                : t('currency_notice_message', {
+                    eurAmount: formattedAmount,
+                    tndAmount: formattedTnd,
+                  })}
             </p>
           </div>
         </div>

@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { useCartContext } from '@/lib/contexts/CartContext';
 import { useInitiateCheckout, useProcessCartPayment, useUpdateCartItem } from '@/lib/api/hooks';
 import { CheckoutAuthModal } from '@/components/booking/CheckoutAuthModal';
+import { CurrencyNoticeModal } from '@/components/booking/CurrencyNoticeModal';
 import { PrimaryContactForm, type PrimaryContactData } from './PrimaryContactForm';
 import { CartPaymentStep } from './CartPaymentStep';
 import { CartConfirmation } from './CartConfirmation';
@@ -51,6 +52,13 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
   // Auth modal state
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [hasChosenAuthMethod, setHasChosenAuthMethod] = useState(false);
+
+  // Currency notice modal state (for ClikToPay redirect)
+  const [showCurrencyNotice, setShowCurrencyNotice] = useState(false);
+  const [pendingPaymentAmount, setPendingPaymentAmount] = useState(0);
+  const [pendingTndAmount, setPendingTndAmount] = useState(0);
+  const [pendingPaymentCurrency, setPendingPaymentCurrency] = useState('EUR');
+  const [pendingPaymentId, setPendingPaymentId] = useState<string | null>(null);
 
   const initiateCheckout = useInitiateCheckout();
   const processPayment = useProcessCartPayment();
@@ -145,31 +153,21 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
     }
   };
 
-  const handlePaymentSubmit = async (paymentMethod: PaymentMethod) => {
-    setError(null);
-
+  const processPaymentAndRedirect = async (paymentIdToProcess: string) => {
     try {
-      // Initiate checkout
-      const checkoutResponse = await initiateCheckout.mutateAsync(paymentMethod);
-      const newPaymentId = checkoutResponse.payment_id;
-      setPaymentId(newPaymentId);
-
-      // Process payment
       const paymentResponse = await processPayment.mutateAsync({
-        paymentId: newPaymentId,
+        paymentId: paymentIdToProcess,
         paymentData: {},
       });
 
       // Handle redirect-based payments (Clictopay)
       if (paymentResponse.requires_redirect && paymentResponse.redirect_url) {
-        // Redirect user to payment gateway
         window.location.href = paymentResponse.redirect_url;
         return;
       }
 
       // Handle direct payments (mock, offline)
       if (paymentResponse.success && paymentResponse.bookings) {
-        // Save cart info before it gets cleared
         if (cart) {
           setCompletedCartInfo({
             totalAmount: cart.subtotal,
@@ -182,10 +180,49 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
         setError(t('payment_failed'));
       }
     } catch (err) {
+      console.error('Payment processing error:', err);
+      const errorMessage = err instanceof Error ? err.message : t('payment_failed');
+      setError(errorMessage);
+    }
+  };
+
+  const handlePaymentSubmit = async (paymentMethod: PaymentMethod) => {
+    setError(null);
+
+    try {
+      // Initiate checkout
+      const checkoutResponse = await initiateCheckout.mutateAsync(paymentMethod);
+      const newPaymentId = checkoutResponse.payment_id;
+      setPaymentId(newPaymentId);
+
+      // For ClikToPay, show currency confirmation modal before processing payment
+      if (paymentMethod === 'click_to_pay') {
+        setPendingPaymentAmount(checkoutResponse.amount);
+        setPendingPaymentCurrency(checkoutResponse.currency);
+        setPendingTndAmount(checkoutResponse.tnd_amount ?? checkoutResponse.amount);
+        setPendingPaymentId(newPaymentId);
+        setShowCurrencyNotice(true);
+        return; // Wait for user to confirm in modal
+      }
+
+      // For other payment methods, proceed directly
+      await processPaymentAndRedirect(newPaymentId);
+    } catch (err) {
       console.error('Checkout error:', err);
       const errorMessage = err instanceof Error ? err.message : t('payment_failed');
       setError(errorMessage);
     }
+  };
+
+  const handleCurrencyNoticeConfirm = async () => {
+    setShowCurrencyNotice(false);
+    if (pendingPaymentId) {
+      await processPaymentAndRedirect(pendingPaymentId);
+    }
+  };
+
+  const handleCurrencyNoticeCancel = () => {
+    setShowCurrencyNotice(false);
   };
 
   const handleExtendTime = async () => {
@@ -412,6 +449,16 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
         onGuestCheckout={handleGuestCheckout}
         onEmailLogin={handleEmailLogin}
         onCreateAccount={handleCreateAccount}
+      />
+
+      {/* Currency Notice Modal - shown before ClikToPay redirect */}
+      <CurrencyNoticeModal
+        isOpen={showCurrencyNotice}
+        onConfirm={handleCurrencyNoticeConfirm}
+        onCancel={handleCurrencyNoticeCancel}
+        amount={pendingPaymentAmount}
+        currency={pendingPaymentCurrency}
+        tndAmount={pendingTndAmount}
       />
     </div>
   );
