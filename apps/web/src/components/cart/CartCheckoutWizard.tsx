@@ -58,7 +58,6 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
   const [pendingPaymentAmount, setPendingPaymentAmount] = useState(0);
   const [pendingTndAmount, setPendingTndAmount] = useState(0);
   const [pendingPaymentCurrency, setPendingPaymentCurrency] = useState('EUR');
-  const [pendingPaymentId, setPendingPaymentId] = useState<string | null>(null);
 
   const initiateCheckout = useInitiateCheckout();
   const processPayment = useProcessCartPayment();
@@ -189,23 +188,21 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
   const handlePaymentSubmit = async (paymentMethod: PaymentMethod) => {
     setError(null);
 
+    // For ClikToPay, show confirmation modal BEFORE initiating checkout
+    // This prevents cart from becoming null (initiateCheckout changes status to checking_out)
+    if (paymentMethod === 'click_to_pay' && cart) {
+      setPendingPaymentAmount(cart.subtotal);
+      setPendingPaymentCurrency(cart.currency);
+      setPendingTndAmount(cart.tndSubtotal ?? cart.subtotal);
+      setShowCurrencyNotice(true);
+      return; // Wait for user to confirm in modal
+    }
+
+    // For other payment methods, proceed directly
     try {
-      // Initiate checkout
       const checkoutResponse = await initiateCheckout.mutateAsync(paymentMethod);
       const newPaymentId = checkoutResponse.payment_id;
       setPaymentId(newPaymentId);
-
-      // For ClikToPay, show currency confirmation modal before processing payment
-      if (paymentMethod === 'click_to_pay') {
-        setPendingPaymentAmount(checkoutResponse.amount);
-        setPendingPaymentCurrency(checkoutResponse.currency);
-        setPendingTndAmount(checkoutResponse.tnd_amount ?? checkoutResponse.amount);
-        setPendingPaymentId(newPaymentId);
-        setShowCurrencyNotice(true);
-        return; // Wait for user to confirm in modal
-      }
-
-      // For other payment methods, proceed directly
       await processPaymentAndRedirect(newPaymentId);
     } catch (err) {
       console.error('Checkout error:', err);
@@ -216,8 +213,26 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
 
   const handleCurrencyNoticeConfirm = async () => {
     setShowCurrencyNotice(false);
-    if (pendingPaymentId) {
-      await processPaymentAndRedirect(pendingPaymentId);
+    setError(null);
+
+    // Store cart info before initiateCheckout (cart becomes null after status changes)
+    if (cart) {
+      setCompletedCartInfo({
+        totalAmount: cart.subtotal,
+        currency: cart.currency,
+      });
+    }
+
+    try {
+      // NOW initiate checkout (after user confirmed in modal)
+      const checkoutResponse = await initiateCheckout.mutateAsync('click_to_pay');
+      const newPaymentId = checkoutResponse.payment_id;
+      setPaymentId(newPaymentId);
+      await processPaymentAndRedirect(newPaymentId);
+    } catch (err) {
+      console.error('Checkout error:', err);
+      const errorMessage = err instanceof Error ? err.message : t('payment_failed');
+      setError(errorMessage);
     }
   };
 

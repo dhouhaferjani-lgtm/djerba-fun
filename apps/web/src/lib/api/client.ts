@@ -905,6 +905,7 @@ export interface Cart {
   totalGuests: number;
   subtotal: number;
   currency: string;
+  tndSubtotal: number;
   items: CartItem[];
   createdAt: string;
   updatedAt: string;
