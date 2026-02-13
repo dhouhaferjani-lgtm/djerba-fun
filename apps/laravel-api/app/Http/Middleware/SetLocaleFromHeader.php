@@ -39,6 +39,11 @@ class SetLocaleFromHeader
         // Set application locale
         app()->setLocale($locale);
 
+        // Sync authenticated user's preferred_locale with current browsing language
+        if (auth()->check() && auth()->user()->preferred_locale !== $locale) {
+            auth()->user()->updateQuietly(['preferred_locale' => $locale]);
+        }
+
         return $next($request);
     }
 }

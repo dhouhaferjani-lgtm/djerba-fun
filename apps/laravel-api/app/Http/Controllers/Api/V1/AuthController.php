@@ -47,6 +47,7 @@ class AuthController extends Controller
                 'role' => $request->role,
                 'status' => UserStatus::PENDING_VERIFICATION,
                 'display_name' => $request->display_name,
+                'preferred_locale' => $request->preferred_locale ?? app()->getLocale(),
             ]);
 
             // Create role-specific profile
@@ -56,7 +57,7 @@ class AuthController extends Controller
                     'first_name' => $request->first_name,
                     'last_name' => $request->last_name,
                     'phone' => $request->phone,
-                    'preferred_locale' => $request->preferred_locale ?? 'en',
+                    'preferred_locale' => $request->preferred_locale ?? app()->getLocale(),
                 ]);
             } elseif ($user->role === UserRole::VENDOR) {
                 VendorProfile::create([
@@ -321,7 +322,7 @@ class AuthController extends Controller
                 firstName: $request->first_name,
                 lastName: $request->last_name,
                 phone: $request->phone,
-                locale: $request->preferred_locale ?? 'en'
+                locale: $request->preferred_locale ?? app()->getLocale()
             );
 
             // Set user as traveler and active by default

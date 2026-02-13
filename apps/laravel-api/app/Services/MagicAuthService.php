@@ -122,14 +122,14 @@ class MagicAuthService
         string $firstName,
         string $lastName,
         ?string $phone = null,
-        string $locale = 'en'
+        ?string $locale = null
     ): User {
         return User::create([
             'email' => $email,
             'first_name' => $firstName,
             'last_name' => $lastName,
             'phone' => $phone,
-            'preferred_locale' => $locale,
+            'preferred_locale' => $locale ?? app()->getLocale(),
             'password' => null, // Passwordless account
             'prefers_passwordless' => true,
         ]);

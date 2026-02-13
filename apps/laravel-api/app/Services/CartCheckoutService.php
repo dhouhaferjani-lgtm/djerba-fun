@@ -296,7 +296,7 @@ class CartCheckoutService
             'person_type_breakdown' => $item->person_type_breakdown,
             'total_amount' => $item->getTotal(),
             'currency' => $item->currency,
-            'locale' => auth()->user()?->preferred_locale ?? app()->getLocale(),
+            'locale' => app()->getLocale(),
             'status' => $status,
             'traveler_info' => $travelers[0] ?? null, // Backward compatibility
             'travelers' => $travelers,

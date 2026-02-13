@@ -104,7 +104,7 @@ class OAuthController extends Controller
                     'user_id' => $user->id,
                     'first_name' => $nameParts['first'],
                     'last_name' => $nameParts['last'],
-                    'preferred_locale' => 'en',
+                    'preferred_locale' => app()->getLocale(),
                 ]);
             }
         }
