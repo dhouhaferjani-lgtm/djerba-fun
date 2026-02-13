@@ -138,6 +138,7 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
               placeholder={t('search_date_placeholder')}
+              inputClassName="py-2 text-sm"
             />
           </div>
 
