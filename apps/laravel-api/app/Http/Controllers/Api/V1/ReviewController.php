@@ -72,8 +72,13 @@ class ReviewController extends Controller
      */
     public function store(CreateReviewRequest $request, Booking $booking): JsonResponse
     {
-        // Check if booking belongs to authenticated user
-        if ($booking->user_id !== $request->user()->id) {
+        // Check if booking belongs to authenticated user (by user_id or session_id for guest bookings)
+        $user = $request->user();
+        $sessionId = $request->header('X-Session-ID');
+        $isOwner = ($booking->user_id !== null && $booking->user_id === $user->id)
+            || ($booking->session_id !== null && $sessionId && $booking->session_id === $sessionId);
+
+        if (! $isOwner) {
             return response()->json([
                 'message' => 'Unauthorized to review this booking.',
             ], 403);
@@ -165,8 +170,14 @@ class ReviewController extends Controller
     public function canReview(Request $request, Listing $listing): JsonResponse
     {
         $user = $request->user();
+        $sessionId = $request->header('X-Session-ID');
 
-        $reviewableBooking = Booking::where('user_id', $user->id)
+        $reviewableBooking = Booking::where(function ($q) use ($user, $sessionId) {
+                $q->where('user_id', $user->id);
+                if ($sessionId) {
+                    $q->orWhere('session_id', $sessionId);
+                }
+            })
             ->where('listing_id', $listing->id)
             ->whereIn('status', [BookingStatus::CONFIRMED->value, BookingStatus::COMPLETED->value])
             ->whereDoesntHave('review')

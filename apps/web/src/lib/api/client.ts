@@ -20,6 +20,7 @@ import type {
   SchemaOrgData,
   ActivityType,
 } from '@go-adventure/schemas';
+import { getGuestSessionId } from '@/lib/utils/session';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
@@ -788,9 +789,11 @@ export const reviewsApi = {
   },
 
   create: async (bookingId: string, request: CreateReviewRequest) => {
+    const sessionId = typeof window !== 'undefined' ? getGuestSessionId() : undefined;
     return fetchApi<{ data: Review }>(`/bookings/${bookingId}/review`, {
       method: 'POST',
       body: JSON.stringify(request),
+      headers: sessionId ? { 'X-Session-ID': sessionId } : {},
     });
   },
 
@@ -805,8 +808,10 @@ export const reviewsApi = {
   },
 
   canReview: async (listingSlug: string) => {
+    const sessionId = typeof window !== 'undefined' ? getGuestSessionId() : undefined;
     return fetchApi<{ canReview: boolean; bookingId: string | null }>(
-      `/listings/${listingSlug}/can-review`
+      `/listings/${listingSlug}/can-review`,
+      { headers: sessionId ? { 'X-Session-ID': sessionId } : {} }
     );
   },
 };
