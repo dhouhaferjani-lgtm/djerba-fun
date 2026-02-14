@@ -1,0 +1,179 @@
+# Go Adventure - Dev Environment
+# Usage: docker compose -f docker-compose.devenv.yml up -d
+# Requires .env file with COMPOSE_PROJECT_NAME=goadventure-dev
+# Note: Uses lightweight queue:work instead of Horizon to save RAM
+
+services:
+  # PostgreSQL Database (isolated from production)
+  postgres:
+    image: postgres:16-alpine
+    container_name: goadventure-dev-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-go_adventure_dev}
+      POSTGRES_USER: ${DB_USERNAME:-go_adventure_dev}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-go_adventure_dev}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - goadventure-dev
+
+  # Redis (Cache + Queue) - isolated from production
+  redis:
+    image: redis:7-alpine
+    container_name: goadventure-dev-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - goadventure-dev
+
+  # Laravel API
+  api:
+    build:
+      context: .
+      dockerfile: apps/laravel-api/Dockerfile.prod
+      args:
+        - PHP_VERSION=8.4
+    container_name: goadventure-dev-api
+    restart: unless-stopped
+    working_dir: /var/www/html
+    environment:
+      - APP_KEY=${APP_KEY}
+      - APP_ENV=${APP_ENV:-local}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - APP_URL=${APP_URL:-https://dev-app.go-adventure.net}
+      - FRONTEND_URL=${FRONTEND_URL:-https://dev.go-adventure.net}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-go_adventure_dev}
+      - DB_USERNAME=${DB_USERNAME:-go_adventure_dev}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - SESSION_DOMAIN=${SESSION_DOMAIN:-}
+      - SANCTUM_STATEFUL_DOMAINS=${SANCTUM_STATEFUL_DOMAINS:-dev.go-adventure.net,dev-app.go-adventure.net}
+      - MAIL_MAILER=${MAIL_MAILER:-log}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-dev@go-adventure.net}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Go Adventure Dev}
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+    volumes:
+      - storage_data:/var/www/html/storage
+      - api_cache:/var/www/html/bootstrap/cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - '8003:80'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - goadventure-dev
+
+  # Lightweight Queue Worker (instead of Horizon, saves ~50MB RAM)
+  queue:
+    build:
+      context: .
+      dockerfile: apps/laravel-api/Dockerfile.prod
+      args:
+        - PHP_VERSION=8.4
+    container_name: goadventure-dev-queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan queue:work --sleep=3 --tries=3 --memory=128
+    environment:
+      - APP_KEY=${APP_KEY}
+      - APP_ENV=${APP_ENV:-local}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-go_adventure_dev}
+      - DB_USERNAME=${DB_USERNAME:-go_adventure_dev}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+      - MAIL_MAILER=${MAIL_MAILER:-log}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-dev@go-adventure.net}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Go Adventure Dev}
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+    volumes:
+      - storage_data:/var/www/html/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - goadventure-dev
+
+  # Next.js Frontend
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.prod
+      args:
+        - NODE_ENV=production
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://dev-app.go-adventure.net/api/v1}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://dev.go-adventure.net}
+        - NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+        - NEXT_PUBLIC_TURNSTILE_ENABLED=${NEXT_PUBLIC_TURNSTILE_ENABLED:-false}
+    container_name: goadventure-dev-web
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://dev-app.go-adventure.net/api/v1}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://dev.go-adventure.net}
+      - NEXT_PUBLIC_DEFAULT_LOCALE=fr
+    depends_on:
+      - api
+    ports:
+      - '3003:3000'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - goadventure-dev
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  storage_data:
+    driver: local
+  api_cache:
+    driver: local
+
+networks:
+  goadventure-dev:
+    driver: bridge

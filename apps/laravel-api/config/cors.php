@@ -20,10 +20,6 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        // Production subdomains
-        'https://dev.go-adventure.net',
-        'https://go-adventure.net',
-        'https://www.go-adventure.net',
         // Local development
         'http://localhost:3000',
         'http://localhost:3001',
@@ -31,7 +27,10 @@ return [
         'http://127.0.0.1:3001',
     ],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        // All go-adventure.net subdomains (live, staging, dev)
+        '#^https://(.+\.)?go-adventure\.net$#',
+    ],
 
     'allowed_headers' => ['*'],
 
