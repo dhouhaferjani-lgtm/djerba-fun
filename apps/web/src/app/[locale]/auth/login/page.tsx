@@ -1,7 +1,7 @@
 'use client';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- next-intl Link requires typed routes, using any for dynamic hrefs */
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -10,6 +10,7 @@ import { FloatingInput, Button, Card } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { TurnstileWidget, useTurnstile } from '@/components/atoms/TurnstileWidget';
 import { Mail, Lock } from 'lucide-react';
+import { AuthMascot, type MascotState } from '@/components/molecules/AuthMascot';
 
 export default function LoginPage() {
   const params = useParams();
@@ -23,6 +24,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [mascotState, setMascotState] = useState<MascotState>('idle');
+
+  const handleFocus = useCallback((field: string) => {
+    setFocusedField(field);
+    setMascotState(field === 'password' ? 'hiding' : 'watching');
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setFocusedField(null);
+    setMascotState('idle');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,9 +44,18 @@ export default function LoginPage() {
 
     try {
       await login(email, password, getTurnstileToken());
-      router.push(`/${locale}`);
+      setMascotState('success');
+      setTimeout(() => router.push(`/${locale}`), 800);
     } catch (err: unknown) {
-      // Redirect unverified users to the verify-email page
+      setMascotState('error');
+      setTimeout(() => {
+        if (focusedField) {
+          setMascotState(focusedField === 'password' ? 'hiding' : 'watching');
+        } else {
+          setMascotState('idle');
+        }
+      }, 1500);
+
       const apiError = err as { code?: string };
       if (apiError.code === 'EMAIL_NOT_VERIFIED') {
         router.push(`/${locale}/auth/verify-email?email=${encodeURIComponent(email)}`);
@@ -45,10 +67,13 @@ export default function LoginPage() {
     }
   };
 
+  const watchDirection = focusedField === 'email' ? Math.min(email.length / 30, 1) : 0.5;
+
   return (
     <MainLayout locale={locale}>
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-md mx-auto">
+          <AuthMascot state={mascotState} watchDirection={watchDirection} />
           <Card>
             <div className="p-8">
               <h1 className="text-3xl font-bold text-neutral-900 mb-6 text-center">{t('login')}</h1>
@@ -65,6 +90,8 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => handleFocus('email')}
+                  onBlur={handleBlur}
                   required
                   autoComplete="email"
                   icon={<Mail className="h-4 w-4" />}
@@ -75,6 +102,8 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => handleFocus('password')}
+                  onBlur={handleBlur}
                   required
                   autoComplete="current-password"
                   icon={<Lock className="h-4 w-4" />}

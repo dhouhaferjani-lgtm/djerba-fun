@@ -1,7 +1,7 @@
 'use client';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- next-intl Link requires typed routes, using any for dynamic hrefs */
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -10,6 +10,7 @@ import { FloatingInput, Button, Card } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { TurnstileWidget, useTurnstile } from '@/components/atoms/TurnstileWidget';
 import { Mail, Lock, User } from 'lucide-react';
+import { AuthMascot, type MascotState } from '@/components/molecules/AuthMascot';
 
 export default function RegisterPage() {
   const params = useParams();
@@ -26,18 +27,42 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [mascotState, setMascotState] = useState<MascotState>('idle');
+
+  const handleFocus = useCallback((field: string) => {
+    setFocusedField(field);
+    setMascotState(field === 'password' || field === 'confirmPassword' ? 'hiding' : 'watching');
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setFocusedField(null);
+    setMascotState('idle');
+  }, []);
+
+  // Calculate watch direction based on which text field is focused and its value length
+  const getWatchDirection = () => {
+    if (!focusedField) return 0.5;
+    const values: Record<string, string> = { firstName, lastName, email };
+    const value = values[focusedField] || '';
+    return Math.min(value.length / 30, 1);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     if (password !== confirmPassword) {
+      setMascotState('error');
       setError('Passwords do not match');
+      setTimeout(() => setMascotState('idle'), 1500);
       return;
     }
 
     if (password.length < 8) {
+      setMascotState('error');
       setError('Password must be at least 8 characters');
+      setTimeout(() => setMascotState('idle'), 1500);
       return;
     }
 
@@ -54,8 +79,24 @@ export default function RegisterPage() {
         role: 'traveler',
         cfTurnstileResponse: getTurnstileToken(),
       });
-      router.push(`/${locale}/auth/verify-email?email=${encodeURIComponent(email)}`);
+      setMascotState('success');
+      setTimeout(
+        () => router.push(`/${locale}/auth/verify-email?email=${encodeURIComponent(email)}`),
+        800
+      );
     } catch (err) {
+      setMascotState('error');
+      setTimeout(() => {
+        if (focusedField) {
+          setMascotState(
+            focusedField === 'password' || focusedField === 'confirmPassword'
+              ? 'hiding'
+              : 'watching'
+          );
+        } else {
+          setMascotState('idle');
+        }
+      }, 1500);
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setIsLoading(false);
@@ -66,6 +107,7 @@ export default function RegisterPage() {
     <MainLayout locale={locale}>
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-md mx-auto">
+          <AuthMascot state={mascotState} watchDirection={getWatchDirection()} />
           <Card>
             <div className="p-8">
               <h1 className="text-3xl font-bold text-neutral-900 mb-6 text-center">
@@ -85,6 +127,8 @@ export default function RegisterPage() {
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
+                    onFocus={() => handleFocus('firstName')}
+                    onBlur={handleBlur}
                     required
                     autoComplete="given-name"
                     icon={<User className="h-4 w-4" />}
@@ -95,6 +139,8 @@ export default function RegisterPage() {
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
+                    onFocus={() => handleFocus('lastName')}
+                    onBlur={handleBlur}
                     required
                     autoComplete="family-name"
                     icon={<User className="h-4 w-4" />}
@@ -106,6 +152,8 @@ export default function RegisterPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => handleFocus('email')}
+                  onBlur={handleBlur}
                   required
                   autoComplete="email"
                   icon={<Mail className="h-4 w-4" />}
@@ -116,6 +164,8 @@ export default function RegisterPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => handleFocus('password')}
+                  onBlur={handleBlur}
                   required
                   autoComplete="new-password"
                   helperText="Minimum 8 characters"
@@ -127,6 +177,8 @@ export default function RegisterPage() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  onFocus={() => handleFocus('confirmPassword')}
+                  onBlur={handleBlur}
                   required
                   autoComplete="new-password"
                   icon={<Lock className="h-4 w-4" />}
