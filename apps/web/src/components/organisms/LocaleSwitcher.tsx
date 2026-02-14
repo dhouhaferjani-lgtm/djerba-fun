@@ -24,7 +24,7 @@ export function LocaleSwitcher({ locale }: LocaleSwitcherProps) {
   }, []);
 
   const switchLocale = (newLocale: string) => {
-    router.replace(pathname, { locale: newLocale as 'en' | 'fr' | 'ar' });
+    router.replace(pathname, { locale: newLocale as 'en' | 'fr' });
   };
 
   const currentLocale = locales.find((l) => l.code === locale) || locales[0];

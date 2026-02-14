@@ -10,7 +10,6 @@ import { FloatingInput, Button, Card } from '@go-adventure/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { TurnstileWidget, useTurnstile } from '@/components/atoms/TurnstileWidget';
 import { Mail, Lock } from 'lucide-react';
-import { SocialLoginButtons } from '@/components/molecules/SocialLoginButtons';
 
 export default function LoginPage() {
   const params = useParams();
@@ -99,21 +98,6 @@ export default function LoginPage() {
                   {t('login')}
                 </Button>
               </form>
-
-              {/* Divider */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">
-                    {t('or_continue_with') || 'or'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Social Login */}
-              <SocialLoginButtons locale={locale} />
 
               {/* Passwordless Login Link */}
               <Link

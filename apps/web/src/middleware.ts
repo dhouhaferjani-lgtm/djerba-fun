@@ -19,7 +19,7 @@ export default async function middleware(request: NextRequest) {
   // New: /{location}/{slug} (fr) or /{locale}/{location}/{slug} (en/ar)
 
   // Match pattern: /{locale}/listings/{slug}
-  const oldListingPattern = /^\/(fr|en|ar)\/listings\/([a-z0-9-]+)$/;
+  const oldListingPattern = /^\/(fr|en)\/listings\/([a-z0-9-]+)$/;
   const match = pathname.match(oldListingPattern);
 
   if (match) {
