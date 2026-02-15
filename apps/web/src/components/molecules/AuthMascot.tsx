@@ -26,9 +26,9 @@ export function AuthMascot({ state, watchDirection = 0.5 }: AuthMascotProps) {
     return () => clearInterval(interval);
   }, [state]);
 
-  // Eye pupil offset based on watch direction (-4 to +4 px)
-  const pupilOffsetX = (watchDirection - 0.5) * 8;
-  const pupilOffsetY = state === 'watching' ? 1 : 0;
+  // Eye pupil offset: look straight down when watching, shift right as text grows
+  const pupilOffsetX = state === 'watching' ? watchDirection * 6 : 0;
+  const pupilOffsetY = state === 'watching' ? 4 : 0;
 
   // Determine eye shape
   const isHappy = state === 'success';
@@ -286,13 +286,12 @@ export function AuthMascot({ state, watchDirection = 0.5 }: AuthMascotProps) {
           <motion.g
             animate={
               state === 'hiding'
-                ? { x: 10, y: -50, rotate: 30 }
+                ? { x: 40, y: -70 }
                 : state === 'success'
-                  ? { x: -15, y: -55, rotate: -30 }
-                  : { x: 0, y: 0, rotate: 0 }
+                  ? { x: -10, y: -80 }
+                  : { x: 0, y: 0 }
             }
             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-            style={{ originX: '70px', originY: '160px' }}
           >
             {/* Left arm */}
             <path
@@ -310,13 +309,12 @@ export function AuthMascot({ state, watchDirection = 0.5 }: AuthMascotProps) {
           <motion.g
             animate={
               state === 'hiding'
-                ? { x: -10, y: -50, rotate: -30 }
+                ? { x: -40, y: -70 }
                 : state === 'success'
-                  ? { x: 15, y: -55, rotate: 30 }
-                  : { x: 0, y: 0, rotate: 0 }
+                  ? { x: 10, y: -80 }
+                  : { x: 0, y: 0 }
             }
             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-            style={{ originX: '130px', originY: '160px' }}
           >
             {/* Right arm */}
             <path
