@@ -61,7 +61,7 @@ export default function LoginPage() {
         router.push(`/${locale}/auth/verify-email?email=${encodeURIComponent(email)}`);
         return;
       }
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : t('login_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -137,7 +137,7 @@ export default function LoginPage() {
               </Link>
 
               <div className="mt-6 text-center text-sm text-neutral-600">
-                Don&apos;t have an account?{' '}
+                {t('no_account')}{' '}
                 <Link
                   href={`/${locale}/auth/register` as any}
                   className="text-[#0D642E] font-semibold hover:underline"

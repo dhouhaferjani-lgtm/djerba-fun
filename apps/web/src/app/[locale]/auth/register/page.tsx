@@ -54,14 +54,14 @@ export default function RegisterPage() {
 
     if (password !== confirmPassword) {
       setMascotState('error');
-      setError('Passwords do not match');
+      setError(t('passwords_do_not_match'));
       setTimeout(() => setMascotState('idle'), 1500);
       return;
     }
 
     if (password.length < 8) {
       setMascotState('error');
-      setError('Password must be at least 8 characters');
+      setError(t('password_too_short'));
       setTimeout(() => setMascotState('idle'), 1500);
       return;
     }
@@ -97,7 +97,7 @@ export default function RegisterPage() {
           setMascotState('idle');
         }
       }, 1500);
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      setError(err instanceof Error ? err.message : t('registration_error'));
     } finally {
       setIsLoading(false);
     }
@@ -123,7 +123,7 @@ export default function RegisterPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <FloatingInput
-                    label="First Name"
+                    label={t('first_name')}
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
@@ -135,7 +135,7 @@ export default function RegisterPage() {
                   />
 
                   <FloatingInput
-                    label="Last Name"
+                    label={t('last_name')}
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
@@ -168,12 +168,12 @@ export default function RegisterPage() {
                   onBlur={handleBlur}
                   required
                   autoComplete="new-password"
-                  helperText="Minimum 8 characters"
+                  helperText={t('password_min_length')}
                   icon={<Lock className="h-4 w-4" />}
                 />
 
                 <FloatingInput
-                  label="Confirm Password"
+                  label={t('confirm_password')}
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -198,7 +198,7 @@ export default function RegisterPage() {
               </form>
 
               <div className="mt-6 text-center text-sm text-neutral-600">
-                Already have an account?{' '}
+                {t('already_have_account')}{' '}
                 <Link
                   href={`/${locale}/auth/login` as any}
                   className="text-[#0D642E] font-semibold hover:underline"
