@@ -14,6 +14,13 @@ const intlMiddleware = createMiddleware({
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Redirect removed /ar locale to French equivalent (SEO preservation)
+  // Arabic was disabled but /ar/* URLs are indexed by search engines
+  if (pathname === '/ar' || pathname.startsWith('/ar/')) {
+    const newPath = pathname.replace(/^\/ar\/?/, '/') || '/';
+    return NextResponse.redirect(new URL(newPath, request.url), 301);
+  }
+
   // Handle redirects from old URL structure to new location-first structure
   // Old: /{locale}/listings/{slug}
   // New: /{location}/{slug} (fr) or /{locale}/{location}/{slug} (en/ar)
