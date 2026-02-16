@@ -216,6 +216,10 @@ class MagicLinkController extends Controller
             ]);
         }
 
+        // Explicitly resolve translatable fields to prevent raw {fr: "..."} objects leaking
+        $listingTitle = $this->resolveTranslation($booking->listing, 'title') ?? 'Activity';
+        $locationName = $this->resolveTranslation($booking->listing?->location, 'name');
+
         $vouchers = $booking->participants->map(fn ($participant) => [
             'voucherCode' => $participant->voucher_code,
             'qrCodeData' => $participant->voucher_code,
@@ -225,10 +229,10 @@ class MagicLinkController extends Controller
                 'checkedIn' => $participant->checked_in,
             ],
             'event' => [
-                'title' => $booking->listing?->title ?? 'Activity',
+                'title' => $listingTitle,
                 'date' => $booking->availabilitySlot?->start_time?->format('l, F j, Y'),
                 'time' => $booking->availabilitySlot?->start_time?->format('g:i A'),
-                'location' => $booking->listing?->location?->name ?? null,
+                'location' => $locationName,
             ],
         ]);
 
@@ -237,8 +241,27 @@ class MagicLinkController extends Controller
             'data' => $vouchers,
             'booking' => [
                 'bookingNumber' => $booking->booking_number,
-                'listingTitle' => $booking->listing?->title,
+                'listingTitle' => $listingTitle,
             ],
         ]);
+    }
+
+    /**
+     * Safely resolve a translatable field to a string.
+     * Prevents raw translation objects {fr: "..."} from leaking into API responses.
+     */
+    private function resolveTranslation(?object $model, string $field): ?string
+    {
+        if (! $model || ! method_exists($model, 'getTranslation')) {
+            return null;
+        }
+
+        $locale = app()->getLocale();
+        $fallback = $locale === 'en' ? 'fr' : 'en';
+
+        $value = $model->getTranslation($field, $locale, false)
+            ?: $model->getTranslation($field, $fallback, false);
+
+        return is_string($value) ? $value : null;
     }
 }

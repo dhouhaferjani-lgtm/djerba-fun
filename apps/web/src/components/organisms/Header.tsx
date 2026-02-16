@@ -25,21 +25,24 @@ export function Header({ locale }: HeaderProps) {
   const { isAuthenticated, user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [logoutMascotState, setLogoutMascotState] = useState<MascotState>('error');
+  const [logoutMascotState, setLogoutMascotState] = useState<MascotState>('idle');
   const scrolled = useScroll(50);
 
   const handleLogout = () => {
-    setLogoutMascotState('success');
+    setLogoutMascotState('error'); // sad — user is leaving
     setTimeout(() => {
       logout();
       setShowLogoutConfirm(false);
-      setLogoutMascotState('error');
+      setLogoutMascotState('idle');
     }, 800);
   };
 
   const handleCloseLogout = () => {
-    setShowLogoutConfirm(false);
-    setLogoutMascotState('error');
+    setLogoutMascotState('success'); // happy — user stays!
+    setTimeout(() => {
+      setShowLogoutConfirm(false);
+      setLogoutMascotState('idle');
+    }, 800);
   };
 
   const navLinks = [

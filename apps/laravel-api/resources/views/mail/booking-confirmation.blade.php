@@ -120,13 +120,13 @@
             </div>
 
             <div style="margin: 15px 0;">
-                <a href="{{ $participantsLink }}" style="display: block; padding: 12px 24px; background-color: #f5f5f5; color: #333; text-decoration: none; border-radius: 5px; text-align: center; border: 1px solid #ddd; margin-bottom: 10px;">
+                <a href="{{ $participantsLink }}" style="display: block; padding: 12px 24px; background-color: #0D642E; color: #ffffff !important; text-decoration: none; border-radius: 5px; text-align: center; border: none; margin-bottom: 10px;">
                     {{ __('mail.enter_participant_names') }}
                 </a>
             </div>
 
             <div style="margin: 15px 0;">
-                <a href="{{ $vouchersLink }}" style="display: block; padding: 12px 24px; background-color: #f5f5f5; color: #333; text-decoration: none; border-radius: 5px; text-align: center; border: 1px solid #ddd;">
+                <a href="{{ $vouchersLink }}" style="display: block; padding: 12px 24px; background-color: #0D642E; color: #ffffff !important; text-decoration: none; border-radius: 5px; text-align: center; border: none;">
                     {{ __('mail.download_vouchers') }}
                 </a>
             </div>

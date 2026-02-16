@@ -44,9 +44,18 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
     Accept: 'application/json',
   };
 
-  // Auto-detect locale from next-intl's <html lang="..."> attribute
-  if (typeof document !== 'undefined' && document.documentElement.lang) {
-    headers['Accept-Language'] = document.documentElement.lang;
+  // Auto-detect locale from next-intl's <html lang="..."> attribute, with URL path fallback
+  if (typeof document !== 'undefined') {
+    const htmlLang = document.documentElement.lang;
+    if (htmlLang) {
+      headers['Accept-Language'] = htmlLang;
+    } else if (typeof window !== 'undefined') {
+      // Fallback: extract locale from URL path (e.g., /fr/listings → 'fr')
+      const pathLocale = window.location.pathname.split('/')[1];
+      if (pathLocale === 'en' || pathLocale === 'fr') {
+        headers['Accept-Language'] = pathLocale;
+      }
+    }
   }
 
   if (options.headers) {

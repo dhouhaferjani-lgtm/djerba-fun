@@ -244,7 +244,9 @@ export default function MagicLinkVouchersPage() {
             </div>
             <div>
               <p className="text-gray-600">{t('activity') || 'Activity'}</p>
-              <p className="font-semibold text-gray-900">{bookingInfo.listingTitle}</p>
+              <p className="font-semibold text-gray-900">
+                {String(bookingInfo.listingTitle || '')}
+              </p>
             </div>
             <div>
               <p className="text-gray-600">{t('participants') || 'Participants'}</p>
@@ -326,7 +328,9 @@ export default function MagicLinkVouchersPage() {
 
                     <div>
                       <p className="text-sm text-gray-600">{t('event') || 'Event'}</p>
-                      <p className="font-medium text-gray-900">{voucher.event.title}</p>
+                      <p className="font-medium text-gray-900">
+                        {String(voucher.event.title || '')}
+                      </p>
                     </div>
 
                     <div className="flex gap-4 text-sm">
@@ -343,7 +347,9 @@ export default function MagicLinkVouchersPage() {
                     {voucher.event.location && (
                       <div className="text-sm">
                         <p className="text-gray-600">{t('location') || 'Location'}</p>
-                        <p className="font-medium text-gray-900">{voucher.event.location}</p>
+                        <p className="font-medium text-gray-900">
+                          {String(voucher.event.location || '')}
+                        </p>
                       </div>
                     )}
                   </div>
