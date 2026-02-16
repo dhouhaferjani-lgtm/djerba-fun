@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { Menu, User, LogOut } from 'lucide-react';
 import { CartIcon } from '../cart/CartIcon';
 import { LocaleSwitcher } from './LocaleSwitcher';
+import { AuthMascot } from '../molecules/AuthMascot';
 import { useState } from 'react';
 import { Logo } from '../atoms/Logo';
 import { NavLink } from '../atoms/NavLink';
@@ -127,8 +128,10 @@ export function Header({ locale }: HeaderProps) {
         className="max-w-xs"
       >
         <div className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-4">
-            <LogOut className="h-6 w-6 text-red-500" />
+          <div className="mx-auto w-24 h-24 mb-2 overflow-hidden flex items-center justify-center">
+            <div className="scale-50 origin-center">
+              <AuthMascot state="error" watchDirection={0.5} />
+            </div>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             {tAuth('logout_confirm_title')}

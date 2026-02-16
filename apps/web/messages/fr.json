@@ -623,6 +623,7 @@
     "passwords_do_not_match": "Les mots de passe ne correspondent pas",
     "password_too_short": "Le mot de passe doit contenir au moins 8 caractères",
     "login_failed": "Échec de la connexion",
+    "invalid_credentials": "Les identifiants fournis sont incorrects.",
     "send_magic_link_error": "Échec de l'envoi du lien magique. Veuillez réessayer.",
     "or_sign_in": "ou se connecter",
     "sign_in_email": "Se connecter avec Email",

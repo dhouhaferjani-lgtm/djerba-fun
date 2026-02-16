@@ -659,6 +659,7 @@
     "passwords_do_not_match": "Passwords do not match",
     "password_too_short": "Password must be at least 8 characters",
     "login_failed": "Login failed",
+    "invalid_credentials": "The provided credentials are incorrect.",
     "account_verified": "Account Verified!",
     "welcome_message": "Welcome to Go Adventure! Your account is now active.",
     "verifying_account": "Setting up your account...",

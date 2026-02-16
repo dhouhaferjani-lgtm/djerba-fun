@@ -56,12 +56,12 @@ export default function LoginPage() {
         }
       }, 1500);
 
-      const apiError = err as { code?: string };
+      const apiError = err as { code?: string; status?: number };
       if (apiError.code === 'EMAIL_NOT_VERIFIED') {
         router.push(`/${locale}/auth/verify-email?email=${encodeURIComponent(email)}`);
         return;
       }
-      setError(err instanceof Error ? err.message : t('login_failed'));
+      setError(apiError.status === 422 ? t('invalid_credentials') : t('login_failed'));
     } finally {
       setIsLoading(false);
     }

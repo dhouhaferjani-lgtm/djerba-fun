@@ -14,6 +14,7 @@
  */
 
 import { Inter, Poppins, Playfair_Display } from 'next/font/google';
+import { getLocale } from 'next-intl/server';
 
 // Inter font for body text - optimized with Latin subset
 const inter = Inter({
@@ -44,9 +45,10 @@ const playfair = Playfair_Display({
   preload: true,
 });
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         {/* Preconnect to external domains for faster resource loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
