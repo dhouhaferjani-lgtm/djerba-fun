@@ -225,4 +225,12 @@ return [
     'subject_account_verification' => 'Vérifiez votre e-mail - Go Adventure',
     'subject_custom_trip' => 'Votre demande de voyage sur mesure - :reference',
     'subject_listing_failed' => 'Action requise : Votre annonce ":title" ne peut pas être publiée',
+
+    // Password Reset
+    'subject_password_reset' => 'Réinitialiser votre mot de passe - Go Adventure',
+    'password_reset_header' => 'Réinitialiser votre mot de passe',
+    'password_reset_body' => 'Vous avez demandé une réinitialisation de mot de passe. Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe.',
+    'password_reset_button' => 'Réinitialiser le mot de passe',
+    'password_reset_expires' => 'Ce lien expire dans :minutes minutes.',
+    'password_reset_ignore' => "Si vous n'avez pas demandé de réinitialisation de mot de passe, vous pouvez ignorer cet e-mail.",
 ];

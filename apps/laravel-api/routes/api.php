@@ -83,6 +83,12 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/magic-link/register', [AuthController::class, 'registerPasswordless'])
         ->middleware('throttle:3,60'); // 3 attempts per hour
 
+    // Password reset routes (public) - rate limited
+    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])
+        ->middleware('throttle:3,60'); // 3 attempts per hour
+    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])
+        ->middleware('throttle:5,15'); // 5 attempts per 15 minutes
+
     // Email verification routes (public)
     Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail'])
         ->middleware('throttle:5,15'); // 5 attempts per 15 minutes

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Mail\MagicLoginMail;
+use App\Mail\PasswordResetMail;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -79,6 +80,53 @@ class MagicAuthService
             'success' => true,
             'message' => 'If an account exists with this email, a magic link has been sent.',
             'user' => $user, // For internal use (not exposed to API)
+        ];
+    }
+
+    /**
+     * Send a password reset link to the user's email.
+     * Reuses the magic token infrastructure.
+     */
+    public function sendPasswordResetLink(string $email, string $ip): array
+    {
+        // Rate limiting: same as magic link
+        $rateLimitKey = "password_reset_attempts:{$email}:{$ip}";
+        $attempts = (int) Cache::get($rateLimitKey, 0);
+
+        if ($attempts >= self::MAX_ATTEMPTS_PER_HOUR) {
+            return [
+                'success' => true,
+                'message' => 'If an account exists with this email, a password reset link has been sent.',
+            ];
+        }
+
+        Cache::put($rateLimitKey, $attempts + 1, now()->addHour());
+
+        $user = User::where('email', $email)->first();
+
+        // Email enumeration protection
+        if (! $user) {
+            return [
+                'success' => true,
+                'message' => 'If an account exists with this email, a password reset link has been sent.',
+            ];
+        }
+
+        // Generate token (reuses magic token fields)
+        $plainToken = Str::random(64);
+        $hashedToken = Hash::make($plainToken);
+
+        $user->update([
+            'magic_token_hash' => $hashedToken,
+            'magic_token_expires_at' => now()->addMinutes(self::TOKEN_EXPIRATION_MINUTES),
+            'magic_token_used_at' => null,
+        ]);
+
+        Mail::to($user->email)->queue(new PasswordResetMail($user, $plainToken));
+
+        return [
+            'success' => true,
+            'message' => 'If an account exists with this email, a password reset link has been sent.',
         ];
     }
 

@@ -169,6 +169,21 @@ export const authApi = {
     return data;
   },
 
+  // Password reset
+  forgotPassword: async (email: string) => {
+    return fetchApi<{ message: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  resetPassword: async (token: string, password: string, passwordConfirmation: string) => {
+    return fetchApi<{ message: string }>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password, password_confirmation: passwordConfirmation }),
+    });
+  },
+
   // Email verification
   verifyEmail: async (token: string) => {
     const data = await fetchApi<{ user: User; token: string }>('/auth/verify-email', {

@@ -61,9 +61,9 @@
             background-color: #095020;
         }
         .link-button.secondary {
-            background-color: #f5f5f5;
-            color: #333 !important;
-            border: 1px solid #ddd;
+            background-color: #0D642E;
+            color: white !important;
+            border: none;
         }
         .expiry-notice {
             background-color: #fff3cd;
@@ -115,11 +115,11 @@
                 {{ __('mail.view_booking_details') }}
             </a>
 
-            <a href="{{ $participantsLink }}" class="link-button secondary">
+            <a href="{{ $participantsLink }}" class="link-button secondary" style="background-color: #0D642E; color: white !important; text-decoration: none;">
                 {{ __('mail.enter_participant_names') }}
             </a>
 
-            <a href="{{ $vouchersLink }}" class="link-button secondary">
+            <a href="{{ $vouchersLink }}" class="link-button secondary" style="background-color: #0D642E; color: white !important; text-decoration: none;">
                 {{ __('mail.download_vouchers') }}
             </a>
         </div>

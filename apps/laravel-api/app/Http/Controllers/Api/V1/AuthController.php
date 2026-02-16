@@ -311,6 +311,59 @@ class AuthController extends Controller
     }
 
     /**
+     * Send a password reset link to the user's email.
+     * Email enumeration protection: always returns success message.
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $result = $this->magicAuthService->sendPasswordResetLink(
+            email: $request->email,
+            ip: $request->ip()
+        );
+
+        return response()->json([
+            'message' => $result['message'],
+        ]);
+    }
+
+    /**
+     * Reset user's password using a magic token.
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = $this->magicAuthService->validateToken($request->token);
+
+        if (! $user) {
+            return response()->json([
+                'error' => [
+                    'code' => 'INVALID_TOKEN',
+                    'message' => __('auth.reset_token_invalid'),
+                ],
+            ], 401);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        // Invalidate all remaining tokens for security
+        $this->magicAuthService->invalidateUserTokens($user);
+
+        return response()->json([
+            'message' => 'Password has been reset successfully.',
+        ]);
+    }
+
+    /**
      * Register a new passwordless user account.
      * User will receive verification email.
      */

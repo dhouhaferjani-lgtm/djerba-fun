@@ -225,4 +225,12 @@ return [
     'subject_account_verification' => 'Verify Your Email - Go Adventure',
     'subject_custom_trip' => 'Your Custom Trip Request - :reference',
     'subject_listing_failed' => 'Action Required: Your listing ":title" cannot be published',
+
+    // Password Reset
+    'subject_password_reset' => 'Reset Your Password - Go Adventure',
+    'password_reset_header' => 'Reset Your Password',
+    'password_reset_body' => 'You requested a password reset. Click the button below to set a new password.',
+    'password_reset_button' => 'Reset Password',
+    'password_reset_expires' => 'This link expires in :minutes minutes.',
+    'password_reset_ignore' => "If you didn't request a password reset, you can safely ignore this email.",
 ];

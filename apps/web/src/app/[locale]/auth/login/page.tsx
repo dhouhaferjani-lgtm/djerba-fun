@@ -110,7 +110,10 @@ export default function LoginPage() {
                 />
 
                 <div className="flex items-center justify-between text-sm">
-                  <Link href={`/${locale}` as any} className="text-[#0D642E] hover:underline">
+                  <Link
+                    href={`/${locale}/auth/forgot-password` as any}
+                    className="text-[#0D642E] hover:underline"
+                  >
                     {t('forgot_password')}
                   </Link>
                 </div>

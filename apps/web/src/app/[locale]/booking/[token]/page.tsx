@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { magicLinksApi, type MagicLinkBookingResponse } from '@/lib/api/client';
 import type { BookingStatus } from '@go-adventure/schemas';
@@ -11,7 +11,7 @@ export default function MagicLinkBookingPage() {
   const params = useParams();
   const token = params.token as string;
   const t = useTranslations('booking');
-  const tCommon = useTranslations('common');
+  const locale = useLocale();
 
   const [booking, setBooking] = useState<MagicLinkBookingResponse['data'] | null>(null);
   const [magicLinks, setMagicLinks] = useState<MagicLinkBookingResponse['magic_links'] | null>(
@@ -34,13 +34,13 @@ export default function MagicLinkBookingPage() {
         const apiError = err as { status?: number; message?: string };
         if (apiError.status === 410) {
           setError({
-            message: 'This link has expired.',
+            message: t('link_expired'),
             expired: true,
           });
         } else if (apiError.status === 404) {
-          setError({ message: 'Invalid or unknown booking link.' });
+          setError({ message: t('invalid_link') });
         } else {
-          setError({ message: apiError.message || 'Failed to load booking.' });
+          setError({ message: t('load_failed') });
         }
       } finally {
         setIsLoading(false);
@@ -48,10 +48,10 @@ export default function MagicLinkBookingPage() {
     };
 
     fetchBooking();
-  }, [token]);
+  }, [token, t]);
 
   const formatPrice = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: currency,
     }).format(amount);
@@ -60,7 +60,7 @@ export default function MagicLinkBookingPage() {
   const formatDateTime = (dateString: string | null | undefined) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat(locale, {
       dateStyle: 'full',
       timeStyle: 'short',
     }).format(date);
@@ -108,24 +108,19 @@ export default function MagicLinkBookingPage() {
               </svg>
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">{error.message}</h2>
-            {error.expired && (
-              <p className="text-gray-600 mb-6">
-                Your booking link has expired for security reasons. You can request a new link
-                below.
-              </p>
-            )}
+            {error.expired && <p className="text-gray-600 mb-6">{t('link_expired_description')}</p>}
             <div className="space-y-3">
               <Link
                 href="/booking/recover"
                 className="block w-full px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors text-center"
               >
-                Request New Link
+                {t('request_new_link')}
               </Link>
               <Link
                 href="/"
                 className="block w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors text-center"
               >
-                Go to Homepage
+                {t('go_to_homepage')}
               </Link>
             </div>
           </div>
@@ -147,7 +142,7 @@ export default function MagicLinkBookingPage() {
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {t('booking')} #{booking.code}
+                  {t('magic_link_booking')} #{booking.code}
                 </h1>
                 <p className="text-gray-600">{formatDateTime(booking.createdAt)}</p>
               </div>
@@ -165,41 +160,36 @@ export default function MagicLinkBookingPage() {
           <div className="space-y-6">
             {/* Activity Details */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                {t('activity_details') || 'Activity Details'}
-              </h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">{t('activity_details')}</h2>
               <div className="space-y-2 text-sm text-gray-600">
                 <p>
-                  <strong>{t('date_time') || 'Date & Time'}:</strong>{' '}
-                  {formatDateTime(booking.startsAt)}
+                  <strong>{t('date_time')}:</strong> {formatDateTime(booking.startsAt)}
                 </p>
                 <p>
-                  <strong>{t('guests') || 'Guests'}:</strong> {booking.guests ?? booking.quantity}
+                  <strong>{t('guests')}:</strong> {booking.guests ?? booking.quantity}
                 </p>
               </div>
             </div>
 
             {/* Price Breakdown */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                {t('price_breakdown') || 'Price Breakdown'}
-              </h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">{t('price_breakdown')}</h2>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('subtotal') || 'Subtotal'}</span>
+                  <span className="text-gray-600">{t('subtotal')}</span>
                   <span className="font-medium text-gray-900">
                     {formatPrice(booking.totalAmount + booking.discountAmount, booking.currency)}
                   </span>
                 </div>
                 {booking.discountAmount > 0 && (
                   <div className="flex justify-between text-sm text-success-dark">
-                    <span>{t('discount') || 'Discount'}</span>
+                    <span>{t('discount')}</span>
                     <span>-{formatPrice(booking.discountAmount, booking.currency)}</span>
                   </div>
                 )}
                 <div className="border-t pt-3">
                   <div className="flex justify-between">
-                    <span className="font-bold text-gray-900">{t('total') || 'Total'}</span>
+                    <span className="font-bold text-gray-900">{t('total')}</span>
                     <span className="text-xl font-bold text-primary">
                       {formatPrice(booking.totalAmount, booking.currency)}
                     </span>
@@ -211,24 +201,20 @@ export default function MagicLinkBookingPage() {
             {/* Quick Actions */}
             {booking.status === 'confirmed' && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  {t('manage_booking') || 'Manage Your Booking'}
-                </h2>
-                <p className="text-sm text-gray-600 mb-4">
-                  Enter participant names and download your vouchers for check-in.
-                </p>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">{t('manage_booking')}</h2>
+                <p className="text-sm text-gray-600 mb-4">{t('manage_booking_description')}</p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link
                     href={`/booking/${token}/participants`}
                     className="flex-1 px-4 py-3 border border-primary text-primary rounded-lg font-medium text-center hover:bg-primary/5 transition-colors"
                   >
-                    {t('manage_participants') || 'Enter Participant Names'}
+                    {t('manage_participants')}
                   </Link>
                   <Link
                     href={`/booking/${token}/vouchers`}
                     className="flex-1 px-4 py-3 bg-primary text-white rounded-lg font-medium text-center hover:bg-primary/90 transition-colors"
                   >
-                    {t('view_vouchers') || 'Download Vouchers'}
+                    {t('view_vouchers')}
                   </Link>
                 </div>
               </div>
@@ -251,13 +237,8 @@ export default function MagicLinkBookingPage() {
                   />
                 </svg>
                 <div className="text-sm text-warning-dark">
-                  <p className="font-medium mb-1">
-                    {t('secure_link_notice') || 'This is a secure booking link'}
-                  </p>
-                  <p>
-                    {t('secure_link_description') ||
-                      'Bookmark this page or save the email with your booking confirmation to access your booking anytime.'}
-                  </p>
+                  <p className="font-medium mb-1">{t('secure_link_notice')}</p>
+                  <p>{t('secure_link_description')}</p>
                 </div>
               </div>
             </div>

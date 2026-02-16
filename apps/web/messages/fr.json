@@ -560,7 +560,20 @@
       "enter_participant_names": "Saisir les noms des participants",
       "participant_names_description": "Ajoutez les noms de tous les participants pour vos réservations. Vous pouvez aussi le faire plus tard depuis votre tableau de bord.",
       "enter_names_button": "Saisir les noms maintenant"
-    }
+    },
+    "magic_link_booking": "Réservation",
+    "manage_booking": "Gérer votre réservation",
+    "manage_booking_description": "Saisissez les noms des participants et téléchargez vos bons pour l'enregistrement.",
+    "manage_participants": "Saisir les noms des participants",
+    "view_vouchers": "Télécharger les bons",
+    "secure_link_notice": "Ceci est un lien de réservation sécurisé",
+    "secure_link_description": "Ajoutez cette page à vos favoris ou conservez l'email de confirmation pour accéder à votre réservation à tout moment.",
+    "link_expired": "Ce lien a expiré.",
+    "link_expired_description": "Votre lien de réservation a expiré pour des raisons de sécurité. Vous pouvez en demander un nouveau ci-dessous.",
+    "invalid_link": "Lien de réservation invalide ou inconnu.",
+    "load_failed": "Échec du chargement de la réservation.",
+    "request_new_link": "Demander un nouveau lien",
+    "go_to_homepage": "Retour à l'accueil"
   },
   "auth": {
     "login": "Connexion",
@@ -640,7 +653,25 @@
     "verification_success": "Email vérifié avec succès !",
     "continue_with_google": "Continuer avec Google",
     "continue_with_facebook": "Continuer avec Facebook",
-    "or_continue_with": "ou continuer avec"
+    "or_continue_with": "ou continuer avec",
+    "forgot_password_title": "Mot de passe oublié ?",
+    "forgot_password_description": "Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+    "send_reset_link": "Envoyer le lien",
+    "check_email_for_reset": "Vérifiez votre email",
+    "reset_link_sent": "Nous avons envoyé un lien de réinitialisation à",
+    "reset_link_expires": "Ce lien expire dans 15 minutes.",
+    "forgot_password_error": "Échec de l'envoi du lien. Veuillez réessayer.",
+    "remember_password": "Vous vous souvenez de votre mot de passe ?",
+    "reset_password_title": "Nouveau mot de passe",
+    "reset_password_description": "Entrez votre nouveau mot de passe ci-dessous.",
+    "new_password": "Nouveau mot de passe",
+    "confirm_new_password": "Confirmer le nouveau mot de passe",
+    "reset_password_button": "Réinitialiser le mot de passe",
+    "password_reset_success": "Mot de passe réinitialisé !",
+    "redirecting_to_login": "Redirection vers la connexion...",
+    "reset_password_expired": "Ce lien de réinitialisation a expiré ou est invalide.",
+    "reset_password_expired_description": "Veuillez demander un nouveau lien de réinitialisation.",
+    "request_new_reset_link": "Demander un nouveau lien"
   },
   "navigation": {
     "home": "Accueil",

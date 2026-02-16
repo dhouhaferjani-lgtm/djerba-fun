@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { Menu, User, LogOut } from 'lucide-react';
 import { CartIcon } from '../cart/CartIcon';
 import { LocaleSwitcher } from './LocaleSwitcher';
-import { AuthMascot } from '../molecules/AuthMascot';
+import { AuthMascot, type MascotState } from '../molecules/AuthMascot';
 import { useState } from 'react';
 import { Logo } from '../atoms/Logo';
 import { NavLink } from '../atoms/NavLink';
@@ -25,7 +25,22 @@ export function Header({ locale }: HeaderProps) {
   const { isAuthenticated, user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [logoutMascotState, setLogoutMascotState] = useState<MascotState>('error');
   const scrolled = useScroll(50);
+
+  const handleLogout = () => {
+    setLogoutMascotState('success');
+    setTimeout(() => {
+      logout();
+      setShowLogoutConfirm(false);
+      setLogoutMascotState('error');
+    }, 800);
+  };
+
+  const handleCloseLogout = () => {
+    setShowLogoutConfirm(false);
+    setLogoutMascotState('error');
+  };
 
   const navLinks = [
     { href: `/${locale}`, label: t('home') },
@@ -122,15 +137,15 @@ export function Header({ locale }: HeaderProps) {
       {/* Logout Confirmation Dialog */}
       <Dialog
         isOpen={showLogoutConfirm}
-        onClose={() => setShowLogoutConfirm(false)}
+        onClose={handleCloseLogout}
         size="sm"
         showCloseButton={false}
         className="max-w-xs"
       >
         <div className="text-center">
-          <div className="mx-auto w-24 h-24 mb-2 overflow-hidden flex items-center justify-center">
-            <div className="scale-50 origin-center">
-              <AuthMascot state="error" watchDirection={0.5} />
+          <div className="mx-auto w-32 h-32 mb-2 overflow-hidden flex items-center justify-center">
+            <div className="scale-75 origin-center">
+              <AuthMascot state={logoutMascotState} watchDirection={0.5} />
             </div>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -138,21 +153,10 @@ export function Header({ locale }: HeaderProps) {
           </h3>
           <p className="text-sm text-gray-500 mb-5">{tAuth('logout_confirm_message')}</p>
           <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-center">
-            <Button
-              variant="outline"
-              onClick={() => setShowLogoutConfirm(false)}
-              className="sm:min-w-[120px]"
-            >
+            <Button variant="outline" onClick={handleCloseLogout} className="sm:min-w-[120px]">
               {tCommon('cancel')}
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                logout();
-                setShowLogoutConfirm(false);
-              }}
-              className="sm:min-w-[120px]"
-            >
+            <Button variant="destructive" onClick={handleLogout} className="sm:min-w-[120px]">
               {tAuth('logout')}
             </Button>
           </div>
