@@ -1,20 +1,20 @@
-name: go-adventure
+name: djerba-fun
 
 services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
-    container_name: ga-postgres
+    container_name: df-postgres
     environment:
-      POSTGRES_DB: go_adventure
-      POSTGRES_USER: go_adventure
+      POSTGRES_DB: djerba_fun
+      POSTGRES_USER: djerba_fun
       POSTGRES_PASSWORD: secret
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - '15432:5432'
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U go_adventure']
+      test: ['CMD-SHELL', 'pg_isready -U djerba_fun']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
   # Redis for cache/queues/sessions
   redis:
     image: redis:7.2-alpine
-    container_name: ga-redis
+    container_name: df-redis
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
@@ -37,7 +37,7 @@ services:
   # MinIO (S3-compatible object storage)
   minio:
     image: minio/minio:latest
-    container_name: ga-minio
+    container_name: df-minio
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minio
@@ -56,7 +56,7 @@ services:
   # MeiliSearch (search engine)
   meilisearch:
     image: getmeili/meilisearch:v1.11
-    container_name: ga-meilisearch
+    container_name: df-meilisearch
     environment:
       MEILI_MASTER_KEY: masterkey123
       MEILI_NO_ANALYTICS: 'true'
@@ -73,7 +73,7 @@ services:
   # Mailpit (email testing)
   mailpit:
     image: axllent/mailpit:latest
-    container_name: ga-mailpit
+    container_name: df-mailpit
     ports:
       - '1025:1025'
       - '8025:8025'
@@ -89,7 +89,7 @@ services:
       context: ../apps/laravel-api
       dockerfile: ../../docker/services/octane/Dockerfile
       target: development
-    container_name: ga-api
+    container_name: df-api
     depends_on:
       postgres:
         condition: service_healthy
@@ -103,8 +103,8 @@ services:
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: go_adventure
-      DB_USERNAME: go_adventure
+      DB_DATABASE: djerba_fun
+      DB_USERNAME: djerba_fun
       DB_PASSWORD: secret
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -115,10 +115,10 @@ services:
       AWS_ENDPOINT: http://minio:9000
       AWS_ACCESS_KEY_ID: minio
       AWS_SECRET_ACCESS_KEY: minio123
-      AWS_BUCKET: go-adventure
+      AWS_BUCKET: djerba-fun
       AWS_USE_PATH_STYLE_ENDPOINT: 'true'
       MEDIA_DISK: minio
-      MINIO_PUBLIC_URL: http://localhost:9002/go-adventure
+      MINIO_PUBLIC_URL: http://localhost:9002/djerba-fun
       MAIL_MAILER: smtp
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
@@ -141,7 +141,7 @@ services:
     build:
       context: ../apps/laravel-api
       dockerfile: ../../docker/services/queue/Dockerfile
-    container_name: ga-queue
+    container_name: df-queue
     depends_on:
       api:
         condition: service_healthy
@@ -150,8 +150,8 @@ services:
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: go_adventure
-      DB_USERNAME: go_adventure
+      DB_DATABASE: djerba_fun
+      DB_USERNAME: djerba_fun
       DB_PASSWORD: secret
       REDIS_HOST: redis
       QUEUE_CONNECTION: redis
@@ -165,7 +165,7 @@ services:
     build:
       context: ../apps/laravel-api
       dockerfile: ../../docker/services/queue/Dockerfile
-    container_name: ga-horizon
+    container_name: df-horizon
     depends_on:
       api:
         condition: service_healthy
@@ -174,8 +174,8 @@ services:
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: go_adventure
-      DB_USERNAME: go_adventure
+      DB_DATABASE: djerba_fun
+      DB_USERNAME: djerba_fun
       DB_PASSWORD: secret
       REDIS_HOST: redis
       QUEUE_CONNECTION: redis
@@ -190,7 +190,7 @@ services:
       context: ../apps/web
       dockerfile: ../../docker/services/web/Dockerfile
       target: development
-    container_name: ga-web
+    container_name: df-web
     depends_on:
       - api
     environment:

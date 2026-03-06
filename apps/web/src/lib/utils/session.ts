@@ -3,7 +3,7 @@
  * Generates and stores a unique session ID for guest users.
  */
 
-const SESSION_KEY = 'go_adventure_guest_session';
+const SESSION_KEY = 'djerba_fun_guest_session';
 
 /**
  * Generate a UUID v4 for session identification.

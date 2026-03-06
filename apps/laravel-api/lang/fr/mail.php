@@ -2,7 +2,7 @@
 
 return [
     // Common
-    'go_adventure' => 'Djerba Fun',
+    'brand_name' => 'Djerba Fun',
     'all_rights_reserved' => 'Tous droits réservés.',
     'automated_message' => 'Ceci est un message automatique. Veuillez ne pas répondre à cet e-mail.',
     'privacy_policy' => 'Politique de confidentialité',

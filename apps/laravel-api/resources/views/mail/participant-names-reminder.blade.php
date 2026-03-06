@@ -199,7 +199,7 @@
         </div>
 
         <div class="footer">
-            <p>&copy; {{ date('Y') }} {{ __('mail.go_adventure') }}. {{ __('mail.all_rights_reserved') }}</p>
+            <p>&copy; {{ date('Y') }} {{ __('mail.brand_name') }}. {{ __('mail.all_rights_reserved') }}</p>
             <p style="font-size: 0.85em; margin-top: 10px;">
                 {{ __('mail.receiving_because_pending', ['number' => $booking->booking_number]) }}
             </p>

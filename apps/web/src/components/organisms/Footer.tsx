@@ -10,10 +10,10 @@ interface FooterProps {
   locale: string;
 }
 
-// Default social links matching old site (go-adventure.net)
+// Default social links for Djerba Fun
 const DEFAULT_SOCIAL_LINKS = {
-  facebook: 'https://www.facebook.com/people/LAventurier/61560766694725/',
-  instagram: 'https://www.instagram.com/laventurier.tn/',
+  facebook: 'https://www.facebook.com/djerbafun',
+  instagram: 'https://www.instagram.com/djerbafun',
 };
 
 // Social link component with SVG icon

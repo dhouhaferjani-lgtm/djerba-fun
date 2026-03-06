@@ -88,7 +88,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>{{ __('mail.go_adventure') }}</h1>
+        <h1>{{ __('mail.brand_name') }}</h1>
     </div>
 
     <div class="content">
@@ -135,7 +135,7 @@
 
     <div class="footer">
         <p>
-            {{ __('mail.go_adventure') }}<br>
+            {{ __('mail.brand_name') }}<br>
             <a href="{{ config('app.frontend_url') }}">{{ config('app.frontend_url') }}</a>
         </p>
         <p>

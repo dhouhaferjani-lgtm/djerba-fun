@@ -121,7 +121,7 @@
 
     <div class="footer">
         <p>{{ __('mail.partner_thanks') }}</p>
-        <p>&copy; {{ date('Y') }} {{ __('mail.go_adventure') }}. {{ __('mail.all_rights_reserved') }}</p>
+        <p>&copy; {{ date('Y') }} {{ __('mail.brand_name') }}. {{ __('mail.all_rights_reserved') }}</p>
     </div>
 </body>
 </html>

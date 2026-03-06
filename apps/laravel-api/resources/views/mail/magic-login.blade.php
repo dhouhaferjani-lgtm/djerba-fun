@@ -106,7 +106,7 @@
         </div>
 
         <div class="footer">
-            <p>&copy; {{ date('Y') }} {{ __('mail.go_adventure') }}. {{ __('mail.all_rights_reserved') }}</p>
+            <p>&copy; {{ date('Y') }} {{ __('mail.brand_name') }}. {{ __('mail.all_rights_reserved') }}</p>
             <p>{{ __('mail.automated_message') }}</p>
         </div>
     </div>

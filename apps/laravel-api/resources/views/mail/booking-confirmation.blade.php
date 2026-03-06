@@ -207,7 +207,7 @@
     </div>
 
     <div class="footer">
-        <p>&copy; {{ date('Y') }} {{ __('mail.go_adventure') }}. {{ __('mail.all_rights_reserved') }}</p>
+        <p>&copy; {{ date('Y') }} {{ __('mail.brand_name') }}. {{ __('mail.all_rights_reserved') }}</p>
         <p>
             <a href="{{ config('app.frontend_url') }}/privacy" style="color: #0D642E;">{{ __('mail.privacy_policy') }}</a> |
             <a href="{{ config('app.frontend_url') }}/terms" style="color: #0D642E;">{{ __('mail.terms_of_service') }}</a>
