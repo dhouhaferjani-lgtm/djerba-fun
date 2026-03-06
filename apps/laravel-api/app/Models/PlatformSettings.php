@@ -47,6 +47,36 @@ class PlatformSettings extends Model implements HasMedia
         'pillar_2_description',
         'pillar_3_title',
         'pillar_3_description',
+        // CMS Section: Experience Categories
+        'experience_categories_title',
+        'experience_categories_subtitle',
+        // CMS Section: Blog
+        'blog_section_title',
+        'blog_section_subtitle',
+        // CMS Section: Featured Packages
+        'featured_packages_title',
+        'featured_packages_subtitle',
+        // CMS Section: Custom Experience CTA
+        'custom_experience_title',
+        'custom_experience_description',
+        'custom_experience_button_text',
+        // CMS Section: Newsletter
+        'newsletter_title',
+        'newsletter_subtitle',
+        'newsletter_button_text',
+        // CMS Section: About Page
+        'about_hero_title',
+        'about_hero_subtitle',
+        'about_hero_tagline',
+        'about_founder_story',
+        'about_founder_quote',
+        'about_story_heading',
+        'about_story_intro',
+        'about_story_text_1',
+        'about_story_text_2',
+        'about_team_title',
+        'about_team_description',
+        'about_impact_text',
     ];
 
     /**
@@ -231,6 +261,54 @@ class PlatformSettings extends Model implements HasMedia
 
         // Testimonials (Homepage)
         'testimonials',
+
+        // CMS Section: Experience Categories
+        'experience_categories_enabled',
+        'experience_categories_title',
+        'experience_categories_subtitle',
+
+        // CMS Section: Blog
+        'blog_section_enabled',
+        'blog_section_title',
+        'blog_section_subtitle',
+        'blog_section_post_limit',
+
+        // CMS Section: Featured Packages
+        'featured_packages_enabled',
+        'featured_packages_title',
+        'featured_packages_subtitle',
+        'featured_packages_limit',
+
+        // CMS Section: Custom Experience CTA
+        'custom_experience_enabled',
+        'custom_experience_title',
+        'custom_experience_description',
+        'custom_experience_button_text',
+        'custom_experience_link',
+
+        // CMS Section: Newsletter
+        'newsletter_enabled',
+        'newsletter_title',
+        'newsletter_subtitle',
+        'newsletter_button_text',
+
+        // CMS Section: About Page
+        'about_hero_title',
+        'about_hero_subtitle',
+        'about_hero_tagline',
+        'about_founder_name',
+        'about_founder_story',
+        'about_founder_quote',
+        'about_story_heading',
+        'about_story_intro',
+        'about_story_text_1',
+        'about_story_text_2',
+        'about_team_title',
+        'about_team_description',
+        'about_impact_text',
+        'about_commitments',
+        'about_partners',
+        'about_initiatives',
     ];
 
     protected function casts(): array
@@ -247,6 +325,10 @@ class PlatformSettings extends Model implements HasMedia
             'vendor_kyc_document_types' => 'array',
             'featured_destinations' => 'array',
             'testimonials' => 'array',
+            // CMS Section: About Page (JSON arrays)
+            'about_commitments' => 'array',
+            'about_partners' => 'array',
+            'about_initiatives' => 'array',
 
             // Booleans
             'enable_reviews' => 'boolean',
@@ -267,6 +349,12 @@ class PlatformSettings extends Model implements HasMedia
             'clicktopay_test_mode' => 'boolean',
             'offline_payments_enabled' => 'boolean',
             'event_of_year_enabled' => 'boolean',
+            // CMS Section enabled booleans
+            'experience_categories_enabled' => 'boolean',
+            'blog_section_enabled' => 'boolean',
+            'featured_packages_enabled' => 'boolean',
+            'custom_experience_enabled' => 'boolean',
+            'newsletter_enabled' => 'boolean',
 
             // Decimals
             'platform_commission_percent' => 'decimal:2',
@@ -288,6 +376,9 @@ class PlatformSettings extends Model implements HasMedia
             'minimum_age_requirement' => 'integer',
             'vendor_payout_delay_days' => 'integer',
             'founded_year' => 'integer',
+            // CMS Section integers
+            'blog_section_post_limit' => 'integer',
+            'featured_packages_limit' => 'integer',
         ];
     }
 
@@ -335,6 +426,16 @@ class PlatformSettings extends Model implements HasMedia
 
         // Event of the Year (Promo Banner)
         $this->addMediaCollection('event_of_year_image')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp']);
+
+        // About Page Hero Image
+        $this->addMediaCollection('about_hero_image')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp']);
+
+        // About Page Founder Photo
+        $this->addMediaCollection('about_founder_photo')
             ->singleFile()
             ->acceptsMimeTypes(['image/png', 'image/jpeg', 'image/webp']);
     }
@@ -496,6 +597,16 @@ class PlatformSettings extends Model implements HasMedia
     public function getEventOfYearImageUrlAttribute(): ?string
     {
         return $this->getFirstMediaUrl('event_of_year_image') ?: null;
+    }
+
+    public function getAboutHeroImageUrlAttribute(): ?string
+    {
+        return $this->getFirstMediaUrl('about_hero_image') ?: null;
+    }
+
+    public function getAboutFounderPhotoUrlAttribute(): ?string
+    {
+        return $this->getFirstMediaUrl('about_founder_photo') ?: null;
     }
 
     /**

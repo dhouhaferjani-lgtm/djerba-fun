@@ -21,32 +21,45 @@ import {
   getBrandPillarsData,
   getFeaturedDestinations,
   getTestimonials,
+  getExperienceCategoriesData,
+  getBlogSectionData,
+  getFeaturedPackagesSectionData,
+  getCustomExperienceData,
 } from '@/lib/api/server';
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // Fetch branding, event of year, hero text, pillar text, CMS content, featured listings, and destinations in parallel
+  // Fetch CMS section data and other content in parallel
   const [
     branding,
     eventOfYear,
     heroData,
     brandPillarsData,
     cmsPage,
-    featuredListings,
     featuredDestinations,
     testimonials,
+    experienceCategoriesData,
+    blogSectionData,
+    featuredPackagesData,
+    customExperienceData,
   ] = await Promise.all([
     getBrandingUrls(locale),
     getEventOfYearData(locale),
     getHeroData(locale),
     getBrandPillarsData(locale),
     getPageByCode({ code: 'HOME', locale }).catch(() => null),
-    getFeaturedListings(3),
     getFeaturedDestinations(locale),
     getTestimonials(locale),
+    getExperienceCategoriesData(locale),
+    getBlogSectionData(locale),
+    getFeaturedPackagesSectionData(locale),
+    getCustomExperienceData(locale),
   ]);
+
+  // Fetch featured listings with the limit from CMS (must be separate due to dependency)
+  const featuredListings = await getFeaturedListings(featuredPackagesData.limit);
 
   return (
     <MainLayout locale={locale}>
@@ -65,7 +78,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       />
 
       {/* Featured Listings - À venir */}
-      <FeaturedPackagesSection listings={featuredListings} locale={locale} />
+      {featuredPackagesData.enabled && (
+        <FeaturedPackagesSection
+          listings={featuredListings}
+          locale={locale}
+          cmsData={featuredPackagesData}
+        />
+      )}
 
       {/* CMS-managed middle sections OR hardcoded fallback */}
       {cmsPage && cmsPage.content_blocks && cmsPage.content_blocks.length > 0 ? (
@@ -73,15 +92,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       ) : (
         <>
           <PromoBannerSection locale={locale} eventOfYear={eventOfYear} />
-          <ExperienceCategoriesSection />
+          {experienceCategoriesData.enabled && (
+            <ExperienceCategoriesSection cmsData={experienceCategoriesData} />
+          )}
           <TestimonialsSection testimonials={testimonials} locale={locale} />
           <DestinationsBentoGrid locale={locale} cmsDestinations={featuredDestinations} />
-          <CTASectionWithBlobs locale={locale} />
+          {customExperienceData.enabled && (
+            <CTASectionWithBlobs locale={locale} cmsData={customExperienceData} />
+          )}
         </>
       )}
 
-      {/* Always show Blog section */}
-      <BlogSection locale={locale} />
+      {/* Always show Blog section if enabled */}
+      {blogSectionData.enabled && <BlogSection locale={locale} cmsData={blogSectionData} />}
     </MainLayout>
   );
 }

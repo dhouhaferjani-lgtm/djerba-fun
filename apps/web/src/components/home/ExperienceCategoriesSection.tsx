@@ -6,6 +6,12 @@ import Link from 'next/link';
 import { useActivityTypes } from '@/lib/api/hooks';
 import type { ActivityType } from '@djerba-fun/schemas';
 
+interface CmsData {
+  enabled: boolean;
+  title: string | null;
+  subtitle: string | null;
+}
+
 // Fallback images by slug (local images for Evasion Djerba categories)
 const fallbackImages: Record<string, string> = {
   'island-tours': '/images/experiences/island-tours.jpg',
@@ -169,7 +175,11 @@ function LoadingSkeleton() {
   );
 }
 
-export function ExperienceCategoriesSection() {
+interface ExperienceCategoriesSectionProps {
+  cmsData?: CmsData;
+}
+
+export function ExperienceCategoriesSection({ cmsData }: ExperienceCategoriesSectionProps) {
   const t = useTranslations('home');
   const locale = useLocale();
   const { data: activityTypes, isLoading } = useActivityTypes();
@@ -197,9 +207,11 @@ export function ExperienceCategoriesSection() {
         {/* Header */}
         <div className="text-center mb-10 md:mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-primary uppercase tracking-wide mb-3">
-            {t('experiences_title')}
+            {cmsData?.title || t('experiences_title')}
           </h2>
-          <p className="text-lg text-neutral-600">{t('experiences_subtitle')}</p>
+          <p className="text-lg text-neutral-600">
+            {cmsData?.subtitle || t('experiences_subtitle')}
+          </p>
         </div>
 
         {/* Bento Grid */}

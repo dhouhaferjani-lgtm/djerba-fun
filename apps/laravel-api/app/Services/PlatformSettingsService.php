@@ -230,6 +230,102 @@ class PlatformSettingsService
 
                 return $testimonial;
             })->values()->toArray(),
+
+            // CMS Section: Experience Categories
+            'experienceCategories' => [
+                'enabled' => $s->experience_categories_enabled ?? true,
+                'title' => $s->getTranslation('experience_categories_title', $locale),
+                'subtitle' => $s->getTranslation('experience_categories_subtitle', $locale),
+            ],
+
+            // CMS Section: Blog
+            'blogSection' => [
+                'enabled' => $s->blog_section_enabled ?? true,
+                'title' => $s->getTranslation('blog_section_title', $locale),
+                'subtitle' => $s->getTranslation('blog_section_subtitle', $locale),
+                'postLimit' => $s->blog_section_post_limit ?? 3,
+            ],
+
+            // CMS Section: Featured Packages
+            'featuredPackages' => [
+                'enabled' => $s->featured_packages_enabled ?? true,
+                'title' => $s->getTranslation('featured_packages_title', $locale),
+                'subtitle' => $s->getTranslation('featured_packages_subtitle', $locale),
+                'limit' => $s->featured_packages_limit ?? 3,
+            ],
+
+            // CMS Section: Custom Experience CTA
+            'customExperience' => [
+                'enabled' => $s->custom_experience_enabled ?? true,
+                'title' => $s->getTranslation('custom_experience_title', $locale),
+                'description' => $s->getTranslation('custom_experience_description', $locale),
+                'buttonText' => $s->getTranslation('custom_experience_button_text', $locale),
+                'link' => $s->custom_experience_link,
+            ],
+
+            // CMS Section: Newsletter
+            'newsletter' => [
+                'enabled' => $s->newsletter_enabled ?? true,
+                'title' => $s->getTranslation('newsletter_title', $locale),
+                'subtitle' => $s->getTranslation('newsletter_subtitle', $locale),
+                'buttonText' => $s->getTranslation('newsletter_button_text', $locale),
+            ],
+
+            // CMS Section: About Page
+            'about' => [
+                'hero' => [
+                    'title' => $s->getTranslation('about_hero_title', $locale),
+                    'subtitle' => $s->getTranslation('about_hero_subtitle', $locale),
+                    'tagline' => $s->getTranslation('about_hero_tagline', $locale),
+                    'image' => $s->about_hero_image_url,
+                ],
+                'story' => [
+                    'heading' => $s->getTranslation('about_story_heading', $locale),
+                    'intro' => $s->getTranslation('about_story_intro', $locale),
+                    'text1' => $s->getTranslation('about_story_text_1', $locale),
+                    'text2' => $s->getTranslation('about_story_text_2', $locale),
+                ],
+                'founder' => [
+                    'name' => $s->about_founder_name,
+                    'photo' => $s->about_founder_photo_url,
+                    'story' => $s->getTranslation('about_founder_story', $locale),
+                    'quote' => $s->getTranslation('about_founder_quote', $locale),
+                ],
+                'team' => [
+                    'title' => $s->getTranslation('about_team_title', $locale),
+                    'description' => $s->getTranslation('about_team_description', $locale),
+                ],
+                'impactText' => $s->getTranslation('about_impact_text', $locale),
+                'commitments' => collect($s->about_commitments ?? [])->map(function ($commitment) use ($locale) {
+                    return [
+                        'icon' => $commitment['icon'] ?? null,
+                        'title' => $locale === 'fr' ? ($commitment['title_fr'] ?? $commitment['title_en'] ?? '') : ($commitment['title_en'] ?? ''),
+                        'description' => $locale === 'fr' ? ($commitment['description_fr'] ?? $commitment['description_en'] ?? '') : ($commitment['description_en'] ?? ''),
+                    ];
+                })->values()->toArray(),
+                'partners' => collect($s->about_partners ?? [])->map(function ($partner) {
+                    $logo = $partner['logo'] ?? null;
+                    if ($logo && ! str_starts_with($logo, 'http')) {
+                        $logo = asset('storage/'.$logo);
+                    }
+
+                    return [
+                        'name' => $partner['name'] ?? null,
+                        'logo' => $logo,
+                    ];
+                })->values()->toArray(),
+                'initiatives' => collect($s->about_initiatives ?? [])->map(function ($initiative) use ($locale) {
+                    $image = $initiative['image'] ?? null;
+                    if ($image && ! str_starts_with($image, 'http')) {
+                        $image = asset('storage/'.$image);
+                    }
+
+                    return [
+                        'image' => $image,
+                        'alt' => $locale === 'fr' ? ($initiative['alt_fr'] ?? $initiative['alt_en'] ?? '') : ($initiative['alt_en'] ?? ''),
+                    ];
+                })->values()->toArray(),
+            ],
         ];
     }
 

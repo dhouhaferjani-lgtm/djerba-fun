@@ -339,3 +339,138 @@ export async function getFeaturedListings(limit: number = 3): Promise<ListingSum
     return [];
   }
 }
+
+// =========================================================================
+// CMS Section Data Helpers
+// =========================================================================
+
+/**
+ * Get Experience Categories section data from CMS.
+ * Returns title, subtitle, and enabled status.
+ */
+export async function getExperienceCategoriesData(locale?: string) {
+  const settings = await getPlatformSettings(locale);
+  const data = (settings?.data as any)?.experienceCategories;
+
+  return {
+    enabled: data?.enabled ?? true,
+    title: data?.title ?? null,
+    subtitle: data?.subtitle ?? null,
+  };
+}
+
+/**
+ * Get Blog section data from CMS.
+ * Returns title, subtitle, enabled status, and post limit.
+ */
+export async function getBlogSectionData(locale?: string) {
+  const settings = await getPlatformSettings(locale);
+  const data = (settings?.data as any)?.blogSection;
+
+  return {
+    enabled: data?.enabled ?? true,
+    title: data?.title ?? null,
+    subtitle: data?.subtitle ?? null,
+    postLimit: data?.postLimit ?? 3,
+  };
+}
+
+/**
+ * Get Featured Packages section data from CMS.
+ * Returns title, subtitle, enabled status, and limit.
+ */
+export async function getFeaturedPackagesSectionData(locale?: string) {
+  const settings = await getPlatformSettings(locale);
+  const data = (settings?.data as any)?.featuredPackages;
+
+  return {
+    enabled: data?.enabled ?? true,
+    title: data?.title ?? null,
+    subtitle: data?.subtitle ?? null,
+    limit: data?.limit ?? 3,
+  };
+}
+
+/**
+ * Get Custom Experience CTA section data from CMS.
+ * Returns title, description, button text, link, and enabled status.
+ */
+export async function getCustomExperienceData(locale?: string) {
+  const settings = await getPlatformSettings(locale);
+  const data = (settings?.data as any)?.customExperience;
+
+  return {
+    enabled: data?.enabled ?? true,
+    title: data?.title ?? null,
+    description: data?.description ?? null,
+    buttonText: data?.buttonText ?? null,
+    link: data?.link ?? null,
+  };
+}
+
+/**
+ * Get Newsletter section data from CMS.
+ * Returns title, subtitle, button text, and enabled status.
+ */
+export async function getNewsletterData(locale?: string) {
+  const settings = await getPlatformSettings(locale);
+  const data = (settings?.data as any)?.newsletter;
+
+  return {
+    enabled: data?.enabled ?? true,
+    title: data?.title ?? null,
+    subtitle: data?.subtitle ?? null,
+    buttonText: data?.buttonText ?? null,
+  };
+}
+
+/**
+ * Get About page data from CMS.
+ * Returns hero, story, founder, team, commitments, partners, and initiatives.
+ */
+export async function getAboutPageData(locale?: string) {
+  const settings = await getPlatformSettings(locale);
+  const data = (settings?.data as any)?.about;
+
+  return {
+    hero: {
+      title: data?.hero?.title ?? null,
+      subtitle: data?.hero?.subtitle ?? null,
+      tagline: data?.hero?.tagline ?? null,
+      image: data?.hero?.image ?? null,
+    },
+    story: {
+      heading: data?.story?.heading ?? null,
+      intro: data?.story?.intro ?? null,
+      text1: data?.story?.text1 ?? null,
+      text2: data?.story?.text2 ?? null,
+    },
+    founder: {
+      name: data?.founder?.name ?? null,
+      photo: data?.founder?.photo ?? null,
+      story: data?.founder?.story ?? null,
+      quote: data?.founder?.quote ?? null,
+    },
+    team: {
+      title: data?.team?.title ?? null,
+      description: data?.team?.description ?? null,
+    },
+    impactText: data?.impactText ?? null,
+    commitments:
+      (data?.commitments as Array<{
+        icon: string;
+        title: string;
+        description: string;
+      }>) ?? [],
+    partners:
+      (data?.partners as Array<{
+        name: string;
+        logo: string;
+      }>) ?? [],
+    initiatives:
+      (data?.initiatives as Array<{
+        image: string;
+        alt: string;
+      }>) ?? [],
+  };
+}

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { MainLayout } from '@/components/templates/MainLayout';
+import { getAboutPageData } from '@/lib/api/server';
 
 export async function generateMetadata({
   params,
@@ -80,67 +81,130 @@ const PassionIcon = () => (
   </svg>
 );
 
+// Quality icon (star)
+const QualityIcon = () => (
+  <svg
+    className="w-16 h-16"
+    viewBox="0 0 64 64"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+  >
+    <path d="M32 8l8 16 16 4-12 12 2 18-14-8-14 8 2-18-12-12 16-4z" />
+  </svg>
+);
+
+// Safety icon (shield)
+const SafetyIcon = () => (
+  <svg
+    className="w-16 h-16"
+    viewBox="0 0 64 64"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+  >
+    <path d="M32 4L8 14v18c0 14 10 24 24 28 14-4 24-14 24-28V14L32 4z" />
+    <path d="M24 32l6 6 10-12" />
+  </svg>
+);
+
+// Helper function to get icon component by name
+function getCommitmentIcon(iconName: string) {
+  const icons: Record<string, () => React.JSX.Element> = {
+    sustainable: SustainableIcon,
+    active: ActiveIcon,
+    immersion: ImmersionIcon,
+    passion: PassionIcon,
+    quality: QualityIcon,
+    safety: SafetyIcon,
+  };
+  return icons[iconName] || PassionIcon;
+}
+
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('about');
 
-  const commitments = [
-    {
-      title: t('sustainable'),
-      description: t('sustainable_desc'),
-      Icon: SustainableIcon,
-    },
-    {
-      title: t('active_lifestyle'),
-      description: t('active_lifestyle_desc'),
-      Icon: ActiveIcon,
-    },
-    {
-      title: t('local_immersion'),
-      description: t('local_immersion_desc'),
-      Icon: ImmersionIcon,
-    },
-    {
-      title: t('expertise'),
-      description: t('expertise_desc'),
-      Icon: PassionIcon,
-    },
-  ];
+  // Fetch CMS data for the about page
+  const cmsData = await getAboutPageData(locale);
 
-  const initiatives = [
-    { image: '/images/about/initiatives/workshop.png', alt: 'Educational Workshop' },
-    { image: '/images/about/initiatives/sports.png', alt: 'Sports Activities' },
-    { image: '/images/about/initiatives/heritage.png', alt: 'Heritage & Craft' },
-  ];
+  // Use CMS commitments if available, otherwise use default from translations
+  const commitments =
+    cmsData.commitments.length > 0
+      ? cmsData.commitments.map((c) => ({
+          title: c.title,
+          description: c.description,
+          Icon: getCommitmentIcon(c.icon),
+        }))
+      : [
+          {
+            title: t('sustainable'),
+            description: t('sustainable_desc'),
+            Icon: SustainableIcon,
+          },
+          {
+            title: t('active_lifestyle'),
+            description: t('active_lifestyle_desc'),
+            Icon: ActiveIcon,
+          },
+          {
+            title: t('local_immersion'),
+            description: t('local_immersion_desc'),
+            Icon: ImmersionIcon,
+          },
+          {
+            title: t('expertise'),
+            description: t('expertise_desc'),
+            Icon: PassionIcon,
+          },
+        ];
 
-  const partners = [
-    '/images/about/partners/partner-1.png',
-    '/images/about/partners/partner-2.png',
-    '/images/about/partners/partner-3.png',
-    '/images/about/partners/partner-4.png',
-    '/images/about/partners/partner-5.png',
-    '/images/about/partners/partner-6.png',
-    '/images/about/partners/partner-7.png',
-  ];
+  // Use CMS initiatives if available, otherwise use defaults
+  const initiatives =
+    cmsData.initiatives.length > 0
+      ? cmsData.initiatives
+      : [
+          { image: '/images/about/initiatives/workshop.png', alt: 'Educational Workshop' },
+          { image: '/images/about/initiatives/sports.png', alt: 'Sports Activities' },
+          { image: '/images/about/initiatives/heritage.png', alt: 'Heritage & Craft' },
+        ];
+
+  // Use CMS partners if available, otherwise use defaults
+  const partners =
+    cmsData.partners.length > 0
+      ? cmsData.partners
+      : [
+          { name: 'Partner 1', logo: '/images/about/partners/partner-1.png' },
+          { name: 'Partner 2', logo: '/images/about/partners/partner-2.png' },
+          { name: 'Partner 3', logo: '/images/about/partners/partner-3.png' },
+          { name: 'Partner 4', logo: '/images/about/partners/partner-4.png' },
+          { name: 'Partner 5', logo: '/images/about/partners/partner-5.png' },
+          { name: 'Partner 6', logo: '/images/about/partners/partner-6.png' },
+          { name: 'Partner 7', logo: '/images/about/partners/partner-7.png' },
+        ];
 
   return (
     <MainLayout locale={locale}>
       {/* 1. Hero Section */}
       <section className="relative min-h-[500px] flex items-center justify-center">
         <Image
-          src="/images/about/hero-banner.jpg"
-          alt="À propos d'Evasion Djerba"
+          src={cmsData.hero.image || '/images/about/hero-banner.jpg'}
+          alt={cmsData.hero.title || t('hero_title')}
           fill
           className="object-cover"
           priority
         />
         <div className="absolute inset-0 bg-primary/70" />
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center text-white py-24">
-          <p className="text-primary-light text-lg mb-4 italic">{t('tagline')}</p>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">{t('hero_title')}</h1>
+          <p className="text-primary-light text-lg mb-4 italic">
+            {cmsData.hero.tagline || t('tagline')}
+          </p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+            {cmsData.hero.title || t('hero_title')}
+          </h1>
           <p className="text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
-            {t('hero_subtitle')}
+            {cmsData.hero.subtitle || t('hero_subtitle')}
           </p>
         </div>
       </section>
@@ -154,13 +218,13 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h3 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-                {t('laventurier_heading')}
+                {cmsData.story.heading || t('laventurier_heading')}
               </h3>
             </div>
             <div className="text-gray-700 space-y-6">
-              <p className="text-lg">{t('laventurier_intro')}</p>
-              <p className="text-lg">{t('laventurier_desc1')}</p>
-              <p className="text-lg">{t('laventurier_desc2')}</p>
+              <p className="text-lg">{cmsData.story.intro || t('laventurier_intro')}</p>
+              <p className="text-lg">{cmsData.story.text1 || t('laventurier_desc1')}</p>
+              <p className="text-lg">{cmsData.story.text2 || t('laventurier_desc2')}</p>
             </div>
           </div>
         </div>
@@ -174,8 +238,8 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             <div className="relative">
               <div className="relative w-full max-w-md mx-auto aspect-square overflow-hidden rounded-[0_50%_50%_0] bg-gray-200">
                 <Image
-                  src="/images/about/founder-seif.jpg"
-                  alt="Seif Ben Helel"
+                  src={cmsData.founder.photo || '/images/about/founder-seif.jpg'}
+                  alt={cmsData.founder.name || 'Seif Ben Helel'}
                   fill
                   className="object-cover"
                 />
@@ -187,10 +251,12 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 {t('founder_title')}
               </h2>
               <div className="prose prose-lg text-gray-700 space-y-4">
-                <p>{t('founder_story')}</p>
+                <p>{cmsData.founder.story || t('founder_story')}</p>
               </div>
               <blockquote className="mt-8 bg-[#fde68a] p-6 rounded-lg border-l-4 border-primary">
-                <p className="text-gray-800 italic text-lg">"{t('founder_quote')}"</p>
+                <p className="text-gray-800 italic text-lg">
+                  "{cmsData.founder.quote || t('founder_quote')}"
+                </p>
               </blockquote>
             </div>
           </div>
@@ -223,8 +289,12 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Team Box - Cream */}
             <div className="bg-neutral-100 p-8 rounded-lg">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4 uppercase">{t('team')}</h3>
-              <p className="text-gray-700 leading-relaxed">{t('team_desc')}</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4 uppercase">
+                {cmsData.team.title || t('team')}
+              </h3>
+              <p className="text-gray-700 leading-relaxed">
+                {cmsData.team.description || t('team_desc')}
+              </p>
             </div>
             {/* Initiatives Box - Lime */}
             <div className="bg-[#4ade9a] p-8 rounded-lg">
@@ -254,25 +324,29 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       {/* 6. 1% Impact Banner */}
       <section className="py-8 bg-primary">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <p className="text-xl md:text-2xl text-white italic">{t('impact_desc')}</p>
+          <p className="text-xl md:text-2xl text-white italic">
+            {cmsData.impactText || t('impact_desc')}
+          </p>
         </div>
       </section>
 
       {/* 7. Initiative Images - Large, Full Width, Black & White */}
-      <section className="bg-white">
-        <div className="grid grid-cols-1 md:grid-cols-3">
-          {initiatives.map((initiative, index) => (
-            <div key={index} className="relative h-80 md:h-[400px] overflow-hidden">
-              <Image
-                src={initiative.image}
-                alt={initiative.alt}
-                fill
-                className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
-              />
-            </div>
-          ))}
-        </div>
-      </section>
+      {initiatives.length > 0 && (
+        <section className="bg-white">
+          <div className="grid grid-cols-1 md:grid-cols-3">
+            {initiatives.map((initiative, index) => (
+              <div key={index} className="relative h-80 md:h-[400px] overflow-hidden">
+                <Image
+                  src={initiative.image}
+                  alt={initiative.alt}
+                  fill
+                  className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 8. Partner Logos - All on one line */}
       <section className="py-16 bg-white">
@@ -286,7 +360,12 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 key={index}
                 className="relative w-16 h-16 md:w-24 md:h-24 flex-shrink-0 hover:scale-110 transition-transform duration-300"
               >
-                <Image src={partner} alt={`Partner ${index + 1}`} fill className="object-contain" />
+                <Image
+                  src={partner.logo}
+                  alt={partner.name || `Partner ${index + 1}`}
+                  fill
+                  className="object-contain"
+                />
               </div>
             ))}
           </div>

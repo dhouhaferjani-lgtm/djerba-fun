@@ -129,6 +129,14 @@ class PlatformSettingsPage extends Page implements HasForms
                         $this->eventOfYearTab(),
                         $this->featuredDestinationsTab(),
                         $this->testimonialsTab(),
+                        // CMS Section Tabs
+                        $this->experienceCategoriesTab(),
+                        $this->blogSectionTab(),
+                        $this->featuredPackagesTab(),
+                        $this->customExperienceTab(),
+                        $this->newsletterTab(),
+                        $this->aboutPageTab(),
+                        // Other Settings
                         $this->seoMetadataTab(),
                         $this->contactInformationTab(),
                         $this->physicalAddressTab(),
@@ -979,6 +987,573 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->defaultItems(0)
                             ->maxItems(10),
                     ]),
+            ]);
+    }
+
+    // =========================================================================
+    // CMS SECTION TABS
+    // =========================================================================
+
+    protected function experienceCategoriesTab(): Forms\Components\Tabs\Tab
+    {
+        return Forms\Components\Tabs\Tab::make('Experience Categories')
+            ->icon('heroicon-o-squares-2x2')
+            ->schema([
+                Forms\Components\Section::make('Experience Categories Section')
+                    ->description('Configure the "Explore Our Experiences" section on the homepage. This section displays activity type categories in a bento grid layout.')
+                    ->schema([
+                        Forms\Components\Toggle::make('experience_categories_enabled')
+                            ->label('Enable Section')
+                            ->helperText('Show or hide the experience categories section on the homepage')
+                            ->default(true)
+                            ->columnSpanFull(),
+
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Section::make('English')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('experience_categories_title.en')
+                                            ->label('Title')
+                                            ->placeholder('Explore Our Experiences')
+                                            ->maxLength(100),
+                                        Forms\Components\TextInput::make('experience_categories_subtitle.en')
+                                            ->label('Subtitle')
+                                            ->placeholder('Find your perfect adventure')
+                                            ->maxLength(200),
+                                    ]),
+                                Forms\Components\Section::make('Français')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('experience_categories_title.fr')
+                                            ->label('Titre')
+                                            ->placeholder('Explorez Nos Expériences')
+                                            ->maxLength(100),
+                                        Forms\Components\TextInput::make('experience_categories_subtitle.fr')
+                                            ->label('Sous-titre')
+                                            ->placeholder('Trouvez votre aventure parfaite')
+                                            ->maxLength(200),
+                                    ]),
+                            ]),
+                    ]),
+            ]);
+    }
+
+    protected function blogSectionTab(): Forms\Components\Tabs\Tab
+    {
+        return Forms\Components\Tabs\Tab::make('Blog Section')
+            ->icon('heroicon-o-newspaper')
+            ->schema([
+                Forms\Components\Section::make('Blog Section')
+                    ->description('Configure the blog section displayed on the homepage. Shows featured blog posts.')
+                    ->schema([
+                        Forms\Components\Toggle::make('blog_section_enabled')
+                            ->label('Enable Section')
+                            ->helperText('Show or hide the blog section on the homepage')
+                            ->default(true),
+
+                        Forms\Components\TextInput::make('blog_section_post_limit')
+                            ->label('Number of Posts')
+                            ->numeric()
+                            ->default(3)
+                            ->minValue(1)
+                            ->maxValue(12)
+                            ->helperText('How many blog posts to display'),
+
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Section::make('English')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('blog_section_title.en')
+                                            ->label('Title')
+                                            ->placeholder('Latest from the Blog')
+                                            ->maxLength(100),
+                                        Forms\Components\TextInput::make('blog_section_subtitle.en')
+                                            ->label('Subtitle')
+                                            ->placeholder('Travel tips, stories, and inspiration')
+                                            ->maxLength(200),
+                                    ]),
+                                Forms\Components\Section::make('Français')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('blog_section_title.fr')
+                                            ->label('Titre')
+                                            ->placeholder('Dernières actualités')
+                                            ->maxLength(100),
+                                        Forms\Components\TextInput::make('blog_section_subtitle.fr')
+                                            ->label('Sous-titre')
+                                            ->placeholder('Conseils, récits et inspiration')
+                                            ->maxLength(200),
+                                    ]),
+                            ]),
+                    ]),
+            ]);
+    }
+
+    protected function featuredPackagesTab(): Forms\Components\Tabs\Tab
+    {
+        return Forms\Components\Tabs\Tab::make('Featured Packages')
+            ->icon('heroicon-o-gift')
+            ->schema([
+                Forms\Components\Section::make('Featured Packages Section')
+                    ->description('Configure the "Upcoming Adventures" section displaying featured listings on the homepage.')
+                    ->schema([
+                        Forms\Components\Toggle::make('featured_packages_enabled')
+                            ->label('Enable Section')
+                            ->helperText('Show or hide the featured packages section')
+                            ->default(true),
+
+                        Forms\Components\TextInput::make('featured_packages_limit')
+                            ->label('Number of Packages')
+                            ->numeric()
+                            ->default(3)
+                            ->minValue(1)
+                            ->maxValue(12)
+                            ->helperText('How many featured listings to display'),
+
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Section::make('English')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('featured_packages_title.en')
+                                            ->label('Title')
+                                            ->placeholder('Upcoming Adventures')
+                                            ->maxLength(100),
+                                        Forms\Components\TextInput::make('featured_packages_subtitle.en')
+                                            ->label('Subtitle')
+                                            ->placeholder('Book your next trip')
+                                            ->maxLength(200),
+                                    ]),
+                                Forms\Components\Section::make('Français')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('featured_packages_title.fr')
+                                            ->label('Titre')
+                                            ->placeholder('Aventures à venir')
+                                            ->maxLength(100),
+                                        Forms\Components\TextInput::make('featured_packages_subtitle.fr')
+                                            ->label('Sous-titre')
+                                            ->placeholder('Réservez votre prochain voyage')
+                                            ->maxLength(200),
+                                    ]),
+                            ]),
+                    ]),
+            ]);
+    }
+
+    protected function customExperienceTab(): Forms\Components\Tabs\Tab
+    {
+        return Forms\Components\Tabs\Tab::make('Custom Experience CTA')
+            ->icon('heroicon-o-sparkles')
+            ->schema([
+                Forms\Components\Section::make('Custom Experience CTA Section')
+                    ->description('Configure the call-to-action section for custom trip requests. This section encourages users to contact you for personalized experiences.')
+                    ->schema([
+                        Forms\Components\Toggle::make('custom_experience_enabled')
+                            ->label('Enable Section')
+                            ->helperText('Show or hide the custom experience CTA section')
+                            ->default(true),
+
+                        Forms\Components\TextInput::make('custom_experience_link')
+                            ->label('Button Link')
+                            ->placeholder('/custom-trip')
+                            ->helperText('URL the button links to (e.g., /custom-trip or /contact)')
+                            ->maxLength(500),
+
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Section::make('English')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('custom_experience_title.en')
+                                            ->label('Title')
+                                            ->placeholder('Create Your Perfect Adventure')
+                                            ->maxLength(150),
+                                        Forms\Components\Textarea::make('custom_experience_description.en')
+                                            ->label('Description')
+                                            ->placeholder('Tell us your dream trip and we\'ll make it happen')
+                                            ->rows(2)
+                                            ->maxLength(500),
+                                        Forms\Components\TextInput::make('custom_experience_button_text.en')
+                                            ->label('Button Text')
+                                            ->placeholder('Get Started')
+                                            ->maxLength(50),
+                                    ]),
+                                Forms\Components\Section::make('Français')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('custom_experience_title.fr')
+                                            ->label('Titre')
+                                            ->placeholder('Créez Votre Aventure Sur Mesure')
+                                            ->maxLength(150),
+                                        Forms\Components\Textarea::make('custom_experience_description.fr')
+                                            ->label('Description')
+                                            ->placeholder('Décrivez-nous votre voyage de rêve')
+                                            ->rows(2)
+                                            ->maxLength(500),
+                                        Forms\Components\TextInput::make('custom_experience_button_text.fr')
+                                            ->label('Texte du bouton')
+                                            ->placeholder('Commencer')
+                                            ->maxLength(50),
+                                    ]),
+                            ]),
+                    ]),
+            ]);
+    }
+
+    protected function newsletterTab(): Forms\Components\Tabs\Tab
+    {
+        return Forms\Components\Tabs\Tab::make('Newsletter')
+            ->icon('heroicon-o-envelope')
+            ->schema([
+                Forms\Components\Section::make('Newsletter Section')
+                    ->description('Configure the newsletter signup section displayed on the homepage or footer.')
+                    ->schema([
+                        Forms\Components\Toggle::make('newsletter_enabled')
+                            ->label('Enable Section')
+                            ->helperText('Show or hide the newsletter signup section')
+                            ->default(true),
+
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Section::make('English')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('newsletter_title.en')
+                                            ->label('Title')
+                                            ->placeholder('Stay Updated')
+                                            ->maxLength(100),
+                                        Forms\Components\TextInput::make('newsletter_subtitle.en')
+                                            ->label('Subtitle')
+                                            ->placeholder('Get the latest deals and travel tips')
+                                            ->maxLength(200),
+                                        Forms\Components\TextInput::make('newsletter_button_text.en')
+                                            ->label('Button Text')
+                                            ->placeholder('Subscribe')
+                                            ->maxLength(50),
+                                    ]),
+                                Forms\Components\Section::make('Français')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('newsletter_title.fr')
+                                            ->label('Titre')
+                                            ->placeholder('Restez Informé')
+                                            ->maxLength(100),
+                                        Forms\Components\TextInput::make('newsletter_subtitle.fr')
+                                            ->label('Sous-titre')
+                                            ->placeholder('Recevez les dernières offres')
+                                            ->maxLength(200),
+                                        Forms\Components\TextInput::make('newsletter_button_text.fr')
+                                            ->label('Texte du bouton')
+                                            ->placeholder('S\'abonner')
+                                            ->maxLength(50),
+                                    ]),
+                            ]),
+                    ]),
+            ]);
+    }
+
+    protected function aboutPageTab(): Forms\Components\Tabs\Tab
+    {
+        return Forms\Components\Tabs\Tab::make('About Page')
+            ->icon('heroicon-o-user-group')
+            ->schema([
+                // Hero Section
+                Forms\Components\Section::make('Hero Section')
+                    ->description('Configure the hero banner at the top of the About page')
+                    ->schema([
+                        Forms\Components\SpatieMediaLibraryFileUpload::make('about_hero_image')
+                            ->collection('about_hero_image')
+                            ->label('Hero Background Image')
+                            ->image()
+                            ->maxSize(5120)
+                            ->helperText('Recommended: 1920x600 or similar wide format. Max 5MB.'),
+
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Section::make('English')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('about_hero_tagline.en')
+                                            ->label('Tagline')
+                                            ->placeholder('Adventure awaits')
+                                            ->maxLength(100),
+                                        Forms\Components\TextInput::make('about_hero_title.en')
+                                            ->label('Title')
+                                            ->placeholder('About Djerba Fun')
+                                            ->maxLength(150),
+                                        Forms\Components\Textarea::make('about_hero_subtitle.en')
+                                            ->label('Subtitle')
+                                            ->placeholder('Our story and mission')
+                                            ->rows(2)
+                                            ->maxLength(500),
+                                    ]),
+                                Forms\Components\Section::make('Français')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('about_hero_tagline.fr')
+                                            ->label('Accroche')
+                                            ->placeholder('L\'aventure vous attend')
+                                            ->maxLength(100),
+                                        Forms\Components\TextInput::make('about_hero_title.fr')
+                                            ->label('Titre')
+                                            ->placeholder('À Propos de Djerba Fun')
+                                            ->maxLength(150),
+                                        Forms\Components\Textarea::make('about_hero_subtitle.fr')
+                                            ->label('Sous-titre')
+                                            ->placeholder('Notre histoire et notre mission')
+                                            ->rows(2)
+                                            ->maxLength(500),
+                                    ]),
+                            ]),
+                    ])
+                    ->collapsible(),
+
+                // Story Section ("L'Aventurier")
+                Forms\Components\Section::make('Story Section')
+                    ->description('The "Our Story" / "L\'Aventurier" section with heading and paragraphs')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Section::make('English')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('about_story_heading.en')
+                                            ->label('Heading')
+                                            ->placeholder('The Adventurer')
+                                            ->maxLength(150),
+                                        Forms\Components\Textarea::make('about_story_intro.en')
+                                            ->label('Introduction')
+                                            ->rows(3)
+                                            ->maxLength(1000),
+                                        Forms\Components\Textarea::make('about_story_text_1.en')
+                                            ->label('Paragraph 1')
+                                            ->rows(3)
+                                            ->maxLength(1000),
+                                        Forms\Components\Textarea::make('about_story_text_2.en')
+                                            ->label('Paragraph 2')
+                                            ->rows(3)
+                                            ->maxLength(1000),
+                                    ]),
+                                Forms\Components\Section::make('Français')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('about_story_heading.fr')
+                                            ->label('Titre')
+                                            ->placeholder('L\'Aventurier')
+                                            ->maxLength(150),
+                                        Forms\Components\Textarea::make('about_story_intro.fr')
+                                            ->label('Introduction')
+                                            ->rows(3)
+                                            ->maxLength(1000),
+                                        Forms\Components\Textarea::make('about_story_text_1.fr')
+                                            ->label('Paragraphe 1')
+                                            ->rows(3)
+                                            ->maxLength(1000),
+                                        Forms\Components\Textarea::make('about_story_text_2.fr')
+                                            ->label('Paragraphe 2')
+                                            ->rows(3)
+                                            ->maxLength(1000),
+                                    ]),
+                            ]),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+
+                // Founder Section
+                Forms\Components\Section::make('Founder Section')
+                    ->description('Information about the company founder')
+                    ->schema([
+                        Forms\Components\TextInput::make('about_founder_name')
+                            ->label('Founder Name')
+                            ->placeholder('Seif Ben Helel')
+                            ->maxLength(100),
+
+                        Forms\Components\SpatieMediaLibraryFileUpload::make('about_founder_photo')
+                            ->collection('about_founder_photo')
+                            ->label('Founder Photo')
+                            ->image()
+                            ->maxSize(2048)
+                            ->helperText('Square photo recommended. Max 2MB.'),
+
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Section::make('English')
+                                    ->schema([
+                                        Forms\Components\Textarea::make('about_founder_story.en')
+                                            ->label('Story')
+                                            ->rows(4)
+                                            ->maxLength(2000),
+                                        Forms\Components\Textarea::make('about_founder_quote.en')
+                                            ->label('Quote')
+                                            ->rows(2)
+                                            ->maxLength(500)
+                                            ->helperText('A memorable quote from the founder'),
+                                    ]),
+                                Forms\Components\Section::make('Français')
+                                    ->schema([
+                                        Forms\Components\Textarea::make('about_founder_story.fr')
+                                            ->label('Histoire')
+                                            ->rows(4)
+                                            ->maxLength(2000),
+                                        Forms\Components\Textarea::make('about_founder_quote.fr')
+                                            ->label('Citation')
+                                            ->rows(2)
+                                            ->maxLength(500),
+                                    ]),
+                            ]),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+
+                // Team Section
+                Forms\Components\Section::make('Team Section')
+                    ->description('Brief description of your team')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Section::make('English')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('about_team_title.en')
+                                            ->label('Title')
+                                            ->placeholder('Our Team')
+                                            ->maxLength(100),
+                                        Forms\Components\Textarea::make('about_team_description.en')
+                                            ->label('Description')
+                                            ->rows(3)
+                                            ->maxLength(1000),
+                                    ]),
+                                Forms\Components\Section::make('Français')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('about_team_title.fr')
+                                            ->label('Titre')
+                                            ->placeholder('Notre Équipe')
+                                            ->maxLength(100),
+                                        Forms\Components\Textarea::make('about_team_description.fr')
+                                            ->label('Description')
+                                            ->rows(3)
+                                            ->maxLength(1000),
+                                    ]),
+                            ]),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+
+                // Impact Text
+                Forms\Components\Section::make('Impact Banner')
+                    ->description('The 1% impact banner text')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Textarea::make('about_impact_text.en')
+                                    ->label('English')
+                                    ->rows(2)
+                                    ->maxLength(500)
+                                    ->placeholder('1% of our revenue goes to local community initiatives...'),
+                                Forms\Components\Textarea::make('about_impact_text.fr')
+                                    ->label('Français')
+                                    ->rows(2)
+                                    ->maxLength(500),
+                            ]),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+
+                // Commitments
+                Forms\Components\Section::make('Our Commitments')
+                    ->description('Values and commitments displayed as icons with text')
+                    ->schema([
+                        Forms\Components\Repeater::make('about_commitments')
+                            ->label('Commitments')
+                            ->schema([
+                                Forms\Components\Select::make('icon')
+                                    ->label('Icon')
+                                    ->options([
+                                        'sustainable' => 'Sustainable / Leaf',
+                                        'active' => 'Active / Running',
+                                        'immersion' => 'Immersion / Globe',
+                                        'passion' => 'Passion / Heart',
+                                        'quality' => 'Quality / Star',
+                                        'safety' => 'Safety / Shield',
+                                    ])
+                                    ->required(),
+                                Forms\Components\TextInput::make('title_en')
+                                    ->label('Title (English)')
+                                    ->required()
+                                    ->maxLength(100),
+                                Forms\Components\TextInput::make('title_fr')
+                                    ->label('Title (Français)')
+                                    ->required()
+                                    ->maxLength(100),
+                                Forms\Components\Textarea::make('description_en')
+                                    ->label('Description (English)')
+                                    ->rows(2)
+                                    ->maxLength(500),
+                                Forms\Components\Textarea::make('description_fr')
+                                    ->label('Description (Français)')
+                                    ->rows(2)
+                                    ->maxLength(500),
+                            ])
+                            ->columns(2)
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string => $state['title_en'] ?? null)
+                            ->defaultItems(0)
+                            ->maxItems(6)
+                            ->reorderable(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+
+                // Partners
+                Forms\Components\Section::make('Partners')
+                    ->description('Partner logos displayed on the About page')
+                    ->schema([
+                        Forms\Components\Repeater::make('about_partners')
+                            ->label('Partners')
+                            ->schema([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Partner Name')
+                                    ->required()
+                                    ->maxLength(100),
+                                Forms\Components\FileUpload::make('logo')
+                                    ->label('Logo')
+                                    ->image()
+                                    ->directory('about/partners')
+                                    ->disk('public')
+                                    ->maxSize(1024)
+                                    ->helperText('Square or horizontal logo. Max 1MB.'),
+                            ])
+                            ->columns(2)
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                            ->defaultItems(0)
+                            ->maxItems(12)
+                            ->reorderable(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+
+                // Initiatives
+                Forms\Components\Section::make('Initiatives')
+                    ->description('Initiative images displayed in a grid on the About page')
+                    ->schema([
+                        Forms\Components\Repeater::make('about_initiatives')
+                            ->label('Initiatives')
+                            ->schema([
+                                Forms\Components\FileUpload::make('image')
+                                    ->label('Image')
+                                    ->image()
+                                    ->directory('about/initiatives')
+                                    ->disk('public')
+                                    ->maxSize(5120)
+                                    ->required()
+                                    ->helperText('Landscape format recommended. Max 5MB.'),
+                                Forms\Components\TextInput::make('alt_en')
+                                    ->label('Alt Text (English)')
+                                    ->required()
+                                    ->maxLength(200),
+                                Forms\Components\TextInput::make('alt_fr')
+                                    ->label('Alt Text (Français)')
+                                    ->required()
+                                    ->maxLength(200),
+                            ])
+                            ->columns(3)
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string => $state['alt_en'] ?? null)
+                            ->defaultItems(0)
+                            ->maxItems(6)
+                            ->reorderable(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
             ]);
     }
 

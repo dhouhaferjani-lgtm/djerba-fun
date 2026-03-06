@@ -51,12 +51,27 @@ const shineAnimationStyles = `
   }
 `;
 
-interface CTASectionWithBlobsProps {
-  locale: string;
+interface CmsData {
+  enabled: boolean;
+  title: string | null;
+  description: string | null;
+  buttonText: string | null;
+  link: string | null;
 }
 
-export function CTASectionWithBlobs({ locale }: CTASectionWithBlobsProps) {
+interface CTASectionWithBlobsProps {
+  locale: string;
+  cmsData?: CmsData;
+}
+
+export function CTASectionWithBlobs({ locale, cmsData }: CTASectionWithBlobsProps) {
   const t = useTranslations('home');
+
+  // Get values from CMS or fallback to translations
+  const title = cmsData?.title || t('cta_custom_title');
+  const description = cmsData?.description || t('cta_custom_description');
+  const buttonText = cmsData?.buttonText || t('cta_custom_button');
+  const link = cmsData?.link || '/custom-trip';
 
   return (
     <section className="relative py-24 bg-primary overflow-hidden">
@@ -69,19 +84,17 @@ export function CTASectionWithBlobs({ locale }: CTASectionWithBlobsProps) {
       {/* Content */}
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6">
-            {t('cta_custom_title')}
-          </h2>
-          <p className="text-xl text-white/90 mb-8">{t('cta_custom_description')}</p>
+          <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6">{title}</h2>
+          <p className="text-xl text-white/90 mb-8">{description}</p>
           <Button
             asChild
             size="lg"
             variant="secondary"
             className="shine-button-cta bg-secondary text-primary hover:bg-secondary/90 shadow-lg"
           >
-            <Link href={`/${locale}/custom-trip` as any}>
+            <Link href={`/${locale}${link.startsWith('/') ? link : `/${link}`}` as any}>
               <MessageCircle className="mr-2 h-5 w-5" />
-              {t('cta_custom_button')}
+              {buttonText}
             </Link>
           </Button>
         </div>

@@ -11,19 +11,31 @@ import type { Locale } from '@/i18n/routing';
 import type { ListingSummary } from '@djerba-fun/schemas';
 import { ListingCard } from '@/components/molecules/ListingCard';
 
+interface CmsData {
+  enabled: boolean;
+  title: string | null;
+  subtitle: string | null;
+  limit: number;
+}
+
 interface FeaturedPackagesSectionProps {
   listings?: ListingSummary[];
   locale?: string;
+  cmsData?: CmsData;
 }
 
 export function FeaturedPackagesSection({
   listings,
   locale: localeProp,
+  cmsData,
 }: FeaturedPackagesSectionProps) {
   const t = useTranslations('home');
   const localeFromHook = useLocale() as Locale;
   const locale = (localeProp || localeFromHook) as Locale;
   const router = useRouter();
+
+  // Get title from CMS or fallback to translation
+  const sectionTitle = cmsData?.title || t('upcoming_adventures');
 
   // If we have real listings from the API, use them
   if (listings && listings.length > 0) {
@@ -33,7 +45,7 @@ export function FeaturedPackagesSection({
           {/* Header with View All Link */}
           <div className="flex justify-between items-center mb-12">
             <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral-900">
-              {t('upcoming_adventures')}
+              {sectionTitle}
             </h2>
             <Button variant="outline" onClick={() => router.push(`/${locale}/listings` as any)}>
               {t('view_all_adventures')}
@@ -41,7 +53,7 @@ export function FeaturedPackagesSection({
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {listings.slice(0, 3).map((listing) => (
+            {listings.slice(0, cmsData?.limit ?? 3).map((listing) => (
               <ListingCard key={listing.id} listing={listing} locale={locale} />
             ))}
           </div>
@@ -84,7 +96,7 @@ export function FeaturedPackagesSection({
         {/* Header with View All Link */}
         <div className="flex justify-between items-center mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral-900">
-            {t('upcoming_adventures')}
+            {sectionTitle}
           </h2>
           <Button variant="outline" onClick={() => router.push(`/${locale}/listings` as any)}>
             {t('view_all_adventures')}
@@ -92,7 +104,7 @@ export function FeaturedPackagesSection({
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {featuredPackages.map((pkg, index) => (
+          {featuredPackages.slice(0, cmsData?.limit ?? 3).map((pkg, index) => (
             <div
               key={index}
               className="green-click-shadow bg-white rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer"

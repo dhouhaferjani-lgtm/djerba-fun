@@ -4,12 +4,21 @@ import Image from 'next/image';
 import { getFeaturedBlogPosts, BlogPost } from '@/lib/api/blog';
 import { resolveTranslation, type TranslatableField } from '@/lib/utils/translate';
 
-interface BlogSectionProps {
-  locale: string;
+interface CmsData {
+  enabled: boolean;
+  title: string | null;
+  subtitle: string | null;
+  postLimit: number;
 }
 
-export async function BlogSection({ locale }: BlogSectionProps) {
+interface BlogSectionProps {
+  locale: string;
+  cmsData?: CmsData;
+}
+
+export async function BlogSection({ locale, cmsData }: BlogSectionProps) {
   const t = await getTranslations('home');
+  const postLimit = cmsData?.postLimit ?? 3;
 
   // Helper to resolve translations with fallback
   const tr = (field: TranslatableField) => resolveTranslation(field, locale);
@@ -17,7 +26,7 @@ export async function BlogSection({ locale }: BlogSectionProps) {
   // Fetch featured blog posts from API
   let posts: BlogPost[] = [];
   try {
-    const response = await getFeaturedBlogPosts(3, locale);
+    const response = await getFeaturedBlogPosts(postLimit, locale);
     posts = response.data || [];
   } catch (error) {
     console.error('Failed to fetch blog posts:', error);
@@ -34,9 +43,11 @@ export async function BlogSection({ locale }: BlogSectionProps) {
         <div className="flex justify-between items-end mb-12">
           <div>
             <h2 className="text-3xl md:text-4xl font-bold text-neutral-darker mb-4">
-              {t('blog_title')}
+              {cmsData?.title || t('blog_title')}
             </h2>
-            <p className="text-lg text-neutral-dark max-w-2xl">{t('blog_subtitle')}</p>
+            <p className="text-lg text-neutral-dark max-w-2xl">
+              {cmsData?.subtitle || t('blog_subtitle')}
+            </p>
           </div>
           <Link
             href={`/${locale}/blog`}
