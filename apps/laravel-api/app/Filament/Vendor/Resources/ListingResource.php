@@ -422,27 +422,154 @@ class ListingResource extends Resource
 
                             // Accommodation-specific fields
                             Forms\Components\Section::make('Accommodation Details')
-                                ->description('Multi-day stay package settings')
+                                ->description('Property and stay settings')
                                 ->schema([
                                     Forms\Components\Select::make('accommodation_type')
                                         ->label('Accommodation Type')
                                         ->options([
                                             'hotel' => 'Hotel',
                                             'guesthouse' => 'Guesthouse / Dar',
+                                            'villa' => 'Villa / House',
+                                            'apartment' => 'Apartment',
                                             'camping' => 'Camping',
                                             'mixed' => 'Mixed (varies by day)',
                                             'not_included' => 'Not Included',
                                         ]),
-                                    Forms\Components\Grid::make(3)->schema([
-                                        Forms\Components\Toggle::make('meals_included.breakfast')
-                                            ->label('Breakfast Included'),
-                                        Forms\Components\Toggle::make('meals_included.lunch')
-                                            ->label('Lunch Included'),
-                                        Forms\Components\Toggle::make('meals_included.dinner')
-                                            ->label('Dinner Included'),
+
+                                    Forms\Components\Grid::make(4)->schema([
+                                        Forms\Components\TextInput::make('bedrooms')
+                                            ->label('Bedrooms')
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->maxValue(20)
+                                            ->suffix('rooms'),
+                                        Forms\Components\TextInput::make('bathrooms')
+                                            ->label('Bathrooms')
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->maxValue(20)
+                                            ->suffix('baths'),
+                                        Forms\Components\TextInput::make('max_guests')
+                                            ->label('Max Guests')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->maxValue(50)
+                                            ->suffix('guests'),
+                                        Forms\Components\TextInput::make('property_size')
+                                            ->label('Property Size')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->suffix('m²'),
                                     ]),
+
+                                    Forms\Components\Grid::make(2)->schema([
+                                        Forms\Components\TimePicker::make('check_in_time')
+                                            ->label('Check-in Time')
+                                            ->seconds(false)
+                                            ->default('15:00'),
+                                        Forms\Components\TimePicker::make('check_out_time')
+                                            ->label('Check-out Time')
+                                            ->seconds(false)
+                                            ->default('11:00'),
+                                    ]),
+
+                                    Forms\Components\Section::make('Meals Included')
+                                        ->schema([
+                                            Forms\Components\Grid::make(3)->schema([
+                                                Forms\Components\Toggle::make('meals_included.breakfast')
+                                                    ->label('Breakfast'),
+                                                Forms\Components\Toggle::make('meals_included.lunch')
+                                                    ->label('Lunch'),
+                                                Forms\Components\Toggle::make('meals_included.dinner')
+                                                    ->label('Dinner'),
+                                            ]),
+                                        ])
+                                        ->compact(),
+
+                                    Forms\Components\CheckboxList::make('amenities')
+                                        ->label('Amenities')
+                                        ->options(\App\Enums\Amenity::options())
+                                        ->columns(4)
+                                        ->gridDirection('row')
+                                        ->searchable()
+                                        ->bulkToggleable(),
+
+                                    Forms\Components\Textarea::make('house_rules.en')
+                                        ->label('House Rules (English)')
+                                        ->rows(3)
+                                        ->placeholder('No smoking, no parties, quiet hours after 10pm...'),
+                                    Forms\Components\Textarea::make('house_rules.fr')
+                                        ->label('House Rules (French)')
+                                        ->rows(3)
+                                        ->placeholder('Non-fumeur, pas de fêtes, heures calmes après 22h...'),
                                 ])
                                 ->visible(fn (Get $get): bool => $get('service_type') === ServiceType::ACCOMMODATION->value),
+
+                            // Nautical-specific fields
+                            Forms\Components\Section::make('Boat Details')
+                                ->description('Vessel specifications and rental terms')
+                                ->schema([
+                                    Forms\Components\TextInput::make('boat_name')
+                                        ->label('Boat Name')
+                                        ->maxLength(100)
+                                        ->placeholder('e.g., Sea Spirit'),
+
+                                    Forms\Components\Grid::make(4)->schema([
+                                        Forms\Components\TextInput::make('boat_length')
+                                            ->label('Length')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->maxValue(100)
+                                            ->step(0.1)
+                                            ->suffix('meters'),
+                                        Forms\Components\TextInput::make('boat_capacity')
+                                            ->label('Passenger Capacity')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->maxValue(100)
+                                            ->suffix('people'),
+                                        Forms\Components\TextInput::make('boat_year')
+                                            ->label('Year Built')
+                                            ->numeric()
+                                            ->minValue(1950)
+                                            ->maxValue(date('Y') + 1),
+                                        Forms\Components\TextInput::make('min_rental_hours')
+                                            ->label('Min Rental')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->maxValue(24)
+                                            ->suffix('hours'),
+                                    ]),
+
+                                    Forms\Components\Section::make('Requirements & Inclusions')
+                                        ->schema([
+                                            Forms\Components\Grid::make(2)->schema([
+                                                Forms\Components\Toggle::make('license_required')
+                                                    ->label('Boating License Required')
+                                                    ->live(),
+                                                Forms\Components\TextInput::make('license_type')
+                                                    ->label('License Type')
+                                                    ->placeholder('e.g., Category C / Coastal')
+                                                    ->visible(fn (Get $get): bool => $get('license_required') === true),
+                                            ]),
+                                            Forms\Components\Grid::make(2)->schema([
+                                                Forms\Components\Toggle::make('crew_included')
+                                                    ->label('Captain / Crew Included'),
+                                                Forms\Components\Toggle::make('fuel_included')
+                                                    ->label('Fuel Included'),
+                                            ]),
+                                        ])
+                                        ->compact(),
+
+                                    Forms\Components\CheckboxList::make('equipment_included')
+                                        ->label('Equipment Included')
+                                        ->options(\App\Enums\BoatEquipment::options())
+                                        ->columns(4)
+                                        ->gridDirection('row')
+                                        ->searchable()
+                                        ->bulkToggleable(),
+                                ])
+                                ->visible(fn (Get $get): bool => $get('service_type') === ServiceType::NAUTICAL->value),
 
                             // Event-specific fields
                             Forms\Components\Section::make('Event Details')

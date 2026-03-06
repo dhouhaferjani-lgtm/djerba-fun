@@ -228,9 +228,28 @@ class Listing extends Model
         // Gallery
         'gallery_layout',
         'gallery_images',
-        // Sejour fields
+        // Accommodation fields
         'accommodation_type',
         'meals_included',
+        'bedrooms',
+        'bathrooms',
+        'max_guests',
+        'property_size',
+        'check_in_time',
+        'check_out_time',
+        'house_rules',
+        'amenities',
+        // Nautical fields
+        'boat_name',
+        'boat_length',
+        'boat_capacity',
+        'boat_year',
+        'license_required',
+        'license_type',
+        'equipment_included',
+        'crew_included',
+        'fuel_included',
+        'min_rental_hours',
     ];
 
     /**
@@ -242,6 +261,7 @@ class Listing extends Model
         'title',
         'summary',
         'description',
+        'house_rules',
     ];
 
     /**
@@ -283,6 +303,21 @@ class Listing extends Model
             'meals_included' => 'array',
             'gallery_images' => 'array',
             'is_featured' => 'boolean',
+            // Accommodation casts
+            'bedrooms' => 'integer',
+            'bathrooms' => 'integer',
+            'max_guests' => 'integer',
+            'property_size' => 'integer',
+            'amenities' => 'array',
+            // Nautical casts
+            'boat_length' => 'decimal:2',
+            'boat_capacity' => 'integer',
+            'boat_year' => 'integer',
+            'license_required' => 'boolean',
+            'equipment_included' => 'array',
+            'crew_included' => 'boolean',
+            'fuel_included' => 'boolean',
+            'min_rental_hours' => 'integer',
         ];
     }
 

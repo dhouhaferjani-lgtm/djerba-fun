@@ -540,6 +540,21 @@ export const nauticalSchema = z.object({
       coordinates: geoPointSchema.nullable(),
     })
   ),
+  // Boat-specific fields
+  nautical: z
+    .object({
+      boatName: z.string().nullable(),
+      boatLength: z.number().positive().nullable(),
+      boatCapacity: z.number().int().positive().nullable(),
+      boatYear: z.number().int().min(1950).nullable(),
+      licenseRequired: z.boolean().default(false),
+      licenseType: z.string().nullable(),
+      equipmentIncluded: z.array(z.string()).default([]),
+      crewIncluded: z.boolean().default(false),
+      fuelIncluded: z.boolean().default(false),
+      minRentalHours: z.number().int().positive().nullable(),
+    })
+    .optional(),
 });
 
 export const accommodationSchema = z.object({
@@ -568,15 +583,27 @@ export const accommodationSchema = z.object({
     })
   ),
   hasElevationProfile: z.boolean().default(false),
-  numberOfDays: z.number().int().positive().nullable().optional(),
-  accommodationType: z.string().nullable().optional(),
-  mealsIncluded: z
+  // Accommodation-specific fields
+  accommodation: z
     .object({
-      breakfast: z.boolean(),
-      lunch: z.boolean(),
-      dinner: z.boolean(),
+      accommodationType: z.string().nullable(),
+      bedrooms: z.number().int().nonnegative().nullable(),
+      bathrooms: z.number().int().nonnegative().nullable(),
+      maxGuests: z.number().int().positive().nullable(),
+      propertySize: z.number().int().positive().nullable(),
+      checkInTime: z.string().nullable(),
+      checkOutTime: z.string().nullable(),
+      houseRules: z.string().nullable(),
+      amenities: z.array(z.string()).default([]),
+      mealsIncluded: z
+        .object({
+          breakfast: z.boolean(),
+          lunch: z.boolean(),
+          dinner: z.boolean(),
+        })
+        .nullable(),
+      numberOfDays: z.number().int().positive().nullable(),
     })
-    .nullable()
     .optional(),
 });
 

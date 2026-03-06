@@ -81,10 +81,34 @@ class ListingResource extends BaseResource
                 fn () => is_array($this->elevation_profile) ? $this->toCamelCase($this->elevation_profile) : $this->elevation_profile
             ),
 
-            // Sejour-specific fields
-            'numberOfDays' => $this->when($this->isSejour(), $this->number_of_days),
-            'accommodationType' => $this->when($this->isSejour(), $this->accommodation_type),
-            'mealsIncluded' => $this->when($this->isSejour(), $this->meals_included),
+            // Accommodation-specific fields
+            'accommodation' => $this->when($this->isAccommodation(), fn () => [
+                'accommodationType' => $this->accommodation_type,
+                'bedrooms' => $this->bedrooms,
+                'bathrooms' => $this->bathrooms,
+                'maxGuests' => $this->max_guests,
+                'propertySize' => $this->property_size,
+                'checkInTime' => $this->check_in_time,
+                'checkOutTime' => $this->check_out_time,
+                'houseRules' => $this->getTranslationWithFallback($this->getTranslations('house_rules'), $locale),
+                'amenities' => $this->amenities ?? [],
+                'mealsIncluded' => $this->meals_included,
+                'numberOfDays' => $this->number_of_days,
+            ]),
+
+            // Nautical-specific fields
+            'nautical' => $this->when($this->isNautical(), fn () => [
+                'boatName' => $this->boat_name,
+                'boatLength' => $this->boat_length,
+                'boatCapacity' => $this->boat_capacity,
+                'boatYear' => $this->boat_year,
+                'licenseRequired' => $this->license_required,
+                'licenseType' => $this->license_type,
+                'equipmentIncluded' => $this->equipment_included ?? [],
+                'crewIncluded' => $this->crew_included,
+                'fuelIncluded' => $this->fuel_included,
+                'minRentalHours' => $this->min_rental_hours,
+            ]),
 
             // Event-specific fields
             'eventType' => $this->when($this->isEvent(), $this->event_type),

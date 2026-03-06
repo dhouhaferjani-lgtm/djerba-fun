@@ -87,6 +87,8 @@ import { ImageLightbox } from '@/components/gallery/ImageLightbox';
 import { FAQSection } from '@/components/listing/FAQSection';
 import { SafetySection } from '@/components/listing/SafetySection';
 import { AccessibilitySection } from '@/components/listing/AccessibilitySection';
+import { AccommodationDetailsSection } from '@/components/listing/AccommodationDetailsSection';
+import { NauticalDetailsSection } from '@/components/listing/NauticalDetailsSection';
 import { CancellationPolicyCard } from '@/components/listing/CancellationPolicyCard';
 import { ReviewsSection } from '@/components/listing/ReviewsSection';
 import {
@@ -1490,6 +1492,16 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                         ))}
                       </ul>
                     </section>
+                  )}
+
+                  {/* Accommodation Details (for house rentals) */}
+                  {listing.serviceType === 'accommodation' && listing.accommodation && (
+                    <AccommodationDetailsSection accommodation={listing.accommodation} />
+                  )}
+
+                  {/* Nautical Details (for boat rentals) */}
+                  {listing.serviceType === 'nautical' && listing.nautical && (
+                    <NauticalDetailsSection nautical={listing.nautical} />
                   )}
 
                   {/* Safety & Accessibility */}
