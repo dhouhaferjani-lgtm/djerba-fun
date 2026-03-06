@@ -5,19 +5,19 @@
 
 export const adminUsers = {
   admin: {
-    email: 'admin@goadventure.tn',
+    email: 'admin@djerba.fun',
     password: 'password',
     firstName: 'Admin',
     lastName: 'User',
     role: 'admin',
   },
   vendor: {
-    email: 'vendor@goadventure.tn',
+    email: 'vendor@djerba.fun',
     password: 'password',
-    firstName: 'Go Adventure',
-    lastName: 'Tunisia',
+    firstName: 'Djerba',
+    lastName: 'Fun',
     role: 'vendor',
-    companyName: 'Go Adventure Tunisia',
+    companyName: 'Djerba Fun',
   },
   traveler: {
     email: 'traveler@test.com',
@@ -187,10 +187,10 @@ export const adminPartnerData = {
 
 export const adminPlatformSettings = {
   identity: {
-    platformNameEn: 'Evasion Djerba',
-    platformNameFr: 'Évasion Djerba',
-    taglineEn: 'Discover the Magic of Djerba',
-    taglineFr: 'Découvrez la Magie de Djerba',
+    platformNameEn: 'Djerba Fun',
+    platformNameFr: 'Djerba Fun',
+    taglineEn: 'Experience the island differently',
+    taglineFr: "Vivez l'île autrement",
   },
   payment: {
     exchangeRate: 3.35, // EUR to TND
