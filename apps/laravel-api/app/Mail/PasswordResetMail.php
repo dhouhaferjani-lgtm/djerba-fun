@@ -44,7 +44,7 @@ class PasswordResetMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
-        $frontendUrl = config('app.frontend_url', 'https://www.go-adventure.net');
+        $frontendUrl = config('app.frontend_url', 'https://www.djerbafun.com');
         $resetLink = "{$frontendUrl}/auth/reset-password?token={$this->token}";
 
         return new Content(

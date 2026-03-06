@@ -19,8 +19,8 @@ class ContactController extends Controller
     {
         $validated = $request->validated();
 
-        // Send email to contact@go-adventure.net
-        Mail::to('contact@go-adventure.net')
+        // Send email to contact@djerba.fun
+        Mail::to('contact@djerba.fun')
             ->queue(new ContactFormMail(
                 name: $validated['name'],
                 email: $validated['email'],

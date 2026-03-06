@@ -176,7 +176,7 @@ export default function VerifyMagicLinkPage() {
             {/* Help Text */}
             <p className="text-xs text-gray-500 mt-6">
               Still having trouble?{' '}
-              <a href="mailto:support@goadventure.com" className="text-primary hover:underline">
+              <a href="mailto:support@djerba.fun" className="text-primary hover:underline">
                 Contact support
               </a>
             </p>

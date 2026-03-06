@@ -176,7 +176,7 @@ export default function BookingRecoverPage() {
           <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-600 text-center">
               {t('need_help') || "Can't find your booking?"}{' '}
-              <a href="mailto:support@goadventure.com" className="text-primary hover:underline">
+              <a href="mailto:support@djerba.fun" className="text-primary hover:underline">
                 {t('contact_support') || 'Contact Support'}
               </a>
             </p>

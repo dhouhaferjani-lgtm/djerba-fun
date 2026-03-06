@@ -124,8 +124,8 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
               <p className="text-gray-700 mb-4">{t('privacy.contact_text')}</p>
               <p className="text-gray-700">
                 <strong>{t('privacy.contact_email_label')}:</strong>{' '}
-                <a href="mailto:privacy@goadventure.tn" className="text-primary hover:underline">
-                  privacy@goadventure.tn
+                <a href="mailto:privacy@djerba.fun" className="text-primary hover:underline">
+                  privacy@djerba.fun
                 </a>
               </p>
             </section>

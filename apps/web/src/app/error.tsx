@@ -63,7 +63,7 @@ export default function Error({
           <p className="text-sm text-neutral-600">
             If this problem persists, please{' '}
             <a
-              href="mailto:support@goadventure.com"
+              href="mailto:support@djerba.fun"
               className="text-primary hover:underline font-medium"
             >
               contact our support team

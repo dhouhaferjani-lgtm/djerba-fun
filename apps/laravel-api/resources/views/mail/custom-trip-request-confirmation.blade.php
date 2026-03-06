@@ -153,7 +153,7 @@
             <h3 style="margin-top: 0; color: #0D642E;">{{ __('mail.reach_sooner') }}</h3>
             <p style="margin-bottom: 10px;">{{ __('mail.urgent_questions') }}</p>
             <p style="margin: 5px 0;">
-                <strong>Email:</strong> <a href="mailto:hello@go-adventure.net" style="color: #0D642E;">hello@go-adventure.net</a>
+                <strong>Email:</strong> <a href="mailto:contact@djerba.fun" style="color: #0D642E;">contact@djerba.fun</a>
             </p>
             <p style="margin: 5px 0;">
                 <strong>WhatsApp:</strong> <a href="https://wa.me/21612345678" style="color: #0D642E;">+216 12 345 678</a>

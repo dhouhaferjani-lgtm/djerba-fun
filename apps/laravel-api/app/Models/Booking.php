@@ -113,7 +113,7 @@ class Booking extends Model
             return null;
         }
 
-        $frontendUrl = config('app.frontend_url', 'https://www.go-adventure.net');
+        $frontendUrl = config('app.frontend_url', 'https://www.djerbafun.com');
 
         return "{$frontendUrl}/booking/{$this->magic_token}";
     }

@@ -1,33 +1,33 @@
-# Go Adventure - Staging Environment
+# Djerba Fun - Staging Environment
 # Usage: docker compose -f docker-compose.staging.yml up -d
-# Requires .env file with COMPOSE_PROJECT_NAME=goadventure-staging
+# Requires .env file with COMPOSE_PROJECT_NAME=djerba-fun-staging
 
 services:
   # PostgreSQL Database (isolated from production)
   postgres:
     image: postgres:16-alpine
-    container_name: goadventure-staging-postgres
+    container_name: djerba-fun-staging-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_DATABASE:-go_adventure_staging}
-      POSTGRES_USER: ${DB_USERNAME:-go_adventure_staging}
+      POSTGRES_DB: ${DB_DATABASE:-djerba_fun_staging}
+      POSTGRES_USER: ${DB_USERNAME:-djerba_fun_staging}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
       POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-go_adventure_staging}']
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-djerba_fun_staging}']
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - goadventure-staging
+      - djerba-fun-staging
 
   # Redis (Cache + Queue) - isolated from production
   redis:
     image: redis:7-alpine
-    container_name: goadventure-staging-redis
+    container_name: djerba-fun-staging-redis
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
@@ -38,7 +38,7 @@ services:
       timeout: 3s
       retries: 5
     networks:
-      - goadventure-staging
+      - djerba-fun-staging
 
   # Laravel API
   api:
@@ -47,20 +47,20 @@ services:
       dockerfile: apps/laravel-api/Dockerfile.prod
       args:
         - PHP_VERSION=8.4
-    container_name: goadventure-staging-api
+    container_name: djerba-fun-staging-api
     restart: unless-stopped
     working_dir: /var/www/html
     environment:
       - APP_KEY=${APP_KEY}
       - APP_ENV=${APP_ENV:-staging}
       - APP_DEBUG=${APP_DEBUG:-true}
-      - APP_URL=${APP_URL:-https://staging-app.go-adventure.net}
-      - FRONTEND_URL=${FRONTEND_URL:-https://staging.go-adventure.net}
+      - APP_URL=${APP_URL:-https://staging-app.djerbafun.com}
+      - FRONTEND_URL=${FRONTEND_URL:-https://staging.djerbafun.com}
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_DATABASE=${DB_DATABASE:-go_adventure_staging}
-      - DB_USERNAME=${DB_USERNAME:-go_adventure_staging}
+      - DB_DATABASE=${DB_DATABASE:-djerba_fun_staging}
+      - DB_USERNAME=${DB_USERNAME:-djerba_fun_staging}
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -69,11 +69,11 @@ services:
       - CACHE_STORE=redis
       - SESSION_DRIVER=redis
       - SESSION_DOMAIN=${SESSION_DOMAIN:-}
-      - SANCTUM_STATEFUL_DOMAINS=${SANCTUM_STATEFUL_DOMAINS:-staging.go-adventure.net,staging-app.go-adventure.net}
-      - HORIZON_PREFIX=go-adventure-staging-horizon
+      - SANCTUM_STATEFUL_DOMAINS=${SANCTUM_STATEFUL_DOMAINS:-staging.djerbafun.com,staging-app.djerbafun.com}
+      - HORIZON_PREFIX=djerba-fun-staging-horizon
       - MAIL_MAILER=${MAIL_MAILER:-log}
-      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-staging@go-adventure.net}
-      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Go Adventure Staging}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-staging@djerba.fun}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Djerba Fun Staging}
       - RESEND_API_KEY=${RESEND_API_KEY:-}
     volumes:
       - storage_data:/var/www/html/storage
@@ -92,7 +92,7 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - goadventure-staging
+      - djerba-fun-staging
 
   # Laravel Horizon (Queue Worker)
   horizon:
@@ -101,7 +101,7 @@ services:
       dockerfile: apps/laravel-api/Dockerfile.prod
       args:
         - PHP_VERSION=8.4
-    container_name: goadventure-staging-horizon
+    container_name: djerba-fun-staging-horizon
     restart: unless-stopped
     working_dir: /var/www/html
     command: php artisan horizon
@@ -112,17 +112,17 @@ services:
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_DATABASE=${DB_DATABASE:-go_adventure_staging}
-      - DB_USERNAME=${DB_USERNAME:-go_adventure_staging}
+      - DB_DATABASE=${DB_DATABASE:-djerba_fun_staging}
+      - DB_USERNAME=${DB_USERNAME:-djerba_fun_staging}
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=6379
       - QUEUE_CONNECTION=redis
-      - HORIZON_PREFIX=go-adventure-staging-horizon
+      - HORIZON_PREFIX=djerba-fun-staging-horizon
       - MAIL_MAILER=${MAIL_MAILER:-log}
-      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-staging@go-adventure.net}
-      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Go Adventure Staging}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-staging@djerba.fun}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Djerba Fun Staging}
       - RESEND_API_KEY=${RESEND_API_KEY:-}
     volumes:
       - storage_data:/var/www/html/storage
@@ -132,7 +132,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - goadventure-staging
+      - djerba-fun-staging
 
   # Next.js Frontend
   web:
@@ -141,16 +141,16 @@ services:
       dockerfile: apps/web/Dockerfile.prod
       args:
         - NODE_ENV=production
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://staging-app.go-adventure.net/api/v1}
-        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://staging.go-adventure.net}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://staging-app.djerbafun.com/api/v1}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://staging.djerbafun.com}
         - NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
         - NEXT_PUBLIC_TURNSTILE_ENABLED=${NEXT_PUBLIC_TURNSTILE_ENABLED:-false}
-    container_name: goadventure-staging-web
+    container_name: djerba-fun-staging-web
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://staging-app.go-adventure.net/api/v1}
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://staging.go-adventure.net}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://staging-app.djerbafun.com/api/v1}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://staging.djerbafun.com}
       - NEXT_PUBLIC_DEFAULT_LOCALE=fr
     depends_on:
       - api
@@ -163,7 +163,7 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - goadventure-staging
+      - djerba-fun-staging
 
 volumes:
   postgres_data:
@@ -176,5 +176,5 @@ volumes:
     driver: local
 
 networks:
-  goadventure-staging:
+  djerba-fun-staging:
     driver: bridge

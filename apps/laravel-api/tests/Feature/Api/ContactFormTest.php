@@ -72,7 +72,7 @@ class ContactFormTest extends TestCase
 
         // Assert
         Mail::assertQueued(ContactFormMail::class, function ($mail) use ($formData) {
-            return $mail->hasTo('contact@go-adventure.net');
+            return $mail->hasTo('contact@djerba.fun');
         });
     }
 

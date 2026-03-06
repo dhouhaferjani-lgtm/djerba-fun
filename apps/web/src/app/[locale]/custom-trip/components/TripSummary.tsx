@@ -174,7 +174,7 @@ export function TripSummary({ wizardData, currentStep }: TripSummaryProps) {
           <span>{t('questions')}</span>
         </div>
         <a
-          href="mailto:contact@go-adventure.net"
+          href="mailto:contact@djerba.fun"
           className="text-sm text-primary hover:text-primary/80 font-medium"
         >
           {t('chat_with_us')}

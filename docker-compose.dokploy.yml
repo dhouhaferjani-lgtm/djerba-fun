@@ -8,14 +8,13 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_DATABASE:-go_adventure}
-      POSTGRES_USER: ${DB_USERNAME:-go_adventure}
+      POSTGRES_DB: ${DB_DATABASE:-djerba_fun}
+      POSTGRES_USER: ${DB_USERNAME:-djerba_fun}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?Database password required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test:
-        ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-go_adventure} -d ${DB_DATABASE:-go_adventure}']
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-djerba_fun} -d ${DB_DATABASE:-djerba_fun}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -47,8 +46,8 @@ services:
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: ${DB_DATABASE:-go_adventure}
-      DB_USERNAME: ${DB_USERNAME:-go_adventure}
+      DB_DATABASE: ${DB_DATABASE:-djerba_fun}
+      DB_USERNAME: ${DB_USERNAME:-djerba_fun}
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: redis
       REDIS_PASSWORD: ${REDIS_PASSWORD}
@@ -58,8 +57,8 @@ services:
       SESSION_DRIVER: redis
       SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_DOMAINS:-localhost}
       MAIL_MAILER: ${MAIL_MAILER:-resend}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-bookings@go-adventure.net}
-      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Go Adventure}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-bookings@djerba.fun}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Djerba Fun}
       RESEND_API_KEY: ${RESEND_API_KEY}
     volumes:
       - storage_data:/var/www/html/storage/app/public
@@ -88,16 +87,16 @@ services:
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: ${DB_DATABASE:-go_adventure}
-      DB_USERNAME: ${DB_USERNAME:-go_adventure}
+      DB_DATABASE: ${DB_DATABASE:-djerba_fun}
+      DB_USERNAME: ${DB_USERNAME:-djerba_fun}
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: redis
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_PORT: 6379
       QUEUE_CONNECTION: redis
       MAIL_MAILER: ${MAIL_MAILER:-resend}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-bookings@go-adventure.net}
-      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Go Adventure}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-bookings@djerba.fun}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Djerba Fun}
       RESEND_API_KEY: ${RESEND_API_KEY}
     depends_on:
       api:

@@ -15,7 +15,7 @@ class VendorSeeder extends Seeder
         // Create admin user
         $admin = User::create([
             'display_name' => 'Admin User',
-            'email' => 'admin@goadventure.tn',
+            'email' => 'admin@djerba.fun',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
             'role' => 'admin',
@@ -24,8 +24,8 @@ class VendorSeeder extends Seeder
 
         // Create main vendor
         $vendor = User::create([
-            'display_name' => 'Go Adventure Tunisia',
-            'email' => 'vendor@goadventure.tn',
+            'display_name' => 'Djerba Fun',
+            'email' => 'vendor@djerba.fun',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
             'role' => 'vendor',
@@ -34,13 +34,13 @@ class VendorSeeder extends Seeder
 
         VendorProfile::create([
             'user_id' => $vendor->id,
-            'company_name' => 'Go Adventure Tunisia',
+            'company_name' => 'Djerba Fun',
             'company_type' => 'company',
             'tax_id' => 'TN123456789',
             'kyc_status' => KycStatus::VERIFIED,
             'commission_tier' => 'premium',
             'description' => 'Leading eco-tourism operator in Tunisia, offering authentic adventures and cultural experiences since 2015.',
-            'website_url' => 'https://goadventure.tn',
+            'website_url' => 'https://djerbafun.com',
             'phone' => '+216 71 123 456',
             'address' => [
                 'street' => '15 Avenue Habib Bourguiba',

@@ -2,18 +2,18 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
-    container_name: goadventure-postgres
+    container_name: djerba-fun-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_DATABASE:-go_adventure}
-      POSTGRES_USER: ${DB_USERNAME:-go_adventure}
+      POSTGRES_DB: ${DB_DATABASE:-djerba_fun}
+      POSTGRES_USER: ${DB_USERNAME:-djerba_fun}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
       POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-go_adventure}']
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-djerba_fun}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,7 +23,7 @@ services:
   # Redis (Cache + Queue)
   redis:
     image: redis:7-alpine
-    container_name: goadventure-redis
+    container_name: djerba-fun-redis
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
@@ -43,19 +43,19 @@ services:
       dockerfile: apps/laravel-api/Dockerfile.prod
       args:
         - PHP_VERSION=8.4
-    container_name: goadventure-api
+    container_name: djerba-fun-api
     restart: unless-stopped
     working_dir: /var/www/html
     environment:
       - APP_KEY=${APP_KEY}
       - APP_ENV=${APP_ENV:-production}
       - APP_DEBUG=${APP_DEBUG:-false}
-      - APP_URL=${APP_URL:-https://app.go-adventure.net}
+      - APP_URL=${APP_URL:-https://app.djerbafun.com}
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_DATABASE=${DB_DATABASE:-go_adventure}
-      - DB_USERNAME=${DB_USERNAME:-go_adventure}
+      - DB_DATABASE=${DB_DATABASE:-djerba_fun}
+      - DB_USERNAME=${DB_USERNAME:-djerba_fun}
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -64,8 +64,8 @@ services:
       - CACHE_STORE=redis
       - SESSION_DRIVER=redis
       - MAIL_MAILER=${MAIL_MAILER:-resend}
-      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-bookings@go-adventure.net}
-      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Go Adventure}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-bookings@djerba.fun}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Djerba Fun}
       - RESEND_API_KEY=${RESEND_API_KEY}
     volumes:
       # Named volumes only - no bind mounts in production (Docker best practice)
@@ -94,7 +94,7 @@ services:
       dockerfile: apps/laravel-api/Dockerfile.prod
       args:
         - PHP_VERSION=8.4
-    container_name: goadventure-horizon
+    container_name: djerba-fun-horizon
     restart: unless-stopped
     working_dir: /var/www/html
     command: php artisan horizon
@@ -104,16 +104,16 @@ services:
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_DATABASE=${DB_DATABASE:-go_adventure}
-      - DB_USERNAME=${DB_USERNAME:-go_adventure}
+      - DB_DATABASE=${DB_DATABASE:-djerba_fun}
+      - DB_USERNAME=${DB_USERNAME:-djerba_fun}
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=6379
       - QUEUE_CONNECTION=redis
       - MAIL_MAILER=${MAIL_MAILER:-resend}
-      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-bookings@go-adventure.net}
-      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Go Adventure}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-bookings@djerba.fun}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Djerba Fun}
       - RESEND_API_KEY=${RESEND_API_KEY}
     volumes:
       # Named volumes only - no bind mounts in production (Docker best practice)
@@ -133,16 +133,16 @@ services:
       dockerfile: apps/web/Dockerfile.prod
       args:
         - NODE_ENV=production
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://dev.go-adventure.net/api/v1}
-        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://dev.go-adventure.net}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://dev.djerbafun.com/api/v1}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://dev.djerbafun.com}
         - NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
         - NEXT_PUBLIC_TURNSTILE_ENABLED=${NEXT_PUBLIC_TURNSTILE_ENABLED:-false}
-    container_name: goadventure-web
+    container_name: djerba-fun-web
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://dev.go-adventure.net/api/v1}
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://dev.go-adventure.net}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://dev.djerbafun.com/api/v1}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://dev.djerbafun.com}
       - NEXT_PUBLIC_DEFAULT_LOCALE=fr
     depends_on:
       - api
@@ -160,7 +160,7 @@ services:
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
-    container_name: goadventure-nginx
+    container_name: djerba-fun-nginx
     restart: unless-stopped
     # Ports managed by Dokploy's reverse proxy (Traefik)
     # Do not expose ports directly to avoid conflicts

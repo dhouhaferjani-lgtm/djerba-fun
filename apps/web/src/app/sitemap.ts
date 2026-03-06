@@ -9,7 +9,7 @@ import type { MetadataRoute } from 'next';
  * In production, this should fetch actual listings from the API.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://goadventure.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://djerbafun.com';
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

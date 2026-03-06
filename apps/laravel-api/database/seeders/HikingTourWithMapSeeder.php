@@ -177,8 +177,8 @@ class HikingTourWithMapSeeder extends Seeder
                     'longitude' => 8.6833,
                 ],
                 'instructions' => [
-                    'en' => 'Meet at the Ain Draham Tourism Office at 7:00 AM. Look for our guide with a "Go Adventure" sign. Free parking available. Please arrive 15 minutes early for equipment check and safety briefing.',
-                    'fr' => 'Rendez-vous au Bureau du Tourisme d\'Ain Draham à 7h00. Cherchez notre guide avec un panneau "Go Adventure". Parking gratuit disponible. Veuillez arriver 15 minutes à l\'avance pour la vérification de l\'équipement et le briefing de sécurité.',
+                    'en' => 'Meet at the Ain Draham Tourism Office at 7:00 AM. Look for our guide with a "Djerba Fun" sign. Free parking available. Please arrive 15 minutes early for equipment check and safety briefing.',
+                    'fr' => 'Rendez-vous au Bureau du Tourisme d\'Ain Draham à 7h00. Cherchez notre guide avec un panneau "Djerba Fun". Parking gratuit disponible. Veuillez arriver 15 minutes à l\'avance pour la vérification de l\'équipement et le briefing de sécurité.',
                 ],
             ],
             'pricing' => [

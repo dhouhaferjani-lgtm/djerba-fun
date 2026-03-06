@@ -13,7 +13,7 @@ interface SanitizedHtmlProps {
  * This is needed because images uploaded via TinyEditor are stored on the API server.
  */
 function transformStorageUrls(html: string): string {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://app.go-adventure.net/api/v1';
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.djerbafun.com/api/v1';
   // Extract base URL (remove /api/v1 suffix)
   const baseUrl = apiUrl.replace(/\/api\/v1\/?$/, '');
 

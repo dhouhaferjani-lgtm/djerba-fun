@@ -166,8 +166,8 @@ export default async function CookiesPage({ params }: { params: Promise<{ locale
               <p className="text-gray-700 mb-4">{t('cookies_policy.contact_text')}</p>
               <p className="text-gray-700">
                 <strong>{t('cookies_policy.contact_email_label')}:</strong>{' '}
-                <a href="mailto:privacy@goadventure.tn" className="text-primary hover:underline">
-                  privacy@goadventure.tn
+                <a href="mailto:privacy@djerba.fun" className="text-primary hover:underline">
+                  privacy@djerba.fun
                 </a>
               </p>
             </section>

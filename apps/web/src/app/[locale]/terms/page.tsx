@@ -114,8 +114,8 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
               <p className="text-gray-700 mb-4">{t('terms.contact_text')}</p>
               <p className="text-gray-700 mb-2">
                 <strong>{t('terms.contact_email_label')}:</strong>{' '}
-                <a href="mailto:contact@go-adventure.net" className="text-primary hover:underline">
-                  contact@go-adventure.net
+                <a href="mailto:contact@djerba.fun" className="text-primary hover:underline">
+                  contact@djerba.fun
                 </a>
               </p>
               <p className="text-gray-700">

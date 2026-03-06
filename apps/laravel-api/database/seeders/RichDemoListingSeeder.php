@@ -141,8 +141,8 @@ class RichDemoListingSeeder extends Seeder
                     'longitude' => 9.0167,
                 ],
                 'instructions' => [
-                    'en' => 'Meet at the Douz Tourism Office. Look for our guide with a "Go Adventure" sign. Free parking available nearby.',
-                    'fr' => 'Rendez-vous au Bureau du Tourisme de Douz. Cherchez notre guide avec un panneau "Go Adventure". Parking gratuit disponible à proximité.',
+                    'en' => 'Meet at the Douz Tourism Office. Look for our guide with a "Djerba Fun" sign. Free parking available nearby.',
+                    'fr' => 'Rendez-vous au Bureau du Tourisme de Douz. Cherchez notre guide avec un panneau "Djerba Fun". Parking gratuit disponible à proximité.',
                 ],
             ],
             'pricing' => [

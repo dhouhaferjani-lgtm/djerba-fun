@@ -1,7 +1,7 @@
 <x-mail::message>
 # New Contact Form Submission
 
-You have received a new message from the Go Adventure website contact form.
+You have received a new message from the Djerba Fun website contact form.
 
 **From:** {{ $name }}
 

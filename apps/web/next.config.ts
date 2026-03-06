@@ -34,26 +34,26 @@ const nextConfig: NextConfig = {
         protocol: 'http',
         hostname: 'localhost',
         port: '9000',
-        pathname: '/go-adventure/**',
+        pathname: '/djerba-fun/**',
         search: '',
       },
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '9002',
-        pathname: '/go-adventure/**',
+        pathname: '/djerba-fun/**',
         search: '',
       },
       {
         protocol: 'http',
         hostname: '127.0.0.1',
         port: '9002',
-        pathname: '/go-adventure/**',
+        pathname: '/djerba-fun/**',
         search: '',
       },
       {
         protocol: 'https',
-        hostname: '*.goadventure.com',
+        hostname: '*.djerbafun.com',
       },
       {
         protocol: 'https',
@@ -74,16 +74,16 @@ const nextConfig: NextConfig = {
       // Production domains
       {
         protocol: 'https',
-        hostname: 'app.go-adventure.net',
+        hostname: 'api.djerbafun.com',
         pathname: '/storage/**',
       },
       {
         protocol: 'https',
-        hostname: 'go-adventure.net',
+        hostname: 'djerbafun.com',
       },
       {
         protocol: 'https',
-        hostname: '*.go-adventure.net',
+        hostname: '*.djerbafun.com',
       },
     ],
     // Use modern formats: AVIF first (best compression), WebP fallback
