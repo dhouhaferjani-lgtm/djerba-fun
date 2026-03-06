@@ -56,6 +56,7 @@ class ListingResource extends BaseResource
             'cancellationPolicy' => $this->formatCancellationPolicy(),
             'faqs' => ListingFaqResource::collection($this->whenLoaded('faqs')),
             'extras' => ListingExtraResource::collection($this->whenLoaded('listingExtras')),
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
             'safetyInfo' => $this->when($this->safety_info, is_array($this->safety_info) ? $this->toCamelCase($this->safety_info) : $this->safety_info),
             'accessibilityInfo' => $this->when($this->accessibility_info, is_array($this->accessibility_info) ? $this->toCamelCase($this->accessibility_info) : $this->accessibility_info),
             'difficultyDetails' => $this->when($this->isTourLike() && $this->difficulty_details, is_array($this->difficulty_details) ? $this->toCamelCase($this->difficulty_details) : $this->difficulty_details),

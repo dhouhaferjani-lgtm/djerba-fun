@@ -108,7 +108,7 @@ export async function generateMetadata({
             },
           ]
         : [],
-      siteName: 'Go Adventure',
+      siteName: 'Evasion Djerba',
       locale: locale === 'fr' ? 'fr_FR' : locale === 'en' ? 'en_US' : 'ar_AR',
     },
     twitter: {
@@ -180,7 +180,8 @@ export default async function ListingDetailPage({
   const locationAddress = listing.meetingPoint?.address || '';
 
   // Get vendor information
-  const vendorName = listing.vendor?.companyName || listing.vendor?.company_name || 'Go Adventure';
+  const vendorName =
+    listing.vendor?.companyName || listing.vendor?.company_name || 'Evasion Djerba';
   const vendorSlug = listing.vendor?.slug || listing.vendor?.id;
   const vendorImage = listing.vendor?.avatarUrl;
 

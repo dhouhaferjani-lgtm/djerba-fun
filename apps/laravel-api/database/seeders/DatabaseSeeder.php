@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             CurrencySeeder::class,
             IncomePricingConfigSeeder::class,
             PaymentGatewaySeeder::class,
+            TagSeeder::class,
             VendorSeeder::class,
             LocationSeeder::class,
             BlogCategorySeeder::class,

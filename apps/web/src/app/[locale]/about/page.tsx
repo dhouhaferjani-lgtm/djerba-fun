@@ -130,7 +130,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       <section className="relative min-h-[500px] flex items-center justify-center">
         <Image
           src="/images/about/hero-banner.jpg"
-          alt="About Go Adventure"
+          alt="À propos d'Evasion Djerba"
           fill
           className="object-cover"
           priority
@@ -146,7 +146,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       </section>
 
       {/* 2. L'Aventurier Section - Cream background with green text */}
-      <section className="bg-[#f5f0d1] py-16">
+      <section className="bg-neutral-100 py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="text-primary text-2xl md:text-3xl font-bold text-center mb-12 uppercase tracking-wide">
             {t('our_story')}
@@ -189,7 +189,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
               <div className="prose prose-lg text-gray-700 space-y-4">
                 <p>{t('founder_story')}</p>
               </div>
-              <blockquote className="mt-8 bg-[#e8e4a8] p-6 rounded-lg border-l-4 border-primary">
+              <blockquote className="mt-8 bg-[#fde68a] p-6 rounded-lg border-l-4 border-primary">
                 <p className="text-gray-800 italic text-lg">"{t('founder_quote')}"</p>
               </blockquote>
             </div>
@@ -200,13 +200,13 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       {/* 4. Nos Engagements Section */}
       <section className="py-16 bg-primary">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#f5f0d1] text-center mb-12 uppercase">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#fef3c7] text-center mb-12 uppercase">
             {t('commitments')}
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {commitments.map((commitment, index) => (
               <div key={index} className="text-center">
-                <div className="text-[#f5f0d1] mb-4 flex justify-center">
+                <div className="text-[#fef3c7] mb-4 flex justify-center">
                   <commitment.Icon />
                 </div>
                 <h3 className="text-lg font-bold text-white mb-3 uppercase">{commitment.title}</h3>
@@ -222,12 +222,12 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="grid md:grid-cols-2 gap-6">
             {/* Team Box - Cream */}
-            <div className="bg-[#f5f0d1] p-8 rounded-lg">
+            <div className="bg-neutral-100 p-8 rounded-lg">
               <h3 className="text-2xl font-bold text-gray-900 mb-4 uppercase">{t('team')}</h3>
               <p className="text-gray-700 leading-relaxed">{t('team_desc')}</p>
             </div>
             {/* Initiatives Box - Lime */}
-            <div className="bg-[#c4d600] p-8 rounded-lg">
+            <div className="bg-[#4ade9a] p-8 rounded-lg">
               <h3 className="text-2xl font-bold text-gray-900 mb-4 uppercase">
                 {t('initiatives')}
               </h3>

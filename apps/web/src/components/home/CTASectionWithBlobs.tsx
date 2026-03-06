@@ -19,11 +19,11 @@ const shineAnimationStyles = `
   @keyframes pulse-click {
     0%, 100% {
       transform: scale(1);
-      box-shadow: 0 4px 15px rgba(13, 100, 46, 0.4);
+      box-shadow: 0 4px 15px rgba(27, 42, 78, 0.4);
     }
     50% {
       transform: scale(0.97);
-      box-shadow: 0 2px 8px rgba(13, 100, 46, 0.6);
+      box-shadow: 0 2px 8px rgba(27, 42, 78, 0.6);
     }
   }
 

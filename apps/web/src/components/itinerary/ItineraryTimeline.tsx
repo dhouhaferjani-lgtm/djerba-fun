@@ -4,15 +4,20 @@ import { useTranslations } from 'next-intl';
 import type { ItineraryStop } from '@go-adventure/schemas';
 import { MapPin, Clock } from 'lucide-react';
 
-const DAY_COLORS = ['#0D642E', '#E67E22', '#3498DB', '#9B59B6', '#E74C3C', '#1ABC9C', '#F39C12'];
+// Brand-aligned day colors: Navy, Emerald, Gold, Orange + complementary
+const DAY_COLORS = ['#1B2A4E', '#2E9E6B', '#F5B041', '#E05D26', '#3a5a8c', '#4ade9a', '#ca8a04'];
 
 interface ItineraryTimelineProps {
   stops: ItineraryStop[];
   locale: string;
-  isSejour?: boolean;
+  isAccommodation?: boolean;
 }
 
-export default function ItineraryTimeline({ stops, locale, isSejour }: ItineraryTimelineProps) {
+export default function ItineraryTimeline({
+  stops,
+  locale,
+  isAccommodation,
+}: ItineraryTimelineProps) {
   const t = useTranslations('itinerary');
   const tListing = useTranslations('listing');
 
@@ -63,7 +68,7 @@ export default function ItineraryTimeline({ stops, locale, isSejour }: Itinerary
         {/* Stop marker */}
         <div
           className="absolute left-0 top-0 flex h-8 w-8 items-center justify-center rounded-full border-4 border-white shadow-md"
-          style={{ backgroundColor: color || '#0D642E' }}
+          style={{ backgroundColor: color || '#1B2A4E' }}
         >
           <span className="text-xs font-bold text-white">{stop.order + 1}</span>
         </div>
@@ -115,7 +120,7 @@ export default function ItineraryTimeline({ stops, locale, isSejour }: Itinerary
   };
 
   // Séjour: group stops by day
-  if (isSejour) {
+  if (isAccommodation) {
     const dayGroups = new Map<number, ItineraryStop[]>();
     for (const stop of sortedStops) {
       const day = (stop as any).day ?? 1;

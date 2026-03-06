@@ -22,47 +22,42 @@ class PlatformSettingsSeeder extends Seeder
         }
 
         PlatformSettings::create([
-            // Platform Identity
+            // Platform Identity - Evasion Djerba
             'platform_name' => [
-                'en' => 'Go Adventure',
-                'fr' => 'Go Aventure',
-                'ar' => 'مغامرة',
+                'en' => 'Evasion Djerba',
+                'fr' => 'Evasion Djerba',
             ],
             'tagline' => [
-                'en' => 'Discover Your Next Adventure',
-                'fr' => 'Découvrez Votre Prochaine Aventure',
-                'ar' => 'اكتشف مغامرتك القادمة',
+                'en' => 'Experience the island differently',
+                'fr' => 'Vivez l\'île autrement',
             ],
             'description' => [
-                'en' => 'The premier marketplace for tours, activities, and unique experiences. Book your next adventure today!',
-                'fr' => 'La première place de marché pour les visites, activités et expériences uniques. Réservez votre prochaine aventure dès aujourd\'hui!',
-                'ar' => 'السوق الرائد للجولات والأنشطة والتجارب الفريدة. احجز مغامرتك القادمة اليوم!',
+                'en' => 'Discover Djerba island with unique tours, nautical activities, and authentic accommodations. Your Mediterranean adventure starts here!',
+                'fr' => 'Découvrez l\'île de Djerba avec des excursions uniques, des activités nautiques et des hébergements authentiques. Votre aventure méditerranéenne commence ici!',
             ],
-            'primary_domain' => 'goadventure.com',
+            'primary_domain' => 'evasiondjerba.com',
             'api_url' => env('APP_URL', 'http://localhost:8000'),
             'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 
             // SEO & Metadata
             'meta_title' => [
-                'en' => 'Go Adventure - Tours, Activities & Unique Experiences',
-                'fr' => 'Go Aventure - Tours, Activités & Expériences Uniques',
-                'ar' => 'مغامرة - جولات وأنشطة وتجارب فريدة',
+                'en' => 'Evasion Djerba - Tours, Nautical Activities & Accommodations',
+                'fr' => 'Evasion Djerba - Excursions, Activités Nautiques & Hébergements',
             ],
             'meta_description' => [
-                'en' => 'Discover and book amazing tours, outdoor activities, and unique experiences. Your adventure starts here!',
-                'fr' => 'Découvrez et réservez des visites incroyables, des activités de plein air et des expériences uniques.',
-                'ar' => 'اكتشف واحجز جولات مذهلة وأنشطة خارجية وتجارب فريدة.',
+                'en' => 'Discover Djerba island: tours, jet ski, parasailing, diving, and authentic accommodations. Book your Mediterranean escape today!',
+                'fr' => 'Découvrez l\'île de Djerba : excursions, jet ski, parachute ascensionnel, plongée et hébergements authentiques. Réservez votre évasion méditerranéenne!',
             ],
-            'keywords' => ['tours', 'activities', 'adventures', 'travel', 'experiences', 'booking'],
-            'author' => 'Go Adventure Team',
+            'keywords' => ['djerba', 'tunisie', 'tunisia', 'tours', 'nautical', 'jet ski', 'parasailing', 'accommodation', 'mediterranean'],
+            'author' => 'Evasion Djerba',
             'organization_type' => 'TravelAgency',
             'founded_year' => 2024,
 
             // Contact Information
-            'support_email' => 'support@goadventure.com',
-            'general_email' => 'hello@goadventure.com',
-            'phone_number' => '+1 (555) 123-4567',
-            'whatsapp_number' => '+15551234567',
+            'support_email' => 'support@evasiondjerba.com',
+            'general_email' => 'contact@evasiondjerba.com',
+            'phone_number' => '+216 75 123 456',
+            'whatsapp_number' => '+21675123456',
             'business_hours' => [
                 'monday' => ['open' => '09:00', 'close' => '18:00'],
                 'tuesday' => ['open' => '09:00', 'close' => '18:00'],
@@ -73,26 +68,26 @@ class PlatformSettingsSeeder extends Seeder
                 'sunday' => null,
             ],
 
-            // Physical Address
-            'address_street' => '123 Adventure Way',
-            'address_city' => 'San Francisco',
-            'address_region' => 'California',
-            'address_postal_code' => '94102',
-            'address_country' => 'US',
-            'google_maps_url' => 'https://maps.google.com/?q=San+Francisco,+CA',
+            // Physical Address - Djerba, Tunisia
+            'address_street' => 'Zone Touristique Midoun',
+            'address_city' => 'Djerba',
+            'address_region' => 'Medenine',
+            'address_postal_code' => '4116',
+            'address_country' => 'TN',
+            'google_maps_url' => 'https://maps.google.com/?q=Djerba,+Tunisia',
 
             // Social Media
-            'social_facebook' => 'https://facebook.com/goadventure',
-            'social_instagram' => 'https://instagram.com/goadventure',
-            'social_twitter' => 'https://twitter.com/goadventure',
-            'social_linkedin' => 'https://linkedin.com/company/goadventure',
-            'social_youtube' => 'https://youtube.com/@goadventure',
-            'social_tiktok' => null,
+            'social_facebook' => 'https://facebook.com/evasiondjerba',
+            'social_instagram' => 'https://instagram.com/evasiondjerba',
+            'social_twitter' => null,
+            'social_linkedin' => null,
+            'social_youtube' => null,
+            'social_tiktok' => 'https://tiktok.com/@evasiondjerba',
 
             // Email Settings
-            'email_from_name' => 'Go Adventure',
-            'email_from_address' => 'noreply@goadventure.com',
-            'email_reply_to' => 'support@goadventure.com',
+            'email_from_name' => 'Evasion Djerba',
+            'email_from_address' => 'noreply@evasiondjerba.com',
+            'email_reply_to' => 'support@evasiondjerba.com',
             'email_terms_url' => '/terms',
             'email_privacy_url' => '/privacy',
 
@@ -119,14 +114,14 @@ class PlatformSettingsSeeder extends Seeder
                 ],
             ],
 
-            // Localization
-            'default_locale' => 'en',
-            'available_locales' => ['en', 'fr', 'ar'],
-            'fallback_locale' => 'en',
-            'rtl_locales' => ['ar'],
-            'date_format' => 'MMMM d, yyyy',
-            'time_format' => 'h:mm a',
-            'timezone' => 'UTC',
+            // Localization - French default for Tunisia
+            'default_locale' => 'fr',
+            'available_locales' => ['fr', 'en'],
+            'fallback_locale' => 'fr',
+            'rtl_locales' => [],
+            'date_format' => 'd MMMM yyyy',
+            'time_format' => 'HH:mm',
+            'timezone' => 'Africa/Tunis',
             'week_starts_on' => 1, // Monday
 
             // Feature Flags

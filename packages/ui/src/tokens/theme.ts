@@ -2,7 +2,7 @@
  * Theme Configuration Interface
  *
  * Defines the structure for white-label theme customization.
- * All color values should be hex codes (e.g., '#0D642E').
+ * All color values should be hex codes (e.g., '#1B2A4E').
  */
 
 export interface ThemeConfig {
@@ -71,43 +71,49 @@ export interface ThemeConfig {
 }
 
 /**
- * Default Go Adventure Theme
+ * Default djerba.fun Theme
+ *
+ * Logo Colors:
+ * - Navy: #1B2A4E (primary)
+ * - Emerald: #2E9E6B (secondary)
+ * - Gold: #F5B041 (accent)
+ * - Orange: #E05D26 (tertiary)
  *
  * This is the base theme that all other themes can extend from.
  */
 export const defaultTheme: ThemeConfig = {
-  name: 'Go Adventure Default',
-  description: 'Default Go Adventure tourism marketplace theme with forest green and lime accents',
+  name: 'djerba.fun Default',
+  description: 'djerba.fun tourism marketplace theme with navy blue and emerald green',
 
   colors: {
     primary: {
-      DEFAULT: '#0D642E',
-      light: '#1a7e45',
-      dark: '#0a5025',
+      DEFAULT: '#1B2A4E', // Navy-700
+      light: '#3a5a8c', // Navy-500
+      dark: '#0d1426', // Navy-900
     },
     secondary: {
-      DEFAULT: '#8BC34A',
-      light: '#a2d16a',
-      dark: '#7cb342',
+      DEFAULT: '#2E9E6B', // Emerald-500
+      light: '#4ade9a', // Emerald-400
+      dark: '#25855a', // Emerald-600
     },
     accent: {
-      DEFAULT: '#f5f0d1',
-      light: '#faf8e8',
-      dark: '#e8e2bc',
+      DEFAULT: '#F5B041', // Gold-400
+      light: '#fde68a', // Gold-200
+      dark: '#ca8a04', // Gold-600
     },
     neutral: {
       white: '#ffffff',
-      light: '#f5f5f5',
-      DEFAULT: '#e5e5e5',
-      dark: '#a3a3a3',
-      darker: '#737373',
-      black: '#000000',
+      light: '#f5f5f4',
+      DEFAULT: '#e7e5e4',
+      dark: '#a8a29e',
+      darker: '#57534e',
+      black: '#1c1917',
     },
-    cream: '#fcfaf2',
-    success: '#22c55e',
-    warning: '#f59e0b',
-    error: '#ef4444',
-    info: '#3b82f6',
+    cream: '#fef3c7', // Gold-100
+    success: '#2E9E6B', // Emerald-500
+    warning: '#F5B041', // Gold-400
+    error: '#c2410c', // Orange-600
+    info: '#3a5a8c', // Navy-500
   },
 
   typography: {

@@ -354,7 +354,7 @@
     "secure_booking_message": "Your payment information is encrypted and secure",
     "complete_booking_title": "Complete Your Booking",
     "complete_booking_subtitle": "Choose how you'd like to continue",
-    "continue_as_guest": "Continue as Guest",
+    "continue_as_guest": "Continue as guest",
     "sign_in_benefits_title": "Benefits of signing in",
     "sign_in_benefits": "Save your bookings, faster checkout, exclusive offers",
     "booking_error": "Failed to complete booking. Please try again.",
@@ -365,7 +365,6 @@
     "how_to_continue": "How would you like to continue?",
     "checkout_options_desc": "Log in for a faster checkout or continue as a guest",
     "login_existing_account": "Log in to my account",
-    "continue_as_guest": "Continue as guest",
     "guest_checkout_note": "You'll be able to create an account after completing your booking",
     "terms_required": "You must accept the terms and conditions to continue.",
     "billing_contact_info": "Enter the billing contact details. You'll be able to add participant names after completing the booking.",
@@ -379,7 +378,7 @@
       "email": "Email",
       "phone": "Phone",
       "save_participants": "Save Participants",
-      "complete": "Complete",
+      "complete": "complete",
       "all_complete": "All participants complete!",
       "required_fields": "* Required fields",
       "optional": "optional",
@@ -420,7 +419,6 @@
       "saving": "Saving...",
       "saved": "Saved",
       "filled": "filled",
-      "complete": "complete",
       "incomplete": "incomplete",
       "not_started": "Not started",
       "booking_number": "Booking",
@@ -465,7 +463,6 @@
     "spots_remaining": "spots remaining",
     "only_x_spots_left": "Only {count} spots left!",
     "time_slot_capacity": "Time Slot Capacity",
-    "available": "available",
     "booking_failed": "Booking Failed",
     "insufficient_capacity_detailed": "Not enough capacity. You requested {requested} spots, but only {available} are available.",
     "hold_expired_error": "Your reservation has expired. Please select your date and time again.",
@@ -482,7 +479,8 @@
     "invalid_link": "Invalid or unknown booking link.",
     "load_failed": "Failed to load booking.",
     "request_new_link": "Request New Link",
-    "go_to_homepage": "Go to Homepage"
+    "go_to_homepage": "Go to Homepage",
+    "participant_entry_note": ""
   },
   "participants": {
     "title": "Enter Participant Names",
@@ -620,8 +618,23 @@
       "whats_next": "What's Next?",
       "tip_check_email": "Check your email for booking confirmations and details",
       "tip_save_booking": "Save your booking numbers for easy reference",
-      "tip_arrive_early": "Arrive 15 minutes early to your experiences"
-    }
+      "tip_arrive_early": "Arrive 15 minutes early to your experiences",
+      "cart_bookings_confirmed": "",
+      "your_booking_number": ""
+    },
+    "go_to_homepage": "",
+    "invalid_link": "",
+    "link_expired": "",
+    "link_expired_description": "",
+    "load_failed": "",
+    "magic_link_booking": "",
+    "manage_booking": "",
+    "manage_booking_description": "",
+    "manage_participants": "",
+    "request_new_link": "",
+    "secure_link_description": "",
+    "secure_link_notice": "",
+    "view_vouchers": ""
   },
   "auth": {
     "login": "Login",
@@ -724,6 +737,8 @@
   "navigation": {
     "home": "Home",
     "tours": "Activities",
+    "nautical": "Nautical",
+    "accommodations": "Accommodations",
     "sejours": "Adventure Trips",
     "events": "Events",
     "blog": "Blog",
@@ -1243,6 +1258,8 @@
   },
   "listings_page": {
     "title_tours": "Activities",
+    "title_nautical": "Nautical Activities",
+    "title_accommodations": "Accommodation",
     "title_events": "Events",
     "title_sejours": "Adventure Trips",
     "title_all": "All Experiences",

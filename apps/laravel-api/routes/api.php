@@ -36,6 +36,7 @@ use App\Http\Controllers\Api\V1\RouteProxyController;
 use App\Http\Controllers\Api\V1\TravelTipController;
 use App\Http\Controllers\Api\V1\CategoryStatsController;
 use App\Http\Controllers\Api\V1\ContactController;
+use App\Http\Controllers\Api\V1\TagController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\VoucherController;
 use App\Http\Controllers\Api\Vendor\VendorVoucherController;
@@ -114,6 +115,11 @@ Route::prefix('v1')->group(function () {
     // Public activity type routes (for tour categorization)
     Route::get('/activity-types', [ActivityTypeController::class, 'index']);
     Route::get('/activity-types/{activityType:slug}', [ActivityTypeController::class, 'show']);
+
+    // Public tag routes (for listing filtering)
+    Route::get('/tags', [TagController::class, 'index']);
+    Route::get('/tags/for-service/{serviceType}', [TagController::class, 'forServiceType']);
+    Route::get('/tags/{tag:slug}', [TagController::class, 'show']);
 
     // Public review routes
     Route::get('/listings/{listing:slug}/reviews', [ReviewController::class, 'index']);

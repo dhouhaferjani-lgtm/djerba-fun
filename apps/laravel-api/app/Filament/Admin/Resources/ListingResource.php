@@ -6,6 +6,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Enums\ListingStatus;
 use App\Enums\ServiceType;
+use App\Enums\TagType;
 use App\Filament\Admin\Resources\ListingResource\Pages;
 use App\Filament\Vendor\Resources\ListingResource as VendorListingResource;
 use App\Models\Listing;
@@ -296,8 +297,9 @@ class ListingResource extends Resource
                     ->badge()
                     ->color(fn (ServiceType $state): string => match ($state) {
                         ServiceType::TOUR => 'info',
+                        ServiceType::NAUTICAL => 'primary',
+                        ServiceType::ACCOMMODATION => 'warning',
                         ServiceType::EVENT => 'success',
-                        ServiceType::SEJOUR => 'warning',
                     }),
 
                 Tables\Columns\TextColumn::make('status')
@@ -311,6 +313,24 @@ class ListingResource extends Resource
                     ->falseIcon('heroicon-o-minus')
                     ->trueColor('warning')
                     ->falseColor('gray')
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('tags.name')
+                    ->label('Tags')
+                    ->badge()
+                    ->limitList(3)
+                    ->formatStateUsing(function ($state, $record) {
+                        if (empty($state)) {
+                            return null;
+                        }
+                        // Get the translated name
+                        $locale = app()->getLocale();
+                        if (is_array($state)) {
+                            return $state[$locale] ?? $state['en'] ?? reset($state) ?: $state;
+                        }
+                        return $state;
+                    })
+                    ->color(fn ($record) => 'gray')
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('location.name')
@@ -373,8 +393,9 @@ class ListingResource extends Resource
                 Tables\Filters\SelectFilter::make('service_type')
                     ->options([
                         ServiceType::TOUR->value => __('filament.options.tours'),
+                        ServiceType::NAUTICAL->value => __('filament.options.nautical'),
+                        ServiceType::ACCOMMODATION->value => __('filament.options.accommodations'),
                         ServiceType::EVENT->value => __('filament.options.events'),
-                        ServiceType::SEJOUR->value => 'Séjours',
                     ]),
 
                 Tables\Filters\Filter::make('pending_review')
@@ -425,6 +446,17 @@ class ListingResource extends Resource
                             }),
                             default => $query,
                         };
+                    }),
+
+                Tables\Filters\SelectFilter::make('tag_type')
+                    ->label('Tag Type')
+                    ->options(collect(TagType::cases())->mapWithKeys(fn ($type) => [$type->value => $type->label()]))
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (empty($data['value'])) {
+                            return $query;
+                        }
+
+                        return $query->whereHas('tags', fn ($q) => $q->where('type', $data['value']));
                     }),
 
                 Tables\Filters\TrashedFilter::make(),

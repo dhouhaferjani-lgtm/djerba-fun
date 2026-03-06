@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "analyze": "ANALYZE=true next build"
+    "analyze": "ANALYZE=true next build",
+    "i18n:export": "tsx scripts/export-translations-csv.ts",
+    "i18n:import": "tsx scripts/import-translations-csv.ts",
+    "i18n:test": "tsx scripts/translation-utils.test.ts"
   },
   "dependencies": {
     "@go-adventure/schemas": "workspace:*",
@@ -38,6 +41,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@next/bundle-analyzer": "^16.0.8",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
@@ -49,6 +53,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.8",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

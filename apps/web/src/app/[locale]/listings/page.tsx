@@ -6,7 +6,8 @@ import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { ListingGrid } from '@/components/organisms/ListingGrid';
 import { SearchBar } from '@/components/molecules/SearchBar';
-import { useListings, useLocations } from '@/lib/api/hooks';
+import { TagFilterGroup } from '@/components/molecules/TagFilterGroup';
+import { useListings, useLocations, useTagsForServiceType } from '@/lib/api/hooks';
 import { Button } from '@go-adventure/ui';
 import { Filter, X, SlidersHorizontal } from 'lucide-react';
 
@@ -25,17 +26,46 @@ function ListingsContent({ locale }: { locale: string }) {
     | 'price_desc'
     | 'rating';
 
+  const serviceType = searchParams.get('type') as
+    | 'tour'
+    | 'nautical'
+    | 'accommodation'
+    | 'event'
+    | undefined;
+  const selectedTags = searchParams.get('tags')?.split(',').filter(Boolean) || [];
+
   const queryParams = {
-    serviceType: searchParams.get('type') as 'tour' | 'event' | 'sejour' | undefined,
+    serviceType,
     location: searchParams.get('location') || undefined,
     search: searchParams.get('q') || undefined,
     activityType: searchParams.get('activity_type') || undefined,
+    tags: selectedTags.length > 0 ? selectedTags.join(',') : undefined,
     sort: currentSort,
     limit: 20,
   };
 
   const { data, isLoading, error } = useListings(queryParams, locale);
   const { data: locations } = useLocations();
+  const { data: tagGroups } = useTagsForServiceType(serviceType || '', !!serviceType);
+
+  const handleTagToggle = (tagSlug: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    const currentTags = params.get('tags')?.split(',').filter(Boolean) || [];
+
+    let newTags: string[];
+    if (currentTags.includes(tagSlug)) {
+      newTags = currentTags.filter((t) => t !== tagSlug);
+    } else {
+      newTags = [...currentTags, tagSlug];
+    }
+
+    if (newTags.length > 0) {
+      params.set('tags', newTags.join(','));
+    } else {
+      params.delete('tags');
+    }
+    router.push(`/${locale}/listings?${params.toString()}`);
+  };
 
   const handleSearch = (query: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -65,7 +95,8 @@ function ListingsContent({ locale }: { locale: string }) {
     searchParams.get('type') ||
     searchParams.get('location') ||
     searchParams.get('q') ||
-    searchParams.get('activity_type');
+    searchParams.get('activity_type') ||
+    searchParams.get('tags');
 
   return (
     <MainLayout locale={locale}>
@@ -74,11 +105,13 @@ function ListingsContent({ locale }: { locale: string }) {
           <h1 className="text-3xl font-bold text-neutral-900 mb-6">
             {queryParams.serviceType === 'tour'
               ? tListings('title_tours')
-              : queryParams.serviceType === 'event'
-                ? tListings('title_events')
-                : queryParams.serviceType === 'sejour'
-                  ? tListings('title_sejours')
-                  : tListings('title_all')}
+              : queryParams.serviceType === 'nautical'
+                ? tListings('title_nautical')
+                : queryParams.serviceType === 'accommodation'
+                  ? tListings('title_accommodations')
+                  : queryParams.serviceType === 'event'
+                    ? tListings('title_events')
+                    : tListings('title_all')}
           </h1>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -125,8 +158,9 @@ function ListingsContent({ locale }: { locale: string }) {
                   >
                     <option value="">{tListings('all_types')}</option>
                     <option value="tour">{tListings('title_tours')}</option>
+                    <option value="nautical">{tListings('title_nautical')}</option>
+                    <option value="accommodation">{tListings('title_accommodations')}</option>
                     <option value="event">{tListings('title_events')}</option>
-                    <option value="sejour">{tListings('title_sejours')}</option>
                   </select>
                 </div>
 
@@ -170,6 +204,18 @@ function ListingsContent({ locale }: { locale: string }) {
                   </select>
                 </div>
               </div>
+
+              {/* Tag Filters - shown when a service type is selected */}
+              {serviceType && tagGroups && tagGroups.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-neutral-200">
+                  <TagFilterGroup
+                    tagGroups={tagGroups}
+                    selectedTags={selectedTags}
+                    onTagToggle={handleTagToggle}
+                    locale={locale}
+                  />
+                </div>
+              )}
 
               {hasActiveFilters && (
                 <div className="mt-4 pt-4 border-t border-neutral-200">

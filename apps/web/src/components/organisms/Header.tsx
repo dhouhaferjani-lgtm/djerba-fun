@@ -48,7 +48,8 @@ export function Header({ locale }: HeaderProps) {
   const navLinks = [
     { href: `/${locale}`, label: t('home') },
     { href: `/${locale}/listings?type=tour`, label: t('tours') },
-    { href: `/${locale}/listings?type=sejour`, label: t('sejours') },
+    { href: `/${locale}/listings?type=nautical`, label: t('nautical') },
+    { href: `/${locale}/listings?type=accommodation`, label: t('accommodations') },
     { href: `/${locale}/listings?type=event`, label: t('events') },
     { href: `/${locale}/blog`, label: t('blog') },
     { href: `/${locale}/custom-trip`, label: t('customTrip') },

@@ -38,12 +38,12 @@ class VoucherPdfService
             'listing' => $listing,
             'slot' => $slot,
             'qrCode' => $qrCode,
-            'platformName' => $this->settings->getTranslation('platform_name', app()->getLocale()) ?? 'Go Adventure',
+            'platformName' => $this->settings->getTranslation('platform_name', app()->getLocale()) ?? 'Evasion Djerba',
             'logoUrl' => $this->settings->logo_light_url,
             'colors' => [
-                'primary' => $this->settings->brand_color_primary ?? '#0D642E',
-                'accent' => $this->settings->brand_color_accent ?? '#8BC34A',
-                'cream' => $this->settings->brand_color_cream ?? '#f5f0d1',
+                'primary' => $this->settings->brand_color_primary ?? '#0077B6',
+                'accent' => $this->settings->brand_color_accent ?? '#F4A261',
+                'cream' => $this->settings->brand_color_cream ?? '#E9F5F8',
             ],
         ];
 
@@ -77,12 +77,12 @@ class VoucherPdfService
             'booking' => $booking,
             'listing' => $booking->listing,
             'slot' => $booking->availabilitySlot,
-            'platformName' => $this->settings->getTranslation('platform_name', app()->getLocale()) ?? 'Go Adventure',
+            'platformName' => $this->settings->getTranslation('platform_name', app()->getLocale()) ?? 'Evasion Djerba',
             'logoUrl' => $this->settings->logo_light_url,
             'colors' => [
-                'primary' => $this->settings->brand_color_primary ?? '#0D642E',
-                'accent' => $this->settings->brand_color_accent ?? '#8BC34A',
-                'cream' => $this->settings->brand_color_cream ?? '#f5f0d1',
+                'primary' => $this->settings->brand_color_primary ?? '#0077B6',
+                'accent' => $this->settings->brand_color_accent ?? '#F4A261',
+                'cream' => $this->settings->brand_color_cream ?? '#E9F5F8',
             ],
         ];
 

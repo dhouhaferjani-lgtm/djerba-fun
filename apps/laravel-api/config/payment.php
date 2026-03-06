@@ -71,6 +71,6 @@ return [
 
     'booking' => [
         'hold_duration_minutes' => env('BOOKING_HOLD_DURATION', 15),
-        'booking_number_prefix' => env('BOOKING_NUMBER_PREFIX', 'GA'),
+        'booking_number_prefix' => env('BOOKING_NUMBER_PREFIX', 'ED'),
     ],
 ];

@@ -112,7 +112,7 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between text-sm">
                   <Link
                     href={`/${locale}/auth/forgot-password` as any}
-                    className="text-[#0D642E] hover:underline"
+                    className="text-primary hover:underline"
                   >
                     {t('forgot_password')}
                   </Link>
@@ -143,7 +143,7 @@ export default function LoginPage() {
                 {t('no_account')}{' '}
                 <Link
                   href={`/${locale}/auth/register` as any}
-                  className="text-[#0D642E] font-semibold hover:underline"
+                  className="text-primary font-semibold hover:underline"
                 >
                   {t('register')}
                 </Link>

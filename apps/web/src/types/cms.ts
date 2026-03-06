@@ -101,7 +101,7 @@ export interface CardsBlockData {
 }
 
 export interface ToursListingBlockData {
-  listing_type: 'all' | 'tour' | 'event';
+  listing_type: 'all' | 'tour' | 'nautical' | 'accommodation' | 'event';
   count: number;
   sort_by: 'created_at' | 'title' | 'price' | '-price';
   style: 'grid' | 'carousel' | 'list';

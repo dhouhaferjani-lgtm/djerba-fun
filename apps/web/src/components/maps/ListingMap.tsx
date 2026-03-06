@@ -7,14 +7,15 @@ import MarkerPopup from './MarkerPopup';
 import type { ItineraryStop } from '@go-adventure/schemas';
 import { fetchRoute, type RoutingProfile } from '@/lib/utils/fetchRoute';
 
-const DAY_COLORS = ['#0D642E', '#E67E22', '#3498DB', '#9B59B6', '#E74C3C', '#1ABC9C', '#F39C12'];
+// Brand-aligned day colors: Navy, Emerald, Gold, Orange + complementary
+const DAY_COLORS = ['#1B2A4E', '#2E9E6B', '#F5B041', '#E05D26', '#3a5a8c', '#4ade9a', '#ca8a04'];
 
 interface ListingMapProps {
   center: LatLngTuple;
   title: string;
   imageUrl?: string;
   itinerary?: ItineraryStop[];
-  isSejour?: boolean;
+  isAccommodation?: boolean;
   skipRouting?: boolean;
   routingProfile?: RoutingProfile;
   locale?: string;
@@ -26,7 +27,7 @@ interface RouteProps {
   profile: RoutingProfile;
 }
 
-interface SejourRouteProps {
+interface AccommodationRouteProps {
   stops: ItineraryStop[];
   profile: RoutingProfile;
   locale?: string;
@@ -37,7 +38,7 @@ export default function ListingMap({
   title,
   imageUrl,
   itinerary,
-  isSejour,
+  isAccommodation,
   skipRouting,
   routingProfile = 'foot',
   locale,
@@ -46,8 +47,8 @@ export default function ListingMap({
   const [RouteComponent, setRouteComponent] = useState<React.ComponentType<RouteProps> | null>(
     null
   );
-  const [SejourRouteComponent, setSejourRouteComponent] =
-    useState<React.ComponentType<SejourRouteProps> | null>(null);
+  const [AccommodationRouteComponent, setAccommodationRouteComponent] =
+    useState<React.ComponentType<AccommodationRouteProps> | null>(null);
 
   // Sort itinerary by order for reliable first/last detection
   const sortedItinerary = useMemo(() => {
@@ -55,19 +56,19 @@ export default function ListingMap({
     return [...itinerary].sort((a, b) => a.order - b.order);
   }, [itinerary]);
 
-  // Compute bounds for séjours from all itinerary stops
-  const sejourBounds: LatLngTuple[] | undefined = useMemo(() => {
-    if (!isSejour || !itinerary || itinerary.length < 2) return undefined;
+  // Compute bounds for accommodations from all itinerary stops
+  const accommodationBounds: LatLngTuple[] | undefined = useMemo(() => {
+    if (!isAccommodation || !itinerary || itinerary.length < 2) return undefined;
     const points = itinerary.map((stop) => [stop.lat, stop.lng] as LatLngTuple);
     // Check if all points are identical (degenerate bounds — fall back to center/zoom)
     const allSame = points.every((p) => p[0] === points[0][0] && p[1] === points[0][1]);
     if (allSame) return undefined;
     return points;
-  }, [isSejour, itinerary]);
+  }, [isAccommodation, itinerary]);
 
   // Standard single-color route for tours (road-following via OSRM)
   useEffect(() => {
-    if (itinerary && itinerary.length > 0 && !isSejour) {
+    if (itinerary && itinerary.length > 0 && !isAccommodation) {
       import('react-leaflet').then((module) => {
         const { Polyline } = module;
 
@@ -96,7 +97,7 @@ export default function ListingMap({
             <Polyline
               positions={positions}
               pathOptions={{
-                color: '#0D642E',
+                color: '#1B2A4E',
                 weight: 4,
                 opacity: 0.85,
               }}
@@ -107,16 +108,16 @@ export default function ListingMap({
         setRouteComponent(() => Component);
       });
     }
-  }, [itinerary, isSejour]);
+  }, [itinerary, isAccommodation]);
 
-  // Day-colored routes for séjours (road-following via OSRM)
+  // Day-colored routes for accommodations (road-following via OSRM)
   useEffect(() => {
-    if (itinerary && itinerary.length > 0 && isSejour) {
+    if (itinerary && itinerary.length > 0 && isAccommodation) {
       Promise.all([import('react-leaflet'), import('leaflet')]).then(([reactLeaflet, leaflet]) => {
         const { Polyline, Marker, Popup } = reactLeaflet;
         const L = leaflet.default;
 
-        const Component = ({ stops, profile, locale: loc }: SejourRouteProps) => {
+        const Component = ({ stops, profile, locale: loc }: AccommodationRouteProps) => {
           const dayLabel = loc === 'fr' ? 'JOUR' : 'DAY';
 
           // Road-following route segments keyed by segment id
@@ -290,15 +291,15 @@ export default function ListingMap({
           return <>{elements}</>;
         };
 
-        setSejourRouteComponent(() => Component);
+        setAccommodationRouteComponent(() => Component);
       });
     }
-  }, [itinerary, isSejour]);
+  }, [itinerary, isAccommodation]);
 
   return (
-    <MapContainer center={center} zoom={13} bounds={sejourBounds} className={className}>
-      {/* Main listing marker — hide for séjours (day markers) and when itinerary exists (stop markers) */}
-      {!isSejour && (!itinerary || itinerary.length === 0) && (
+    <MapContainer center={center} zoom={13} bounds={accommodationBounds} className={className}>
+      {/* Main listing marker — hide for accommodations (day markers) and when itinerary exists (stop markers) */}
+      {!isAccommodation && (!itinerary || itinerary.length === 0) && (
         <MarkerPopup position={center} title={title} imageUrl={imageUrl} type="listing" />
       )}
 
@@ -306,17 +307,21 @@ export default function ListingMap({
       {itinerary && itinerary.length > 0 && (
         <>
           {/* Standard route for tours */}
-          {!isSejour && RouteComponent && (
+          {!isAccommodation && RouteComponent && (
             <RouteComponent stops={itinerary} profile={routingProfile} />
           )}
 
-          {/* Day-colored routes for séjours */}
-          {isSejour && SejourRouteComponent && (
-            <SejourRouteComponent stops={itinerary} profile={routingProfile} locale={locale} />
+          {/* Day-colored routes for accommodations */}
+          {isAccommodation && AccommodationRouteComponent && (
+            <AccommodationRouteComponent
+              stops={itinerary}
+              profile={routingProfile}
+              locale={locale}
+            />
           )}
 
-          {/* Intermediate waypoint markers (tours only — séjours use day labels instead) */}
-          {!isSejour &&
+          {/* Intermediate waypoint markers (tours only — accommodations use day labels instead) */}
+          {!isAccommodation &&
             sortedItinerary
               .filter((_, index) => index !== 0 && index !== sortedItinerary.length - 1)
               .map((stop) => (
@@ -335,8 +340,8 @@ export default function ListingMap({
                 />
               ))}
 
-          {/* Start and End markers — tours only, séjours use day labels instead */}
-          {!isSejour &&
+          {/* Start and End markers — tours only, accommodations use day labels instead */}
+          {!isAccommodation &&
             sortedItinerary.length > 0 &&
             (() => {
               const first = sortedItinerary[0];
@@ -365,8 +370,8 @@ export default function ListingMap({
         </>
       )}
 
-      {/* Day color legend for séjours */}
-      {isSejour && itinerary && itinerary.length > 0 && (
+      {/* Day color legend for accommodations */}
+      {isAccommodation && itinerary && itinerary.length > 0 && (
         <DayLegend stops={itinerary} locale={locale} />
       )}
     </MapContainer>

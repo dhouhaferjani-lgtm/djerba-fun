@@ -19,6 +19,9 @@ import type {
   PlatformSettingsResponse,
   SchemaOrgData,
   ActivityType,
+  Tag,
+  TagGroup,
+  TagType,
 } from '@go-adventure/schemas';
 import { getGuestSessionId } from '@/lib/utils/session';
 
@@ -1519,6 +1522,45 @@ export const activityTypesApi = {
    */
   list: async (): Promise<{ data: ActivityType[] }> => {
     return fetchApi<{ data: ActivityType[] }>('/activity-types');
+  },
+};
+
+// ============================================================================
+// TAGS API
+// ============================================================================
+
+export const tagsApi = {
+  /**
+   * Get all active tags, optionally filtered by type or service type
+   * @param params.type - Filter by tag type (tour_type, boat_type, space_type, event_feature, amenity)
+   * @param params.serviceType - Filter by applicable service type (tour, nautical, accommodation, event)
+   * @param params.grouped - If true, returns tags grouped by type
+   */
+  list: async (params?: {
+    type?: TagType;
+    serviceType?: string;
+    grouped?: boolean;
+  }): Promise<{ data: Tag[] } | TagGroup[]> => {
+    const queryParams = new URLSearchParams();
+    if (params?.type) queryParams.set('type', params.type);
+    if (params?.serviceType) queryParams.set('service_type', params.serviceType);
+    if (params?.grouped) queryParams.set('grouped', 'true');
+
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/tags?${queryString}` : '/tags';
+
+    if (params?.grouped) {
+      return fetchApi<TagGroup[]>(endpoint);
+    }
+    return fetchApi<{ data: Tag[] }>(endpoint);
+  },
+
+  /**
+   * Get tags for a specific service type, grouped by tag type
+   * Convenience endpoint for frontend filter UI
+   */
+  forServiceType: async (serviceType: string): Promise<TagGroup[]> => {
+    return fetchApi<TagGroup[]>(`/tags/for-service/${serviceType}`);
   },
 };
 

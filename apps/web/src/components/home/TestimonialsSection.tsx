@@ -102,19 +102,19 @@ const defaultTestimonials: Testimonial[] = [
     id: '1',
     name: 'Nathalie',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80',
-    text: "Merci à Seif de m'avoir accompagner à découvrir Djerba hors des sentiers battus en mobilité douce sans impact pour l'environnement ! Le ravitaillement traditionnel avec la Zomita accompagnée de fruits frais a été l'occasion de me rapprocher du mode de vie des Djerbiens !",
+    text: 'Une découverte incroyable de Djerba hors des sentiers battus ! Le tour en calèche à travers les villages traditionnels et le ravitaillement avec la Zomita ont été des moments inoubliables. Je recommande vivement !',
   },
   {
     id: '2',
     name: 'Pierre',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80',
-    text: "Une expérience incroyable dans le désert tunisien. L'organisation était parfaite et notre guide connaissait tous les secrets de la région. Je recommande vivement Go Adventure pour découvrir la Tunisie autrement !",
+    text: "Le jet ski et le parachute ascensionnel étaient fantastiques ! L'équipe d'Evasion Djerba est très professionnelle et l'organisation parfaite. Une journée mémorable en famille !",
   },
   {
     id: '3',
     name: 'Marie',
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&q=80',
-    text: "Le vélo dans les montagnes de Tunisie était magnifique. Paysages à couper le souffle et accueil chaleureux des locaux. Une aventure que je ne suis pas prête d'oublier !",
+    text: "La visite de la synagogue de la Ghriba et le tour culturel de Houmt Souk étaient passionnants. Notre guide connaissait tous les secrets de l'île. Une expérience authentique !",
   },
 ];
 

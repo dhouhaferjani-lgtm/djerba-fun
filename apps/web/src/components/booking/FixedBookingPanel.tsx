@@ -160,7 +160,7 @@ export function FixedBookingPanel({
 
   return (
     <div className="sticky top-24 w-full lg:w-[380px]">
-      <div className="bg-[#fafaf9] rounded-2xl p-4 shadow-lg border border-neutral-200">
+      <div className="bg-neutral-50 rounded-2xl p-4 shadow-lg border border-neutral-200">
         <div>
           {/* Price Display */}
           <div className="mb-4" data-testid="listing-price">

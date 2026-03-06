@@ -6,12 +6,12 @@ use OpenApi\Annotations as OA;
 
 /**
  * @OA\Info(
- *     title="Go Adventure API",
+ *     title="Evasion Djerba API",
  *     version="1.0.0",
- *     description="API documentation for Go Adventure marketplace - tourism booking platform",
+ *     description="API documentation for Evasion Djerba marketplace - Djerba island tourism booking platform",
  *
  *     @OA\Contact(
- *         email="api@goadventure.com"
+ *         email="api@evasiondjerba.com"
  *     )
  * )
  *

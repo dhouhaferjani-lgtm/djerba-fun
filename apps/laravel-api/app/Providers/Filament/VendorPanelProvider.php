@@ -29,9 +29,9 @@ class VendorPanelProvider extends PanelProvider
             ->id('vendor')
             ->path('vendor')
             ->login()
-            ->brandName('Go Adventure - Vendor Portal')
+            ->brandName('Evasion Djerba - Vendor Portal')
             ->colors([
-                'primary' => '#0D642E', // Dark forest green from design system
+                'primary' => '#0077B6', // Ocean Blue - Mediterranean palette
             ])
             ->navigationGroups([
                 NavigationGroup::make()

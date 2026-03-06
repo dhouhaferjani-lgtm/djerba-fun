@@ -1,5 +1,5 @@
 /**
- * URL generation utilities for the Go Adventure marketplace
+ * URL generation utilities for the Evasion Djerba marketplace
  *
  * Handles the location-first URL structure:
  * - French (default): /{location}/{slug}

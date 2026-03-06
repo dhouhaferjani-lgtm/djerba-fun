@@ -125,4 +125,38 @@ class ListingFactory extends Factory
             'published_at' => null,
         ]);
     }
+
+    /**
+     * Create a nautical activity listing.
+     */
+    public function nautical(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'service_type' => ServiceType::NAUTICAL,
+        ]);
+    }
+
+    /**
+     * Create an accommodation listing.
+     */
+    public function accommodation(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'service_type' => ServiceType::ACCOMMODATION,
+            'duration' => ['value' => 3, 'unit' => 'days'],
+        ]);
+    }
+
+    /**
+     * Create an event listing.
+     */
+    public function event(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'service_type' => ServiceType::EVENT,
+            'event_type' => 'festival',
+            'start_date' => now()->addDays(30),
+            'end_date' => now()->addDays(30)->addHours(3),
+        ]);
+    }
 }

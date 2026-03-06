@@ -6,86 +6,86 @@ import Link from 'next/link';
 import { useActivityTypes } from '@/lib/api/hooks';
 import type { ActivityType } from '@go-adventure/schemas';
 
-// Fallback images by slug (local images from Go Adventure brand assets)
+// Fallback images by slug (local images for Evasion Djerba categories)
 const fallbackImages: Record<string, string> = {
-  'cultural-expeditions': '/images/experiences/cultural-expeditions.jpg',
-  'corporate-sports': '/images/experiences/corporate-sports.jpg',
-  'mountain-biking': '/images/experiences/mountain-biking.jpg',
-  'water-activities': '/images/experiences/water-activities.jpg',
-  'trail-trekking': '/images/experiences/trail-trekking.jpg',
+  'island-tours': '/images/experiences/island-tours.jpg',
+  'nautical-activities': '/images/experiences/nautical-activities.jpg',
+  'beach-relaxation': '/images/experiences/beach-relaxation.jpg',
+  'cultural-heritage': '/images/experiences/cultural-heritage.jpg',
+  'local-gastronomy': '/images/experiences/local-gastronomy.jpg',
 };
 
 // Default fallback image if slug not in map
-const defaultFallbackImage = '/images/experiences/cultural-expeditions.jpg';
+const defaultFallbackImage = '/images/experiences/island-tours.jpg';
 
-// Fallback activity types when API is unavailable (matches go-adventure.net old site)
+// Fallback activity types when API is unavailable (Evasion Djerba categories)
 const fallbackActivityTypes: ActivityType[] = [
   {
     id: '00000000-0000-0000-0000-000000000001',
-    slug: 'cultural-expeditions',
-    name: { en: 'Cultural Expeditions', fr: 'Expéditions Culturelles' },
+    slug: 'island-tours',
+    name: { en: 'Island Tours', fr: "Tours de l'île" },
     description: {
-      en: 'Discover local culture, heritage sites, and traditional customs',
-      fr: 'Découvrez la culture locale, les sites patrimoniaux et les coutumes traditionnelles',
+      en: 'Discover Djerba island with guided tours, horse carriage rides, and quad adventures',
+      fr: "Découvrez l'île de Djerba avec des visites guidées, des balades en calèche et des aventures en quad",
     },
-    icon: 'heroicon-o-building-library',
-    color: '#8B4513',
+    icon: 'heroicon-o-map',
+    color: '#1B2A4E',
     displayOrder: 1,
     isActive: true,
     listingsCount: 0,
   },
   {
     id: '00000000-0000-0000-0000-000000000002',
-    slug: 'corporate-sports',
-    name: { en: 'Corporate & Team Building Stays', fr: 'Séjours Corporate & Team Building' },
+    slug: 'nautical-activities',
+    name: { en: 'Nautical Activities', fr: 'Activités Nautiques' },
     description: {
-      en: 'Team building, corporate retreats, and sports-focused group experiences',
-      fr: "Team building, séminaires d'entreprise et expériences de groupe axées sur le sport",
+      en: 'Jet ski, parasailing, diving, banana boat, and other water sports',
+      fr: 'Jet ski, parachute ascensionnel, plongée, banana boat et autres sports nautiques',
     },
-    icon: 'heroicon-o-building-office',
-    color: '#4169E1',
+    icon: 'heroicon-o-lifebuoy',
+    color: '#0096C7',
     displayOrder: 2,
     isActive: true,
     listingsCount: 0,
   },
   {
     id: '00000000-0000-0000-0000-000000000003',
-    slug: 'mountain-biking',
-    name: { en: 'Road & Mountain Biking', fr: 'Vélo de Route & de Montagne' },
+    slug: 'beach-relaxation',
+    name: { en: 'Beach & Relaxation', fr: 'Plage & Détente' },
     description: {
-      en: 'Explore scenic trails and paths on two wheels',
-      fr: 'Explorez des sentiers et des chemins pittoresques à vélo',
+      en: 'Beach clubs, sunset cruises, and relaxation experiences',
+      fr: 'Beach clubs, croisières au coucher du soleil et expériences de détente',
     },
-    icon: 'heroicon-o-sparkles',
-    color: '#228B22',
+    icon: 'heroicon-o-sun',
+    color: '#F5B041',
     displayOrder: 3,
     isActive: true,
     listingsCount: 0,
   },
   {
     id: '00000000-0000-0000-0000-000000000004',
-    slug: 'water-activities',
-    name: { en: 'Water Activities & Sports', fr: 'Activités & Sports Nautiques' },
+    slug: 'cultural-heritage',
+    name: { en: 'Cultural Heritage', fr: 'Patrimoine Culturel' },
     description: {
-      en: 'Enjoy water sports, diving, sailing, and coastal adventures',
-      fr: 'Profitez des sports nautiques, de la plongée, de la voile et des aventures côtières',
+      en: "Explore Djerba's synagogues, museums, Houmt Souk, and traditional crafts",
+      fr: "Explorez les synagogues, musées, Houmt Souk et l'artisanat traditionnel de Djerba",
     },
-    icon: 'heroicon-o-lifebuoy',
-    color: '#1E90FF',
+    icon: 'heroicon-o-building-library',
+    color: '#023E8A',
     displayOrder: 4,
     isActive: true,
     listingsCount: 0,
   },
   {
     id: '00000000-0000-0000-0000-000000000005',
-    slug: 'trail-trekking',
-    name: { en: 'Trail Running, Hiking & Trekking', fr: 'Trail Running, Randonnée & Trekking' },
+    slug: 'local-gastronomy',
+    name: { en: 'Local Gastronomy', fr: 'Gastronomie Locale' },
     description: {
-      en: 'Hiking adventures through mountains, deserts, and natural landscapes',
-      fr: 'Aventures de randonnée à travers les montagnes, les déserts et les paysages naturels',
+      en: 'Taste authentic Djerbian cuisine, cooking classes, and food tours',
+      fr: 'Dégustez la cuisine djerbienne authentique, cours de cuisine et visites gastronomiques',
     },
-    icon: 'heroicon-o-map',
-    color: '#0D642E',
+    icon: 'heroicon-o-sparkles',
+    color: '#E76F51',
     displayOrder: 5,
     isActive: true,
     listingsCount: 0,

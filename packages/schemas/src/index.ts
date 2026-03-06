@@ -281,7 +281,46 @@ export type ActivityType = z.infer<typeof activityTypeSchema>;
 // LISTINGS
 // ============================================================================
 
-export const serviceTypeSchema = z.enum(['tour', 'event', 'sejour']);
+export const serviceTypeSchema = z.enum(['tour', 'nautical', 'accommodation', 'event']);
+
+// ============================================================================
+// TAGS (Listing Filters)
+// ============================================================================
+
+export const tagTypeSchema = z.enum([
+  'tour_type',
+  'boat_type',
+  'space_type',
+  'event_feature',
+  'amenity',
+]);
+
+export const tagSchema = z.object({
+  id: z.string().uuid(),
+  type: tagTypeSchema,
+  name: translatableSchema,
+  slug: z.string(),
+  description: translatableSchema.nullable(),
+  icon: z.string().nullable(),
+  color: z.string().nullable(),
+  displayOrder: z.number().int().nonnegative().default(0),
+  listingsCount: z.number().int().nonnegative().default(0),
+  applicableServiceTypes: z.array(serviceTypeSchema).optional(),
+});
+
+export const tagGroupSchema = z.object({
+  type: tagTypeSchema,
+  label: z.string(),
+  tags: z.array(tagSchema),
+});
+
+export type TagType = z.infer<typeof tagTypeSchema>;
+export type Tag = z.infer<typeof tagSchema>;
+export type TagGroup = z.infer<typeof tagGroupSchema>;
+
+// ============================================================================
+// LISTING STATUS & DIFFICULTY
+// ============================================================================
 export const listingStatusSchema = z.enum([
   'draft',
   'pending_review',
@@ -452,6 +491,8 @@ const listingBaseFields = {
       })
     )
     .optional(),
+  // Tags for categorization and filtering
+  tags: z.array(tagSchema).optional(),
 };
 
 export const tourSchema = z.object({
@@ -479,6 +520,64 @@ export const tourSchema = z.object({
     })
   ),
   hasElevationProfile: z.boolean().default(false),
+});
+
+export const nauticalSchema = z.object({
+  ...listingBaseFields,
+  serviceType: z.literal('nautical'),
+  duration: z.object({
+    value: z.number().positive(),
+    unit: z.enum(['minutes', 'hours', 'days']),
+  }),
+  difficulty: difficultyLevelSchema.nullable(),
+  itinerary: z.array(
+    z.object({
+      order: z.number().int().nonnegative(),
+      title: translatableSchema,
+      description: translatableSchema,
+      duration: z.number().int().positive().nullable(),
+      locationId: z.string().uuid().nullable(),
+      coordinates: geoPointSchema.nullable(),
+    })
+  ),
+});
+
+export const accommodationSchema = z.object({
+  ...listingBaseFields,
+  serviceType: z.literal('accommodation'),
+  duration: z.object({
+    value: z.number().positive(),
+    unit: z.enum(['hours', 'days']),
+  }),
+  difficulty: difficultyLevelSchema.nullable(),
+  distance: z
+    .object({
+      value: z.number().positive(),
+      unit: z.enum(['km', 'miles']),
+    })
+    .nullable(),
+  itinerary: z.array(
+    z.object({
+      order: z.number().int().nonnegative(),
+      day: z.number().int().positive().optional(),
+      title: translatableSchema,
+      description: translatableSchema,
+      duration: z.number().int().positive().nullable(),
+      locationId: z.string().uuid().nullable(),
+      coordinates: geoPointSchema.nullable(),
+    })
+  ),
+  hasElevationProfile: z.boolean().default(false),
+  numberOfDays: z.number().int().positive().nullable().optional(),
+  accommodationType: z.string().nullable().optional(),
+  mealsIncluded: z
+    .object({
+      breakfast: z.boolean(),
+      lunch: z.boolean(),
+      dinner: z.boolean(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export const eventSchema = z.object({
@@ -513,47 +612,11 @@ export const eventSchema = z.object({
     .nullable(),
 });
 
-export const sejourSchema = z.object({
-  ...listingBaseFields,
-  serviceType: z.literal('sejour'),
-  duration: z.object({
-    value: z.number().positive(),
-    unit: z.enum(['hours', 'days']),
-  }),
-  difficulty: difficultyLevelSchema.nullable(),
-  distance: z
-    .object({
-      value: z.number().positive(),
-      unit: z.enum(['km', 'miles']),
-    })
-    .nullable(),
-  itinerary: z.array(
-    z.object({
-      order: z.number().int().nonnegative(),
-      title: translatableSchema,
-      description: translatableSchema,
-      duration: z.number().int().positive().nullable(),
-      locationId: z.string().uuid().nullable(),
-      coordinates: geoPointSchema.nullable(),
-    })
-  ),
-  hasElevationProfile: z.boolean().default(false),
-  numberOfDays: z.number().int().positive().nullable().optional(),
-  accommodationType: z.string().nullable().optional(),
-  mealsIncluded: z
-    .object({
-      breakfast: z.boolean(),
-      lunch: z.boolean(),
-      dinner: z.boolean(),
-    })
-    .nullable()
-    .optional(),
-});
-
 export const listingSchema = z.discriminatedUnion('serviceType', [
   tourSchema,
+  nauticalSchema,
+  accommodationSchema,
   eventSchema,
-  sejourSchema,
 ]);
 
 export const listingSummarySchema = z.object({
@@ -1127,6 +1190,15 @@ export const listingSearchParamsSchema = z.object({
   priceMin: z.number().int().nonnegative().optional(),
   priceMax: z.number().int().positive().optional(),
   difficulty: difficultyLevelSchema.optional(),
+  // Tag filters (comma-separated slugs)
+  tags: z.string().optional(), // Generic tag filter
+  tourType: z.string().optional(), // Tour type tags (e.g., adventure, wildlife)
+  boatType: z.string().optional(), // Boat type tags (e.g., jetboat, cabin_cruiser)
+  spaceType: z.string().optional(), // Space type tags (e.g., villa, auditorium)
+  eventFeature: z.string().optional(), // Event feature tags (e.g., camping, trekking)
+  amenity: z.string().optional(), // Amenity tags (e.g., wifi, pool)
+  // Rating filter
+  minRating: z.number().min(0).max(5).optional(),
   sort: z.enum(['price_asc', 'price_desc', 'rating', 'popularity', 'newest']).default('popularity'),
   cursor: z.string().optional(),
   limit: z.number().int().min(1).max(50).default(20),
@@ -1209,6 +1281,8 @@ export type PersonType = z.infer<typeof personTypeSchema>;
 export type Pricing = z.infer<typeof pricingSchema>;
 export type CancellationPolicy = z.infer<typeof cancellationPolicySchema>;
 export type Tour = z.infer<typeof tourSchema>;
+export type Nautical = z.infer<typeof nauticalSchema>;
+export type Accommodation = z.infer<typeof accommodationSchema>;
 export type Event = z.infer<typeof eventSchema>;
 export type Listing = z.infer<typeof listingSchema>;
 export type ListingSummary = z.infer<typeof listingSummarySchema>;

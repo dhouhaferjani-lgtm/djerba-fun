@@ -1,753 +1,288 @@
-# Go Adventure Marketplace - Development Documentation
+# CLAUDE.md
 
-> **Build Status**: ✅ **ALL PHASES COMPLETE**
-> **Built By**: Claude Opus 4.5 (orchestrator) with Claude Sonnet 4.5 (sub-agents)
-> **Build Date**: 2025-12-13
-> **Last Updated**: 2025-12-14
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
----
+## Project Overview
 
-## 🎯 Mission
+Evasion Djerba is a tourism marketplace for Djerba island (Tunisia) built as a pnpm monorepo. Service types: Tours, Nautical Activities, Accommodation, Events. Languages: French (default), English. Domain: evasiondjerba.com
 
-Build a complete, production-ready tourism marketplace from scratch. The system consists of:
+- **`apps/laravel-api/`** - Laravel 12 API with Filament 3 admin panels (Admin + Vendor), Sanctum auth, Horizon queues, FrankenPHP/Octane runtime
+- **`apps/web/`** - Next.js 16 App Router frontend with React 19, next-intl i18n, Tailwind CSS 4, Leaflet maps
+- **`packages/schemas/`** - Zod schemas (source of truth for types shared between frontend and backend)
+- **`packages/ui/`** - Shared design system components (Button, Input, Card, Badge) using class-variance-authority (cva)
 
-- **Laravel 12 API + Filament 3 Admin** (backend)
-- **Next.js 16 + React 19** (frontend)
-- **Shared Zod schemas** (single source of truth)
-- **Docker Compose** development environment
+## Common Commands
 
-**MVP Scope**: Events and Tours/Activities (accommodations deferred to v1.1)
-
----
-
-## 🏗️ Architecture Overview
-
-```
-go-adventure/
-├── apps/
-│   ├── laravel-api/        # Laravel 12 + Octane + Horizon + Filament
-│   └── web/                # Next.js 16 App Router
-├── packages/
-│   ├── schemas/            # Zod schemas (SOURCE OF TRUTH)
-│   ├── sdk/                # Generated TypeScript API client
-│   └── ui/                 # Design system + shared components
-├── docker/
-│   ├── compose.dev.yml
-│   └── services/
-├── scripts/
-│   └── bootstrap.sh
-└── docs/
-    └── specs/
-```
-
----
-
-## 🎨 Design System
-
-### Brand Colors
-
-```typescript
-export const colors = {
-  primary: {
-    DEFAULT: '#0D642E', // Dark forest green
-    light: '#8BC34A', // Light green / lime
-  },
-  secondary: {
-    cream: '#f5f0d1', // Warm cream/beige
-  },
-  neutral: {
-    white: '#ffffff',
-    // Generate full scale: 50-950
-  },
-};
-```
-
-### Design Principles
-
-- Modern, snappy, memorable UI
-- Mobile-first responsive design
-- Atomic design methodology (atoms → molecules → organisms → templates → pages)
-- Leaflet/OpenStreetMap for all map components with custom styling to match brand
-- Elevation profiles for trail-based activities
-- Multilingual: French (fr) and English (en) from day one
-
----
-
-## 📋 Sub-Agent Delegation
-
-### Agent Boundaries
-
-| Agent        | Scope                                             | Model      | Instruction File     |
-| ------------ | ------------------------------------------------- | ---------- | -------------------- |
-| **backend**  | Laravel API, Filament, migrations, policies, jobs | Sonnet 4.5 | `agents/BACKEND.md`  |
-| **frontend** | Next.js, React components, pages, i18n            | Sonnet 4.5 | `agents/FRONTEND.md` |
-| **devops**   | Docker, scripts, CI, environment                  | Sonnet 4.5 | `agents/DEVOPS.md`   |
-| **schemas**  | Zod definitions, type generation, OpenAPI sync    | Sonnet 4.5 | `agents/SCHEMAS.md`  |
-
-### Delegation Rules
-
-1. **Never have two agents edit the same file simultaneously**
-2. **Schema changes require orchestrator approval** before propagation
-3. **Backend and frontend work in parallel** but sync at checkpoints
-4. **All agents read from `packages/schemas`** - never define types locally
-
-### Communication Protocol
-
-```
-ORCHESTRATOR → AGENT: Task assignment with context
-AGENT → ORCHESTRATOR: Completion report or blocker
-ORCHESTRATOR: Validates, resolves conflicts, advances phase
-```
-
----
-
-## 🔄 Execution Phases
-
-### Phase 0: Foundation ✅ COMPLETE
-
-**Owner**: DevOps Agent → then all agents
-
-- [x] Initialize monorepo with pnpm workspaces
-- [x] Create Docker Compose with all services
-- [x] Bootstrap Laravel app with Octane + Horizon
-- [x] Bootstrap Next.js app with App Router
-- [x] Set up `packages/schemas` with base Zod definitions
-- [x] Configure shared TypeScript/ESLint/Prettier
-- [x] Verify all services start: `make up && make health`
-
-**Checkpoint**: `curl localhost:8000/api/health` returns 200, Next.js renders at localhost:3000
-
----
-
-### Phase 1: Identity & Catalog ✅ COMPLETE
-
-**Owners**: Backend + Frontend in parallel
-
-#### Backend Tasks
-
-- [x] User model + migrations (roles: traveler, vendor, admin, agent)
-- [x] Sanctum API token authentication
-- [x] Laravel policies for role-based access
-- [x] Listing model with polymorphic service types (Tour, Event)
-- [x] Location model with coordinates
-- [x] Media model with S3/MinIO storage
-- [x] Filament VendorPanel + AdminPanel scaffolding
-- [x] UserResource for Filament Admin
-
-#### Frontend Tasks
-
-- [x] Design system setup in `packages/ui` (Button, Input, Card, Badge)
-- [x] Auth context + protected routes
-- [x] Home page with hero + search
-- [x] Listing search page with filters
-- [x] Listing detail page
-- [x] i18n setup with next-intl (en, fr)
-
-#### Schema Tasks
-
-- [x] User, TravelerProfile, VendorProfile schemas
-- [x] Listing, Tour, Event schemas
-- [x] Location schema with GeoJSON support
-- [x] Media schema
-- [x] TypeScript types exported
-
-**Checkpoint**: ✅ Vendor can be created via Filament, listings show on frontend, auth flow works
-
----
-
-### Phase 2: Availability & Maps ✅ COMPLETE
-
-**Owners**: Backend + Frontend in parallel
-
-#### Backend Tasks
-
-- [x] AvailabilityRule model (recurring patterns: weekly, daily, specific dates)
-- [x] AvailabilitySlot model (computed instances)
-- [x] BookingHold model with Redis TTL (15-minute holds)
-- [x] CalculateAvailabilityJob for Horizon
-- [x] API endpoints: GET /listings/{slug}/availability, POST /listings/{slug}/holds
-- [x] AvailabilityRuleResource for Filament Admin
-
-#### Frontend Tasks
-
-- [x] MapContainer with Leaflet and custom brand styling
-- [x] ListingMap for tour routes with itinerary polylines
-- [x] SearchMap for listing search results
-- [x] MarkerPopup with listing preview cards
-- [x] ItineraryTimeline with vertical stop display
-- [x] ElevationProfile SVG chart with ascent/descent stats
-- [x] AvailabilityCalendar month view with status colors
-- [x] TimeSlotPicker grid with capacity display
-- [x] HoldTimer countdown component
-
-#### Schema Tasks
-
-- [x] AvailabilitySlot schema
-- [x] BookingHold schema
-- [x] MapMarker, ItineraryStop, ElevationPoint schemas
-
-**Checkpoint**: ✅ Vendor can set availability in Filament, traveler sees calendar + map, holds work
-
----
-
-### Phase 3: Booking & Payments ✅ COMPLETE
-
-**Owners**: Backend + Frontend in parallel
-
-#### Backend Tasks
-
-- [x] Booking model with status enum (pending_payment, confirmed, cancelled, etc.)
-- [x] PaymentIntent model with gateway tracking
-- [x] PaymentGateway interface (abstraction layer)
-- [x] MockPaymentGateway driver (2s delay, always succeeds)
-- [x] OfflinePaymentGateway driver (bank transfer, cash)
-- [x] BookingService for lifecycle management
-- [x] BookingConfirmationMail and BookingCancellationMail (queued)
-- [x] BookingResource for Filament Admin
-
-#### Frontend Tasks
-
-- [x] BookingWizard multi-step flow with progress indicator
-- [x] TravelerInfoForm with React Hook Form + Zod validation
-- [x] ExtrasSelection with quantity controls
-- [x] BookingReview with price breakdown
-- [x] PaymentMethodSelector for different payment options
-- [x] BookingConfirmation with success animation
-- [x] Dashboard pages (overview, bookings list, booking detail)
-- [x] Checkout page with hold validation
-
-#### Schema Tasks
-
-- [x] Booking schema with all statuses
-- [x] PaymentIntent, PaymentStatus, PaymentMethod schemas
-- [x] TravelerInfo schema
-- [x] BookingExtra schema
-
-**Checkpoint**: ✅ Complete booking flow works with mock payment, emails configured, booking visible in Filament
-
----
-
-### Phase 4: Vendor & Admin Features ✅ COMPLETE
-
-**Owners**: Backend + Frontend (backend-heavy)
-
-#### Backend Tasks
-
-- [x] KYC status tracking in VendorProfile
-- [x] Payout model + PayoutResource (Admin + Vendor panels)
-- [x] Review model + ReviewReply with moderation
-- [x] ReviewResource in Filament Vendor panel
-- [x] Coupon model + CouponService validation logic
-- [x] BookingStatsWidget, RevenueChartWidget (Vendor dashboard)
-- [x] PlatformStatsWidget, FraudAlertWidget (Admin dashboard)
-- [x] CouponResource for Filament Admin
-
-#### Frontend Tasks
-
-- [x] Vendor public profile page with tabs (listings, reviews)
-- [x] ReviewCard, ReviewList, ReviewSummary components
-- [x] ReviewForm for review submission (post-booking)
-- [x] CouponInput in checkout with discount calculation
-
-#### Schema Tasks
-
-- [x] Review, ReviewReply schemas
-- [x] CouponValidation schema
-- [x] VendorPublicProfile schema
-
-**Checkpoint**: ✅ Vendor dashboard functional, reviews display, coupons work in checkout
-
----
-
-### Phase 5: Agentic APIs & Polish ✅ COMPLETE
-
-**Owners**: Backend + Frontend + DevOps
-
-#### Backend Tasks
-
-- [x] Agent model with API key/secret authentication
-- [x] AgentAuthMiddleware with X-Agent-Key/X-Agent-Secret headers
-- [x] AgentAuditMiddleware for comprehensive request logging
-- [x] Agent-specific controllers (AgentListingController, AgentBookingController, AgentSearchController)
-- [x] Rate limiting with Redis (configurable per-agent)
-- [x] Permission system with wildcards (e.g., `listings:*`)
-- [x] FeedGeneratorService with caching (5-minute TTL)
-- [x] Product feeds: /feeds/listings.json, /feeds/listings.csv, /feeds/availability.json
-- [x] Health endpoints: /api/health, /api/health/detailed
-- [x] AgentResource for Filament Admin
-- [x] CreateAgentCommand and GenerateFeedsCommand
-
-#### Frontend Tasks
-
-- [x] SEO metadata in layout (Open Graph, Twitter Cards)
-- [x] JsonLd component for structured data (Organization, Product, Event, etc.)
-- [x] Error pages (not-found.tsx, error.tsx, global-error.tsx)
-- [x] Loading skeletons for listings pages
-- [x] sitemap.ts, robots.ts, manifest.ts
-- [x] Image optimization config (AVIF/WebP)
-- [x] Analytics framework (lib/analytics.ts)
-
-#### DevOps Tasks
-
-- [x] Docker Compose dev environment with all services
-- [x] Health check endpoints implemented
-- [ ] Production Docker configs (deferred - dev focus)
-- [ ] CI pipeline (deferred - dev focus)
-
-**Checkpoint**: ✅ Agent endpoints work with authentication, feeds validate, SEO complete
-
----
-
-## 🛡️ Quality Gates
-
-### Code Quality Stack
-
-| Tool             | Scope                    | Config File                     |
-| ---------------- | ------------------------ | ------------------------------- |
-| **Husky**        | Git hooks                | `.husky/`                       |
-| **lint-staged**  | Pre-commit               | `package.json`                  |
-| **commitlint**   | Commit messages          | `commitlint.config.js`          |
-| **Prettier**     | JS/TS/JSON/MD formatting | `.prettierrc`                   |
-| **ESLint**       | JS/TS linting            | `apps/web/.eslintrc.cjs`        |
-| **Laravel Pint** | PHP formatting           | `apps/laravel-api/pint.json`    |
-| **PHPStan**      | PHP static analysis      | `apps/laravel-api/phpstan.neon` |
-| **TypeScript**   | Type checking            | `tsconfig.json` files           |
-
-### Git Hooks (Husky)
+### Docker Development (primary workflow)
 
 ```bash
-# Pre-commit: lint-staged runs on staged files only
-pnpm exec lint-staged
-
-# Pre-push: full type check
-pnpm typecheck
-
-# Commit-msg: enforce conventional commits
-pnpm exec commitlint --edit $1
+make up              # Start all services (API :8000, Web :3000, Mailpit :8025, MinIO :9001)
+make down            # Stop services
+make build           # Build Docker containers
+make logs            # All logs; make logs-api / make logs-web / make logs-queue for specific
+make fresh           # Reset DB: migrate:fresh --seed
+make migrate         # Run migrations
+make seed            # Seed database
+make shell           # Shell into API container
+make shell-web       # Shell into web container
+make artisan <cmd>   # Run artisan commands in container
+make composer <cmd>  # Run composer commands in container
+make health          # Check service health (API + Frontend)
+make lint            # Run Pint + PHPStan + ESLint (in containers)
+make format          # Run Pint + Prettier (in containers)
+make test            # Run all tests (API + Web)
+make test-api        # API tests only
+make test-web        # Web tests only
+make test-e2e        # Playwright E2E tests
+make openapi         # Regenerate OpenAPI docs + schemas
+make clean           # Full cleanup (removes volumes)
 ```
 
-### Commit Message Format
+### Backend (Laravel)
+
+```bash
+cd apps/laravel-api
+php artisan test                    # Run all tests
+php artisan test --filter=BookingTest  # Single test
+./vendor/bin/pint                   # Fix PHP formatting
+./vendor/bin/pint --test            # Check PHP formatting
+./vendor/bin/phpstan analyse        # Static analysis
+php artisan migrate                 # Run migrations
+php artisan config:clear && php artisan config:cache  # After config changes
+```
+
+### Frontend (Next.js)
+
+```bash
+cd apps/web
+pnpm dev          # Dev server
+pnpm build        # Production build
+pnpm lint         # ESLint
+pnpm typecheck    # TypeScript check (tsc --noEmit)
+
+# E2E tests (requires dev server + API running)
+pnpm exec playwright test                    # All E2E tests
+pnpm exec playwright test -g "test name"     # Single test by name
+pnpm exec playwright test --headed           # With visible browser
+pnpm exec playwright test --debug            # Debug mode
+```
+
+### Monorepo Root
+
+```bash
+pnpm build          # Build all packages
+pnpm typecheck      # Type check all packages
+pnpm format:check   # Prettier check
+pnpm format         # Prettier fix
+pnpm i18n:check     # Check translation completeness
+```
+
+### Schemas Package
+
+```bash
+cd packages/schemas
+pnpm build    # Compile Zod schemas to dist/
+pnpm dev      # Watch mode
+```
+
+## Architecture Details
+
+### Frontend API Layer
+
+- **Client-side API**: `apps/web/src/lib/api/client.ts` - `fetchApi<T>()` wrapper with auto auth token (localStorage), locale from `<html lang>`, guest session_id
+- **Server-side API**: `apps/web/src/lib/api/server.ts` - for server components and `generateMetadata`
+- **React Query hooks**: `apps/web/src/lib/api/hooks.ts` - all data fetching uses TanStack Query (useQuery/useMutation)
+- API base URL: `NEXT_PUBLIC_API_URL` env var (default `http://localhost:8000/api/v1`)
+- Types imported from `@go-adventure/schemas` - never define API types locally
+- Utility: `cn()` from `apps/web/src/lib/utils/cn.ts` for Tailwind class merging
+
+### Frontend Routing (next-intl)
+
+- Locales: `fr` (default, no URL prefix), `en` (at `/en/...`)
+- Locale prefix mode: `as-needed` - French routes have no prefix
+- Locale detection disabled - users switch via language switcher only
+- All pages under `apps/web/src/app/[locale]/`
+- Translation files: `apps/web/messages/{fr,en}.json` - must stay in sync (`pnpm i18n:check`)
+- i18n config: `apps/web/src/i18n/routing.ts`, `request.ts`, `navigation.ts`
+- Navigation helpers: Import `Link`, `redirect`, `usePathname`, `useRouter` from `@/i18n/navigation` (not from `next/link` or `next/navigation`)
+- Middleware redirects legacy `/ar/*` URLs to French equivalent (301)
+
+### Backend Structure
+
+- **Filament Admin**: `app/Filament/Admin/Resources/` - full admin panel
+- **Filament Vendor**: `app/Filament/Vendor/Resources/` - vendor self-service
+- **API Controllers**: `app/Http/Controllers/Api/V1/` - thin controllers delegating to Actions/Services
+- **Partner API**: `app/Http/Controllers/Api/Partner/` - B2B partner endpoints (X-Partner-Key auth)
+- **Actions**: `app/Domain/*/Actions/` - single-purpose business logic classes (prefer over fat services)
+- **Services**: `app/Services/` - cross-cutting business logic (BookingService, CartService, CouponService, PriceCalculationService, etc.)
+- **FormRequests**: `app/Http/Requests/` - input validation (always use, never validate in controllers)
+- **Resources**: `app/Http/Resources/` - JSON serialization (never return Eloquent models directly)
+- **Enums**: `app/Enums/` - PHP enums (BookingStatus, PaymentStatus, ListingStatus, UserRole, etc.)
+- **Policies**: `app/Policies/` - authorization logic (always use, register in AuthServiceProvider)
+- Routes: `routes/api.php` - all API routes with auth/rate-limiting middleware
+- Translatable models use Spatie `HasTranslations` trait for multilingual fields
+
+### Auth Flow
+
+- Sanctum token-based auth for API
+- Supports: email/password, magic links, OAuth (social), guest checkout with session_id
+- Rate limiting on auth endpoints (e.g., 5 login attempts per 15 min)
+
+### Key Domain Models
+
+Listing (polymorphic via ServiceType: tour, event, nautical, accommodation) -> AvailabilityRule -> AvailabilitySlot -> BookingHold -> Booking -> PaymentIntent -> BookingParticipant (voucher codes)
+
+Additional: Cart -> CartItem -> CartPayment, Coupon, Review, Partner, BlogPost, CustomTripRequest
+
+### Pricing System
+
+Dual-currency pricing (TND + EUR) with geo-based display:
+
+- Listings store both `tnd_price` and `eur_price`
+- API detects user location and returns `displayPrice` + `displayCurrency`
+- Frontend stores detected currency in cookie for SSR consistency
+
+### Guest Session Pattern
+
+Guest users (not logged in) are tracked via `session_id` (UUID stored in localStorage). This ID is sent as `X-Session-ID` header or in request body. After login, guest carts/bookings are merged to the authenticated user via `cartApi.mergeCart()` and `bookingsApi.link()`.
+
+### Docker Services
+
+PostgreSQL (:15432), Redis (:16379), MinIO (:9002/:9003), MeiliSearch (:7701), Mailpit (:1025/:8025)
+
+### Deployment
+
+Multiple Docker Compose files exist for different environments:
+
+- `docker/compose.dev.yml` - local development (used by Makefile)
+- `docker-compose.staging.yml`, `docker-compose.prod.yml`, `docker-compose.dokploy.yml` - deployment configs
+
+## Critical Rules
+
+### Never mix .js and .ts config files
+
+This project is 100% TypeScript. Next.js prefers `.js` over `.ts` - if both exist, `.js` wins and breaks next-intl. Only use `apps/web/next.config.ts`, never create `next.config.js`.
+
+### next.config.ts must wrap with next-intl plugin
+
+```typescript
+export default withBundleAnalyzer(withNextIntl(nextConfig));
+```
+
+Removing the `withNextIntl` wrapper breaks all i18n routing.
+
+### CORS after config changes
+
+CORS config at `apps/laravel-api/config/cors.php` must allow ports 3000 and 3001. After editing, always run:
+
+```bash
+php artisan config:clear && php artisan config:cache
+```
+
+### Error boundaries: different rules for error.tsx vs global-error.tsx
+
+- `error.tsx` files return plain JSX without `<html>` or `<body>` - the root layout provides the HTML shell
+- `global-error.tsx` MUST include `<html>` and `<body>` tags since it replaces the entire document when the root layout fails
+
+### Schema-first development
+
+New entities must be defined in `packages/schemas/` first, then implemented in Laravel and consumed by Next.js.
+
+### Translation completeness
+
+Both `fr.json` and `en.json` must have matching keys. Run `pnpm i18n:check` to verify. Never hardcode user-facing strings - always use `useTranslations()` (client) or `getTranslations()` (server).
+
+### Always use i18n-aware navigation
+
+Import `Link`, `redirect`, `usePathname`, `useRouter` from `@/i18n/navigation` instead of `next/link` or `next/navigation`. This ensures locale is preserved in all route changes.
+
+### API parameter naming
+
+Frontend uses camelCase, backend uses snake_case. The API client (`client.ts`) handles conversion for common params. When adding new endpoints, map params explicitly:
+
+```typescript
+const paramMapping = { serviceType: 'service_type', activityType: 'activity_type' };
+```
+
+### Images and media
+
+- Hero/gallery images stored in MinIO (S3-compatible)
+- URLs returned from API are fully qualified (include domain)
+- Use `galleryImages` array for Filament-uploaded images, `media` array for structured media with categories
+
+## Code Quality Enforcement
+
+Pre-commit (via Husky + lint-staged):
+
+- `*.{ts,tsx,js,jsx,json,md,yml,yaml}` -> Prettier format
+
+PHP formatting: Run `./vendor/bin/pint` manually before committing PHP changes (or use `make format` in Docker).
+
+Commit messages: commitlint enforces conventional commits:
 
 ```
 <type>(<scope>): <subject>
-
-Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build
-Scopes: api, web, ui, schemas, sdk, docker, deps, release
-
-Examples:
-feat(api): add booking cancellation endpoint
-fix(web): resolve map marker z-index issue
-chore(deps): update Laravel to 12.1
+Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
+Scopes: api, web, ui, schemas, sdk, docker, deps, release, ci, docs
 ```
 
-### Before Each Phase Completion
+## Brand Colors (Mediterranean Palette)
+
+- Primary: `#0077B6` (Ocean Blue), light: `#0096C7`, dark: `#023E8A`
+- Secondary: `#F4A261` (Sandy Orange), dark: `#E76F51`
+- Accent: `#E9F5F8` (Seafoam)
+- Fonts: Inter (body), Poppins (display/headings)
+
+## Translation Management
+
+CSV-based translations for easy client editing:
 
 ```bash
-# Backend checks
-cd apps/laravel-api
-./vendor/bin/pint --test          # Check formatting
-./vendor/bin/phpstan analyse      # Static analysis (level 7)
-php artisan test                  # Run tests
-
-# Frontend checks
 cd apps/web
-pnpm lint                         # ESLint
-pnpm typecheck                    # TypeScript
-pnpm test                         # Vitest
-
-# Full quality check
-cd ../..
-pnpm format:check                 # Prettier
-make test-e2e                     # End-to-end
+pnpm i18n:export   # Export JSON to translations.csv
+pnpm i18n:import   # Import CSV back to JSON files
 ```
 
-### Schema Sync Validation
+Edit `apps/web/translations.csv` in Excel or Google Sheets, then import.
+
+## Testing Patterns
+
+### Running Single Tests
 
 ```bash
-# Ensure no drift between Zod schemas and Laravel
-pnpm --filter schemas run validate
-pnpm --filter schemas run generate
-# Check that generated types match Laravel API responses
+# Laravel - specific test class
+php artisan test --filter=BookingTest
+
+# Laravel - specific test method
+php artisan test --filter=BookingTest::test_can_create_booking
+
+# Playwright E2E - specific test by name
+pnpm exec playwright test -g "booking flow"
+
+# Playwright - specific file
+pnpm exec playwright test tests/booking.spec.ts
 ```
 
----
+## API Patterns
 
-## 🚨 Error Recovery
+### Standard response formats
 
-### If a sub-agent gets stuck:
-
-1. Log the blocker with full context
-2. Attempt alternative approach
-3. If still blocked, mark task as BLOCKED and continue with independent tasks
-4. Orchestrator reviews blockers at next checkpoint
-
-### If tests fail:
-
-1. Identify failing test(s)
-2. Check if schema drift caused the failure
-3. Fix at source (usually schemas package)
-4. Re-run affected agent tasks
-
-### If Docker services fail:
-
-1. `make down && make clean && make up`
-2. Check logs: `docker compose logs [service]`
-3. Verify port availability
-4. Check .env configuration
-
----
-
-## 🔀 Git Workflow
-
-### Branching
-
-```
-main ← protected, deployable
-  └── develop ← integration
-        └── phase/0-foundation
-        └── phase/1-identity-catalog
-        └── phase/2-availability-maps
-        └── phase/3-booking-payments
-        └── phase/4-vendor-admin
-        └── phase/5-agent-apis-polish
+```typescript
+// Single resource: { data: Resource }
+// Collection: { data: Resource[], meta: { total, page, limit } }
+// Mutation success: { data: Resource, message: string }
+// Error: { message: string, errors?: { field: string[] } }
 ```
 
-### Commit Frequency
+### Auth headers
 
-**Commit after each atomic unit of work:**
+- Authenticated: `Authorization: Bearer <token>`
+- Guest session: `X-Session-ID: <uuid>` (stored in localStorage as `guest_session_id`)
+- Locale: `Accept-Language: fr|en`
 
-- Migration + model created → commit
-- API endpoint working → commit
-- React component complete → commit
-- Filament resource done → commit
-- Test file added → commit
+## What's Not Yet Done
 
-**Never commit:** broken tests, syntax errors, half-written code
-
-### Commit Format
-
-```bash
-feat(api): add User model with role enum
-feat(web): add ListingCard molecule
-fix(api): resolve booking race condition
-test(web): add MapView unit tests
-chore(docker): update PHP to 8.5
-```
-
-### Phase Completion Protocol
-
-```bash
-# 1. All tests pass
-make test
-
-# 2. Create tag
-git tag -a "phase-X-complete" -m "Phase X complete"
-
-# 3. Merge to develop
-git checkout develop
-git merge phase/X-name --no-ff
-git push origin develop --tags
-```
-
-### Rollback Safety
-
-- **Phase tags** = safe rollback points
-- **E2E tests** = lock in behavior (must keep passing)
-- **Pre-push hook** = validates before push
-- **Checkpoints** = documented working states
-
-See `configs/git-workflow.md` for full details.
-
----
-
-## 📁 Key Files Reference
-
-| File                                   | Purpose                        |
-| -------------------------------------- | ------------------------------ |
-| `packages/schemas/src/index.ts`        | All Zod schema exports         |
-| `packages/schemas/src/listings.ts`     | Listing, Tour, Event schemas   |
-| `packages/schemas/src/bookings.ts`     | Booking, Hold, Payment schemas |
-| `packages/schemas/src/users.ts`        | User, Profile schemas          |
-| `packages/schemas/src/maps.ts`         | Map, Marker, Elevation schemas |
-| `apps/laravel-api/routes/api.php`      | API route definitions          |
-| `apps/laravel-api/app/Http/Resources/` | JSON resource classes          |
-| `apps/web/src/lib/api/`                | SDK usage and API calls        |
-| `apps/web/src/components/`             | React components               |
-| `apps/web/messages/`                   | i18n translation files         |
-
----
-
-## 🔐 Environment Variables
-
-### Laravel (.env)
-
-```
-APP_ENV=local
-APP_KEY=base64:...
-DB_CONNECTION=pgsql
-DB_HOST=postgres
-DB_DATABASE=go_adventure
-REDIS_HOST=redis
-QUEUE_CONNECTION=redis
-FILESYSTEM_DISK=minio
-```
-
-### Next.js (.env.local)
-
-```
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-NEXT_PUBLIC_DEFAULT_LOCALE=en
-```
-
----
-
-## 🎬 Startup Command
-
-```bash
-# Initial bootstrap (run once)
-./scripts/bootstrap.sh
-
-# Development
-make up
-make logs
-
-# Testing
-make test
-
-# Full rebuild
-make clean && make build && make up
-```
-
----
-
-## 📝 Notes for Orchestrator
-
-1. **Parallelization**: Backend and Frontend agents can work simultaneously after Phase 0
-2. **Schema-first**: Any new entity must be defined in `packages/schemas` FIRST
-3. **No shortcuts**: Always use FormRequests, Resources, Policies on backend
-4. **Design skill**: Frontend agent should leverage the installed design skill for UI
-5. **Atomic commits**: Each completed task should be a logical commit
-6. **French translations**: Can be machine-translated initially, marked for human review
-
----
-
-## ✅ Success Criteria
-
-The build is successful when:
-
-- [x] All Docker services configured (PostgreSQL, Redis, MinIO, MeiliSearch, Mailpit)
-- [x] User can browse listings on frontend
-- [x] User can complete a booking with mock payment
-- [x] Vendor can manage listings in Filament
-- [x] Admin can view all data in Filament
-- [x] Site works in both English and French
-- [x] Maps display with custom markers
-- [x] No TypeScript errors
-- [ ] All tests passing (tests not written yet - deferred)
-- [ ] No PHPStan errors at level 7 (static analysis not run yet)
-
----
-
-## 📊 Build Summary
-
-### Commits (9 total)
-
-```
-005a717 feat(api): implement Phase 5 - Agentic APIs & Polish
-401d47a feat(web): implement Phase 4 - Reviews, Coupons, Vendor pages
-c8ac7f2 feat(api): implement Phase 4 - Vendor & Admin features
-3e479df feat(web): implement Phase 3 - Booking & Payments frontend
-bbd5603 feat(api): implement Phase 3 - Booking & Payments system
-17b0fa0 feat(web): implement Phase 2 - Availability & Maps frontend
-c7f6a91 feat(api): implement Phase 2 availability and booking holds system
-e85c4a2 feat(web): implement Phase 1 - Identity & Catalog frontend
-73a4f76 feat(api): implement Phase 1 - Identity & Catalog backend
-```
-
-### Files Created
-
-- **Backend**: ~132 PHP files (models, controllers, resources, migrations, services)
-- **Frontend**: ~62 TypeScript/TSX files (pages, components, hooks)
-- **Packages**: ~30 TypeScript files (schemas, UI components)
-
-### Key Models
-
-- User, TravelerProfile, VendorProfile
-- Listing, Location, Media
-- AvailabilityRule, AvailabilitySlot, BookingHold
-- Booking, PaymentIntent
-- Review, ReviewReply, Payout, Coupon
-- Agent, AgentAuditLog
-
-### Filament Resources
-
-**Admin Panel**: UserResource, AvailabilityRuleResource, BookingResource, CouponResource, PayoutResource, AgentResource
-**Vendor Panel**: ReviewResource, PayoutResource
-
-### API Endpoints
-
-- Auth: login, register, logout, me
-- Listings: index, show, availability, holds
-- Bookings: create, list, show, cancel, pay
-- Reviews: list, create, helpful
-- Coupons: validate
-- Agent API: listings, bookings, search
-- Feeds: listings.json, listings.csv, availability.json
-- Health: /api/health, /api/health/detailed
-
-### Frontend Pages
-
-- Home, Listings, Listing Detail
-- Auth (Login, Register)
-- Dashboard (Overview, Bookings, Booking Detail, Review)
-- Checkout
-- Vendor Profile
-- Error pages (404, 500)
-
-### What's NOT Yet Done
-
-- Unit/Integration tests (deferred)
-- PHPStan static analysis configuration
-- Production Docker configs
+- Comprehensive unit/integration tests (some exist, more needed)
+- PHPStan configuration
 - CI/CD pipeline
-- Real payment gateway integration (Stripe)
-- Email templates styling (basic HTML only)
-- Admin panel listing CRUD (scaffolding only)
-
----
-
-## 🚨 Critical Learnings & Configuration Management
-
-### TypeScript Configuration Files - NEVER Mix .js and .ts
-
-**CRITICAL RULE**: This project is **100% TypeScript**. Never create JavaScript config files.
-
-#### Next.js Configuration
-
-- ✅ **ONLY** use `apps/web/next.config.ts` (TypeScript)
-- ❌ **NEVER** create `apps/web/next.config.js` (JavaScript)
-- Next.js prefers `.js` over `.ts` - if both exist, `.js` will be used and `.ts` ignored
-- This breaks next-intl plugin configuration and causes runtime errors
-
-#### Before Editing Any Config File
-
-```bash
-# 1. Check which config files exist
-ls apps/web/next.config.*
-
-# 2. If both .js and .ts exist, DELETE .js immediately
-rm apps/web/next.config.js
-
-# 3. ONLY edit the .ts file
-code apps/web/next.config.ts
-```
-
-#### Required Configuration in next.config.ts
-
-```typescript
-import createNextIntlPlugin from 'next-intl/plugin';
-
-// CRITICAL: This plugin MUST be present
-const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
-
-const nextConfig: NextConfig = {
-  // ... config
-};
-
-// CRITICAL: Config must be wrapped with next-intl plugin
-export default withNextIntl(nextConfig);
-```
-
-### CORS Configuration - Port Awareness
-
-**Issue**: Frontend may start on different ports if default is occupied.
-
-#### Laravel CORS Setup
-
-`apps/laravel-api/config/cors.php` must allow **all development ports**:
-
-```php
-'allowed_origins' => [
-    'http://localhost:3000',
-    'http://localhost:3001',  // Frontend alternate port
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3001',  // Frontend alternate port
-],
-```
-
-#### After CORS Changes
-
-```bash
-# Always clear and cache Laravel config after changes
-cd apps/laravel-api
-php artisan config:clear
-php artisan config:cache
-```
-
-### Next.js Error Boundaries - No Nested HTML
-
-**Rule**: Error boundaries (`error.tsx`) must NOT render `<html>` or `<body>` tags.
-
-```typescript
-// ❌ WRONG - Causes hydration errors
-export default function Error({ error, reset }) {
-  return (
-    <html>
-      <body>
-        <div>Error content</div>
-      </body>
-    </html>
-  );
-}
-
-// ✅ CORRECT - Root layout provides HTML structure
-export default function Error({ error, reset }) {
-  return <div>Error content</div>;
-}
-```
-
-### Debugging Checklist
-
-When encountering runtime errors after startup:
-
-1. **Check for duplicate config files**
-
-   ```bash
-   find . -name "*.config.js" -o -name "*.config.ts" | grep -v node_modules
-   ```
-
-2. **Verify next-intl plugin is active**
-
-   ```bash
-   grep -n "withNextIntl" apps/web/next.config.ts
-   ```
-
-3. **Check CORS allowed origins**
-
-   ```bash
-   grep -A 5 "allowed_origins" apps/laravel-api/config/cors.php
-   ```
-
-4. **Verify frontend port**
-
-   ```bash
-   # Check what port Next.js started on
-   lsof -i :3000
-   lsof -i :3001
-   ```
-
-5. **Test API connectivity**
-   ```bash
-   curl http://localhost:8000/api/health
-   ```
-
-### Regression Tests Required
-
-Create these tests to prevent configuration errors:
-
-- `apps/web/__tests__/config.test.ts` - Verify single config file exists
-- `apps/web/__tests__/next-intl.test.ts` - Verify next-intl plugin configured
-- `apps/laravel-api/tests/Feature/CorsTest.php` - Verify CORS origins
-- `apps/web/__tests__/error-boundary.test.tsx` - Verify no nested HTML
-
----
+- Real payment gateway (Stripe) - currently using MockPaymentGateway

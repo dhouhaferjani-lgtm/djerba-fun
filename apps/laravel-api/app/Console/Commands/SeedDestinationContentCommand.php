@@ -124,8 +124,8 @@ class SeedDestinationContentCommand extends Command
     {
         return [
             'djerba' => [
-                'seo_title_en' => 'Djerba, Tunisia — UNESCO Island, Beaches & Culture | Go Adventure',
-                'seo_title_fr' => 'Djerba, Tunisie — Île UNESCO, Plages & Culture | Go Adventure',
+                'seo_title_en' => 'Djerba, Tunisia — UNESCO Island, Beaches & Culture | Evasion Djerba',
+                'seo_title_fr' => 'Djerba, Tunisie — Île UNESCO, Plages & Culture | Evasion Djerba',
                 'seo_description_en' => 'Explore Djerba, the largest island in North Africa. UNESCO World Heritage Site with 20+ beaches, El Ghriba Synagogue, Djerbahood street art, and Houmt Souk markets. Book authentic tours and activities.',
                 'seo_description_fr' => "Explorez Djerba, la plus grande île d'Afrique du Nord. Site du patrimoine mondial UNESCO avec plus de 20 plages, la synagogue de la Ghriba, le street art Djerbahood et les marchés de Houmt Souk. Réservez des tours et activités authentiques.",
                 'seo_text_en' => 'Djerba, the largest island in North Africa at 514 km², has been a crossroads of civilizations for over 3,000 years. Known to ancient geographers as the "Land of the Lotus Eaters" from Homer\'s Odyssey, the island earned UNESCO World Heritage status in 2023 for its exceptional testimony to a settlement pattern of an island territory, reflecting the coexistence of diverse religious and cultural communities. Today, Djerba enchants visitors with its golden sand beaches stretching over 20 km, the mesmerizing Djerbahood street art village with 250+ murals, the ancient El Ghriba Synagogue dating back 2,600 years, and the bustling souks of Houmt Souk where artisan traditions have continued since Roman times. From kitesurfing and scuba diving to pottery workshops in Guellala and flamingo watching at Ras Rmel, Djerba offers a uniquely diverse island experience in the heart of the Mediterranean.',
@@ -153,8 +153,8 @@ class SeedDestinationContentCommand extends Command
                 ],
             ],
             'dhaher' => [
-                'seo_title_en' => 'Dahar Region, Tunisia — Berber Villages, Trekking & Star Wars Sites | Go Adventure',
-                'seo_title_fr' => 'Région du Dahar, Tunisie — Villages Berbères, Randonnée & Sites Star Wars | Go Adventure',
+                'seo_title_en' => 'Dahar Region, Tunisia — Berber Villages, Trekking & Star Wars Sites | Evasion Djerba',
+                'seo_title_fr' => 'Région du Dahar, Tunisie — Villages Berbères, Randonnée & Sites Star Wars | Evasion Djerba',
                 'seo_description_en' => 'Discover the Dahar highlands of southern Tunisia. Trek the 194 km Great Dahar Crossing, visit Chenini & Douiret troglodyte villages, explore Star Wars filming locations at Ksar Ouled Soltane, and find dinosaur footprints.',
                 'seo_description_fr' => 'Découvrez les hauts plateaux du Dahar dans le sud tunisien. Parcourez les 194 km de la Grande Traversée du Dahar, visitez les villages troglodytiques de Chenini et Douiret, explorez les lieux de tournage Star Wars à Ksar Ouled Soltane.',
                 'seo_text_en' => "The Dahar region is southern Tunisia's best-kept secret — a vast, rugged highland stretching from Matmata to Tataouine, home to some of the most extraordinary landscapes and cultural heritage in North Africa. The indigenous Amazigh (Berber) people have inhabited these mountains for millennia, carving spectacular troglodyte dwellings into the rock and building fortified granaries (ksour) to protect their harvests. The newly established Great Dahar Crossing — a 194 km hiking trail across 12 stages — reveals ancient villages like Chenini and Douiret perched dramatically on hilltops, dinosaur footprints near Ghomrassen, and the iconic ksour that inspired George Lucas to name his fictional planet 'Tatooine' after the real city of Tataouine. This is authentic Tunisia: untouched by mass tourism, rich in heritage, and breathtaking in its raw natural beauty.",
@@ -182,8 +182,8 @@ class SeedDestinationContentCommand extends Command
                 ],
             ],
             'desert' => [
-                'seo_title_en' => 'Tunisian Sahara Desert — Douz, Ksar Ghilane & Chott el Jerid | Go Adventure',
-                'seo_title_fr' => 'Désert du Sahara Tunisien — Douz, Ksar Ghilane & Chott el Jerid | Go Adventure',
+                'seo_title_en' => 'Tunisian Sahara Desert — Douz, Ksar Ghilane & Chott el Jerid | Evasion Djerba',
+                'seo_title_fr' => 'Désert du Sahara Tunisien — Douz, Ksar Ghilane & Chott el Jerid | Evasion Djerba',
                 'seo_description_en' => 'Explore the Tunisian Sahara: camel treks in Douz, hot springs at Ksar Ghilane oasis, the vast Chott el Jerid salt lake, and Star Wars filming locations near Tozeur. Book desert camps, 4x4 adventures, and more.',
                 'seo_description_fr' => "Explorez le Sahara tunisien : méharées à Douz, sources chaudes à l'oasis de Ksar Ghilane, le vaste lac salé Chott el Jerid et les lieux de tournage Star Wars près de Tozeur. Réservez camps désertiques, aventures en 4x4 et plus.",
                 'seo_text_en' => "The Tunisian Sahara is a land of extraordinary contrasts — from the towering golden dunes of the Grand Erg Oriental to the surreal salt flats of Chott el Jerid (the largest salt lake in the Sahara at 7,000 km²), from the lush palm oases of Tozeur with its 200,000 date palms to the remote hot springs of Ksar Ghilane. This is where ancient caravan routes once connected sub-Saharan Africa to the Mediterranean, and where the International Festival of the Sahara has celebrated nomadic Bedouin heritage in Douz every December since 1910. George Lucas chose this landscape for some of Star Wars' most iconic scenes — the Lars Homestead and Mos Espa sets still stand near Nefta and Chott el Jerid. Today, adventurers can explore the desert on camel treks, 4x4 expeditions, quad bikes, hot air balloons, and even sand skiing, then retire to luxury desert camps under some of the clearest night skies on Earth.",

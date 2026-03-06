@@ -31,9 +31,9 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('Go Adventure - Admin')
+            ->brandName('Evasion Djerba - Admin')
             ->colors([
-                'primary' => '#0D642E', // Dark forest green from design system
+                'primary' => '#0077B6', // Ocean Blue - Mediterranean palette
             ])
             ->navigationGroups([
                 NavigationGroup::make()

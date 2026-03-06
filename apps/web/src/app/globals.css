@@ -1,43 +1,65 @@
 @import 'tailwindcss';
 
 :root {
-  /* PRIMARY - Forest Green (Brand) */
-  --primary-50: #f0f7f3;
-  --primary-100: #d4e8dd;
-  --primary-200: #a9d1bb;
-  --primary-300: #7fba99;
-  --primary-400: #54a377;
-  --primary-500: #0D642E;
-  --primary-600: #0a5025;
-  --primary-700: #083c1c;
-  --primary-800: #052813;
-  --primary-900: #03140a;
+  /* ============================================
+   * DJERBA.FUN BRAND COLOR SYSTEM
+   * Logo colors: Navy #1B2A4E, Emerald #2E9E6B,
+   *              Gold #F5B041, Orange #E05D26
+   * ============================================ */
 
-  /* SECONDARY - Lime Green (Brand) */
-  --secondary-50: #f7fbed;
-  --secondary-100: #e8f4c8;
-  --secondary-200: #d1e991;
-  --secondary-300: #badf5a;
-  --secondary-400: #a2d46a;
-  --secondary-500: #8BC34A;
-  --secondary-600: #7cb342;
-  --secondary-700: #689635;
-  --secondary-800: #547a2b;
-  --secondary-900: #405d21;
+  /* PRIMARY - Dark Navy Blue (sophistication) */
+  --navy-50: #f0f3f8;
+  --navy-100: #d8e0ed;
+  --navy-200: #b1c1db;
+  --navy-300: #8aa1c9;
+  --navy-400: #5f7fb2;
+  --navy-500: #3a5a8c;
+  --navy-600: #2d4670;
+  --navy-700: #1B2A4E;
+  --navy-800: #141f3a;
+  --navy-900: #0d1426;
+  --navy-950: #080b14;
 
-  /* ACCENT - Warm Cream (Brand) */
-  --accent-50: #fefdf9;
-  --accent-100: #fcfaf2;
-  --accent-200: #f5f0d1;
-  --accent-300: #ece3b3;
-  --accent-400: #e3d695;
-  --accent-500: #dac977;
-  --accent-600: #c5b05e;
-  --accent-700: #a89449;
-  --accent-800: #8b7835;
-  --accent-900: #6e5c20;
+  /* SECONDARY - Emerald Green (sea, nature) */
+  --emerald-50: #f0fdf6;
+  --emerald-100: #dcfced;
+  --emerald-200: #bbf7d9;
+  --emerald-300: #86efbf;
+  --emerald-400: #4ade9a;
+  --emerald-500: #2E9E6B;
+  --emerald-600: #25855a;
+  --emerald-700: #1d6b48;
+  --emerald-800: #19553b;
+  --emerald-900: #154530;
+  --emerald-950: #0a2618;
 
-  /* NEUTRALS - Warm grays that complement brand */
+  /* ACCENT - Golden Yellow (sun, warmth) */
+  --gold-50: #fffbeb;
+  --gold-100: #fef3c7;
+  --gold-200: #fde68a;
+  --gold-300: #fcd34d;
+  --gold-400: #F5B041;
+  --gold-500: #eab308;
+  --gold-600: #ca8a04;
+  --gold-700: #a16207;
+  --gold-800: #854d0e;
+  --gold-900: #713f12;
+  --gold-950: #422006;
+
+  /* TERTIARY - Burnt Orange (energy) */
+  --orange-50: #fff7ed;
+  --orange-100: #ffedd5;
+  --orange-200: #fed7aa;
+  --orange-300: #fdba74;
+  --orange-400: #fb923c;
+  --orange-500: #E05D26;
+  --orange-600: #c2410c;
+  --orange-700: #9a3412;
+  --orange-800: #7c2d12;
+  --orange-900: #6b2710;
+  --orange-950: #431407;
+
+  /* NEUTRALS - Warm grays */
   --neutral-50: #fafaf9;
   --neutral-100: #f5f5f4;
   --neutral-200: #e7e5e4;
@@ -49,34 +71,68 @@
   --neutral-800: #292524;
   --neutral-900: #1c1917;
 
-  /* SEMANTIC - Brand-aligned (NOT generic AI colors) */
-  --success: #5a9f3d; /* Derived from secondary, NOT #22c55e */
-  --success-light: #e8f5e1;
-  --success-dark: #3d6b29;
+  /* SEMANTIC COLORS - Brand-aligned */
+  --success: var(--emerald-500);
+  --success-light: var(--emerald-50);
+  --success-dark: var(--emerald-700);
 
-  --warning: #d4a017; /* Warm gold that complements cream, NOT #f59e0b */
-  --warning-light: #fef3e2;
-  --warning-dark: #a07810;
+  --warning: var(--gold-400);
+  --warning-light: var(--gold-50);
+  --warning-dark: var(--gold-700);
 
-  --error: #c84c3c; /* Earthy terracotta, NOT #ef4444 */
-  --error-light: #fdecea;
-  --error-dark: #8f3629;
+  --error: var(--orange-600);
+  --error-light: #fef2f2;
+  --error-dark: var(--orange-900);
 
-  --info: #2d7a5f; /* Teal derived from primary, NOT #3b82f6 */
-  --info-light: #e6f3ed;
-  --info-dark: #1f5442;
+  --info: var(--navy-500);
+  --info-light: var(--navy-50);
+  --info-dark: var(--navy-700);
 
-  /* Legacy aliases for backward compatibility */
-  --primary: var(--primary-500);
-  --primary-light: var(--primary-400);
-  --primary-dark: var(--primary-700);
-  --secondary: var(--secondary-500);
-  --secondary-light: var(--secondary-400);
-  --secondary-dark: var(--secondary-700);
-  --accent: var(--accent-100);
-  --accent-light: var(--accent-50);
-  --accent-dark: var(--accent-200);
-  --cream: var(--accent-100);
+  /* Legacy primary/secondary/accent aliases - Maps to new brand colors */
+  --primary: var(--navy-700);
+  --primary-light: var(--navy-500);
+  --primary-dark: var(--navy-900);
+  --primary-50: var(--navy-50);
+  --primary-100: var(--navy-100);
+  --primary-200: var(--navy-200);
+  --primary-300: var(--navy-300);
+  --primary-400: var(--navy-400);
+  --primary-500: var(--navy-500);
+  --primary-600: var(--navy-600);
+  --primary-700: var(--navy-700);
+  --primary-800: var(--navy-800);
+  --primary-900: var(--navy-900);
+
+  --secondary: var(--emerald-500);
+  --secondary-light: var(--emerald-400);
+  --secondary-dark: var(--emerald-600);
+  --secondary-50: var(--emerald-50);
+  --secondary-100: var(--emerald-100);
+  --secondary-200: var(--emerald-200);
+  --secondary-300: var(--emerald-300);
+  --secondary-400: var(--emerald-400);
+  --secondary-500: var(--emerald-500);
+  --secondary-600: var(--emerald-600);
+  --secondary-700: var(--emerald-700);
+  --secondary-800: var(--emerald-800);
+  --secondary-900: var(--emerald-900);
+
+  --accent: var(--gold-400);
+  --accent-light: var(--gold-200);
+  --accent-dark: var(--gold-600);
+  --accent-50: var(--gold-50);
+  --accent-100: var(--gold-100);
+  --accent-200: var(--gold-200);
+  --accent-300: var(--gold-300);
+  --accent-400: var(--gold-400);
+  --accent-500: var(--gold-500);
+  --accent-600: var(--gold-600);
+  --accent-700: var(--gold-700);
+  --accent-800: var(--gold-800);
+  --accent-900: var(--gold-900);
+
+  /* Legacy aliases */
+  --cream: var(--gold-100);
   --neutral-white: #ffffff;
   --neutral-light: var(--neutral-100);
   --neutral: var(--neutral-200);
@@ -85,12 +141,12 @@
   --neutral-black: var(--neutral-900);
 
   /* Typography colors */
-  --heading-color: var(--neutral-700);
+  --heading-color: var(--navy-700);
   --body-color: var(--neutral-600);
 
   /* Light theme */
   --background: #ffffff;
-  --foreground: var(--neutral-900);
+  --foreground: var(--navy-900);
 }
 
 @theme inline {
@@ -102,41 +158,57 @@
   --font-display: var(--font-poppins), system-ui, sans-serif;
   --font-serif: var(--font-playfair), Georgia, 'Times New Roman', serif;
 
-  /* PRIMARY color scale for Tailwind (50-900) */
-  --color-primary-50: var(--primary-50);
-  --color-primary-100: var(--primary-100);
-  --color-primary-200: var(--primary-200);
-  --color-primary-300: var(--primary-300);
-  --color-primary-400: var(--primary-400);
-  --color-primary-500: var(--primary-500);
-  --color-primary-600: var(--primary-600);
-  --color-primary-700: var(--primary-700);
-  --color-primary-800: var(--primary-800);
-  --color-primary-900: var(--primary-900);
+  /* NAVY color scale for Tailwind */
+  --color-navy-50: var(--navy-50);
+  --color-navy-100: var(--navy-100);
+  --color-navy-200: var(--navy-200);
+  --color-navy-300: var(--navy-300);
+  --color-navy-400: var(--navy-400);
+  --color-navy-500: var(--navy-500);
+  --color-navy-600: var(--navy-600);
+  --color-navy-700: var(--navy-700);
+  --color-navy-800: var(--navy-800);
+  --color-navy-900: var(--navy-900);
+  --color-navy-950: var(--navy-950);
 
-  /* SECONDARY color scale for Tailwind (50-900) */
-  --color-secondary-50: var(--secondary-50);
-  --color-secondary-100: var(--secondary-100);
-  --color-secondary-200: var(--secondary-200);
-  --color-secondary-300: var(--secondary-300);
-  --color-secondary-400: var(--secondary-400);
-  --color-secondary-500: var(--secondary-500);
-  --color-secondary-600: var(--secondary-600);
-  --color-secondary-700: var(--secondary-700);
-  --color-secondary-800: var(--secondary-800);
-  --color-secondary-900: var(--secondary-900);
+  /* EMERALD color scale for Tailwind */
+  --color-emerald-50: var(--emerald-50);
+  --color-emerald-100: var(--emerald-100);
+  --color-emerald-200: var(--emerald-200);
+  --color-emerald-300: var(--emerald-300);
+  --color-emerald-400: var(--emerald-400);
+  --color-emerald-500: var(--emerald-500);
+  --color-emerald-600: var(--emerald-600);
+  --color-emerald-700: var(--emerald-700);
+  --color-emerald-800: var(--emerald-800);
+  --color-emerald-900: var(--emerald-900);
+  --color-emerald-950: var(--emerald-950);
 
-  /* ACCENT color scale for Tailwind (50-900) */
-  --color-accent-50: var(--accent-50);
-  --color-accent-100: var(--accent-100);
-  --color-accent-200: var(--accent-200);
-  --color-accent-300: var(--accent-300);
-  --color-accent-400: var(--accent-400);
-  --color-accent-500: var(--accent-500);
-  --color-accent-600: var(--accent-600);
-  --color-accent-700: var(--accent-700);
-  --color-accent-800: var(--accent-800);
-  --color-accent-900: var(--accent-900);
+  /* GOLD color scale for Tailwind */
+  --color-gold-50: var(--gold-50);
+  --color-gold-100: var(--gold-100);
+  --color-gold-200: var(--gold-200);
+  --color-gold-300: var(--gold-300);
+  --color-gold-400: var(--gold-400);
+  --color-gold-500: var(--gold-500);
+  --color-gold-600: var(--gold-600);
+  --color-gold-700: var(--gold-700);
+  --color-gold-800: var(--gold-800);
+  --color-gold-900: var(--gold-900);
+  --color-gold-950: var(--gold-950);
+
+  /* ORANGE color scale for Tailwind */
+  --color-orange-50: var(--orange-50);
+  --color-orange-100: var(--orange-100);
+  --color-orange-200: var(--orange-200);
+  --color-orange-300: var(--orange-300);
+  --color-orange-400: var(--orange-400);
+  --color-orange-500: var(--orange-500);
+  --color-orange-600: var(--orange-600);
+  --color-orange-700: var(--orange-700);
+  --color-orange-800: var(--orange-800);
+  --color-orange-900: var(--orange-900);
+  --color-orange-950: var(--orange-950);
 
   /* NEUTRAL color scale for Tailwind (50-900) */
   --color-neutral-50: var(--neutral-50);
@@ -167,15 +239,48 @@
   --color-info-light: var(--info-light);
   --color-info-dark: var(--info-dark);
 
-  /* Legacy aliases for backward compatibility */
-  --color-primary: var(--primary-500);
-  --color-primary-light: var(--primary-400);
-  --color-primary-dark: var(--primary-700);
-  --color-secondary: var(--secondary-500);
-  --color-secondary-light: var(--secondary-400);
-  --color-secondary-dark: var(--secondary-700);
-  --color-accent: var(--accent-100);
-  --color-cream: var(--accent-100);
+  /* Legacy primary/secondary/accent mappings for backward compatibility */
+  --color-primary-50: var(--navy-50);
+  --color-primary-100: var(--navy-100);
+  --color-primary-200: var(--navy-200);
+  --color-primary-300: var(--navy-300);
+  --color-primary-400: var(--navy-400);
+  --color-primary-500: var(--navy-500);
+  --color-primary-600: var(--navy-600);
+  --color-primary-700: var(--navy-700);
+  --color-primary-800: var(--navy-800);
+  --color-primary-900: var(--navy-900);
+  --color-primary: var(--navy-700);
+  --color-primary-light: var(--navy-500);
+  --color-primary-dark: var(--navy-900);
+
+  --color-secondary-50: var(--emerald-50);
+  --color-secondary-100: var(--emerald-100);
+  --color-secondary-200: var(--emerald-200);
+  --color-secondary-300: var(--emerald-300);
+  --color-secondary-400: var(--emerald-400);
+  --color-secondary-500: var(--emerald-500);
+  --color-secondary-600: var(--emerald-600);
+  --color-secondary-700: var(--emerald-700);
+  --color-secondary-800: var(--emerald-800);
+  --color-secondary-900: var(--emerald-900);
+  --color-secondary: var(--emerald-500);
+  --color-secondary-light: var(--emerald-400);
+  --color-secondary-dark: var(--emerald-600);
+
+  --color-accent-50: var(--gold-50);
+  --color-accent-100: var(--gold-100);
+  --color-accent-200: var(--gold-200);
+  --color-accent-300: var(--gold-300);
+  --color-accent-400: var(--gold-400);
+  --color-accent-500: var(--gold-500);
+  --color-accent-600: var(--gold-600);
+  --color-accent-700: var(--gold-700);
+  --color-accent-800: var(--gold-800);
+  --color-accent-900: var(--gold-900);
+  --color-accent: var(--gold-400);
+  --color-cream: var(--gold-100);
+
   --color-white: #ffffff;
   --color-black: var(--neutral-900);
 
@@ -371,7 +476,7 @@ i {
 /* Dark mode disabled - will be implemented with proper toggle later */
 /* @media (prefers-color-scheme: dark) {
   :root {
-    --background: var(--neutral-900);
+    --background: var(--navy-900);
     --foreground: var(--neutral-100);
   }
 } */
@@ -399,13 +504,13 @@ i {
   white-space: normal;
 }
 
-/* Green shadow on click for cards */
+/* Navy shadow on click for cards (updated from green) */
 .green-click-shadow {
   transition: all 0.15s ease;
 }
 
 .green-click-shadow:active {
-  box-shadow: 0 0 30px 8px rgba(13, 100, 46, 0.6) !important;
+  box-shadow: 0 0 30px 8px rgba(27, 42, 78, 0.6) !important;
   transform: scale(0.98);
 }
 
@@ -429,13 +534,13 @@ i {
   margin: 1.5rem 0;
 }
 
-/* Pulse glow animation for attention-grabbing buttons */
+/* Pulse glow animation for attention-grabbing buttons (navy) */
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(13, 100, 46, 0.4);
+    box-shadow: 0 0 0 0 rgba(27, 42, 78, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 12px rgba(13, 100, 46, 0);
+    box-shadow: 0 0 0 12px rgba(27, 42, 78, 0);
   }
 }
 
@@ -443,31 +548,31 @@ i {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* Modern attention-grabbing animation for validation highlights */
+/* Modern attention-grabbing animation for validation highlights (emerald) */
 @keyframes attention-bounce {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+    box-shadow: 0 0 0 0 rgba(46, 158, 107, 0.5);
   }
   15% {
     transform: scale(1.03);
-    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 0 0 6px rgba(46, 158, 107, 0.3);
   }
   30% {
     transform: scale(0.99);
-    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0.1);
+    box-shadow: 0 0 0 10px rgba(46, 158, 107, 0.1);
   }
   45% {
     transform: scale(1.02);
-    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+    box-shadow: 0 0 0 4px rgba(46, 158, 107, 0.25);
   }
   60% {
     transform: scale(1);
-    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0.15);
+    box-shadow: 0 0 0 8px rgba(46, 158, 107, 0.15);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    box-shadow: 0 0 0 0 rgba(46, 158, 107, 0);
   }
 }
 

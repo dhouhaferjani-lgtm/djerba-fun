@@ -16,13 +16,13 @@ export function Logo({ variant = 'light', className = '', showText = false }: Lo
   const locale = useLocale();
   const { data: settings, isLoading } = usePlatformSettings(locale);
 
-  const defaultLogo = '/images/go-adventure-logo.png';
+  const defaultLogo = '/images/evasion-djerba-logo.png';
   const logoUrl =
     variant === 'dark'
       ? settings?.branding?.logoDark || defaultLogo
       : settings?.branding?.logoLight || defaultLogo;
 
-  const platformName = settings?.platform?.name || 'Go Adventure';
+  const platformName = settings?.platform?.name || 'Evasion Djerba';
 
   return (
     <Link href={`/${locale}`} className={`flex items-center gap-2 ${className}`}>

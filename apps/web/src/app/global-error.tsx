@@ -24,13 +24,13 @@ export default function GlobalError({
   return (
     <html lang="en">
       <head>
-        <title>Critical Error - Go Adventure</title>
+        <title>Erreur Critique - Evasion Djerba</title>
         <meta name="robots" content="noindex, nofollow" />
         <style
           dangerouslySetInnerHTML={{
             __html: `
               :root {
-                --primary: #0D642E;
+                --primary: #1B2A4E;
                 --gray-50: #f9fafb;
                 --gray-100: #f3f4f6;
                 --gray-200: #e5e7eb;
@@ -149,15 +149,15 @@ export default function GlobalError({
               }}
             >
               <p style={{ fontSize: '0.875rem', color: 'var(--gray-500)' }}>
-                If this problem persists, please contact{' '}
+                Si ce problème persiste, veuillez contacter{' '}
                 <a
-                  href="mailto:support@goadventure.com"
+                  href="mailto:support@evasiondjerba.com"
                   style={{
                     color: 'var(--primary)',
                     textDecoration: 'underline',
                   }}
                 >
-                  support@goadventure.com
+                  support@evasiondjerba.com
                 </a>
               </p>
             </div>

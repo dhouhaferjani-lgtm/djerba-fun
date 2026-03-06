@@ -201,7 +201,7 @@ export default function RegisterPage() {
                 {t('already_have_account')}{' '}
                 <Link
                   href={`/${locale}/auth/login` as any}
-                  className="text-[#0D642E] font-semibold hover:underline"
+                  className="text-primary font-semibold hover:underline"
                 >
                   {t('login')}
                 </Link>

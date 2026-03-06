@@ -5,8 +5,9 @@ namespace App\Enums;
 enum ServiceType: string
 {
     case TOUR = 'tour';
+    case NAUTICAL = 'nautical';
+    case ACCOMMODATION = 'accommodation';
     case EVENT = 'event';
-    case SEJOUR = 'sejour';
 
     /**
      * Get human-readable label
@@ -15,8 +16,9 @@ enum ServiceType: string
     {
         return match ($this) {
             self::TOUR => 'Tour',
+            self::NAUTICAL => 'Nautical',
+            self::ACCOMMODATION => 'Accommodation',
             self::EVENT => 'Event',
-            self::SEJOUR => 'Séjour',
         };
     }
 
@@ -27,8 +29,21 @@ enum ServiceType: string
     {
         return match ($this) {
             self::TOUR => 'heroicon-o-map',
+            self::NAUTICAL => 'heroicon-o-lifebuoy',
+            self::ACCOMMODATION => 'heroicon-o-home',
             self::EVENT => 'heroicon-o-calendar',
-            self::SEJOUR => 'heroicon-o-sun',
+        };
+    }
+
+    /**
+     * Check if this service type is "tour-like" (uses duration, itinerary, difficulty fields).
+     * Events have different fields (venue, agenda, etc.)
+     */
+    public function isTourLike(): bool
+    {
+        return match ($this) {
+            self::TOUR, self::NAUTICAL, self::ACCOMMODATION => true,
+            self::EVENT => false,
         };
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\DifficultyLevel;
 use App\Enums\ListingStatus;
 use App\Enums\ServiceType;
+use App\Enums\TagType;
 use App\Enums\UserRole;
 use Filament\Notifications\Actions\Action as NotificationAction;
 use Filament\Notifications\Notification;
@@ -433,6 +434,31 @@ class Listing extends Model
     }
 
     /**
+     * Get the tags for this listing.
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'listing_tag')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get active tags for this listing.
+     */
+    public function activeTags(): BelongsToMany
+    {
+        return $this->tags()->where('is_active', true);
+    }
+
+    /**
+     * Get tags of a specific type for this listing.
+     */
+    public function tagsOfType(TagType $type): BelongsToMany
+    {
+        return $this->tags()->where('type', $type->value);
+    }
+
+    /**
      * Get the average rating for the listing.
      */
     public function averageRating(): ?float
@@ -449,6 +475,22 @@ class Listing extends Model
     }
 
     /**
+     * Check if listing is a nautical activity
+     */
+    public function isNautical(): bool
+    {
+        return $this->service_type === ServiceType::NAUTICAL;
+    }
+
+    /**
+     * Check if listing is an accommodation (multi-day stay)
+     */
+    public function isAccommodation(): bool
+    {
+        return $this->service_type === ServiceType::ACCOMMODATION;
+    }
+
+    /**
      * Check if listing is an event
      */
     public function isEvent(): bool
@@ -457,19 +499,13 @@ class Listing extends Model
     }
 
     /**
-     * Check if listing is a sejour (multi-day tour)
-     */
-    public function isSejour(): bool
-    {
-        return $this->service_type === ServiceType::SEJOUR;
-    }
-
-    /**
      * Check if listing is tour-like (shares tour fields: duration, itinerary, etc.)
+     * Tour-like types: TOUR, NAUTICAL, ACCOMMODATION
+     * Non-tour-like types: EVENT (uses venue, agenda instead)
      */
     public function isTourLike(): bool
     {
-        return $this->isTour() || $this->isSejour();
+        return $this->service_type->isTourLike();
     }
 
     /**
@@ -519,6 +555,22 @@ class Listing extends Model
     }
 
     /**
+     * Scope for nautical activities
+     */
+    public function scopeNautical($query)
+    {
+        return $query->where('service_type', ServiceType::NAUTICAL);
+    }
+
+    /**
+     * Scope for accommodations (multi-day stays)
+     */
+    public function scopeAccommodations($query)
+    {
+        return $query->where('service_type', ServiceType::ACCOMMODATION);
+    }
+
+    /**
      * Scope for events
      */
     public function scopeEvents($query)
@@ -527,19 +579,12 @@ class Listing extends Model
     }
 
     /**
-     * Scope for sejours (multi-day tours)
-     */
-    public function scopeSejours($query)
-    {
-        return $query->where('service_type', ServiceType::SEJOUR);
-    }
-
-    /**
      * Get the number of days from itinerary day fields.
+     * Only applies to ACCOMMODATION listings.
      */
     public function getNumberOfDaysAttribute(): ?int
     {
-        if (! $this->isSejour() || ! is_array($this->itinerary)) {
+        if (! $this->isAccommodation() || ! is_array($this->itinerary)) {
             return null;
         }
 
@@ -562,6 +607,48 @@ class Listing extends Model
     public function scopeForVendor($query, $vendorId)
     {
         return $query->where('vendor_id', $vendorId);
+    }
+
+    /**
+     * Scope to filter listings by a specific tag slug.
+     */
+    public function scopeWithTag($query, string $tagSlug)
+    {
+        return $query->whereHas('tags', fn ($q) => $q->where('slug', $tagSlug));
+    }
+
+    /**
+     * Scope to filter listings by tag type.
+     */
+    public function scopeWithTagType($query, TagType|string $type)
+    {
+        $typeValue = $type instanceof TagType ? $type->value : $type;
+
+        return $query->whereHas('tags', fn ($q) => $q->where('type', $typeValue));
+    }
+
+    /**
+     * Scope to filter listings that have ANY of the specified tags.
+     *
+     * @param  array<string>  $tagSlugs
+     */
+    public function scopeWithAnyTags($query, array $tagSlugs)
+    {
+        return $query->whereHas('tags', fn ($q) => $q->whereIn('slug', $tagSlugs));
+    }
+
+    /**
+     * Scope to filter listings that have ALL of the specified tags.
+     *
+     * @param  array<string>  $tagSlugs
+     */
+    public function scopeWithAllTags($query, array $tagSlugs)
+    {
+        foreach ($tagSlugs as $slug) {
+            $query->whereHas('tags', fn ($q) => $q->where('slug', $slug));
+        }
+
+        return $query;
     }
 
     /**

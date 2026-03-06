@@ -59,13 +59,13 @@ export function AuthMascot({ state, watchDirection = 0.5 }: AuthMascotProps) {
           }
         >
           {/* Body/torso */}
-          <ellipse cx="100" cy="170" rx="35" ry="25" fill="#0D642E" />
+          <ellipse cx="100" cy="170" rx="35" ry="25" fill="#1B2A4E" />
 
           {/* Neck */}
-          <rect x="90" y="140" width="20" height="20" rx="5" fill="#f5f0d1" />
+          <rect x="90" y="140" width="20" height="20" rx="5" fill="#fef3c7" />
 
           {/* Head */}
-          <circle cx="100" cy="105" r="45" fill="#f5f0d1" />
+          <circle cx="100" cy="105" r="45" fill="#fef3c7" />
 
           {/* Cheeks (blush) */}
           <circle cx="68" cy="115" r="8" fill="#f5d1d1" opacity="0.5" />
@@ -272,13 +272,13 @@ export function AuthMascot({ state, watchDirection = 0.5 }: AuthMascotProps) {
             {/* Hat brim */}
             <ellipse cx="100" cy="68" rx="52" ry="8" fill="#0a5025" />
             {/* Hat dome */}
-            <path d="M68 68 Q70 35 100 30 Q130 35 132 68 Z" fill="#0D642E" />
+            <path d="M68 68 Q70 35 100 30 Q130 35 132 68 Z" fill="#1B2A4E" />
             {/* Hat band */}
-            <rect x="68" y="60" width="64" height="8" rx="2" fill="#8BC34A" />
+            <rect x="68" y="60" width="64" height="8" rx="2" fill="#2E9E6B" />
             {/* Hat badge - small compass */}
-            <circle cx="100" cy="64" r="4" fill="#f5f0d1" />
-            <line x1="100" y1="61" x2="100" y2="67" stroke="#0D642E" strokeWidth="1" />
-            <line x1="97" y1="64" x2="103" y2="64" stroke="#0D642E" strokeWidth="1" />
+            <circle cx="100" cy="64" r="4" fill="#fef3c7" />
+            <line x1="100" y1="61" x2="100" y2="67" stroke="#1B2A4E" strokeWidth="1" />
+            <line x1="97" y1="64" x2="103" y2="64" stroke="#1B2A4E" strokeWidth="1" />
           </g>
 
           {/* Arms */}
@@ -297,12 +297,12 @@ export function AuthMascot({ state, watchDirection = 0.5 }: AuthMascotProps) {
             <path
               d="M70 155 Q50 160 40 170"
               fill="none"
-              stroke="#0D642E"
+              stroke="#1B2A4E"
               strokeWidth="10"
               strokeLinecap="round"
             />
             {/* Left hand */}
-            <circle cx="40" cy="170" r="8" fill="#f5f0d1" />
+            <circle cx="40" cy="170" r="8" fill="#fef3c7" />
           </motion.g>
 
           {/* Right arm */}
@@ -320,12 +320,12 @@ export function AuthMascot({ state, watchDirection = 0.5 }: AuthMascotProps) {
             <path
               d="M130 155 Q150 160 160 170"
               fill="none"
-              stroke="#0D642E"
+              stroke="#1B2A4E"
               strokeWidth="10"
               strokeLinecap="round"
             />
             {/* Right hand */}
-            <circle cx="160" cy="170" r="8" fill="#f5f0d1" />
+            <circle cx="160" cy="170" r="8" fill="#fef3c7" />
           </motion.g>
 
           {/* Success confetti particles */}
@@ -337,7 +337,7 @@ export function AuthMascot({ state, watchDirection = 0.5 }: AuthMascotProps) {
                   cx={100 + (i - 3) * 20}
                   cy={50}
                   r="3"
-                  fill={['#8BC34A', '#0D642E', '#f5f0d1', '#FF6B6B', '#4ECDC4', '#FFE66D'][i]}
+                  fill={['#2E9E6B', '#1B2A4E', '#fef3c7', '#E05D26', '#F5B041', '#4ade9a'][i]}
                   initial={{ y: 0, opacity: 1 }}
                   animate={{ y: [-20, -60 - Math.random() * 30], opacity: [1, 0], x: (i - 3) * 10 }}
                   transition={{ duration: 1, delay: i * 0.1, ease: 'easeOut' }}

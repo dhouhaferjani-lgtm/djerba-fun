@@ -22,11 +22,11 @@ const shineAnimationStyles = `
   @keyframes pulse-click {
     0%, 100% {
       transform: scale(1);
-      box-shadow: 0 4px 15px rgba(13, 100, 46, 0.4);
+      box-shadow: 0 4px 15px rgba(245, 176, 65, 0.5);
     }
     50% {
       transform: scale(0.97);
-      box-shadow: 0 2px 8px rgba(13, 100, 46, 0.6);
+      box-shadow: 0 2px 8px rgba(245, 176, 65, 0.7);
     }
   }
 
@@ -146,7 +146,7 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
           <div className="flex items-end min-w-0">
             <Button
               type="submit"
-              className="shine-button w-full h-[46px] px-6 text-base font-semibold bg-primary hover:bg-primary-700 text-white rounded-md whitespace-nowrap"
+              className="shine-button w-full h-[46px] px-6 text-base font-bold bg-[#F5B041] hover:bg-[#ca8a04] text-[#1B2A4E] rounded-md whitespace-nowrap transition-colors"
             >
               {t('search_button')}
             </Button>

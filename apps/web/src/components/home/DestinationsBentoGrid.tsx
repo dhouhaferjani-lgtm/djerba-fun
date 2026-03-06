@@ -166,7 +166,7 @@ export function DestinationsBentoGrid({ locale, cmsDestinations }: DestinationsB
   // Don't render animated content until mounted (avoid hydration mismatch)
   if (!isMounted) {
     return (
-      <section className="py-20 bg-[#f5f0d1]">
+      <section className="py-20 bg-neutral-100">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral-900 mb-4">
@@ -194,7 +194,7 @@ export function DestinationsBentoGrid({ locale, cmsDestinations }: DestinationsB
   }
 
   return (
-    <section className="py-20 bg-[#f5f0d1]">
+    <section className="py-20 bg-neutral-100">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral-900 mb-4">

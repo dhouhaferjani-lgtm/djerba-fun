@@ -145,9 +145,9 @@ export function MarketingMosaicSection({
       image: brandPillar1Url || defaultImages.pillar1,
       title: brandPillarsData?.pillar1?.title || t('pillar_sustainable_title'),
       description: brandPillarsData?.pillar1?.description || t('pillar_sustainable_description'),
-      overlayBg: 'rgba(13, 100, 46, 0.9)', // Dark green
+      overlayBg: 'rgba(27, 42, 78, 0.9)', // Navy
       textColor: 'white',
-      lineColor: '#8BC34A', // Lime green line
+      lineColor: '#F5B041', // Gold line
       lineAnimation: 'snake-line', // Starts from top-left
     },
     {
@@ -155,9 +155,9 @@ export function MarketingMosaicSection({
       image: brandPillar2Url || defaultImages.pillar2,
       title: brandPillarsData?.pillar2?.title || t('pillar_authentic_title'),
       description: brandPillarsData?.pillar2?.description || t('pillar_authentic_description'),
-      overlayBg: 'rgba(139, 195, 74, 0.9)', // Lime green
-      textColor: '#0D642E', // Dark green text
-      lineColor: '#0D642E', // Dark green line
+      overlayBg: 'rgba(46, 158, 107, 0.9)', // Emerald
+      textColor: '#1B2A4E', // Navy text
+      lineColor: '#1B2A4E', // Navy line
       lineAnimation: 'snake-line-from-right', // Starts from right edge
     },
     {
@@ -165,15 +165,15 @@ export function MarketingMosaicSection({
       image: brandPillar3Url || defaultImages.pillar3,
       title: brandPillarsData?.pillar3?.title || t('pillar_adventure_title'),
       description: brandPillarsData?.pillar3?.description || t('pillar_adventure_description'),
-      overlayBg: 'rgba(13, 100, 46, 0.9)', // Dark green
+      overlayBg: 'rgba(224, 93, 38, 0.88)', // Orange - energy!
       textColor: 'white',
-      lineColor: '#8BC34A', // Lime green line
+      lineColor: '#F5B041', // Gold line
       lineAnimation: 'snake-line', // Starts from top-left
     },
   ];
 
   return (
-    <section className="py-16 bg-[#f5f0d1]">
+    <section className="py-16 bg-neutral-100">
       <style dangerouslySetInnerHTML={{ __html: cornerAnimationStyles }} />
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -60,7 +60,8 @@ class ListingController extends Controller
                 'activityType:id,uuid,name,slug,icon,color',
                 'media:id,uuid,mediable_id,mediable_type,url,thumbnail_url,alt,type,order,category',
                 'faqs:id,listing_id,question,answer,order',
-                'listingExtras' => fn ($q) => $q->where('is_active', true)->with(['extra' => fn ($e) => $e->where('is_active', true)])
+                'listingExtras' => fn ($q) => $q->where('is_active', true)->with(['extra' => fn ($e) => $e->where('is_active', true)]),
+                'tags:id,uuid,type,name,slug,icon,color',
             ]);
 
         // Search by query (title, summary, description)
@@ -152,6 +153,32 @@ class ListingController extends Controller
             $query->where('max_group_size', '>=', $guests);
         }
 
+        // Filter by tags (comma-separated slugs or single slug)
+        // Examples: ?tags=wifi,pool or ?tags=adventure
+        if ($request->filled('tags')) {
+            $tagSlugs = array_filter(array_map('trim', explode(',', $request->tags)));
+            if (! empty($tagSlugs)) {
+                $query->withAnyTags($tagSlugs);
+            }
+        }
+
+        // Filter by specific tag type (convenience for filtering by tour_type, boat_type, etc.)
+        // Examples: ?tour_type=adventure or ?amenity=wifi,pool
+        foreach (['tour_type', 'boat_type', 'space_type', 'event_feature', 'amenity'] as $tagTypeParam) {
+            if ($request->filled($tagTypeParam)) {
+                $tagSlugs = array_filter(array_map('trim', explode(',', $request->get($tagTypeParam))));
+                if (! empty($tagSlugs)) {
+                    $query->withAnyTags($tagSlugs);
+                }
+            }
+        }
+
+        // Filter by minimum rating
+        if ($request->filled('min_rating')) {
+            $minRating = (float) $request->get('min_rating');
+            $query->where('rating', '>=', $minRating);
+        }
+
         // Sorting
         // Database stores: base_price (seeder) or tnd_price/tndPrice (Filament)
         // Vendor panel stores pricing in person_types array, so we extract from there too
@@ -214,7 +241,8 @@ class ListingController extends Controller
                 'activityType:id,uuid,name,slug,icon,color',
                 'media:id,uuid,mediable_id,mediable_type,url,thumbnail_url,alt,type,order,category',
                 'faqs:id,listing_id,question,answer,order',
-                'listingExtras' => fn ($q) => $q->where('is_active', true)->with(['extra' => fn ($e) => $e->where('is_active', true)])
+                'listingExtras' => fn ($q) => $q->where('is_active', true)->with(['extra' => fn ($e) => $e->where('is_active', true)]),
+                'tags:id,uuid,type,name,slug,icon,color',
             ]);
         });
 

@@ -9,10 +9,10 @@ import { colors } from '@go-adventure/ui';
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Go Adventure - Tourism Marketplace',
-    short_name: 'Go Adventure',
+    name: "Evasion Djerba - Vivez l'île autrement",
+    short_name: 'Evasion Djerba',
     description:
-      'Discover and book unique activities and events. Your trusted marketplace for unforgettable travel experiences.',
+      'Découvrez Djerba avec des excursions uniques, activités nautiques et hébergements authentiques. Votre aventure méditerranéenne commence ici!',
     start_url: '/',
     display: 'standalone',
     background_color: colors.neutral.white,

@@ -230,8 +230,8 @@ export default function ElevationProfile({
               {/* Gradient definition */}
               <defs>
                 <linearGradient id="elevationGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#0D642E" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#0D642E" stopOpacity="0.05" />
+                  <stop offset="0%" stopColor="#1B2A4E" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#1B2A4E" stopOpacity="0.05" />
                 </linearGradient>
               </defs>
 
@@ -248,11 +248,11 @@ export default function ElevationProfile({
                 const isMax = point.elevation === profile.maxElevation;
                 const isMin = point.elevation === profile.minElevation;
 
-                let markerColor = '#8BC34A'; // default waypoint color (light green)
+                let markerColor = '#2E9E6B'; // default waypoint color (emerald)
                 let markerSize = 6;
 
                 if (isStart || isEnd) {
-                  markerColor = '#0D642E'; // primary green for start/end
+                  markerColor = '#1B2A4E'; // navy for start/end
                   markerSize = 8;
                 } else if (isMax) {
                   markerColor = '#10b981'; // green for highest
@@ -383,7 +383,7 @@ export default function ElevationProfile({
         {/* Legend */}
         <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-[#0D642E] border-2 border-white shadow-sm"></div>
+            <div className="h-3 w-3 rounded-full bg-[#1B2A4E] border-2 border-white shadow-sm"></div>
             <span className="text-neutral-600">{t('start_end_points')}</span>
           </div>
           <div className="flex items-center gap-2">
@@ -395,7 +395,7 @@ export default function ElevationProfile({
             <span className="text-neutral-600">{t('lowest_point')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-2.5 w-2.5 rounded-full bg-[#8BC34A] border-2 border-white shadow-sm"></div>
+            <div className="h-2.5 w-2.5 rounded-full bg-[#2E9E6B] border-2 border-white shadow-sm"></div>
             <span className="text-neutral-600">{t('waypoints')}</span>
           </div>
         </div>

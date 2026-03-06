@@ -8,6 +8,8 @@ use AmidEsfahani\FilamentTinyEditor\TinyEditor;
 use App\Enums\DifficultyLevel;
 use App\Enums\ListingStatus;
 use App\Enums\ServiceType;
+use App\Enums\TagType;
+use App\Models\Tag;
 use App\Filament\Vendor\Resources\ListingResource\Pages;
 use App\Filament\Vendor\Resources\ListingResource\RelationManagers;
 use App\Models\Listing;
@@ -92,8 +94,9 @@ class ListingResource extends Resource
                                 ->label('Type')
                                 ->options([
                                     ServiceType::TOUR->value => ServiceType::TOUR->label(),
+                                    ServiceType::NAUTICAL->value => ServiceType::NAUTICAL->label(),
+                                    ServiceType::ACCOMMODATION->value => 'Accommodation (Multi-Day)',
                                     ServiceType::EVENT->value => ServiceType::EVENT->label(),
-                                    ServiceType::SEJOUR->value => 'Séjour (Multi-Day)',
                                 ])
                                 ->required() // Only truly required field for drafts
                                 ->live()
@@ -303,6 +306,37 @@ class ListingResource extends Resource
                                 ->defaultItems(0)
                                 ->collapsible()
                                 ->itemLabel(fn (array $state): ?string => $state['en'] ?? null),
+
+                            Forms\Components\Section::make('Tags')
+                                ->description('Select tags that describe your listing')
+                                ->schema([
+                                    Forms\Components\CheckboxList::make('tags')
+                                        ->label('')
+                                        ->relationship('tags', 'name')
+                                        ->options(function (Get $get) {
+                                            $serviceType = $get('service_type');
+
+                                            if (! $serviceType) {
+                                                return [];
+                                            }
+
+                                            // Get tags applicable to this service type
+                                            return Tag::query()
+                                                ->active()
+                                                ->forServiceType($serviceType)
+                                                ->ordered()
+                                                ->get()
+                                                ->mapWithKeys(fn (Tag $tag) => [
+                                                    $tag->id => $tag->getTranslation('name', app()->getLocale()),
+                                                ]);
+                                        })
+                                        ->columns(3)
+                                        ->gridDirection('row')
+                                        ->searchable()
+                                        ->bulkToggleable()
+                                        ->helperText('Tags help travelers find your listing. Select all that apply.'),
+                                ])
+                                ->collapsible(),
                         ]),
 
                     // Step 3: Tour-specific or Event-specific Details
@@ -345,9 +379,9 @@ class ListingResource extends Resource
                                                     'hours' => 'Hours',
                                                     'days' => 'Days',
                                                 ])
-                                                ->default(fn (Get $get): ?string => $get('service_type') === ServiceType::SEJOUR->value ? 'days' : null)
+                                                ->default(fn (Get $get): ?string => $get('service_type') === ServiceType::ACCOMMODATION->value ? 'days' : null)
                                                 ->afterStateHydrated(function (Forms\Components\Select $component, Get $get) {
-                                                    if ($get('service_type') === ServiceType::SEJOUR->value && empty($component->getState())) {
+                                                    if ($get('service_type') === ServiceType::ACCOMMODATION->value && empty($component->getState())) {
                                                         $component->state('days');
                                                     }
                                                 }),
@@ -384,11 +418,11 @@ class ListingResource extends Resource
                                     Forms\Components\Hidden::make('elevation_profile')
                                         ->dehydrateStateUsing(fn ($state) => is_array($state) ? $state : null),
                                 ])
-                                ->visible(fn (Get $get): bool => in_array($get('service_type'), [ServiceType::TOUR->value, ServiceType::SEJOUR->value])),
+                                ->visible(fn (Get $get): bool => in_array($get('service_type'), [ServiceType::TOUR->value, ServiceType::NAUTICAL->value, ServiceType::ACCOMMODATION->value])),
 
-                            // Sejour-specific fields
-                            Forms\Components\Section::make('Séjour Details')
-                                ->description('Multi-day tour package settings')
+                            // Accommodation-specific fields
+                            Forms\Components\Section::make('Accommodation Details')
+                                ->description('Multi-day stay package settings')
                                 ->schema([
                                     Forms\Components\Select::make('accommodation_type')
                                         ->label('Accommodation Type')
@@ -408,7 +442,7 @@ class ListingResource extends Resource
                                             ->label('Dinner Included'),
                                     ]),
                                 ])
-                                ->visible(fn (Get $get): bool => $get('service_type') === ServiceType::SEJOUR->value),
+                                ->visible(fn (Get $get): bool => $get('service_type') === ServiceType::ACCOMMODATION->value),
 
                             // Event-specific fields
                             Forms\Components\Section::make('Event Details')
@@ -876,8 +910,8 @@ class ListingResource extends Resource
                                                 ->numeric()
                                                 ->minValue(1)
                                                 ->default(1)
-                                                ->helperText('Which day of the séjour (e.g., 1, 2, 3)')
-                                                ->visible(fn (Get $get): bool => self::getServiceTypeFromRepeater($get) === ServiceType::SEJOUR->value)
+                                                ->helperText('Which day of the accommodation stay (e.g., 1, 2, 3)')
+                                                ->visible(fn (Get $get): bool => self::getServiceTypeFromRepeater($get) === ServiceType::ACCOMMODATION->value)
                                                 ->columnSpan(1),
 
                                             Forms\Components\Grid::make(4)
@@ -1373,8 +1407,9 @@ class ListingResource extends Resource
                     ->formatStateUsing(fn (ServiceType $state): string => $state->label())
                     ->color(fn (ServiceType $state): string => match ($state) {
                         ServiceType::TOUR => 'success',
+                        ServiceType::NAUTICAL => 'primary',
+                        ServiceType::ACCOMMODATION => 'warning',
                         ServiceType::EVENT => 'info',
-                        ServiceType::SEJOUR => 'warning',
                     }),
 
                 Tables\Columns\TextColumn::make('status')
@@ -1425,8 +1460,9 @@ class ListingResource extends Resource
                     ->label('Type')
                     ->options([
                         ServiceType::TOUR->value => ServiceType::TOUR->label(),
+                        ServiceType::NAUTICAL->value => ServiceType::NAUTICAL->label(),
+                        ServiceType::ACCOMMODATION->value => ServiceType::ACCOMMODATION->label(),
                         ServiceType::EVENT->value => ServiceType::EVENT->label(),
-                        ServiceType::SEJOUR->value => ServiceType::SEJOUR->label(),
                     ]),
 
                 Tables\Filters\SelectFilter::make('status')
@@ -1534,9 +1570,13 @@ class ListingResource extends Resource
                             if (empty($record->duration['value'])) {
                                 $errors[] = 'Duration is required for tours';
                             }
-                        } elseif ($record->service_type === ServiceType::SEJOUR) {
+                        } elseif ($record->service_type === ServiceType::NAUTICAL) {
                             if (empty($record->duration['value'])) {
-                                $errors[] = 'Duration (number of days) is required for séjours';
+                                $errors[] = 'Duration is required for nautical activities';
+                            }
+                        } elseif ($record->service_type === ServiceType::ACCOMMODATION) {
+                            if (empty($record->duration['value'])) {
+                                $errors[] = 'Duration (number of days) is required for accommodations';
                             }
                         } elseif ($record->service_type === ServiceType::EVENT) {
                             if (empty($record->event_type)) {

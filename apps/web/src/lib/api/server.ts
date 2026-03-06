@@ -91,7 +91,7 @@ export async function getBrandingUrls(locale?: string) {
     brandPillar1: settings?.data?.branding?.brandPillar1 ?? null,
     brandPillar2: settings?.data?.branding?.brandPillar2 ?? null,
     brandPillar3: settings?.data?.branding?.brandPillar3 ?? null,
-    platformName: settings?.data?.platform?.name ?? 'Go Adventure',
+    platformName: settings?.data?.platform?.name ?? 'Evasion Djerba',
     tagline: settings?.data?.platform?.tagline ?? null,
     description: settings?.data?.seo?.metaDescription ?? null,
     // Analytics IDs from CMS
@@ -198,7 +198,7 @@ export async function getContactInfo(locale?: string) {
   const settings = await getPlatformSettings(locale);
 
   return {
-    supportEmail: settings?.data?.contact?.supportEmail ?? 'contact@go-adventure.net',
+    supportEmail: settings?.data?.contact?.supportEmail ?? 'contact@evasiondjerba.com',
     generalEmail: settings?.data?.contact?.generalEmail ?? null,
     phone: settings?.data?.contact?.phone ?? null,
     whatsapp: settings?.data?.contact?.whatsapp ?? null,

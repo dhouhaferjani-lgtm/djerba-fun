@@ -83,7 +83,7 @@ function RunningTraveler({ isRunning }: { isRunning: boolean }) {
         width="4"
         height="6"
         rx="1"
-        fill="#8BC34A"
+        fill="#F5B041"
         stroke="white"
         strokeWidth="0.5"
         style={{
@@ -97,7 +97,7 @@ function RunningTraveler({ isRunning }: { isRunning: boolean }) {
         y1="7"
         x2="13"
         y2="5"
-        stroke="#8BC34A"
+        stroke="#F5B041"
         strokeWidth="1.5"
         strokeLinecap="round"
       />
@@ -361,12 +361,28 @@ export function HeroSection({
           </video>
         )}
 
-        {/* Dark Green Gradient Overlay */}
+        {/* Navy Gradient Overlay - lighter for more vibrant look */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              'linear-gradient(to bottom, rgba(13, 100, 46, 0.7) 0%, rgba(13, 100, 46, 0.5) 50%, rgba(13, 100, 46, 0.6) 100%)',
+              'linear-gradient(to bottom, rgba(27, 42, 78, 0.55) 0%, rgba(27, 42, 78, 0.4) 50%, rgba(27, 42, 78, 0.5) 100%)',
+          }}
+        />
+
+        {/* Gold & Orange corner glows for warmth */}
+        <div
+          className="absolute bottom-0 left-0 w-1/2 h-1/2 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse at bottom left, rgba(245, 176, 65, 0.25) 0%, transparent 60%)',
+          }}
+        />
+        <div
+          className="absolute bottom-0 right-0 w-1/2 h-1/2 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse at bottom right, rgba(224, 93, 38, 0.2) 0%, transparent 60%)',
           }}
         />
       </div>
@@ -384,7 +400,9 @@ export function HeroSection({
               textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
             }}
           >
-            <span className="text-[#8BC34A]">{firstWord}</span>{' '}
+            <span className="text-[#F5B041] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+              {firstWord}
+            </span>{' '}
             <span className="text-white">{restOfTitle}</span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-light text-white/90 mb-8 max-w-2xl mx-auto leading-[0.8]">
@@ -397,7 +415,7 @@ export function HeroSection({
           </div>
 
           {/* Travel Tip Banner - Transparent with white border, typewriter effect with running traveler */}
-          <div className="w-full max-w-5xl mx-auto bg-white/10 backdrop-blur-sm border border-white px-8 py-3 rounded-lg overflow-hidden">
+          <div className="w-full max-w-5xl mx-auto bg-white/10 backdrop-blur-sm border border-[#F5B041]/60 px-8 py-3 rounded-lg overflow-hidden">
             <p className="text-white text-sm text-center">
               <span className="inline-flex items-center justify-center">
                 <span className="relative">

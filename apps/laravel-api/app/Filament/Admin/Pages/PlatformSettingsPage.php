@@ -209,15 +209,15 @@ class PlatformSettingsPage extends Page implements HasForms
                         Forms\Components\TextInput::make('primary_domain')
                             ->label('Primary Domain')
                             ->url()
-                            ->placeholder('https://goadventure.com'),
+                            ->placeholder('https://evasiondjerba.com'),
                         Forms\Components\TextInput::make('api_url')
                             ->label('API URL')
                             ->url()
-                            ->placeholder('https://api.goadventure.com'),
+                            ->placeholder('https://api.evasiondjerba.com'),
                         Forms\Components\TextInput::make('frontend_url')
                             ->label('Frontend URL')
                             ->url()
-                            ->placeholder('https://goadventure.com'),
+                            ->placeholder('https://evasiondjerba.com'),
                     ])
                     ->columns(3),
             ]);
@@ -467,7 +467,7 @@ class PlatformSettingsPage extends Page implements HasForms
                         Forms\Components\TextInput::make('event_of_year_link')
                             ->label('Event URL')
                             ->url()
-                            ->placeholder('https://goadventure.com/events/festival-2025')
+                            ->placeholder('https://evasiondjerba.com/events/festival-2025')
                             ->helperText('Link for "Learn More" or "Register Now" button'),
                     ])
                     ->columns(2),
@@ -627,13 +627,13 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->schema([
                                         Forms\Components\TextInput::make('seo_title_en')
                                             ->label('SEO Title (English)')
-                                            ->placeholder('Djerba, Tunisia — UNESCO Island, Beaches & Culture | Go Adventure')
+                                            ->placeholder('Djerba, Tunisia — UNESCO Island, Beaches & Culture | Evasion Djerba')
                                             ->maxLength(120)
                                             ->helperText('Page <title> tag. Max 120 chars.'),
 
                                         Forms\Components\TextInput::make('seo_title_fr')
                                             ->label('SEO Title (Français)')
-                                            ->placeholder('Djerba, Tunisie — Île UNESCO, Plages & Culture | Go Adventure')
+                                            ->placeholder('Djerba, Tunisie — Île UNESCO, Plages & Culture | Evasion Djerba')
                                             ->maxLength(120),
 
                                         Forms\Components\Textarea::make('seo_description_en')
@@ -1073,11 +1073,11 @@ class PlatformSettingsPage extends Page implements HasForms
                         Forms\Components\TextInput::make('support_email')
                             ->label('Support Email')
                             ->email()
-                            ->placeholder('support@goadventure.com'),
+                            ->placeholder('support@evasiondjerba.com'),
                         Forms\Components\TextInput::make('general_email')
                             ->label('General Inquiries Email')
                             ->email()
-                            ->placeholder('hello@goadventure.com'),
+                            ->placeholder('hello@evasiondjerba.com'),
                         Forms\Components\TextInput::make('phone_number')
                             ->label('Phone Number')
                             ->tel()
@@ -1154,27 +1154,27 @@ class PlatformSettingsPage extends Page implements HasForms
                         Forms\Components\TextInput::make('social_facebook')
                             ->label('Facebook')
                             ->url()
-                            ->placeholder('https://facebook.com/goadventure'),
+                            ->placeholder('https://facebook.com/evasiondjerba'),
                         Forms\Components\TextInput::make('social_instagram')
                             ->label('Instagram')
                             ->url()
-                            ->placeholder('https://instagram.com/goadventure'),
+                            ->placeholder('https://instagram.com/evasiondjerba'),
                         Forms\Components\TextInput::make('social_twitter')
                             ->label('Twitter/X')
                             ->url()
-                            ->placeholder('https://twitter.com/goadventure'),
+                            ->placeholder('https://twitter.com/evasiondjerba'),
                         Forms\Components\TextInput::make('social_linkedin')
                             ->label('LinkedIn')
                             ->url()
-                            ->placeholder('https://linkedin.com/company/goadventure'),
+                            ->placeholder('https://linkedin.com/company/evasiondjerba'),
                         Forms\Components\TextInput::make('social_youtube')
                             ->label('YouTube')
                             ->url()
-                            ->placeholder('https://youtube.com/@goadventure'),
+                            ->placeholder('https://youtube.com/@evasiondjerba'),
                         Forms\Components\TextInput::make('social_tiktok')
                             ->label('TikTok')
                             ->url()
-                            ->placeholder('https://tiktok.com/@goadventure'),
+                            ->placeholder('https://tiktok.com/@evasiondjerba'),
                     ])
                     ->columns(2),
             ]);
@@ -1190,15 +1190,15 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\TextInput::make('email_from_name')
                             ->label('From Name')
-                            ->placeholder('Go Adventure'),
+                            ->placeholder('Evasion Djerba'),
                         Forms\Components\TextInput::make('email_from_address')
                             ->label('From Email')
                             ->email()
-                            ->placeholder('noreply@goadventure.com'),
+                            ->placeholder('noreply@evasiondjerba.com'),
                         Forms\Components\TextInput::make('email_reply_to')
                             ->label('Reply-To Email')
                             ->email()
-                            ->placeholder('support@goadventure.com'),
+                            ->placeholder('support@evasiondjerba.com'),
                     ])
                     ->columns(3),
 
@@ -1208,11 +1208,11 @@ class PlatformSettingsPage extends Page implements HasForms
                         Forms\Components\TextInput::make('email_terms_url')
                             ->label('Terms URL')
                             ->url()
-                            ->placeholder('https://goadventure.com/terms'),
+                            ->placeholder('https://evasiondjerba.com/terms'),
                         Forms\Components\TextInput::make('email_privacy_url')
                             ->label('Privacy URL')
                             ->url()
-                            ->placeholder('https://goadventure.com/privacy'),
+                            ->placeholder('https://evasiondjerba.com/privacy'),
                     ])
                     ->columns(2),
             ]);
@@ -1367,7 +1367,7 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->maxLength(255),
                         Forms\Components\TextInput::make('bank_transfer_account_holder')
                             ->label('Account Holder Name')
-                            ->placeholder('e.g. Go Adventure SARL')
+                            ->placeholder('e.g. Evasion Djerba SARL')
                             ->maxLength(255),
                         Forms\Components\TextInput::make('bank_transfer_iban')
                             ->label('IBAN')
@@ -1615,7 +1615,7 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->label('Hotjar Site ID'),
                         Forms\Components\TextInput::make('plausible_domain')
                             ->label('Plausible Domain')
-                            ->placeholder('goadventure.com'),
+                            ->placeholder('evasiondjerba.com'),
                         Forms\Components\TextInput::make('sentry_dsn')
                             ->label('Sentry DSN')
                             ->password()

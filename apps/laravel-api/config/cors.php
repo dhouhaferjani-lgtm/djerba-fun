@@ -28,8 +28,8 @@ return [
     ],
 
     'allowed_origins_patterns' => [
-        // All go-adventure.net subdomains (live, staging, dev)
-        '#^https://(.+\.)?go-adventure\.net$#',
+        // All evasiondjerba.com subdomains (live, staging, dev)
+        '#^https://(.+\.)?evasiondjerba\.com$#',
     ],
 
     'allowed_headers' => ['*'],

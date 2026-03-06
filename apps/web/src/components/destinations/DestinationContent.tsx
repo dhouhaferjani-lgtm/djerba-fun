@@ -1014,7 +1014,7 @@ export function DestinationContent({
 
       {/* ===== SEO DESCRIPTION SECTION (cream bg) ===== */}
       <motion.section
-        className="py-16 bg-[#f5f0d1]"
+        className="py-16 bg-neutral-100"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, margin: '-50px' }}
@@ -1145,7 +1145,7 @@ export function DestinationContent({
             style={{ animation: 'float 8s ease-in-out infinite 1s' }}
           />
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#f5f0d1]/30 rounded-full blur-3xl"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#fef3c7]/30 rounded-full blur-3xl"
             style={{ animation: 'float 7s ease-in-out infinite 0.5s' }}
           />
 

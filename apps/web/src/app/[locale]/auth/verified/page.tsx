@@ -264,7 +264,8 @@ export default function EmailVerifiedPage() {
             {t('account_verified') || 'Account Verified!'}
           </h1>
           <p className="text-gray-600">
-            {t('welcome_message') || 'Welcome to Go Adventure! Your account is now active.'}
+            {t('welcome_message') ||
+              'Bienvenue sur Evasion Djerba ! Votre compte est maintenant actif.'}
           </p>
         </div>
 

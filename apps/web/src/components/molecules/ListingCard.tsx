@@ -66,8 +66,10 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
             </div>
           )}
 
-          {/* Activity Type Badge (Tours and Sejours) */}
-          {(listing.serviceType === 'tour' || listing.serviceType === 'sejour') &&
+          {/* Activity Type Badge (Tour-like services) */}
+          {(listing.serviceType === 'tour' ||
+            listing.serviceType === 'nautical' ||
+            listing.serviceType === 'accommodation') &&
             listing.activityType && (
               <div className="absolute top-3 left-3">
                 <span
@@ -75,7 +77,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
                   style={
                     listing.activityType.color
                       ? { color: listing.activityType.color }
-                      : { color: '#0D642E' }
+                      : { color: '#1B2A4E' }
                   }
                 >
                   {tr(listing.activityType.name)}
@@ -83,8 +85,8 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
               </div>
             )}
 
-          {/* Multi-day badge (Sejours) */}
-          {listing.serviceType === 'sejour' && listing.duration?.value && (
+          {/* Multi-day badge (Accommodations) */}
+          {listing.serviceType === 'accommodation' && listing.duration?.value && (
             <div className="absolute top-3 right-3">
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 shadow-sm">
                 <Calendar className="h-3 w-3" />
@@ -122,7 +124,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
               <span>
                 {listing.duration.value}{' '}
                 {tDict(
-                  `duration_unit.${listing.duration.unit || (listing.serviceType === 'sejour' ? 'days' : 'hours')}`
+                  `duration_unit.${listing.duration.unit || (listing.serviceType === 'accommodation' ? 'days' : 'hours')}`
                 )}
               </span>
             </div>

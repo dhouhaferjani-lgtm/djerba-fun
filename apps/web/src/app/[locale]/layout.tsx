@@ -10,7 +10,7 @@ import { WebVitals } from '../web-vitals';
 import { getBrandingUrls, getSchemaOrgData } from '@/lib/api/server';
 import '../globals.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://goadventure.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://evasiondjerba.com';
 // Fallback GA ID from env (CMS value is preferred and fetched in layout)
 const FALLBACK_GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
@@ -19,9 +19,9 @@ const FALLBACK_GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 export const dynamic = 'force-dynamic';
 
 // Default metadata values (fallback if API fails)
-const DEFAULT_TITLE = 'Go Adventure - Tourism Marketplace';
+const DEFAULT_TITLE = "Evasion Djerba - Vivez l'île autrement";
 const DEFAULT_DESCRIPTION =
-  'Discover and book unique activities and events. Your trusted marketplace for unforgettable travel experiences.';
+  'Découvrez Djerba avec des excursions uniques, activités nautiques et hébergements authentiques. Votre aventure méditerranéenne commence ici!';
 
 /**
  * Generate dynamic metadata from platform settings.
@@ -35,7 +35,7 @@ export async function generateMetadata({
   const { locale } = await params;
   const branding = await getBrandingUrls(locale);
 
-  const platformName = branding.platformName || 'Go Adventure';
+  const platformName = branding.platformName || 'Evasion Djerba';
   const title = branding.tagline ? `${platformName} - ${branding.tagline}` : DEFAULT_TITLE;
   const description = branding.description || DEFAULT_DESCRIPTION;
 
@@ -49,15 +49,16 @@ export async function generateMetadata({
     },
     description,
     keywords: [
-      'tourism',
-      'activities',
-      'events',
-      'adventure',
-      'travel',
-      'marketplace',
-      'experiences',
-      'outdoor activities',
-      'guided activities',
+      'djerba',
+      'tunisie',
+      'tunisia',
+      'excursions',
+      'activités nautiques',
+      'jet ski',
+      'parachute ascensionnel',
+      'hébergement',
+      'méditerranée',
+      'tourisme',
     ],
     authors: [{ name: platformName }],
     creator: platformName,
@@ -82,7 +83,7 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title,
       description,
-      creator: '@goadventure',
+      creator: '@evasiondjerba',
       images: [ogImage],
     },
     robots: {
@@ -168,17 +169,17 @@ export default async function LocaleLayout({
         />
       ) : (
         <OrganizationJsonLd
-          name={branding.platformName || 'Go Adventure'}
+          name={branding.platformName || 'Evasion Djerba'}
           url={SITE_URL}
           logo={branding.logoLight || `${SITE_URL}/logo.png`}
           description={
             branding.description ||
-            'Discover and book unique activities and events. Your trusted marketplace for unforgettable travel experiences.'
+            'Découvrez Djerba avec des excursions uniques, activités nautiques et hébergements authentiques. Votre aventure méditerranéenne commence ici!'
           }
           sameAs={[
-            'https://facebook.com/goadventure',
-            'https://instagram.com/goadventure',
-            'https://twitter.com/goadventure',
+            'https://facebook.com/evasiondjerba',
+            'https://instagram.com/evasiondjerba',
+            'https://tiktok.com/@evasiondjerba',
           ]}
         />
       )}

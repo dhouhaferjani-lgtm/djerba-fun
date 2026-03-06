@@ -629,7 +629,7 @@ interface RouteItineraryTabsProps {
   title: string;
   imageUrl?: string;
   locale: string;
-  isSejour?: boolean;
+  isAccommodation?: boolean;
   skipRouting?: boolean;
   routingProfile?: 'foot' | 'driving' | 'cycling';
 }
@@ -640,7 +640,7 @@ function RouteItineraryTabs({
   title,
   imageUrl,
   locale,
-  isSejour,
+  isAccommodation,
   skipRouting,
   routingProfile,
 }: RouteItineraryTabsProps) {
@@ -682,7 +682,7 @@ function RouteItineraryTabs({
               title={title}
               imageUrl={imageUrl}
               itinerary={itinerary}
-              isSejour={isSejour}
+              isAccommodation={isAccommodation}
               skipRouting={skipRouting}
               routingProfile={routingProfile}
               locale={locale}
@@ -693,7 +693,11 @@ function RouteItineraryTabs({
 
         {activeTab === 'itinerary' && (
           <div className="bg-white rounded-lg border border-neutral-200 p-6">
-            <ItineraryTimeline stops={itinerary} locale={locale} isSejour={isSejour} />
+            <ItineraryTimeline
+              stops={itinerary}
+              locale={locale}
+              isAccommodation={isAccommodation}
+            />
           </div>
         )}
       </div>
@@ -895,7 +899,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       {/* Cart Success Toast */}
       {showCartSuccess && (
         <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-right duration-300">
-          <div className="bg-[#0D642E] text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4">
+          <div className="bg-[#1B2A4E] text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4">
             <CheckCircle className="h-6 w-6 flex-shrink-0" />
             <div>
               <p className="font-semibold">{tCart('added_to_cart')}</p>
@@ -929,7 +933,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                 <span
                   className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-sm font-semibold uppercase tracking-wider"
                   style={
-                    (listing.serviceType === 'tour' || listing.serviceType === 'sejour') &&
+                    (listing.serviceType === 'tour' || listing.serviceType === 'accommodation') &&
                     listing.activityType?.color
                       ? { color: listing.activityType.color }
                       : { color: 'var(--color-primary)' }
@@ -938,17 +942,17 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   <span
                     className="w-2 h-2 rounded-full"
                     style={
-                      (listing.serviceType === 'tour' || listing.serviceType === 'sejour') &&
+                      (listing.serviceType === 'tour' || listing.serviceType === 'accommodation') &&
                       listing.activityType?.color
                         ? { backgroundColor: listing.activityType.color }
                         : { backgroundColor: 'var(--color-secondary)' }
                     }
                   ></span>
-                  {listing.serviceType === 'tour' || listing.serviceType === 'sejour'
+                  {listing.serviceType === 'tour' || listing.serviceType === 'accommodation'
                     ? listing.activityType
                       ? tr(listing.activityType.name)
-                      : listing.serviceType === 'sejour'
-                        ? t('default_sejour_type')
+                      : listing.serviceType === 'accommodation'
+                        ? t('default_accommodation_type')
                         : t('default_tour_type')
                     : t('default_event_type')}
                 </span>
@@ -965,19 +969,19 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   <MapPin className="h-4 w-4 text-primary" />
                   <span>{listing.meetingPoint?.address || t('default_location')}</span>
                 </div>
-                {(listing.serviceType === 'tour' || listing.serviceType === 'sejour') &&
+                {(listing.serviceType === 'tour' || listing.serviceType === 'accommodation') &&
                   listing.duration && (
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-primary" />
                       <span>
                         {listing.duration.value}{' '}
                         {t(
-                          `duration_unit.${listing.duration.unit || (listing.serviceType === 'sejour' ? 'days' : 'hours')}`
+                          `duration_unit.${listing.duration.unit || (listing.serviceType === 'accommodation' ? 'days' : 'hours')}`
                         )}
                       </span>
                     </div>
                   )}
-                {(listing.serviceType === 'tour' || listing.serviceType === 'sejour') &&
+                {(listing.serviceType === 'tour' || listing.serviceType === 'accommodation') &&
                   listing.difficulty && (
                     <div className="flex items-center gap-2">
                       <svg
@@ -1094,15 +1098,15 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                 );
               })()}
 
-              {/* Séjour Banner */}
-              {listing.serviceType === 'sejour' && listing.duration?.value && (
+              {/* Accommodation Banner */}
+              {listing.serviceType === 'accommodation' && listing.duration?.value && (
                 <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 px-6 py-4 flex items-center gap-4">
                   <Calendar className="h-8 w-8 text-amber-600 flex-shrink-0" />
                   <div>
                     <p className="font-semibold text-amber-900 text-lg">
                       {listing.duration.value}-{t('day_experience')}
                     </p>
-                    <p className="text-sm text-amber-700">{t('sejour_booking_note')}</p>
+                    <p className="text-sm text-amber-700">{t('accommodation_booking_note')}</p>
                   </div>
                   <div className="ml-auto flex-shrink-0">
                     <ChevronRight className="h-6 w-6 text-amber-600 animate-bounce hidden lg:block" />
@@ -1148,8 +1152,8 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                     </section>
                   )}
 
-                  {/* Accommodation & Meals (Séjours only) */}
-                  {listing.serviceType === 'sejour' &&
+                  {/* Accommodation & Meals (Accommodations only) */}
+                  {listing.serviceType === 'accommodation' &&
                     (('accommodationType' in listing && listing.accommodationType) ||
                       ('mealsIncluded' in listing && listing.mealsIncluded)) && (
                       <section>
@@ -1214,7 +1218,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   {'itinerary' in listing && listing.itinerary && listing.itinerary.length > 0 && (
                     <section>
                       <h2 className="font-display text-3xl font-bold text-heading mb-6 tracking-tight">
-                        {listing.serviceType === 'sejour'
+                        {listing.serviceType === 'accommodation'
                           ? t('day_by_day_program')
                           : t('route_itinerary')}
                       </h2>
@@ -1257,7 +1261,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                         title={title}
                         imageUrl={normalizeMediaUrl(listing.media?.[0]?.url)}
                         locale={locale}
-                        isSejour={listing.serviceType === 'sejour'}
+                        isAccommodation={listing.serviceType === 'accommodation'}
                         skipRouting={[
                           'fishing',
                           'boat',

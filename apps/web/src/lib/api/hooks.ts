@@ -14,6 +14,7 @@ import {
   locationsApi,
   activityTypesApi,
   categoryStatsApi,
+  tagsApi,
   type ProcessPaymentRequest,
   type Cart,
   type UpdateParticipantData,
@@ -27,6 +28,9 @@ import type {
   ListingSearchParams,
   CreateHoldRequest,
   CreateReviewRequest,
+  TagType,
+  Tag,
+  TagGroup,
 } from '@go-adventure/schemas';
 
 // ============================================================================
@@ -230,6 +234,45 @@ export function useActivityTypes() {
     },
     staleTime: 60 * 60 * 1000, // 1 hour - activity types rarely change
     gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 24 hours
+  });
+}
+
+// ============================================================================
+// TAGS HOOKS
+// ============================================================================
+
+/**
+ * Fetch all active tags, optionally filtered by type or service type
+ * @param params.type - Filter by tag type (tour_type, boat_type, etc.)
+ * @param params.serviceType - Filter by applicable service type (tour, nautical, etc.)
+ */
+export function useTags(params?: { type?: TagType; serviceType?: string }) {
+  return useQuery({
+    queryKey: ['tags', params?.type, params?.serviceType],
+    queryFn: async () => {
+      const response = await tagsApi.list(params);
+      if ('data' in response) {
+        return response.data;
+      }
+      // If grouped response, flatten
+      return (response as TagGroup[]).flatMap((group) => group.tags as Tag[]);
+    },
+    staleTime: 30 * 60 * 1000, // 30 minutes - tags change infrequently
+    gcTime: 60 * 60 * 1000, // Keep in cache for 1 hour
+  });
+}
+
+/**
+ * Fetch tags for a specific service type, grouped by tag type
+ * Used for building filter UI on listings page
+ */
+export function useTagsForServiceType(serviceType: string, enabled = true) {
+  return useQuery({
+    queryKey: ['tags', 'forService', serviceType],
+    queryFn: () => tagsApi.forServiceType(serviceType),
+    enabled: enabled && !!serviceType,
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 1 hour
   });
 }
 

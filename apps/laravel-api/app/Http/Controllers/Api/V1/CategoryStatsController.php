@@ -11,15 +11,16 @@ class CategoryStatsController extends Controller
 {
     /**
      * Get category statistics for the homepage.
-     * Returns counts and images for tours and events.
+     * Returns counts and images for all service types.
      */
     public function index(): JsonResponse
     {
         $stats = Cache::remember('category_stats', 300, function () {
             return [
                 'tours' => $this->getStatsForType('tour'),
+                'nautical' => $this->getStatsForType('nautical'),
+                'accommodations' => $this->getStatsForType('accommodation'),
                 'events' => $this->getStatsForType('event'),
-                'sejours' => $this->getStatsForType('sejour'),
             ];
         });
 

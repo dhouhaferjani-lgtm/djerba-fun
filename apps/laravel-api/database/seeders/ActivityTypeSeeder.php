@@ -15,61 +15,61 @@ class ActivityTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        // Activity types matching go-adventure.net (old site)
+        // Activity types for Evasion Djerba - Djerba island tourism
         $activityTypes = [
             [
-                'name' => ['en' => 'Cultural Expeditions', 'fr' => 'Expéditions Culturelles'],
-                'slug' => 'cultural-expeditions',
+                'name' => ['en' => 'Island Tours', 'fr' => 'Tours de l\'île'],
+                'slug' => 'island-tours',
                 'description' => [
-                    'en' => 'Discover local culture, heritage sites, and traditional customs',
-                    'fr' => 'Découvrez la culture locale, les sites patrimoniaux et les coutumes traditionnelles',
+                    'en' => 'Discover Djerba island with guided tours, horse carriage rides, and quad adventures',
+                    'fr' => 'Découvrez l\'île de Djerba avec des visites guidées, des balades en calèche et des aventures en quad',
                 ],
-                'icon' => 'heroicon-o-building-library',
-                'color' => '#8B4513', // Brown
+                'icon' => 'heroicon-o-map',
+                'color' => '#0077B6', // Ocean Blue (brand primary)
                 'display_order' => 1,
             ],
             [
-                'name' => ['en' => 'Corporate & Team Building Stays', 'fr' => 'Séjours Corporate & Team Building'],
-                'slug' => 'corporate-sports',
+                'name' => ['en' => 'Nautical Activities', 'fr' => 'Activités Nautiques'],
+                'slug' => 'nautical-activities',
                 'description' => [
-                    'en' => 'Team building, corporate retreats, and sports-focused group experiences',
-                    'fr' => 'Team building, séminaires d\'entreprise et expériences de groupe axées sur le sport',
+                    'en' => 'Jet ski, parasailing, diving, banana boat, and other water sports',
+                    'fr' => 'Jet ski, parachute ascensionnel, plongée, banana boat et autres sports nautiques',
                 ],
-                'icon' => 'heroicon-o-building-office',
-                'color' => '#4169E1', // Royal Blue
+                'icon' => 'heroicon-o-lifebuoy',
+                'color' => '#0096C7', // Ocean Blue Light
                 'display_order' => 2,
             ],
             [
-                'name' => ['en' => 'Road & Mountain Biking', 'fr' => 'Vélo de Route & de Montagne'],
-                'slug' => 'mountain-biking',
+                'name' => ['en' => 'Beach & Relaxation', 'fr' => 'Plage & Détente'],
+                'slug' => 'beach-relaxation',
                 'description' => [
-                    'en' => 'Explore scenic trails and paths on two wheels',
-                    'fr' => 'Explorez des sentiers et des chemins pittoresques à vélo',
+                    'en' => 'Beach clubs, sunset cruises, and relaxation experiences',
+                    'fr' => 'Beach clubs, croisières au coucher du soleil et expériences de détente',
                 ],
-                'icon' => 'heroicon-o-sparkles',
-                'color' => '#228B22', // Forest Green
+                'icon' => 'heroicon-o-sun',
+                'color' => '#F4A261', // Sandy Orange (brand secondary)
                 'display_order' => 3,
             ],
             [
-                'name' => ['en' => 'Water Activities & Sports', 'fr' => 'Activités & Sports Nautiques'],
-                'slug' => 'water-activities',
+                'name' => ['en' => 'Cultural Heritage', 'fr' => 'Patrimoine Culturel'],
+                'slug' => 'cultural-heritage',
                 'description' => [
-                    'en' => 'Enjoy water sports, diving, sailing, and coastal adventures',
-                    'fr' => 'Profitez des sports nautiques, de la plongée, de la voile et des aventures côtières',
+                    'en' => 'Explore Djerba\'s synagogues, museums, Houmt Souk, and traditional crafts',
+                    'fr' => 'Explorez les synagogues, musées, Houmt Souk et l\'artisanat traditionnel de Djerba',
                 ],
-                'icon' => 'heroicon-o-lifebuoy',
-                'color' => '#1E90FF', // Dodger Blue
+                'icon' => 'heroicon-o-building-library',
+                'color' => '#023E8A', // Ocean Blue Dark
                 'display_order' => 4,
             ],
             [
-                'name' => ['en' => 'Trail Running, Hiking & Trekking', 'fr' => 'Trail Running, Randonnée & Trekking'],
-                'slug' => 'trail-trekking',
+                'name' => ['en' => 'Local Gastronomy', 'fr' => 'Gastronomie Locale'],
+                'slug' => 'local-gastronomy',
                 'description' => [
-                    'en' => 'Hiking adventures through mountains, deserts, and natural landscapes',
-                    'fr' => 'Aventures de randonnée à travers les montagnes, les déserts et les paysages naturels',
+                    'en' => 'Taste authentic Djerbian cuisine, cooking classes, and food tours',
+                    'fr' => 'Dégustez la cuisine djerbienne authentique, cours de cuisine et visites gastronomiques',
                 ],
-                'icon' => 'heroicon-o-map',
-                'color' => '#0D642E', // Primary Green (brand color)
+                'icon' => 'heroicon-o-sparkles',
+                'color' => '#E76F51', // Sandy Orange Dark
                 'display_order' => 5,
             ],
         ];
