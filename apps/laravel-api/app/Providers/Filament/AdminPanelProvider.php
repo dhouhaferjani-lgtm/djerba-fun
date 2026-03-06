@@ -48,8 +48,7 @@ class AdminPanelProvider extends PanelProvider
                     ->label(fn () => __('filament.nav.catalog'))
                     ->icon('heroicon-o-squares-2x2'),
                 NavigationGroup::make()
-                    ->label(fn () => __('filament.nav.content'))
-                    ->icon('heroicon-o-document-text'),
+                    ->label(fn () => __('filament.nav.content')),
                 NavigationGroup::make()
                     ->label(fn () => __('filament.nav.marketing'))
                     ->icon('heroicon-o-megaphone'),

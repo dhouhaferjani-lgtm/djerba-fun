@@ -11,6 +11,12 @@ Evasion Djerba is a tourism marketplace for Djerba island (Tunisia) built as a p
 - **`packages/schemas/`** - Zod schemas (source of truth for types shared between frontend and backend)
 - **`packages/ui/`** - Shared design system components (Button, Input, Card, Badge) using class-variance-authority (cva)
 
+### Core Data Flows
+
+1. **Booking Flow**: Listing → AvailabilitySlot → BookingHold (15min TTL) → Booking → PaymentIntent → Participants/Vouchers
+2. **Cart Flow**: Multiple BookingHolds → Cart → CartPayment → Multiple Bookings
+3. **Auth Flow**: Register → Email Verification → Login OR Magic Link (passwordless)
+
 ## Common Commands
 
 ### Docker Development (primary workflow)
@@ -60,11 +66,12 @@ pnpm build        # Production build
 pnpm lint         # ESLint
 pnpm typecheck    # TypeScript check (tsc --noEmit)
 
-# E2E tests (requires dev server + API running)
-pnpm exec playwright test                    # All E2E tests
-pnpm exec playwright test -g "test name"     # Single test by name
-pnpm exec playwright test --headed           # With visible browser
-pnpm exec playwright test --debug            # Debug mode
+# E2E tests (in tests/e2e/, requires dev server + API running)
+pnpm exec playwright test                              # All E2E tests
+pnpm exec playwright test -g "test name"               # Single test by name
+pnpm exec playwright test --headed                     # With visible browser
+pnpm exec playwright test --debug                      # Debug mode
+pnpm exec playwright test tests/e2e/booking-flow.spec.ts  # Single file
 ```
 
 ### Monorepo Root
@@ -96,6 +103,17 @@ pnpm dev      # Watch mode
 - Types imported from `@go-adventure/schemas` - never define API types locally
 - Utility: `cn()` from `apps/web/src/lib/utils/cn.ts` for Tailwind class merging
 
+**API modules in client.ts**: `authApi`, `listingsApi`, `bookingsApi`, `participantsApi`, `vouchersApi`, `magicLinksApi`, `reviewsApi`, `couponsApi`, `vendorsApi`, `cartApi`, `platformApi`, `userApi`, `locationsApi`, `activityTypesApi`, `categoryStatsApi`, `tagsApi`, `consentApi`, `travelTipsApi`, `customTripApi`
+
+### Frontend Component Structure
+
+Components in `apps/web/src/components/` follow atomic design:
+
+- `atoms/` - Basic elements (InputWithIcon, Skeleton, TurnstileWidget)
+- `molecules/` - Compound elements (PriceDisplay, RatingStars, SearchBar)
+- `organisms/` - Complex sections (Footer, MobileMenu, ListingGrid)
+- Feature folders: `booking/`, `cart/`, `maps/`, `reviews/`, `cms/`, `gallery/`, `profile/`, etc.
+
 ### Frontend Routing (next-intl)
 
 - Locales: `fr` (default, no URL prefix), `en` (at `/en/...`)
@@ -105,7 +123,9 @@ pnpm dev      # Watch mode
 - Translation files: `apps/web/messages/{fr,en}.json` - must stay in sync (`pnpm i18n:check`)
 - i18n config: `apps/web/src/i18n/routing.ts`, `request.ts`, `navigation.ts`
 - Navigation helpers: Import `Link`, `redirect`, `usePathname`, `useRouter` from `@/i18n/navigation` (not from `next/link` or `next/navigation`)
+- `Locale` type exported from `@/i18n/routing` for type-safe locale handling
 - Middleware redirects legacy `/ar/*` URLs to French equivalent (301)
+- Listing URLs use location-first structure: `/{location}/{slug}` (fr) or `/{locale}/{location}/{slug}` (en)
 
 ### Backend Structure
 
@@ -113,7 +133,7 @@ pnpm dev      # Watch mode
 - **Filament Vendor**: `app/Filament/Vendor/Resources/` - vendor self-service
 - **API Controllers**: `app/Http/Controllers/Api/V1/` - thin controllers delegating to Actions/Services
 - **Partner API**: `app/Http/Controllers/Api/Partner/` - B2B partner endpoints (X-Partner-Key auth)
-- **Actions**: `app/Domain/*/Actions/` - single-purpose business logic classes (prefer over fat services)
+- **Actions**: Single-purpose business logic classes (prefer over fat services); create in `app/Actions/` for reusable business logic
 - **Services**: `app/Services/` - cross-cutting business logic (BookingService, CartService, CouponService, PriceCalculationService, etc.)
 - **FormRequests**: `app/Http/Requests/` - input validation (always use, never validate in controllers)
 - **Resources**: `app/Http/Resources/` - JSON serialization (never return Eloquent models directly)
@@ -133,6 +153,8 @@ pnpm dev      # Watch mode
 Listing (polymorphic via ServiceType: tour, event, nautical, accommodation) -> AvailabilityRule -> AvailabilitySlot -> BookingHold -> Booking -> PaymentIntent -> BookingParticipant (voucher codes)
 
 Additional: Cart -> CartItem -> CartPayment, Coupon, Review, Partner, BlogPost, CustomTripRequest
+
+**Extras System**: Extra (vendor catalog) -> ListingExtra (per-listing config with price overrides) -> BookingExtra (snapshot at booking time). Pricing types: `per_person`, `per_booking`, `per_unit`, `per_person_type`.
 
 ### Pricing System
 
@@ -247,6 +269,17 @@ Edit `apps/web/translations.csv` in Excel or Google Sheets, then import.
 
 ## Testing Patterns
 
+### E2E Test Organization
+
+E2E tests are in `apps/web/tests/e2e/` and organized by feature:
+
+- `auth-login.spec.ts`, `auth-register.spec.ts` - Authentication flows
+- `booking-flow.spec.ts`, `booking-complete-flow.spec.ts` - Booking processes
+- `payment-complete-flow.spec.ts` - Payment integration
+- `inventory-tracking.spec.ts` - Capacity/availability tests
+- `search-and-filter.spec.ts` - Listing search functionality
+- `profile-management.spec.ts`, `dashboard-bookings.spec.ts` - User dashboard
+
 ### Running Single Tests
 
 ```bash
@@ -260,7 +293,7 @@ php artisan test --filter=BookingTest::test_can_create_booking
 pnpm exec playwright test -g "booking flow"
 
 # Playwright - specific file
-pnpm exec playwright test tests/booking.spec.ts
+pnpm exec playwright test tests/e2e/booking-flow.spec.ts
 ```
 
 ## API Patterns
@@ -280,9 +313,42 @@ pnpm exec playwright test tests/booking.spec.ts
 - Guest session: `X-Session-ID: <uuid>` (stored in localStorage as `guest_session_id`)
 - Locale: `Accept-Language: fr|en`
 
-## What's Not Yet Done
+Playwright runs tests on 5 browser projects: Desktop Chrome, Firefox, Safari + Mobile Chrome (Pixel 5), Mobile Safari (iPhone 12). Dev server auto-starts via `webServer` config.
 
-- Comprehensive unit/integration tests (some exist, more needed)
-- PHPStan configuration
-- CI/CD pipeline
-- Real payment gateway (Stripe) - currently using MockPaymentGateway
+## Environment Variables
+
+### Frontend (.env.local)
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=  # Cloudflare Turnstile (optional for dev)
+```
+
+### Backend (.env)
+
+Key variables: `DB_CONNECTION`, `REDIS_HOST`, `MAIL_MAILER` (use `smtp` for Mailpit), `AWS_*` (MinIO), `MEILISEARCH_HOST`, `SANCTUM_STATEFUL_DOMAINS`
+
+## Filament Admin Panels
+
+Two separate panels with distinct authentication:
+
+- **Admin Panel** (`/admin`): Full platform management - uses `app/Providers/Filament/AdminPanelProvider.php`
+- **Vendor Panel** (`/vendor`): Vendor self-service for listings, bookings, payouts - uses `app/Providers/Filament/VendorPanelProvider.php`
+
+Shared Filament components in `app/Filament/Shared/` (Forms, Tables, Actions).
+
+## Quick Debugging
+
+```bash
+# Laravel: clear all caches
+php artisan optimize:clear
+
+# Laravel: view queued jobs
+php artisan horizon
+
+# Laravel: watch logs in real-time
+php artisan pail
+
+# Next.js: analyze bundle size
+cd apps/web && pnpm analyze
+```
