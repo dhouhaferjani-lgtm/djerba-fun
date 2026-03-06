@@ -491,7 +491,7 @@ Not included in this plan but mentioned: vendors should be able to manage extras
   - [x] Frontend: Redirect from listing page after hold creation
 
 - [x] Phase 4: UX improvements (COMPLETED 2025-12-16)
-  - [x] Create Dialog component in @go-adventure/ui
+  - [x] Create Dialog component in @djerba-fun/ui
   - [x] Create BookingPanel responsive wrapper
   - [x] Create useMediaQuery hook
   - [x] Update listing page to use BookingPanel

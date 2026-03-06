@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { Home, Search, Compass } from 'lucide-react';
 import { MainLayout } from '@/components/templates/MainLayout';
 

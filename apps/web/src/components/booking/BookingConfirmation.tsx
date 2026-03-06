@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import type { Booking } from '@go-adventure/schemas';
+import type { Booking } from '@djerba-fun/schemas';
 
 interface BookingConfirmationProps {
   booking: Booking;

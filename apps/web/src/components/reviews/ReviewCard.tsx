@@ -14,7 +14,7 @@
 
 import { useState, memo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import type { Review } from '@go-adventure/schemas';
+import type { Review } from '@djerba-fun/schemas';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
 import { useLocale } from 'next-intl';

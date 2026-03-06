@@ -55,7 +55,7 @@ The design system hardening project is **functionally complete** with all planne
 
 **Delivered**:
 
-- Both components now compose from `@go-adventure/ui` exports
+- Both components now compose from `@djerba-fun/ui` exports
 - No code duplication between web app and UI package
 - Proper TypeScript support with forwardRef
 - All props passed through correctly

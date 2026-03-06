@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { ReviewSummary as ReviewSummaryType } from '@go-adventure/schemas';
+import type { ReviewSummary as ReviewSummaryType } from '@djerba-fun/schemas';
 
 interface ReviewSummaryProps {
   summary: ReviewSummaryType;

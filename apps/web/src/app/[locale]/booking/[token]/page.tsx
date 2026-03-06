@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { magicLinksApi, type MagicLinkBookingResponse } from '@/lib/api/client';
-import type { BookingStatus } from '@go-adventure/schemas';
+import type { BookingStatus } from '@djerba-fun/schemas';
 
 export default function MagicLinkBookingPage() {
   const params = useParams();

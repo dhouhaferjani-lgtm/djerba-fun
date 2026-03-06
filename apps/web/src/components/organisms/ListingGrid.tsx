@@ -1,5 +1,5 @@
 import { ListingCard } from '../molecules/ListingCard';
-import type { ListingSummary } from '@go-adventure/schemas';
+import type { ListingSummary } from '@djerba-fun/schemas';
 
 interface ListingGridProps {
   listings: ListingSummary[];

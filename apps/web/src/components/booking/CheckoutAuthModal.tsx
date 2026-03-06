@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button, Dialog } from '@go-adventure/ui';
+import { Button, Dialog } from '@djerba-fun/ui';
 import { Mail, LogIn, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

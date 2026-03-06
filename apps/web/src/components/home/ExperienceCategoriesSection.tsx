@@ -4,7 +4,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useActivityTypes } from '@/lib/api/hooks';
-import type { ActivityType } from '@go-adventure/schemas';
+import type { ActivityType } from '@djerba-fun/schemas';
 
 // Fallback images by slug (local images for Evasion Djerba categories)
 const fallbackImages: Record<string, string> = {

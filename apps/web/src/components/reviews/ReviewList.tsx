@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import type { Review } from '@go-adventure/schemas';
+import type { Review } from '@djerba-fun/schemas';
 import ReviewCard from './ReviewCard';
 
 interface ReviewListProps {

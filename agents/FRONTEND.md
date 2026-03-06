@@ -93,7 +93,7 @@ export const typography = {
 
 ```typescript
 // apps/web/tailwind.config.ts
-import { colors, typography } from '@go-adventure/ui/tokens';
+import { colors, typography } from '@djerba-fun/ui/tokens';
 
 export default {
   content: ['./src/**/*.{js,ts,jsx,tsx}', '../../packages/ui/src/**/*.{js,ts,jsx,tsx}'],
@@ -254,9 +254,9 @@ Button.displayName = 'Button';
 // apps/web/src/components/molecules/ListingCard/ListingCard.tsx
 import Image from 'next/image';
 import Link from 'next/link';
-import { Badge, RatingStars } from '@go-adventure/ui';
+import { Badge, RatingStars } from '@djerba-fun/ui';
 import { PriceDisplay } from '../PriceDisplay';
-import type { ListingSummary } from '@go-adventure/schemas';
+import type { ListingSummary } from '@djerba-fun/schemas';
 
 interface ListingCardProps {
   listing: ListingSummary;
@@ -309,7 +309,7 @@ export function ListingCard({ listing, locale }: ListingCardProps) {
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import type { MapMarker, ItineraryStop } from '@go-adventure/schemas';
+import type { MapMarker, ItineraryStop } from '@djerba-fun/schemas';
 
 interface MapViewProps {
   center: [number, number];
@@ -430,7 +430,7 @@ function createStopIcon(type: string, number: number) {
 
 import { useMemo } from 'react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
-import type { ElevationPoint } from '@go-adventure/schemas';
+import type { ElevationPoint } from '@djerba-fun/schemas';
 
 interface ElevationProfileProps {
   points: ElevationPoint[];
@@ -659,7 +659,7 @@ export function BookingButton() {
 
 ```typescript
 // apps/web/src/lib/api/client.ts
-import { createClient } from '@go-adventure/sdk';
+import { createClient } from '@djerba-fun/sdk';
 
 export const api = createClient({
   baseUrl: process.env.NEXT_PUBLIC_API_URL!,
@@ -676,7 +676,7 @@ export const api = createClient({
 // apps/web/src/lib/hooks/useListings.ts
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
-import type { ListingSearchParams } from '@go-adventure/schemas';
+import type { ListingSearchParams } from '@djerba-fun/schemas';
 
 export function useListings(params: ListingSearchParams) {
   return useQuery({
@@ -788,7 +788,7 @@ For each component/page:
 
 ## 🚫 What NOT To Do
 
-1. **Never define types locally** - import from @go-adventure/schemas
+1. **Never define types locally** - import from @djerba-fun/schemas
 2. **Never hardcode colors** - use design tokens
 3. **Never skip loading states** - always show skeletons/spinners
 4. **Never skip error boundaries** - wrap async components

@@ -22,7 +22,7 @@ import type {
   Tag,
   TagGroup,
   TagType,
-} from '@go-adventure/schemas';
+} from '@djerba-fun/schemas';
 import { getGuestSessionId } from '@/lib/utils/session';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Button, Dialog } from '@go-adventure/ui';
+import { Button, Dialog } from '@djerba-fun/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Menu, User, LogOut } from 'lucide-react';
 import { CartIcon } from '../cart/CartIcon';

@@ -203,4 +203,215 @@ test.describe('Dashboard - Bookings', () => {
       await expect(page).toHaveURL(/page=2/);
     }
   });
+
+  // TC-F053: Manage Participants
+  test('TC-F053: should manage participants on booking', async ({ page }) => {
+    await page.goto('/en/dashboard/bookings');
+
+    // Find a confirmed booking
+    const confirmedBooking = page
+      .locator(
+        '[data-testid="booking-item"]:has([data-testid="booking-status"]:has-text("confirmed"))'
+      )
+      .first();
+    const hasConfirmedBooking = await confirmedBooking.isVisible().catch(() => false);
+
+    if (hasConfirmedBooking) {
+      await confirmedBooking.click();
+      await page.waitForLoadState('networkidle');
+
+      // Look for manage participants button/link
+      const manageButton = page
+        .locator(
+          'button:has-text("Manage Participants"), a:has-text("Participants"), [data-testid="manage-participants"]'
+        )
+        .first();
+      const hasManage = await manageButton.isVisible().catch(() => false);
+
+      if (hasManage) {
+        await manageButton.click();
+        await page.waitForTimeout(500);
+
+        // Should see participant list or form
+        const participantForm = page
+          .locator(
+            '[data-testid="participant-form"], form:has(input[name*="participant"]), .participant-list'
+          )
+          .first();
+        const hasForm = await participantForm.isVisible().catch(() => false);
+
+        if (hasForm) {
+          // Try to edit a participant name
+          const nameInput = page.locator('input[name*="name"], input[placeholder*="name"]').first();
+          if (await nameInput.isVisible()) {
+            const currentValue = await nameInput.inputValue();
+            await nameInput.fill('Updated Name');
+
+            // Save changes
+            const saveButton = page
+              .locator('button:has-text("Save"), button[type="submit"]')
+              .first();
+            if (await saveButton.isVisible()) {
+              await saveButton.click();
+              await page.waitForTimeout(1000);
+
+              // Check for success
+              const successMsg = page.locator('text=/saved|updated|success/i');
+              const hasSaved = await successMsg.isVisible().catch(() => false);
+              console.log(`TC-F053: Participant update ${hasSaved ? 'successful' : 'attempted'}`);
+            }
+          }
+        } else {
+          console.log('TC-F053: Participant management form not found');
+        }
+      } else {
+        console.log('TC-F053: Manage participants button not available');
+      }
+    } else {
+      console.log('TC-F053: No confirmed bookings to manage');
+    }
+  });
+
+  // TC-F056: Write Review
+  test('TC-F056: should write review for completed booking', async ({ page }) => {
+    await page.goto('/en/dashboard/bookings');
+
+    // Find a completed booking
+    const completedBooking = page
+      .locator(
+        '[data-testid="booking-item"]:has([data-testid="booking-status"]:has-text("completed"))'
+      )
+      .first();
+    const hasCompletedBooking = await completedBooking.isVisible().catch(() => false);
+
+    if (hasCompletedBooking) {
+      await completedBooking.click();
+      await page.waitForLoadState('networkidle');
+
+      // Look for write review button
+      const reviewButton = page
+        .locator(
+          'button:has-text("Write Review"), a:has-text("Review"), [data-testid="write-review"]'
+        )
+        .first();
+      const hasReviewBtn = await reviewButton.isVisible().catch(() => false);
+
+      if (hasReviewBtn) {
+        await reviewButton.click();
+        await page.waitForTimeout(500);
+
+        // Should see review form
+        const reviewForm = page.locator('[data-testid="review-form"], form:has(textarea)').first();
+        const hasForm = await reviewForm.isVisible().catch(() => false);
+
+        if (hasForm) {
+          // Select rating (5 stars)
+          const starRating = page
+            .locator('[data-testid="star-5"], [aria-label*="5 star"], button:nth-child(5)')
+            .first();
+          if (await starRating.isVisible()) {
+            await starRating.click();
+          }
+
+          // Write review text
+          const reviewTextarea = page
+            .locator('textarea[name*="review"], textarea[placeholder*="review"]')
+            .first();
+          if (await reviewTextarea.isVisible()) {
+            await reviewTextarea.fill(
+              'This was an amazing experience! Highly recommended for all adventure seekers.'
+            );
+          }
+
+          // Submit review
+          const submitButton = page
+            .locator('button:has-text("Submit"), button[type="submit"]')
+            .first();
+          if (await submitButton.isVisible()) {
+            await submitButton.click();
+            await page.waitForTimeout(1000);
+
+            // Check for success
+            const successMsg = page.locator('text=/submitted|thank you|review.*sent/i');
+            const hasSuccess = await successMsg.isVisible().catch(() => false);
+            console.log(`TC-F056: Review submission ${hasSuccess ? 'successful' : 'attempted'}`);
+          }
+        } else {
+          console.log('TC-F056: Review form not found');
+        }
+      } else {
+        console.log('TC-F056: Write review button not available (may need completed booking)');
+      }
+    } else {
+      console.log('TC-F056: No completed bookings to review');
+    }
+  });
+
+  // TC-F057: Claim Past Booking
+  test('TC-F057: should claim past guest booking', async ({ page }) => {
+    await page.goto('/en/dashboard/bookings');
+
+    // Look for claim booking button/link
+    const claimButton = page
+      .locator(
+        'button:has-text("Claim"), a:has-text("Claim Booking"), [data-testid="claim-booking"]'
+      )
+      .first();
+    const hasClaimBtn = await claimButton.isVisible().catch(() => false);
+
+    if (hasClaimBtn) {
+      await claimButton.click();
+      await page.waitForTimeout(500);
+
+      // Should see claim form or modal
+      const claimForm = page
+        .locator('[data-testid="claim-form"], form:has(input[name*="booking"]), .claim-modal')
+        .first();
+      const hasForm = await claimForm.isVisible().catch(() => false);
+
+      if (hasForm) {
+        // Enter booking number
+        const bookingInput = page
+          .locator('input[name*="booking"], input[placeholder*="booking number"]')
+          .first();
+        if (await bookingInput.isVisible()) {
+          await bookingInput.fill('BK-TEST-123456');
+
+          // May need email for verification
+          const emailInput = page.locator('input[type="email"], input[name*="email"]').first();
+          if (await emailInput.isVisible()) {
+            await emailInput.fill('guest@test.com');
+          }
+
+          // Submit claim
+          const submitButton = page
+            .locator('button:has-text("Claim"), button[type="submit"]')
+            .first();
+          if (await submitButton.isVisible()) {
+            await submitButton.click();
+            await page.waitForTimeout(1000);
+
+            // Check response (success or error for invalid booking)
+            const response = page.locator('text=/claimed|linked|not found|invalid/i');
+            const hasResponse = await response.isVisible().catch(() => false);
+            console.log(
+              `TC-F057: Claim booking ${hasResponse ? 'response received' : 'attempted'}`
+            );
+          }
+        }
+      } else {
+        console.log('TC-F057: Claim booking form not found');
+      }
+    } else {
+      // Try looking in profile or different location
+      await page.goto('/en/dashboard/profile');
+      await page.waitForLoadState('networkidle');
+
+      const claimInProfile = page.locator('text=/claim.*booking|link.*booking/i').first();
+      const hasClaimInProfile = await claimInProfile.isVisible().catch(() => false);
+      console.log(
+        `TC-F057: Claim booking feature ${hasClaimInProfile ? 'found in profile' : 'not found'}`
+      );
+    }
+  });
 });

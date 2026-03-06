@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { colors } from '@go-adventure/ui';
+import { colors } from '@djerba-fun/ui';
 
 /**
  * PWA Manifest

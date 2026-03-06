@@ -4,7 +4,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { DestinationContent } from '@/components/destinations/DestinationContent';
 import { getCmsDestination } from '@/lib/api/server';
-import type { ListingSummary } from '@go-adventure/schemas';
+import type { ListingSummary } from '@djerba-fun/schemas';
 
 interface Location {
   id: string;

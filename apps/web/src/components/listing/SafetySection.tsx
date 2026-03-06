@@ -2,8 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { Shield, X, CheckCircle, AlertCircle } from 'lucide-react';
-import { Badge } from '@go-adventure/ui';
-import type { SafetyInfo } from '@go-adventure/schemas';
+import { Badge } from '@djerba-fun/ui';
+import type { SafetyInfo } from '@djerba-fun/schemas';
 
 interface SafetySectionProps {
   safety: SafetyInfo | null | undefined;

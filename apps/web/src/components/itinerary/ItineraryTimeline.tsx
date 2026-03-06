@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { ItineraryStop } from '@go-adventure/schemas';
+import type { ItineraryStop } from '@djerba-fun/schemas';
 import { MapPin, Clock } from 'lucide-react';
 
 // Brand-aligned day colors: Navy, Emerald, Gold, Orange + complementary

@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { format, parseISO } from 'date-fns';
 import { Clock, Users } from 'lucide-react';
-import type { AvailabilitySlot } from '@go-adventure/schemas';
+import type { AvailabilitySlot } from '@djerba-fun/schemas';
 
 interface TimeSlotPickerProps {
   slots: AvailabilitySlot[];

@@ -1,8 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@go-adventure/ui';
-import type { ListingFaq } from '@go-adventure/schemas';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@djerba-fun/ui';
+import type { ListingFaq } from '@djerba-fun/schemas';
 
 interface FAQSectionProps {
   faqs: ListingFaq[];

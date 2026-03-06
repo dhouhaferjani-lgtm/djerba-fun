@@ -509,6 +509,15 @@ class Listing extends Model
     }
 
     /**
+     * Check if listing is a multi-day sejour (not currently a separate type)
+     * Placeholder for future sejour service type support
+     */
+    public function isSejour(): bool
+    {
+        return false;
+    }
+
+    /**
      * Check if listing is published
      */
     public function isPublished(): bool

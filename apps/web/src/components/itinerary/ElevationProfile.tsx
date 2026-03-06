@@ -2,10 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import type {
-  ElevationProfile as ElevationProfileType,
-  ItineraryStop,
-} from '@go-adventure/schemas';
+import type { ElevationProfile as ElevationProfileType, ItineraryStop } from '@djerba-fun/schemas';
 import { TrendingUp, TrendingDown, Mountain, MapPin, Clock } from 'lucide-react';
 
 interface ElevationProfileProps {

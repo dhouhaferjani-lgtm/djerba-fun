@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { Calendar, Minus, Plus, ArrowRight } from 'lucide-react';
 import type { TripBasicsData } from '../CustomTripWizard';
 

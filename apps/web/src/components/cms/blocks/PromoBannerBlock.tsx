@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 

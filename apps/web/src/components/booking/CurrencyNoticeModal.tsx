@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Dialog } from '@go-adventure/ui';
+import { Dialog } from '@djerba-fun/ui';
 import { Lock, CheckCircle, Info } from 'lucide-react';
 import Image from 'next/image';
 

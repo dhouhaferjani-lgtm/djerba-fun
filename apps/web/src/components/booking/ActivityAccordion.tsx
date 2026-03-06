@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { ChevronDown, Check, AlertCircle, Clock } from 'lucide-react';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { ParticipantRows } from './ParticipantRows';
 import { StatusBadge } from './StatusBadge';
-import type { Booking } from '@go-adventure/schemas';
+import type { Booking } from '@djerba-fun/schemas';
 
 export interface ParticipantData {
   id: string;

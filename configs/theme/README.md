@@ -14,7 +14,7 @@ This directory contains theme configuration files for white-label customization 
 
 ```typescript
 // apps/web/src/app/layout.tsx
-import { ThemeProvider } from '@go-adventure/ui';
+import { ThemeProvider } from '@djerba-fun/ui';
 import { goAdventureTheme } from '@/configs/theme/default';
 
 export default function RootLayout({ children }) {
@@ -34,7 +34,7 @@ export default function RootLayout({ children }) {
 
 ```typescript
 // apps/web/src/app/layout.tsx
-import { ThemeProvider, mergeThemeConfig } from '@go-adventure/ui';
+import { ThemeProvider, mergeThemeConfig } from '@djerba-fun/ui';
 import oceanTheme from '@/configs/theme/example-ocean';
 
 const theme = mergeThemeConfig(oceanTheme);
@@ -74,7 +74,7 @@ export function getTheme() {
 
 ```typescript
 // apps/web/src/app/layout.tsx
-import { ThemeProvider, mergeThemeConfig } from '@go-adventure/ui';
+import { ThemeProvider, mergeThemeConfig } from '@djerba-fun/ui';
 import { getTheme } from '@/configs/theme';
 
 const theme = mergeThemeConfig(getTheme());
@@ -110,7 +110,7 @@ NEXT_PUBLIC_THEME=ocean
 You only need to override what you want to change:
 
 ```typescript
-import type { ThemeConfig } from '@go-adventure/ui';
+import type { ThemeConfig } from '@djerba-fun/ui';
 
 export const myTheme: Partial<ThemeConfig> = {
   name: 'My Custom Theme',

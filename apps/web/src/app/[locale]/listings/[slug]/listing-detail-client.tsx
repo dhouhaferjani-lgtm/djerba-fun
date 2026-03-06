@@ -8,7 +8,7 @@ import { useTranslations } from 'next-intl';
 import { format, addMonths } from 'date-fns';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { useAvailability, useCreateHold, useAddToCart } from '@/lib/api/hooks';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { PersonTypeSelector } from '@/components/booking/PersonTypeSelector';
 import { BookingStepIndicator, type BookingStep } from '@/components/booking/BookingStepIndicator';
 import {
@@ -111,7 +111,7 @@ import {
 import { resolveTranslation } from '@/lib/utils/translate';
 import { getGuestSessionId } from '@/lib/utils/session';
 import { normalizeMediaUrl } from '@/lib/utils/image';
-import type { AvailabilitySlot, Listing, PersonType } from '@go-adventure/schemas';
+import type { AvailabilitySlot, Listing, PersonType } from '@djerba-fun/schemas';
 
 // Parse API errors from hold creation
 function parseHoldError(error: any, t: any): string {

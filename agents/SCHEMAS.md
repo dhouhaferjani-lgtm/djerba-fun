@@ -791,7 +791,7 @@ console.log('✓ Schema validation passed');
 ```json
 // packages/schemas/package.json
 {
-  "name": "@go-adventure/schemas",
+  "name": "@djerba-fun/schemas",
   "version": "0.1.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

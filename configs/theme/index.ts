@@ -9,8 +9,8 @@ export { default as oceanTheme } from './example-ocean';
 export { default as desertCanyonTheme } from './example-desert';
 
 // Re-export types and utilities from UI package for convenience
-export type { ThemeConfig } from '@go-adventure/ui';
-export { mergeThemeConfig, themeConfigToCssVariables, defaultTheme } from '@go-adventure/ui';
+export type { ThemeConfig } from '@djerba-fun/ui';
+export { mergeThemeConfig, themeConfigToCssVariables, defaultTheme } from '@djerba-fun/ui';
 
 /**
  * Get active theme based on environment variable

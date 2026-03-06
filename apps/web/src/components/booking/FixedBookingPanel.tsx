@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import {
   Calendar,
   CheckCircle,
@@ -15,7 +15,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { PriceDisplay } from '@/components/molecules/PriceDisplay';
-import type { Listing, AvailabilitySlot } from '@go-adventure/schemas';
+import type { Listing, AvailabilitySlot } from '@djerba-fun/schemas';
 import { isToday, isTomorrow, parseISO } from 'date-fns';
 
 interface FixedBookingPanelProps {

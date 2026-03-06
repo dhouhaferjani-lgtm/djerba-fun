@@ -4,7 +4,7 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 
 export function CustomExperienceSection() {
   const t = useTranslations('home');

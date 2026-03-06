@@ -19,7 +19,7 @@ Follow TypeScript strictness from `tsconfig.base.json` and PSR-12 for PHP. Forma
 
 ## Testing Guidelines
 
-Run backend tests with `php artisan test` or `make test-api`; add coverage to `tests/Feature` or `tests/Unit` mirroring the class names (`MissionServiceTest.php`). Frontend/packages rely on Jest-compatible runners (`pnpm --filter web test`, `pnpm --filter @go-adventure/ui test`) with files named `*.test.ts(x)` near the implementation. Prefer React Testing Library assertions for UI flows and avoid heavy snapshot suites outside `packages/ui/tokens`. CI expects green `make test` plus schema regeneration when API contracts change.
+Run backend tests with `php artisan test` or `make test-api`; add coverage to `tests/Feature` or `tests/Unit` mirroring the class names (`MissionServiceTest.php`). Frontend/packages rely on Jest-compatible runners (`pnpm --filter web test`, `pnpm --filter @djerba-fun/ui test`) with files named `*.test.ts(x)` near the implementation. Prefer React Testing Library assertions for UI flows and avoid heavy snapshot suites outside `packages/ui/tokens`. CI expects green `make test` plus schema regeneration when API contracts change.
 
 ## Commit & Pull Request Guidelines
 

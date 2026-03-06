@@ -7,10 +7,10 @@ import { useQueries } from '@tanstack/react-query';
 import { bookingsApi } from '@/lib/api/client';
 import { useUpdateParticipants, useBulkApplyParticipants } from '@/lib/api/hooks';
 import { ActivityAccordion, type ParticipantData } from '@/components/booking/ActivityAccordion';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { Loader2, CheckCircle, AlertTriangle, Users, Copy } from 'lucide-react';
 import { getGuestSessionId } from '@/lib/utils/session';
-import type { Booking } from '@go-adventure/schemas';
+import type { Booking } from '@djerba-fun/schemas';
 
 /**
  * Cart Participants Entry Page - Accordion View

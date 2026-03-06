@@ -5,9 +5,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { User, Check, AlertCircle } from 'lucide-react';
-import type { Booking } from '@go-adventure/schemas';
+import type { Booking } from '@djerba-fun/schemas';
 
 // Zod schema for participant form validation
 const participantSchema = z.object({

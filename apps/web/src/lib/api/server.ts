@@ -4,7 +4,7 @@
  */
 
 import { headers, cookies } from 'next/headers';
-import type { PlatformSettingsResponse, ListingSummary } from '@go-adventure/schemas';
+import type { PlatformSettingsResponse, ListingSummary } from '@djerba-fun/schemas';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 

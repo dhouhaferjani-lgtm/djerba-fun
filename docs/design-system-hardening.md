@@ -8,7 +8,7 @@ This document outlines the steps to clean up the Next.js frontend so we can safe
 ## Goals
 
 1. **Single source of truth for theme tokens** – colors, typography, radii, spacing.
-2. **All primitives routed through `@go-adventure/ui`** – no ad‑hoc inputs/buttons.
+2. **All primitives routed through `@djerba-fun/ui`** – no ad‑hoc inputs/buttons.
 3. **Content decoupled from components** – copy/images pulled from data or i18n.
 4. **Documented theming contract** – config object per customer driving the tokens.
 
@@ -58,7 +58,7 @@ apps/web/src/app/[locale]/checkout/
 
 **Coordination Points:**
 
-- If you need to modify `@go-adventure/ui` components (Button, Input, Select), coordinate first
+- If you need to modify `@djerba-fun/ui` components (Button, Input, Select), coordinate first
 - Checkout instance may be using these same primitives
 - Tag @checkout-team before making breaking changes to UI package
 
@@ -164,13 +164,13 @@ All components consume tokens from Phase 1.
 ### Tasks
 
 1. **Inventory duplicated primitives:** ✅ Complete (see above)
-2. **Extend `@go-adventure/ui`:**
+2. **Extend `@djerba-fun/ui`:**
    - [ ] Check if `cream` variant needed (doc mentions it, but may not be required)
    - [ ] Add icon support to `Input` and `Select` (or create `InputWithIcon` wrapper that composes from base)
    - [ ] Verify `outlineInverse` variant is needed
 3. **Refactor consumers:**
-   - [ ] Update `InputWithIcon.tsx` to **compose** from `@go-adventure/ui` Input (don't duplicate)
-   - [ ] Update `SelectWithIcon.tsx` to **compose** from `@go-adventure/ui` Select
+   - [ ] Update `InputWithIcon.tsx` to **compose** from `@djerba-fun/ui` Input (don't duplicate)
+   - [ ] Update `SelectWithIcon.tsx` to **compose** from `@djerba-fun/ui` Select
    - [ ] Replace ad-hoc newsletter inputs with UI components
    - [ ] Replace ad-hoc booking form inputs with UI components
    - [ ] Keep `Logo` and `NavLink` in atoms (domain-specific)

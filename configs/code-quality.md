@@ -60,7 +60,7 @@ pnpm exec lint-staged
 ```bash
 #!/bin/sh
 pnpm typecheck
-pnpm --filter @go-adventure/schemas build
+pnpm --filter @djerba-fun/schemas build
 ```
 
 ### .husky/commit-msg

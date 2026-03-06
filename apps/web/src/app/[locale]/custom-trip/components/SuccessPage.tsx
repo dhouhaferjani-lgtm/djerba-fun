@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { CheckCircle, Mail, Clock, Home, PhoneCall, MessageCircle } from 'lucide-react';
 
 interface ContactInfo {

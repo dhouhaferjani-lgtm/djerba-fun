@@ -2,9 +2,9 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- next-intl Link requires typed routes */
 import { useTranslations, useLocale } from 'next-intl';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import Link from 'next/link';
-import type { Booking } from '@go-adventure/schemas';
+import type { Booking } from '@djerba-fun/schemas';
 import { CheckCircle, Calendar, Users, MapPin, Download, Mail, UserCheck } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
 

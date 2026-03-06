@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser, useLogin, useLogout, useRegister } from '../api/hooks';
-import type { User } from '@go-adventure/schemas';
+import type { User } from '@djerba-fun/schemas';
 
 interface RegisterData {
   email: string;

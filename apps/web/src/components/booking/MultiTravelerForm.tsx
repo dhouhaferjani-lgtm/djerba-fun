@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
 import { Plus, Trash2, User, Users } from 'lucide-react';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 
 // Schema for a single traveler
 const travelerSchema = z.object({

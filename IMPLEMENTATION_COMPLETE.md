@@ -312,7 +312,7 @@ Footer
 
 All components use:
 
-- Existing `@go-adventure/ui` components (Button)
+- Existing `@djerba-fun/ui` components (Button)
 - Tailwind CSS classes matching brand
 - Primary color for CTAs
 - Consistent spacing/typography

@@ -2,13 +2,13 @@
 
 return [
     // Common
-    'go_adventure' => 'Evasion Djerba',
+    'go_adventure' => 'Djerba Fun',
     'all_rights_reserved' => 'All rights reserved.',
     'automated_message' => 'This is an automated message. Please do not reply to this email.',
     'privacy_policy' => 'Privacy Policy',
     'terms_of_service' => 'Terms of Service',
     'questions_contact' => "If you have any questions, please don't hesitate to contact us.",
-    'the_team' => 'The Evasion Djerba Team',
+    'the_team' => 'The Djerba Fun Team',
     'date_format_long' => 'F j, Y',
     'date_format_full' => 'F j, Y \a\t g:i A',
     'date_format_day' => 'l, F j, Y',
@@ -57,8 +57,8 @@ return [
     'next_save_email' => 'Save this confirmation email for your records',
     'next_contact_us' => 'Contact us if you have any questions or need to make changes',
     'cancel_modify_note' => 'If you need to cancel or modify your booking, use the links above or contact us as soon as possible.',
-    'thank_you' => 'Thank you for choosing Evasion Djerba!',
-    'receiving_because_booking' => "You're receiving this email because you made a booking on Evasion Djerba.",
+    'thank_you' => 'Thank you for choosing Djerba Fun!',
+    'receiving_because_booking' => "You're receiving this email because you made a booking on Djerba Fun.",
     'dear' => 'Dear',
     'traveler' => 'Traveler',
     'activity_fallback' => 'Activity',
@@ -80,7 +80,7 @@ return [
 
     // Magic Login
     'magic_login_header' => 'Your Magic Login Link',
-    'magic_login_body' => 'You requested a magic link to log in to your Evasion Djerba account. Click the button below to log in instantly:',
+    'magic_login_body' => 'You requested a magic link to log in to your Djerba Fun account. Click the button below to log in instantly:',
     'log_in_now' => 'Log In Now',
     'copy_paste_link' => 'Or copy and paste this link into your browser:',
     'security_notice' => 'Security Notice:',
@@ -94,7 +94,7 @@ return [
     'access_booking_header' => 'Access Your Booking',
     'access_booking_body' => 'Here is your secure link to access your booking. Use it to view details, enter participant names, and download your vouchers.',
     'links_expire_on' => 'These links expire on :date. If they expire, you can request new links at any time by visiting our website and entering your email and booking number.',
-    'receiving_because_requested' => "You're receiving this email because you requested access to your booking on Evasion Djerba.",
+    'receiving_because_requested' => "You're receiving this email because you requested access to your booking on Djerba Fun.",
     'activity' => 'Activity',
     'date' => 'Date',
     'time' => 'Time',
@@ -151,8 +151,8 @@ return [
     'adventurer' => 'Adventurer',
 
     // Account Verification
-    'welcome_header' => 'Welcome to Evasion Djerba!',
-    'thank_you_account' => 'Thank you for creating your Evasion Djerba account!',
+    'welcome_header' => 'Welcome to Djerba Fun!',
+    'thank_you_account' => 'Thank you for creating your Djerba Fun account!',
     'verify_email_intro' => 'To get started, please verify your email address by clicking the button below:',
     'great_news' => 'Great News!',
     'booking_found_singular' => 'Booking Found!',
@@ -169,7 +169,7 @@ return [
 
     // Custom Trip Request
     'custom_trip_header' => "We've Received Your Request!",
-    'custom_trip_intro' => "Thank you for choosing Evasion Djerba for your custom trip! We've received your request and our travel experts are excited to start crafting your perfect Djerba experience.",
+    'custom_trip_intro' => "Thank you for choosing Djerba Fun for your custom trip! We've received your request and our travel experts are excited to start crafting your perfect Djerba experience.",
     'reference_number' => 'Your Reference Number',
     'save_reference' => 'Please save this for future correspondence',
     'trip_summary' => 'Your Trip Summary',
@@ -198,7 +198,7 @@ return [
     'include_reference' => 'Please include your reference number: :reference',
     'discover_tunisia' => "We can't wait to help you discover the beauty of Djerba!",
     'warm_regards' => 'Warm regards,',
-    'receiving_because_trip' => "You're receiving this email because you submitted a custom trip request on Evasion Djerba.",
+    'receiving_because_trip' => "You're receiving this email because you submitted a custom trip request on Djerba Fun.",
 
     // Listing Publish Failed
     'action_required' => 'Action Required',
@@ -208,7 +208,7 @@ return [
     'missing_info' => 'Missing Information',
     'update_listing' => 'Please update your listing with the required information so we can publish it and make it visible to travelers.',
     'edit_listing' => 'Edit Your Listing',
-    'partner_thanks' => 'Thank you for being an Evasion Djerba partner!',
+    'partner_thanks' => 'Thank you for being an Djerba Fun partner!',
     'untitled_listing' => 'Untitled Listing',
     'vendor' => 'Vendor',
     'not_set' => 'Not set',
@@ -216,18 +216,18 @@ return [
     // Email subjects
     'subject_booking_confirmation' => 'Booking Confirmation - :number',
     'subject_booking_cancellation' => 'Booking Cancelled - :number',
-    'subject_magic_login' => 'Your Magic Login Link - Evasion Djerba',
+    'subject_magic_login' => 'Your Magic Login Link - Djerba Fun',
     'subject_magic_link' => 'Access Your Booking #:number',
     'subject_voucher_single' => 'Your Voucher - :number',
     'subject_voucher_plural' => 'Your Vouchers - :number',
     'subject_participant_reminder' => 'Reminder: Add Participant Names - :number',
     'subject_participant_reminder_urgent' => 'Action Required: Participant Names Needed - :number',
-    'subject_account_verification' => 'Verify Your Email - Evasion Djerba',
+    'subject_account_verification' => 'Verify Your Email - Djerba Fun',
     'subject_custom_trip' => 'Your Custom Trip Request - :reference',
     'subject_listing_failed' => 'Action Required: Your listing ":title" cannot be published',
 
     // Password Reset
-    'subject_password_reset' => 'Reset Your Password - Evasion Djerba',
+    'subject_password_reset' => 'Reset Your Password - Djerba Fun',
     'password_reset_header' => 'Reset Your Password',
     'password_reset_body' => 'You requested a password reset. Click the button below to set a new password.',
     'password_reset_button' => 'Reset Password',

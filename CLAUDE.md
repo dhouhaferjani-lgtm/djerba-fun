@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Evasion Djerba is a tourism marketplace for Djerba island (Tunisia) built as a pnpm monorepo. Service types: Tours, Nautical Activities, Accommodation, Events. Languages: French (default), English. Domain: evasiondjerba.com
+Djerba Fun is a tourism marketplace for Djerba island (Tunisia) built as a pnpm monorepo. Service types: Tours, Nautical Activities, Accommodation, Events. Languages: French (default), English. Domain: djerbafun.com
 
 - **`apps/laravel-api/`** - Laravel 12 API with Filament 3 admin panels (Admin + Vendor), Sanctum auth, Horizon queues, FrankenPHP/Octane runtime
 - **`apps/web/`** - Next.js 16 App Router frontend with React 19, next-intl i18n, Tailwind CSS 4, Leaflet maps
@@ -100,7 +100,7 @@ pnpm dev      # Watch mode
 - **Server-side API**: `apps/web/src/lib/api/server.ts` - for server components and `generateMetadata`
 - **React Query hooks**: `apps/web/src/lib/api/hooks.ts` - all data fetching uses TanStack Query (useQuery/useMutation)
 - API base URL: `NEXT_PUBLIC_API_URL` env var (default `http://localhost:8000/api/v1`)
-- Types imported from `@go-adventure/schemas` - never define API types locally
+- Types imported from `@djerba-fun/schemas` - never define API types locally
 - Utility: `cn()` from `apps/web/src/lib/utils/cn.ts` for Tailwind class merging
 
 **API modules in client.ts**: `authApi`, `listingsApi`, `bookingsApi`, `participantsApi`, `vouchersApi`, `magicLinksApi`, `reviewsApi`, `couponsApi`, `vendorsApi`, `cartApi`, `platformApi`, `userApi`, `locationsApi`, `activityTypesApi`, `categoryStatsApi`, `tagsApi`, `consentApi`, `travelTipsApi`, `customTripApi`
@@ -248,11 +248,12 @@ Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
 Scopes: api, web, ui, schemas, sdk, docker, deps, release, ci, docs
 ```
 
-## Brand Colors (Mediterranean Palette)
+## Brand Colors (Djerba Fun Palette)
 
-- Primary: `#0077B6` (Ocean Blue), light: `#0096C7`, dark: `#023E8A`
-- Secondary: `#F4A261` (Sandy Orange), dark: `#E76F51`
-- Accent: `#E9F5F8` (Seafoam)
+- Navy: `#1B2A4E` (primary), light: `#3a5a8c`, dark: `#0d1426`
+- Emerald: `#2E9E6B` (secondary), light: `#4ade9a`, dark: `#25855a`
+- Gold: `#F5B041` (accent), light: `#fde68a`, dark: `#ca8a04`
+- Orange: `#E05D26` (highlight), light: `#f97316`, dark: `#c2410c`
 - Fonts: Inter (body), Poppins (display/headings)
 
 ## Translation Management

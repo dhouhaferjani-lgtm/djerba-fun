@@ -28,8 +28,8 @@ return [
     ],
 
     'allowed_origins_patterns' => [
-        // All evasiondjerba.com subdomains (live, staging, dev)
-        '#^https://(.+\.)?evasiondjerba\.com$#',
+        // All djerbafun.com subdomains (live, staging, dev)
+        '#^https://(.+\.)?djerbafun\.com$#',
     ],
 
     'allowed_headers' => ['*'],

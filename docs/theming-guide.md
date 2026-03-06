@@ -34,7 +34,7 @@ Create a new file in `configs/theme/`:
 
 ```typescript
 // configs/theme/my-brand.ts
-import type { ThemeConfig } from '@go-adventure/ui';
+import type { ThemeConfig } from '@djerba-fun/ui';
 
 export const myBrandTheme: Partial<ThemeConfig> = {
   name: 'My Brand Adventures',
@@ -67,7 +67,7 @@ export default myBrandTheme;
 Update `apps/web/src/app/layout.tsx`:
 
 ```typescript
-import { ThemeProvider, mergeThemeConfig } from '@go-adventure/ui';
+import { ThemeProvider, mergeThemeConfig } from '@djerba-fun/ui';
 import myBrandTheme from '@/configs/theme/my-brand';
 
 const theme = mergeThemeConfig(myBrandTheme);
@@ -351,7 +351,7 @@ NEXT_PUBLIC_THEME=customer-a
 'use client';
 
 import { useState } from 'react';
-import { ThemeProvider, mergeThemeConfig } from '@go-adventure/ui';
+import { ThemeProvider, mergeThemeConfig } from '@djerba-fun/ui';
 import defaultTheme from '@/configs/theme/default';
 import oceanTheme from '@/configs/theme/example-ocean';
 
@@ -510,8 +510,8 @@ Test in:
 
 **Solutions**:
 
-1. Ensure `@go-adventure/ui` is built: `cd packages/ui && pnpm build`
-2. Check import path: Should be `from '@go-adventure/ui'` not `from '@go-adventure/ui/tokens'`
+1. Ensure `@djerba-fun/ui` is built: `cd packages/ui && pnpm build`
+2. Check import path: Should be `from '@djerba-fun/ui'` not `from '@djerba-fun/ui/tokens'`
 3. Restart TypeScript server in your IDE
 
 ### Theme Provider Not Working

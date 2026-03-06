@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Input, Button } from '@go-adventure/ui';
+import { Input, Button } from '@djerba-fun/ui';
 import { useTranslations } from 'next-intl';
 import { Search } from 'lucide-react';
 

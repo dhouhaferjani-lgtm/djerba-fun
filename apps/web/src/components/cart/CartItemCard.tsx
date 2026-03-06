@@ -2,7 +2,7 @@
 
 import { useTranslations, useLocale } from 'next-intl';
 import { useMemo } from 'react';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { useCartContext } from '@/lib/contexts/CartContext';
 import type { CartItem } from '@/lib/api/client';
 import { resolveTranslation } from '@/lib/utils/translate';

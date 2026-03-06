@@ -1,4 +1,4 @@
-import type { ThemeConfig } from '@go-adventure/ui';
+import type { ThemeConfig } from '@djerba-fun/ui';
 
 /**
  * Default Go Adventure Theme

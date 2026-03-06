@@ -35,7 +35,7 @@ import {
 import { ListingCard } from '@/components/molecules/ListingCard';
 import { DestinationMapSection } from '@/components/maps/DestinationMapSection';
 import type { Locale } from '@/i18n/routing';
-import type { ListingSummary } from '@go-adventure/schemas';
+import type { ListingSummary } from '@djerba-fun/schemas';
 
 // --- Types ---
 

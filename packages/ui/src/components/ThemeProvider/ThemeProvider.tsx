@@ -25,7 +25,7 @@ export interface ThemeProviderProps {
  *
  * @example
  * ```tsx
- * import { ThemeProvider, defaultTheme } from '@go-adventure/ui';
+ * import { ThemeProvider, defaultTheme } from '@djerba-fun/ui';
  *
  * export default function App() {
  *   return (
@@ -38,7 +38,7 @@ export interface ThemeProviderProps {
  *
  * @example Custom theme
  * ```tsx
- * import { ThemeProvider, mergeThemeConfig } from '@go-adventure/ui';
+ * import { ThemeProvider, mergeThemeConfig } from '@djerba-fun/ui';
  * import customTheme from '@/configs/theme/custom';
  *
  * const theme = mergeThemeConfig(customTheme);

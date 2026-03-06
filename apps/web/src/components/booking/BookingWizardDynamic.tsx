@@ -19,7 +19,7 @@ import type {
   ListingSummary,
   AvailabilitySlot,
   ListingExtraForBooking,
-} from '@go-adventure/schemas';
+} from '@djerba-fun/schemas';
 
 interface BookingWizardProps {
   hold: BookingHold;

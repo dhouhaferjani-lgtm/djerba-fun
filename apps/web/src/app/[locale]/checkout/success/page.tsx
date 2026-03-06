@@ -6,7 +6,7 @@ import { CheckCircle, UserCheck } from 'lucide-react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { useEffect, useMemo } from 'react';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 
 /**
  * Checkout Success Page

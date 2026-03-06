@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { MainLayout } from '@/components/templates/MainLayout';
-import { FloatingInput, Button, Card } from '@go-adventure/ui';
+import { FloatingInput, Button, Card } from '@djerba-fun/ui';
 import { TurnstileWidget, useTurnstile } from '@/components/atoms/TurnstileWidget';
 import { Mail, ArrowLeft, Check } from 'lucide-react';
 import { AuthMascot, type MascotState } from '@/components/molecules/AuthMascot';

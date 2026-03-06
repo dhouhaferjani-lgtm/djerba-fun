@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { BlogHeroCarousel } from './BlogHeroCarousel';
 import { ImageLightbox } from '@/components/gallery/ImageLightbox';
-import type { Media } from '@go-adventure/schemas';
+import type { Media } from '@djerba-fun/schemas';
 
 interface BlogHeroSectionProps {
   images: string[];

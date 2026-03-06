@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Star, MessageSquare, Loader2, PenLine } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Badge } from '@go-adventure/ui';
-import type { Review, ReviewSummary } from '@go-adventure/schemas';
+import { Badge } from '@djerba-fun/ui';
+import type { Review, ReviewSummary } from '@djerba-fun/schemas';
 import { format } from 'date-fns';
 import { reviewsApi } from '@/lib/api/client';
 import { useCanReview } from '@/lib/api/hooks';

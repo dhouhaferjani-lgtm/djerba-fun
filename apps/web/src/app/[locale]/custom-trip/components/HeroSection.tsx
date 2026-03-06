@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { ChevronDown, Clock, CheckCircle } from 'lucide-react';
 
 export function HeroSection() {

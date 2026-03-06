@@ -124,7 +124,7 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       'lucide-react',
       'date-fns',
-      '@go-adventure/ui',
+      '@djerba-fun/ui',
       'react-hook-form',
       'framer-motion',
     ],

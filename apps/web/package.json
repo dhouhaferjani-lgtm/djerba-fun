@@ -14,8 +14,8 @@
     "i18n:test": "tsx scripts/translation-utils.test.ts"
   },
   "dependencies": {
-    "@go-adventure/schemas": "workspace:*",
-    "@go-adventure/ui": "workspace:*",
+    "@djerba-fun/schemas": "workspace:*",
+    "@djerba-fun/ui": "workspace:*",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-dropdown-menu": "^2.1.16",

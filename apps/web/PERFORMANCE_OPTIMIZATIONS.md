@@ -91,7 +91,7 @@ experimental: {
   optimizePackageImports: [
     'lucide-react',      // Icon library
     'date-fns',          // Date utilities
-    '@go-adventure/ui',  // Component library
+    '@djerba-fun/ui',  // Component library
     'react-hook-form',   // Form library
     'framer-motion',     // Animation library
   ],

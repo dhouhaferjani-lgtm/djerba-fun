@@ -1,0 +1,313 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+    - generic [ref=e2]:
+        - generic [ref=e3]:
+            - navigation [ref=e5]:
+                - generic [ref=e6]:
+                    - generic [ref=e9]:
+                        - generic [ref=e10]: Global search
+                        - generic [ref=e11]:
+                            - img [ref=e13]
+                            - searchbox "Global search" [ref=e16]
+                    - generic [ref=e17]:
+                        - button "Open notifications 30" [ref=e19] [cursor=pointer]:
+                            - generic [ref=e20]: Open notifications
+                            - img [ref=e21]
+                            - generic [ref=e26]: '30'
+                        - dialog
+                    - button "User menu" [ref=e29] [cursor=pointer]:
+                        - img "Avatar of Admin User" [ref=e30]
+            - main [ref=e31]:
+                - generic [ref=e32]:
+                    - generic [ref=e33]:
+                        - generic [ref=e34]:
+                            - generic [ref=e35]:
+                                - navigation [ref=e36]:
+                                    - list [ref=e37]:
+                                        - listitem [ref=e38]:
+                                            - link "Listings" [ref=e39] [cursor=pointer]:
+                                                - /url: http://localhost:8000/admin/listings
+                                        - listitem [ref=e40]:
+                                            - img [ref=e41]
+                                            - generic [ref=e43]: Edit
+                                - heading "Edit Listing" [level=1] [ref=e44]
+                            - generic [ref=e46]:
+                                - link "View" [ref=e47] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/listings/medina-tunis-walking-tour
+                                    - generic [ref=e48]: View
+                                - button "Delete" [ref=e49] [cursor=pointer]:
+                                    - generic [ref=e50]: Delete
+                        - generic [ref=e53]:
+                            - generic [ref=e54]:
+                                - generic [ref=e56]:
+                                    - heading "Listing Information" [level=3] [ref=e60]
+                                    - generic [ref=e63]:
+                                        - generic [ref=e66]:
+                                            - generic [ref=e69]: Title (English)
+                                            - textbox "Title (English)" [disabled] [ref=e73]: Medina of Tunis Walking Tour
+                                        - generic [ref=e76]:
+                                            - generic [ref=e79]: Title (French)
+                                            - textbox "Title (French)" [disabled] [ref=e83]: Visite à Pied de la Médina de Tunis
+                                        - generic [ref=e86]:
+                                            - generic [ref=e89]: Service type
+                                            - combobox "Service type" [ref=e93]:
+                                                - option "Select an option"
+                                                - option "TOUR" [selected]
+                                                - option "NAUTICAL"
+                                                - option "ACCOMMODATION"
+                                                - option "EVENT"
+                                        - generic [ref=e96]:
+                                            - generic [ref=e99]:
+                                                - text: Status
+                                                - superscript [ref=e100]: '*'
+                                            - combobox "Status*" [ref=e104]:
+                                                - option "Select an option"
+                                                - option "Draft"
+                                                - option "Pending Review"
+                                                - option "Published" [selected]
+                                                - option "Archived"
+                                                - option "Rejected"
+                                        - generic [ref=e107]:
+                                            - generic [ref=e110]: Slug
+                                            - textbox "Slug" [disabled] [ref=e114]: medina-tunis-walking-tour
+                                        - generic [ref=e117]:
+                                            - generic [ref=e120]: Vendor
+                                            - combobox [disabled] [ref=e125]:
+                                                - generic [ref=e128]: Go Adventure Tunisia
+                                - generic [ref=e130]:
+                                    - heading "Location" [level=3] [ref=e134]
+                                    - generic [ref=e140]:
+                                        - generic [ref=e143]: Location
+                                        - combobox [ref=e148]:
+                                            - generic [ref=e151]:
+                                                - text: Tunis
+                                                - 'button "Remove item: ''3''" [ref=e152] [cursor=pointer]': Remove item
+                                - generic [ref=e154]:
+                                    - heading "Description" [level=3] [ref=e158]
+                                    - generic [ref=e161]:
+                                        - generic [ref=e164]:
+                                            - generic [ref=e167]: Summary (English)
+                                            - textbox "Summary (English)" [disabled] [ref=e172]: Discover the UNESCO-listed Medina of Tunis with its labyrinthine streets, historic souks, and hidden gems.
+                                        - generic [ref=e175]:
+                                            - generic [ref=e178]: Description (English)
+                                            - generic [ref=e180]: Step back in time as you explore one of the best-preserved Arab-Muslim cities in the world. Our expert local guide will lead you through centuries-old souks, magnificent mosques, and traditional craftsmen workshops. Includes traditional mint tea and local snacks.
+                                - generic [ref=e182]:
+                                    - heading "Pricing & Capacity" [level=3] [ref=e186]
+                                    - generic [ref=e189]:
+                                        - generic [ref=e192]:
+                                            - generic [ref=e195]: Base Price (cents)
+                                            - textbox "Base Price (cents)" [disabled] [ref=e199]
+                                        - generic [ref=e202]:
+                                            - generic [ref=e205]: Currency
+                                            - textbox "Currency" [disabled] [ref=e209]: TND
+                                        - generic [ref=e212]:
+                                            - generic [ref=e215]: Min group size
+                                            - textbox "Min group size" [disabled] [ref=e219]: '1'
+                                        - generic [ref=e222]:
+                                            - generic [ref=e225]: Max group size
+                                            - textbox "Max group size" [disabled] [ref=e229]: '12'
+                                - heading "Moderation" [level=3] [ref=e235]
+                                - generic [ref=e239]:
+                                    - heading "filament.sections.homepage_display" [level=3] [ref=e243]
+                                    - generic [ref=e249]:
+                                        - generic [ref=e251]:
+                                            - switch "Feature on Homepage" [ref=e252] [cursor=pointer]
+                                            - generic [ref=e253]: Feature on Homepage
+                                        - generic [ref=e255]: Show this post on the homepage
+                            - generic [ref=e257]:
+                                - button "Save changes" [ref=e258] [cursor=pointer]:
+                                    - generic [ref=e259]: Save changes
+                                - button "Cancel" [ref=e260] [cursor=pointer]:
+                                    - generic [ref=e261]: Cancel
+                    - generic:
+                        - dialog
+                    - generic:
+                        - dialog
+                    - generic:
+                        - dialog
+        - complementary [ref=e262]:
+            - link "Evasion Djerba - Admin" [ref=e266] [cursor=pointer]:
+                - /url: http://localhost:8000/admin
+                - generic [ref=e267]: Evasion Djerba - Admin
+            - navigation [ref=e268]:
+                - list [ref=e269]:
+                    - listitem [ref=e270]:
+                        - list [ref=e271]:
+                            - listitem [ref=e272]:
+                                - link "Dashboard" [ref=e273] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin
+                                    - img [ref=e274]
+                                    - generic [ref=e276]: Dashboard
+                    - listitem [ref=e277]:
+                        - generic [ref=e278] [cursor=pointer]:
+                            - generic [ref=e279]: Sales
+                            - button "Sales" [expanded] [ref=e280]:
+                                - generic [ref=e281]: Sales
+                                - img [ref=e282]
+                        - list [ref=e284]:
+                            - listitem [ref=e285]:
+                                - link "Custom Trip Requests" [ref=e286] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/custom-trip-requests
+                                    - img [ref=e287]
+                                    - generic [ref=e289]: Custom Trip Requests
+                    - listitem [ref=e290]:
+                        - generic [ref=e291] [cursor=pointer]:
+                            - generic [ref=e292]: Settings
+                            - button "Settings" [expanded] [ref=e293]:
+                                - generic [ref=e294]: Settings
+                                - img [ref=e295]
+                        - list [ref=e297]:
+                            - listitem [ref=e298]:
+                                - link "Payment Gateways 2" [ref=e299] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/payment-gateways
+                                    - img [ref=e300]
+                                    - generic [ref=e302]: Payment Gateways
+                                    - generic [ref=e306]: '2'
+                            - listitem [ref=e307]:
+                                - link "Settings" [ref=e308] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/settings/create
+                                    - img [ref=e309]
+                                    - generic [ref=e311]: Settings
+                            - listitem [ref=e312]:
+                                - link "Redirects" [ref=e313] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/redirects
+                                    - img [ref=e314]
+                                    - generic [ref=e316]: Redirects
+                            - listitem [ref=e317]:
+                                - link "Tags" [ref=e318] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/tags
+                                    - img [ref=e319]
+                                    - generic [ref=e322]: Tags
+                    - listitem [ref=e323]:
+                        - generic [ref=e324] [cursor=pointer]:
+                            - generic [ref=e325]: Website
+                            - button "Website" [expanded] [ref=e326]:
+                                - generic [ref=e327]: Website
+                                - img [ref=e328]
+                        - list [ref=e330]:
+                            - listitem [ref=e331]:
+                                - link "Menus" [ref=e332] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/menus
+                                    - img [ref=e333]
+                                    - generic [ref=e335]: Menus
+                    - listitem [ref=e336]:
+                        - generic [ref=e337] [cursor=pointer]:
+                            - img [ref=e338]
+                            - generic [ref=e340]: Operations
+                            - button "Operations" [expanded] [ref=e341]:
+                                - generic [ref=e342]: Operations
+                                - img [ref=e343]
+                        - list [ref=e345]:
+                            - listitem [ref=e346]:
+                                - link "Bookings" [ref=e347] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/bookings
+                                    - generic [ref=e351]: Bookings
+                            - listitem [ref=e352]:
+                                - link "Payouts" [ref=e353] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/payouts
+                                    - generic [ref=e357]: Payouts
+                    - listitem [ref=e358]:
+                        - generic [ref=e359] [cursor=pointer]:
+                            - img [ref=e360]
+                            - generic [ref=e362]: People
+                            - button "People" [expanded] [ref=e363]:
+                                - generic [ref=e364]: People
+                                - img [ref=e365]
+                        - list [ref=e367]:
+                            - listitem [ref=e368]:
+                                - link "Users" [ref=e369] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/users
+                                    - generic [ref=e373]: Users
+                            - listitem [ref=e374]:
+                                - link "Vendor KYC" [ref=e375] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/vendor-profiles
+                                    - generic [ref=e379]: Vendor KYC
+                    - listitem [ref=e380]:
+                        - generic [ref=e381] [cursor=pointer]:
+                            - img [ref=e382]
+                            - generic [ref=e384]: Catalog
+                            - button "Catalog" [expanded] [ref=e385]:
+                                - generic [ref=e386]: Catalog
+                                - img [ref=e387]
+                        - list [ref=e389]:
+                            - listitem [ref=e390]:
+                                - link "Listings" [ref=e391] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/listings
+                                    - generic [ref=e395]: Listings
+                            - listitem [ref=e396]:
+                                - link "Availability Rules" [ref=e397] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/availability-rules
+                                    - generic [ref=e401]: Availability Rules
+                    - listitem [ref=e402]:
+                        - generic [ref=e403] [cursor=pointer]:
+                            - generic [ref=e404]: Content
+                            - button "Content" [expanded] [ref=e405]:
+                                - generic [ref=e406]: Content
+                                - img [ref=e407]
+                        - list [ref=e409]:
+                            - listitem [ref=e410]:
+                                - link "Blog Posts" [ref=e411] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/blog-posts
+                                    - generic [ref=e415]: Blog Posts
+                            - listitem [ref=e416]:
+                                - link "Pages" [ref=e417] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/pages
+                                    - generic [ref=e422]: Pages
+                            - listitem [ref=e423]:
+                                - link "Blog Categories" [ref=e424] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/blog-categories
+                                    - generic [ref=e429]: Blog Categories
+                            - listitem [ref=e430]:
+                                - link "Locations 9" [ref=e431] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/locations
+                                    - generic [ref=e436]: Locations
+                                    - generic [ref=e440]: '9'
+                            - listitem [ref=e441]:
+                                - link "Activity Types 0" [ref=e442] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/activity-types
+                                    - generic [ref=e447]: Activity Types
+                                    - generic [ref=e451]: '0'
+                            - listitem [ref=e452]:
+                                - link "Tags 32" [ref=e453] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/tags
+                                    - generic [ref=e458]: Tags
+                                    - generic [ref=e462]: '32'
+                            - listitem [ref=e463]:
+                                - link "Reviews" [ref=e464] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/reviews
+                                    - generic [ref=e469]: Reviews
+                            - listitem [ref=e470]:
+                                - link "Travel Tips" [ref=e471] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/travel-tips
+                                    - generic [ref=e475]: Travel Tips
+                    - listitem [ref=e476]:
+                        - generic [ref=e477] [cursor=pointer]:
+                            - img [ref=e478]
+                            - generic [ref=e480]: Marketing
+                            - button "Marketing" [expanded] [ref=e481]:
+                                - generic [ref=e482]: Marketing
+                                - img [ref=e483]
+                        - list [ref=e485]:
+                            - listitem [ref=e486]:
+                                - link "Coupons" [ref=e487] [cursor=pointer]:
+                                    - /url: http://localhost:8000/admin/coupons
+                                    - generic [ref=e490]: Coupons
+                    - listitem [ref=e491]:
+                        - generic [ref=e492] [cursor=pointer]:
+                            - img [ref=e493]
+                            - generic [ref=e496]: System
+                            - button "System" [ref=e497]:
+                                - generic [ref=e498]: System
+                                - img [ref=e499]
+                    - listitem [ref=e501]:
+                        - generic [ref=e502] [cursor=pointer]:
+                            - img [ref=e503]
+                            - generic [ref=e505]: Compliance
+                            - button "Compliance" [ref=e506]:
+                                - generic [ref=e507]: Compliance
+                                - img [ref=e508]
+    - generic:
+        - status
+```

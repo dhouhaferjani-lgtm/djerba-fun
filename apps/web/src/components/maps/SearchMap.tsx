@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import type { LatLngTuple } from 'leaflet';
 import MapContainer from './MapContainer';
 import MarkerPopup from './MarkerPopup';
-import type { ListingSummary } from '@go-adventure/schemas';
+import type { ListingSummary } from '@djerba-fun/schemas';
 import type { Locale } from '@/i18n/routing';
 
 interface SearchMapProps {

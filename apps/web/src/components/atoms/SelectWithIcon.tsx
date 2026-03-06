@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { Select, type SelectProps } from '@go-adventure/ui';
+import { Select, type SelectProps } from '@djerba-fun/ui';
 import { cn } from '@/lib/utils/cn';
 import { ChevronDown } from 'lucide-react';
 

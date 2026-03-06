@@ -8,7 +8,7 @@ import { ListingGrid } from '@/components/organisms/ListingGrid';
 import { SearchBar } from '@/components/molecules/SearchBar';
 import { TagFilterGroup } from '@/components/molecules/TagFilterGroup';
 import { useListings, useLocations, useTagsForServiceType } from '@/lib/api/hooks';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { Filter, X, SlidersHorizontal } from 'lucide-react';
 
 function ListingsContent({ locale }: { locale: string }) {

@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- next-intl Link requires typed routes */
 import { useTranslations } from 'next-intl';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { useCartContext } from '@/lib/contexts/CartContext';
 import { CartItemCard } from './CartItemCard';
 import { CartSummary } from './CartSummary';

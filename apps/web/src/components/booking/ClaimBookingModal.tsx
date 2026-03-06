@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { X, Package, AlertCircle, Check } from 'lucide-react';
 import { useClaimBooking } from '@/lib/api/hooks';
 

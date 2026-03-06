@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import type { CreateReviewRequest } from '@go-adventure/schemas';
+import type { CreateReviewRequest } from '@djerba-fun/schemas';
 
 interface ReviewFormProps {
   onSubmit: (data: CreateReviewRequest) => void;

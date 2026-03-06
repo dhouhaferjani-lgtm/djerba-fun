@@ -1,5 +1,5 @@
 {
-  "name": "@go-adventure/schemas",
+  "name": "@djerba-fun/schemas",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",

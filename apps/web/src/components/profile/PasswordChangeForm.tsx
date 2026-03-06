@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
-import { Button, Input } from '@go-adventure/ui';
+import { Button, Input } from '@djerba-fun/ui';
 import { useUpdatePassword } from '@/lib/api/hooks';
 
 interface PasswordFormData {

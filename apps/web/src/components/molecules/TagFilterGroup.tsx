@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils/cn';
-import type { TagGroup, Tag } from '@go-adventure/schemas';
+import type { TagGroup, Tag } from '@djerba-fun/schemas';
 
 interface TagFilterGroupProps {
   tagGroups: TagGroup[];

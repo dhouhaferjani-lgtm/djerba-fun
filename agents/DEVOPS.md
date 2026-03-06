@@ -637,7 +637,7 @@ docker compose -f docker/compose.dev.yml exec -T api php artisan openapi:generat
 
 # Build SDK
 echo -e "\n${YELLOW}Building SDK...${NC}"
-pnpm --filter @go-adventure/schemas build 2>/dev/null || echo "SDK build skipped (not configured yet)"
+pnpm --filter @djerba-fun/schemas build 2>/dev/null || echo "SDK build skipped (not configured yet)"
 
 # Done!
 echo -e "\n${GREEN}=====================================${NC}"
@@ -720,7 +720,7 @@ jobs:
 
       - name: TypeScript/ESLint
         run: |
-          pnpm --filter @go-adventure/schemas typecheck
+          pnpm --filter @djerba-fun/schemas typecheck
           pnpm --filter web lint
           pnpm --filter web typecheck
 
@@ -803,7 +803,7 @@ jobs:
         run: pnpm install
 
       - name: Build schemas
-        run: pnpm --filter @go-adventure/schemas build
+        run: pnpm --filter @djerba-fun/schemas build
 
       - name: Run unit tests
         run: pnpm --filter web test

@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 
 export function LargeBannerSection() {
   const t = useTranslations('home');

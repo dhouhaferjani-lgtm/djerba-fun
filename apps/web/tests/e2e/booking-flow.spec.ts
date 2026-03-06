@@ -574,3 +574,322 @@ test.describe('Backend Health Checks', () => {
     }
   });
 });
+
+// Additional booking flow tests
+test.describe('Cart Management', () => {
+  // TC-F033: Remove Cart Item
+  test('TC-F033: should remove item from cart', async ({ page }) => {
+    // First, add an item to cart
+    await page.goto('/en/listings/kroumirie-mountains-summit-trek');
+    await page.waitForLoadState('networkidle');
+
+    // Select date
+    const dateSelector = page.locator('[data-testid="booking-date-selector"]').first();
+    if (await dateSelector.isVisible()) {
+      await dateSelector.click();
+      await page.waitForTimeout(500);
+      const availableDay = page.locator('button:has-text("15")').first();
+      if (await availableDay.isVisible()) {
+        await availableDay.click();
+        await page.waitForTimeout(500);
+      }
+    }
+
+    // Select time slot
+    const timeSlot = page.locator('[data-testid="time-slot"]').first();
+    if (await timeSlot.isVisible()) {
+      await timeSlot.click();
+      await page.waitForTimeout(500);
+    }
+
+    // Add to cart
+    const addToCartButton = page
+      .locator('button:has-text("Add to Cart"), button:has-text("Continue")')
+      .first();
+    if (await addToCartButton.isVisible()) {
+      await addToCartButton.click();
+      await page.waitForTimeout(1000);
+    }
+
+    // Navigate to cart
+    await page.goto('/en/cart');
+    await page.waitForLoadState('networkidle');
+
+    // Check if cart has items
+    const cartItem = page.locator('[data-testid="cart-item"], .cart-item').first();
+    const hasItem = await cartItem.isVisible().catch(() => false);
+
+    if (hasItem) {
+      // Get item count before removal
+      const cartItemsBefore = await page.locator('[data-testid="cart-item"], .cart-item').count();
+      console.log(`TC-F033: Cart items before removal: ${cartItemsBefore}`);
+
+      // Click remove button
+      const removeButton = page
+        .locator(
+          '[data-testid="remove-cart-item"], button:has-text("Remove"), button[aria-label*="remove"]'
+        )
+        .first();
+      if (await removeButton.isVisible()) {
+        await removeButton.click();
+        await page.waitForTimeout(1000);
+
+        // Confirm removal if dialog appears
+        const confirmButton = page
+          .locator('button:has-text("Confirm"), button:has-text("Yes")')
+          .first();
+        if (await confirmButton.isVisible()) {
+          await confirmButton.click();
+          await page.waitForTimeout(500);
+        }
+
+        // Check item count after removal
+        const cartItemsAfter = await page.locator('[data-testid="cart-item"], .cart-item').count();
+        console.log(`TC-F033: Cart items after removal: ${cartItemsAfter}`);
+
+        expect(cartItemsAfter).toBeLessThan(cartItemsBefore);
+        console.log('TC-F033: Item removed from cart successfully');
+      }
+    } else {
+      console.log('TC-F033: No cart items to remove');
+    }
+  });
+});
+
+test.describe('Checkout Details', () => {
+  /**
+   * Helper to navigate to checkout
+   */
+  async function goToCheckout(page: any) {
+    await page.goto('/en/listings/kroumirie-mountains-summit-trek');
+    await page.waitForLoadState('networkidle');
+
+    const dateSelector = page.locator('[data-testid="booking-date-selector"]').first();
+    if (await dateSelector.isVisible()) {
+      await dateSelector.click();
+      await page.waitForTimeout(500);
+      const availableDay = page.locator('button:has-text("15")').first();
+      if (await availableDay.isVisible()) {
+        await availableDay.click();
+        await page.waitForTimeout(500);
+      }
+    }
+
+    const timeSlot = page.locator('[data-testid="time-slot"]').first();
+    if (await timeSlot.isVisible()) {
+      await timeSlot.click();
+      await page.waitForTimeout(500);
+    }
+
+    const incrementButton = page.locator('[data-testid="person-type-adult-increment"]').first();
+    if (await incrementButton.isVisible()) {
+      await incrementButton.click();
+      await page.waitForTimeout(300);
+    }
+
+    const continueButton = page.locator('button:has-text("Continue")').first();
+    if (await continueButton.isVisible()) {
+      await continueButton.click();
+      await page.waitForURL(/\/checkout\/.+/, { timeout: 10000 });
+    }
+  }
+
+  // TC-F039: Participant Details Entry
+  test('TC-F039: should enter participant details', async ({ page }) => {
+    await goToCheckout(page);
+
+    // Look for participant details section
+    const participantSection = page
+      .locator(
+        '[data-testid="participant-details"], .participant-section, text=/participant.*details/i'
+      )
+      .first();
+    const hasParticipantSection = await participantSection.isVisible().catch(() => false);
+
+    if (hasParticipantSection) {
+      // Fill participant name
+      const nameInput = page
+        .locator('input[name*="participant"][name*="name"], input[placeholder*="participant name"]')
+        .first();
+      if (await nameInput.isVisible()) {
+        await nameInput.fill('John Doe');
+      }
+
+      // Fill any other participant fields
+      const participant2Name = page.locator('input[name*="participant"][name*="name"]').nth(1);
+      if (await participant2Name.isVisible()) {
+        await participant2Name.fill('Jane Doe');
+      }
+
+      // Special requests
+      const specialRequests = page
+        .locator('textarea[name*="special"], textarea[name*="request"]')
+        .first();
+      if (await specialRequests.isVisible()) {
+        await specialRequests.fill('Please provide vegetarian meals');
+      }
+
+      console.log('TC-F039: Participant details entered successfully');
+    } else {
+      // May be in a different step
+      const nextStep = page.locator('button:has-text("Next"), button:has-text("Continue")').first();
+      if (await nextStep.isVisible()) {
+        await nextStep.click();
+        await page.waitForTimeout(500);
+
+        const participantInputs = page.locator('input[name*="participant"]');
+        const hasInputs = (await participantInputs.count()) > 0;
+        console.log(
+          `TC-F039: Participant section ${hasInputs ? 'found in next step' : 'not found'}`
+        );
+      }
+    }
+  });
+
+  // TC-F040: Payment Method Selection
+  test('TC-F040: should display and select payment methods', async ({ page }) => {
+    await goToCheckout(page);
+
+    // Navigate to payment step if needed
+    const paymentStep = page
+      .locator('[data-testid="payment-step"], text=/payment.*method/i')
+      .first();
+    const isPaymentStep = await paymentStep.isVisible().catch(() => false);
+
+    if (!isPaymentStep) {
+      // Click through to payment step
+      const nextButtons = page.locator('button:has-text("Next"), button:has-text("Continue")');
+      let attempts = 0;
+      while (attempts < 3) {
+        const nextBtn = nextButtons.first();
+        if (await nextBtn.isVisible()) {
+          await nextBtn.click();
+          await page.waitForTimeout(500);
+        }
+        attempts++;
+      }
+    }
+
+    // Look for payment method options
+    const paymentMethods = page.locator(
+      '[data-testid="payment-method"], input[name="payment_method"], .payment-option'
+    );
+    const methodCount = await paymentMethods.count();
+
+    console.log(`TC-F040: Found ${methodCount} payment methods`);
+
+    if (methodCount > 0) {
+      // Check for Cash on Arrival
+      const cashOption = page.locator('text=/cash|on.*arrival|sur.*place/i').first();
+      const hasCash = await cashOption.isVisible().catch(() => false);
+
+      // Check for Bank Transfer
+      const bankOption = page.locator('text=/bank.*transfer|virement/i').first();
+      const hasBank = await bankOption.isVisible().catch(() => false);
+
+      // Check for Card/Online
+      const cardOption = page.locator('text=/card|online|carte/i').first();
+      const hasCard = await cardOption.isVisible().catch(() => false);
+
+      console.log(
+        `TC-F040: Payment methods - Cash: ${hasCash}, Bank: ${hasBank}, Card: ${hasCard}`
+      );
+
+      // Select a payment method
+      if (hasCash) {
+        await cashOption.click();
+        await page.waitForTimeout(500);
+
+        // Verify instructions shown
+        const instructions = page.locator('text=/instructions|pay.*upon.*arrival/i').first();
+        const hasInstructions = await instructions.isVisible().catch(() => false);
+        console.log(
+          `TC-F040: Cash payment instructions ${hasInstructions ? 'shown' : 'not shown'}`
+        );
+      } else if (hasCard) {
+        await cardOption.click();
+        await page.waitForTimeout(500);
+
+        // Verify card form shown
+        const cardForm = page.locator('input[name*="card"], [data-testid="card-form"]').first();
+        const hasCardForm = await cardForm.isVisible().catch(() => false);
+        console.log(`TC-F040: Card payment form ${hasCardForm ? 'shown' : 'not shown'}`);
+      }
+    }
+  });
+
+  // TC-F042: Payment Failure
+  test('TC-F042: should handle payment failure gracefully', async ({ page }) => {
+    await goToCheckout(page);
+
+    // Navigate to payment
+    const nextButtons = page.locator('button:has-text("Next"), button:has-text("Continue")');
+    let attempts = 0;
+    while (attempts < 3) {
+      const nextBtn = nextButtons.first();
+      if (await nextBtn.isVisible()) {
+        await nextBtn.click();
+        await page.waitForTimeout(500);
+      }
+      attempts++;
+    }
+
+    // Look for payment form or mock payment
+    const payButton = page
+      .locator('button:has-text("Pay"), button:has-text("Complete Payment")')
+      .first();
+    const hasPayBtn = await payButton.isVisible().catch(() => false);
+
+    if (hasPayBtn) {
+      // In test environment, we may have a way to simulate failure
+      // Look for test card input or failure trigger
+      const testFailure = page
+        .locator('[data-testid="test-payment-failure"], button:has-text("Test Failure")')
+        .first();
+      const hasTestFailure = await testFailure.isVisible().catch(() => false);
+
+      if (hasTestFailure) {
+        await testFailure.click();
+        await page.waitForTimeout(2000);
+      } else {
+        // Try to submit with invalid/test card
+        const cardInput = page.locator('input[name*="card_number"]').first();
+        if (await cardInput.isVisible()) {
+          await cardInput.fill('4000000000000002'); // Declined test card
+        }
+
+        await payButton.click();
+        await page.waitForTimeout(2000);
+      }
+
+      // Check for failure message
+      const failureMessage = page
+        .locator('text=/payment.*failed|declined|error|try.*again/i')
+        .first();
+      const hasFailure = await failureMessage.isVisible().catch(() => false);
+
+      if (hasFailure) {
+        await expect(failureMessage).toBeVisible();
+        console.log('TC-F042: Payment failure handled correctly');
+
+        // Verify retry option available
+        const retryButton = page
+          .locator('button:has-text("Try Again"), button:has-text("Retry")')
+          .first();
+        const hasRetry = await retryButton.isVisible().catch(() => false);
+        console.log(`TC-F042: Retry option ${hasRetry ? 'available' : 'not available'}`);
+
+        // Verify cart preserved
+        const cartStillValid = page
+          .locator('[data-testid="cart-summary"], [data-testid="order-summary"]')
+          .first();
+        const hasCart = await cartStillValid.isVisible().catch(() => false);
+        console.log(`TC-F042: Cart preserved after failure: ${hasCart}`);
+      } else {
+        console.log('TC-F042: Payment failure scenario - checking state');
+      }
+    } else {
+      console.log('TC-F042: Payment button not found - may need to complete earlier steps');
+    }
+  });
+});

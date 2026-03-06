@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { Input, type InputProps } from '@go-adventure/ui';
+import { Input, type InputProps } from '@djerba-fun/ui';
 import { cn } from '@/lib/utils/cn';
 
 export interface InputWithIconProps extends Omit<InputProps, 'className'> {

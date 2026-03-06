@@ -13,10 +13,7 @@
  */
 
 import dynamic from 'next/dynamic';
-import type {
-  ElevationProfile as ElevationProfileType,
-  ItineraryStop,
-} from '@go-adventure/schemas';
+import type { ElevationProfile as ElevationProfileType, ItineraryStop } from '@djerba-fun/schemas';
 
 interface ElevationProfileProps {
   profile: ElevationProfileType;

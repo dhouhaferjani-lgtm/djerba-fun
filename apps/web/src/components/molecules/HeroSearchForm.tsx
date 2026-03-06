@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Calendar, Compass } from 'lucide-react';
 import { InputWithIcon } from '../atoms/InputWithIcon';
 import { SelectWithIcon } from '../atoms/SelectWithIcon';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 
 // CSS for shining light sweep animation and click pulse effect
 const shineAnimationStyles = `

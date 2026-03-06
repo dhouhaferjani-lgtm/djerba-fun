@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import type { BankTransferDetails } from '@go-adventure/schemas';
+import type { BankTransferDetails } from '@djerba-fun/schemas';
 
 export type PaymentMethod = 'mock' | 'offline' | 'cash' | 'click_to_pay' | 'stripe' | 'paypal';
 

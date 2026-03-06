@@ -7,7 +7,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link } from '@/i18n/navigation';
-import { FloatingInput, Button } from '@go-adventure/ui';
+import { FloatingInput, Button } from '@djerba-fun/ui';
 import { User, Mail, Phone, Check, Sparkles } from 'lucide-react';
 import { useRegisterPasswordless } from '@/lib/api/hooks';
 import { TurnstileWidget, useTurnstile } from '@/components/atoms/TurnstileWidget';

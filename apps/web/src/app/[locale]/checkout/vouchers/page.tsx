@@ -8,7 +8,7 @@ import { Link } from '@/i18n/navigation';
 import { vouchersApi } from '@/lib/api/client';
 import { getGuestSessionId } from '@/lib/utils/session';
 import { QRCodeSVG } from 'qrcode.react';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import {
   Printer,
   Download,

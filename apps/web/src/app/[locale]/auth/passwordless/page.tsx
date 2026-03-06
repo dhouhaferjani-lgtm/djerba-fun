@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { FloatingInput, Button } from '@go-adventure/ui';
+import { FloatingInput, Button } from '@djerba-fun/ui';
 import { Mail, ArrowLeft, Check } from 'lucide-react';
 import { useSendMagicLink } from '@/lib/api/hooks';
 import { TurnstileWidget, useTurnstile } from '@/components/atoms/TurnstileWidget';

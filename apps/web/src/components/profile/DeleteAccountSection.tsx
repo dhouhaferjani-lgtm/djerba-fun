@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { useDeleteAccount, useExportData } from '@/lib/api/hooks';
 
 export function DeleteAccountSection() {

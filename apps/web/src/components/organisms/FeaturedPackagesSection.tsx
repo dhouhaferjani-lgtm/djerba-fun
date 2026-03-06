@@ -3,12 +3,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- typed routes for dynamic hrefs */
 import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { useRouter } from 'next/navigation';
 import { Award, Leaf, Globe } from 'lucide-react';
 import { getListingUrl } from '@/lib/utils/urls';
 import type { Locale } from '@/i18n/routing';
-import type { ListingSummary } from '@go-adventure/schemas';
+import type { ListingSummary } from '@djerba-fun/schemas';
 import { ListingCard } from '@/components/molecules/ListingCard';
 
 interface FeaturedPackagesSectionProps {

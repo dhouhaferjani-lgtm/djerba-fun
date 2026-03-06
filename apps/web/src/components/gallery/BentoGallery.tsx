@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import type { Media } from '@go-adventure/schemas';
+import type { Media } from '@djerba-fun/schemas';
 import { Eye } from 'lucide-react';
 import { normalizeMediaUrl } from '@/lib/utils/image';
 

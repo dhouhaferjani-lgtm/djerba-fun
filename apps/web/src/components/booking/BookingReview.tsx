@@ -7,7 +7,7 @@ import type {
   ListingSummary,
   AvailabilitySlot,
   PersonType,
-} from '@go-adventure/schemas';
+} from '@djerba-fun/schemas';
 import CouponInput from './CouponInput';
 import { PriceBreakdownTable, type PriceBreakdownItem } from './PriceBreakdownTable';
 

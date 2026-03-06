@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { Button } from '@go-adventure/ui'; // Assuming Button component is updated with new variants
+import { Button } from '@djerba-fun/ui'; // Assuming Button component is updated with new variants
 
 export function NewsletterSection() {
   const t = useTranslations('home');

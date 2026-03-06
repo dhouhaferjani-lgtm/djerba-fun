@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import type { Locale } from '@/i18n/routing';
-import type { ListingSummary } from '@go-adventure/schemas';
+import type { ListingSummary } from '@djerba-fun/schemas';
 
 const SearchMap = dynamic(() => import('@/components/maps/SearchMap'), {
   ssr: false,

@@ -2,8 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { Info, Calendar, RefreshCcw } from 'lucide-react';
-import { Badge } from '@go-adventure/ui';
-import type { CancellationPolicy } from '@go-adventure/schemas';
+import { Badge } from '@djerba-fun/ui';
+import type { CancellationPolicy } from '@djerba-fun/schemas';
 
 interface CancellationPolicyCardProps {
   policy: CancellationPolicy | null | undefined;

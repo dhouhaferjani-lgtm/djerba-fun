@@ -22,10 +22,10 @@ class PlatformSettingsSeeder extends Seeder
         }
 
         PlatformSettings::create([
-            // Platform Identity - Evasion Djerba
+            // Platform Identity - Djerba Fun
             'platform_name' => [
-                'en' => 'Evasion Djerba',
-                'fr' => 'Evasion Djerba',
+                'en' => 'Djerba Fun',
+                'fr' => 'Djerba Fun',
             ],
             'tagline' => [
                 'en' => 'Experience the island differently',
@@ -35,27 +35,27 @@ class PlatformSettingsSeeder extends Seeder
                 'en' => 'Discover Djerba island with unique tours, nautical activities, and authentic accommodations. Your Mediterranean adventure starts here!',
                 'fr' => 'Découvrez l\'île de Djerba avec des excursions uniques, des activités nautiques et des hébergements authentiques. Votre aventure méditerranéenne commence ici!',
             ],
-            'primary_domain' => 'evasiondjerba.com',
+            'primary_domain' => 'djerbafun.com',
             'api_url' => env('APP_URL', 'http://localhost:8000'),
             'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 
             // SEO & Metadata
             'meta_title' => [
-                'en' => 'Evasion Djerba - Tours, Nautical Activities & Accommodations',
-                'fr' => 'Evasion Djerba - Excursions, Activités Nautiques & Hébergements',
+                'en' => 'Djerba Fun - Tours, Nautical Activities & Accommodations',
+                'fr' => 'Djerba Fun - Excursions, Activités Nautiques & Hébergements',
             ],
             'meta_description' => [
                 'en' => 'Discover Djerba island: tours, jet ski, parasailing, diving, and authentic accommodations. Book your Mediterranean escape today!',
                 'fr' => 'Découvrez l\'île de Djerba : excursions, jet ski, parachute ascensionnel, plongée et hébergements authentiques. Réservez votre évasion méditerranéenne!',
             ],
             'keywords' => ['djerba', 'tunisie', 'tunisia', 'tours', 'nautical', 'jet ski', 'parasailing', 'accommodation', 'mediterranean'],
-            'author' => 'Evasion Djerba',
+            'author' => 'Djerba Fun',
             'organization_type' => 'TravelAgency',
             'founded_year' => 2024,
 
             // Contact Information
-            'support_email' => 'support@evasiondjerba.com',
-            'general_email' => 'contact@evasiondjerba.com',
+            'support_email' => 'support@djerba.fun',
+            'general_email' => 'contact@djerba.fun',
             'phone_number' => '+216 75 123 456',
             'whatsapp_number' => '+21675123456',
             'business_hours' => [
@@ -77,17 +77,17 @@ class PlatformSettingsSeeder extends Seeder
             'google_maps_url' => 'https://maps.google.com/?q=Djerba,+Tunisia',
 
             // Social Media
-            'social_facebook' => 'https://facebook.com/evasiondjerba',
-            'social_instagram' => 'https://instagram.com/evasiondjerba',
+            'social_facebook' => 'https://facebook.com/djerbafun',
+            'social_instagram' => 'https://instagram.com/djerbafun',
             'social_twitter' => null,
             'social_linkedin' => null,
             'social_youtube' => null,
-            'social_tiktok' => 'https://tiktok.com/@evasiondjerba',
+            'social_tiktok' => 'https://tiktok.com/@djerbafun',
 
             // Email Settings
-            'email_from_name' => 'Evasion Djerba',
-            'email_from_address' => 'noreply@evasiondjerba.com',
-            'email_reply_to' => 'support@evasiondjerba.com',
+            'email_from_name' => 'Djerba Fun',
+            'email_from_address' => 'noreply@djerba.fun',
+            'email_reply_to' => 'support@djerba.fun',
             'email_terms_url' => '/terms',
             'email_privacy_url' => '/privacy',
 

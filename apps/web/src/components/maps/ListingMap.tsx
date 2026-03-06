@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { LatLngTuple } from 'leaflet';
 import MapContainer from './MapContainer';
 import MarkerPopup from './MarkerPopup';
-import type { ItineraryStop } from '@go-adventure/schemas';
+import type { ItineraryStop } from '@djerba-fun/schemas';
 import { fetchRoute, type RoutingProfile } from '@/lib/utils/fetchRoute';
 
 // Brand-aligned day colors: Navy, Emerald, Gold, Orange + complementary

@@ -1,5 +1,5 @@
 /**
- * Go Adventure Marketplace - Zod Schemas
+ * Djerba Fun Marketplace - Zod Schemas
  *
  * THIS IS THE SINGLE SOURCE OF TRUTH for all data contracts.
  *

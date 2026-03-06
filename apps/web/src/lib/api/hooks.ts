@@ -31,7 +31,7 @@ import type {
   TagType,
   Tag,
   TagGroup,
-} from '@go-adventure/schemas';
+} from '@djerba-fun/schemas';
 
 // ============================================================================
 // AUTH HOOKS
@@ -845,7 +845,7 @@ export function useSchemaOrg(locale?: string) {
  * @param locale - Optional locale
  */
 export function useFeatureEnabled(
-  feature: keyof import('@go-adventure/schemas').PlatformFeatures,
+  feature: keyof import('@djerba-fun/schemas').PlatformFeatures,
   locale?: string
 ) {
   const { data: settings, isLoading } = usePlatformSettings(locale);

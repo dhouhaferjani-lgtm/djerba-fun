@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { MainLayout } from '@/components/templates/MainLayout';
-import { Button, Card } from '@go-adventure/ui';
+import { Button, Card } from '@djerba-fun/ui';
 import { Mail, ArrowLeft } from 'lucide-react';
 import { authApi } from '@/lib/api/client';
 

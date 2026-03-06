@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button, FloatingInput } from '@go-adventure/ui';
+import { Button, FloatingInput } from '@djerba-fun/ui';
 import { Mail, Phone, User } from 'lucide-react';
 import { isValidPhoneNumber } from '@/lib/utils/validation';
 

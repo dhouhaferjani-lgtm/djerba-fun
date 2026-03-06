@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { useBooking, useCreateReview } from '@/lib/api/hooks';
 import ReviewForm from '@/components/reviews/ReviewForm';
 import Link from 'next/link';
-import type { CreateReviewRequest } from '@go-adventure/schemas';
+import type { CreateReviewRequest } from '@djerba-fun/schemas';
 import { format } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import { useCurrentUser, useMyBookings } from '@/lib/api/hooks';
-import type { BookingStatus } from '@go-adventure/schemas';
+import type { BookingStatus } from '@djerba-fun/schemas';
 
 export default function BookingsListPage() {
   const t = useTranslations('dashboard');

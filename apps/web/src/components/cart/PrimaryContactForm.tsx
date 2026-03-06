@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useEffect } from 'react';
 import { isValidPhoneNumber } from '@/lib/utils/validation';

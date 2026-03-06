@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import type { Media } from '@go-adventure/schemas';
+import type { Media } from '@djerba-fun/schemas';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Dialog } from '@go-adventure/ui';
+import { Dialog } from '@djerba-fun/ui';
 import { normalizeMediaUrl } from '@/lib/utils/image';
 
 interface ImageLightboxProps {

@@ -17,7 +17,7 @@ import {
   startOfDay,
 } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { AvailabilitySlot } from '@go-adventure/schemas';
+import type { AvailabilitySlot } from '@djerba-fun/schemas';
 import { getDateFnsLocale, getLocalizedWeekdays } from '@/lib/date-locale';
 
 interface AvailabilityCalendarProps {

@@ -2,11 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import type {
-  ListingExtraForBooking,
-  ExtraPricingType,
-  ExtraCategory,
-} from '@go-adventure/schemas';
+import type { ListingExtraForBooking, ExtraPricingType, ExtraCategory } from '@djerba-fun/schemas';
 
 interface SelectedExtra {
   id: string; // listing_extra_id

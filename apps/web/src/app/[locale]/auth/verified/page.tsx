@@ -4,11 +4,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { Check, Loader2, Package, AlertCircle } from 'lucide-react';
 import { useClaimableBookings, useLinkBookings } from '@/lib/api/hooks';
 import { authApi } from '@/lib/api/client';
-import type { Booking } from '@go-adventure/schemas';
+import type { Booking } from '@djerba-fun/schemas';
 
 /**
  * Email verification success page

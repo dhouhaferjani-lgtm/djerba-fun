@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Accessibility, CheckCircle, X } from 'lucide-react';
-import type { AccessibilityInfo } from '@go-adventure/schemas';
+import type { AccessibilityInfo } from '@djerba-fun/schemas';
 
 interface AccessibilitySectionProps {
   accessibility: AccessibilityInfo | null | undefined;

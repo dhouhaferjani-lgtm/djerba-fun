@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Card, Button, Dialog } from '@go-adventure/ui';
+import { Card, Button, Dialog } from '@djerba-fun/ui';
 import { Calendar } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { PriceDisplay } from '@/components/molecules/PriceDisplay';
-import type { Pricing } from '@go-adventure/schemas';
+import type { Pricing } from '@djerba-fun/schemas';
 
 interface BookingPanelProps {
   children: React.ReactNode;

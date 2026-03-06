@@ -1,19 +1,39 @@
-# Evasion Djerba Migration Status
+# Djerba Fun Migration Status
 
 **Last Updated:** 2026-03-06
-**Migration:** Go Adventure → Evasion Djerba
+**Migration:** Go Adventure → Djerba Fun (previously Evasion Djerba)
 
 ## Migration Summary
 
 | Phase   | Status      | Description                                                               |
 | ------- | ----------- | ------------------------------------------------------------------------- |
 | Phase 1 | ✅ Complete | ServiceType enum migration (added NAUTICAL, renamed SEJOUR→ACCOMMODATION) |
-| Phase 2 | ✅ Complete | Mediterranean color palette (Ocean Blue #0077B6, Sandy Orange #F4A261)    |
+| Phase 2 | ✅ Complete | Djerba Fun color palette (Navy, Emerald, Gold, Orange)                    |
 | Phase 3 | ✅ Complete | CSV translation system (`pnpm i18n:export/import`)                        |
 | Phase 4 | ✅ Complete | Brand identity updates (seeders, metadata, logo component)                |
 | Phase 5 | ✅ Complete | Backend config updates (app.php, cors.php, payment.php, filesystems.php)  |
 | Phase 6 | ✅ Complete | Email translation files (lang/en/mail.php, lang/fr/mail.php)              |
-| Phase 9 | ✅ Complete | CLAUDE.md updated for Evasion Djerba                                      |
+| Phase 7 | ✅ Complete | Package scope rename (@go-adventure → @djerba-fun)                        |
+| Phase 8 | ✅ Complete | Brand name migration (Go Adventure/Evasion Djerba → Djerba Fun)           |
+| Phase 9 | ✅ Complete | CLAUDE.md updated for Djerba Fun                                          |
+
+## Brand Information
+
+| Property      | Value         |
+| ------------- | ------------- |
+| Brand Name    | Djerba Fun    |
+| Domain        | djerbafun.com |
+| Email Domain  | @djerba.fun   |
+| Package Scope | @djerba-fun   |
+
+## Brand Colors (Djerba Fun Palette)
+
+| Color   | Base    | Light   | Dark    | Usage              |
+| ------- | ------- | ------- | ------- | ------------------ |
+| Navy    | #1B2A4E | #3a5a8c | #0d1426 | Primary, structure |
+| Emerald | #2E9E6B | #4ade9a | #25855a | Secondary, nature  |
+| Gold    | #F5B041 | #fde68a | #ca8a04 | Accent, warmth     |
+| Orange  | #E05D26 | #f97316 | #c2410c | Highlight, energy  |
 
 ## What Was Done
 
@@ -30,10 +50,12 @@
 ### 2. Color Palette (Phase 2)
 
 - **File:** `/packages/ui/src/tokens/colors.ts`
-- Primary: `#0077B6` (Ocean Blue)
-- Secondary: `#F4A261` (Sandy Orange)
-- Accent: `#E9F5F8` (Seafoam)
+- Navy: `#1B2A4E` (Primary)
+- Emerald: `#2E9E6B` (Secondary)
+- Gold: `#F5B041` (Accent)
+- Orange: `#E05D26` (Highlight)
 - Updated Filament AdminPanelProvider and VendorPanelProvider
+- BDD tests: `/packages/ui/src/tokens/__tests__/colors.test.ts`
 
 ### 3. CSV Translation System (Phase 3)
 
@@ -48,95 +70,43 @@
 
 ### 4. Brand Identity Updates (Phase 4)
 
-- `PlatformSettingsSeeder.php` - Evasion Djerba identity, Tunisia address
-- `ActivityTypeSeeder.php` - Djerba-specific activities (Island Tours, Nautical, Beach, Cultural, Gastronomy)
-- `/apps/web/src/app/[locale]/layout.tsx` - Updated metadata, keywords, social links
+- `PlatformSettingsSeeder.php` - Djerba Fun identity
+- `ActivityTypeSeeder.php` - Djerba-specific activities
+- `/apps/web/src/app/[locale]/layout.tsx` - Updated metadata
 - `/apps/web/src/app/manifest.ts` - PWA manifest
 - `/apps/web/src/components/atoms/Logo.tsx` - Fallback brand name
-- All other frontend source files with Go Adventure refs
 
 ### 5. Backend Configs (Phase 5)
 
-- `config/app.php` - frontend_url → evasiondjerba.com
-- `config/cors.php` - CORS pattern for evasiondjerba.com
-- `config/payment.php` - booking prefix GA → ED
-- `config/filesystems.php` - bucket name → evasion-djerba
-- `.env.example` - All Go Adventure refs → Evasion Djerba
+- `config/app.php` - frontend_url → djerbafun.com
+- `config/cors.php` - CORS pattern for djerbafun.com
+- `config/payment.php` - booking prefix
+- `config/filesystems.php` - bucket name
+- `.env.example` - All Djerba Fun branding
 
 ### 6. Email Templates (Phase 6)
 
-- `lang/en/mail.php` - All Go Adventure → Evasion Djerba
-- `lang/fr/mail.php` - All Go Adventure → Evasion Djerba
+- `lang/en/mail.php` - All Go Adventure/Evasion Djerba → Djerba Fun
+- `lang/fr/mail.php` - All Go Adventure/Evasion Djerba → Djerba Fun
 
-### 7. Additional Files Updated
+### 7. Package Scope Rename (Phase 7)
 
-- `VoucherPdfService.php` - Brand colors and name
-- `VoucherMail.php` - Brand colors and name
-- `OpenApiController.php` - API documentation title
-- `SeedDestinationContentCommand.php` - SEO titles
-- `PlatformSettingsPage.php` - All placeholder values
+- Root `package.json`: `go-adventure` → `djerba-fun`
+- `packages/schemas/package.json`: `@go-adventure/schemas` → `@djerba-fun/schemas`
+- `packages/ui/package.json`: `@go-adventure/ui` → `@djerba-fun/ui`
+- `apps/web/package.json`: Updated dependencies
+- Updated 147+ import statements across codebase
+- BDD tests: `/apps/web/__tests__/packages/schema-imports.test.ts`
 
-## What Remains
+### 8. Brand Name Migration (Phase 8)
 
-### Translation Files (Not Yet Migrated)
-
-The JSON translation files still contain Go Adventure references:
-
-- `/apps/web/messages/en.json`
-- `/apps/web/messages/fr.json`
-- `/apps/web/translations.csv`
-
-**To update:**
-
-```bash
-cd apps/web
-# Export current translations to CSV
-pnpm i18n:export
-
-# Edit translations.csv - search/replace "Go Adventure" → "Evasion Djerba"
-# Then import back
-pnpm i18n:import
-```
-
-### Demo Seeders (Low Priority)
-
-These contain demo content with Go Adventure refs:
-
-- `VendorSeeder.php`
-- `RichDemoListingSeeder.php`
-- `HikingTourWithMapSeeder.php`
-
-### Test Files (Low Priority)
-
-- Various test files and test result files
-- Documentation files (PHASE\*.md)
-
-## Quick Commands
-
-```bash
-# Start development
-make up
-
-# Run database fresh seed (will apply migrations + seeders)
-make fresh
-
-# Check frontend types
-cd apps/web && pnpm typecheck
-
-# Check for remaining "Go Adventure" references
-grep -r "Go Adventure" apps/
-```
-
-## Brand Colors Reference
-
-| Color          | Hex       | Usage                   |
-| -------------- | --------- | ----------------------- |
-| Primary        | `#0077B6` | Ocean Blue - Main brand |
-| Primary Light  | `#0096C7` | Hover states            |
-| Primary Dark   | `#023E8A` | Text on light bg        |
-| Secondary      | `#F4A261` | Sandy Orange - CTAs     |
-| Secondary Dark | `#E76F51` | Hover states            |
-| Accent         | `#E9F5F8` | Seafoam - Backgrounds   |
+- Updated all "Go Adventure" references → "Djerba Fun"
+- Updated all "Evasion Djerba" references → "Djerba Fun"
+- Updated email addresses → @djerba.fun
+- Updated social media URLs → djerbafun
+- BDD tests:
+  - `/apps/laravel-api/tests/Feature/BrandMigrationTest.php`
+  - `/apps/web/tests/e2e/brand-migration.spec.ts`
 
 ## Service Types
 
@@ -158,9 +128,20 @@ grep -r "Go Adventure" apps/
 | `/apps/laravel-api/lang/{en,fr}/mail.php`                       | Email translations       |
 | `/apps/web/scripts/*.ts`                                        | CSV translation scripts  |
 
-## Next Steps When Resuming
+## Quick Commands
 
-1. Update translation files via CSV system
-2. Run `make fresh` to apply all seeders
-3. Test the frontend and admin panel
-4. Deploy to staging.evasiondjerba.com
+```bash
+# Start development
+make up
+
+# Run database fresh seed (will apply migrations + seeders)
+make fresh
+
+# Check frontend types
+cd apps/web && pnpm typecheck
+
+# Check for remaining old brand references
+grep -r "Go Adventure" apps/
+grep -r "Evasion Djerba" apps/
+grep -r "@go-adventure" apps/
+```

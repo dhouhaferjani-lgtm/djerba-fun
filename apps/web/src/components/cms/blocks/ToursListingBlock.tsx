@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { ToursListingBlockData } from '@/types/cms';
 import { listingsApi } from '@/lib/api/client';
-import type { ListingSummary } from '@go-adventure/schemas';
+import type { ListingSummary } from '@djerba-fun/schemas';
 import { ListingCard } from '@/components/molecules/ListingCard';
 
 export function ToursListingBlock({

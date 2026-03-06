@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 
 /**

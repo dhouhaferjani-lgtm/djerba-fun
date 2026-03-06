@@ -13,9 +13,9 @@ import { PrimaryContactForm, type PrimaryContactData } from './PrimaryContactFor
 import { CartPaymentStep } from './CartPaymentStep';
 import { CartConfirmation } from './CartConfirmation';
 import type { PaymentMethod } from '@/components/booking/PaymentMethodSelector';
-import type { Booking } from '@go-adventure/schemas';
+import type { Booking } from '@djerba-fun/schemas';
 import { Clock, ShoppingCart, AlertCircle } from 'lucide-react';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import Link from 'next/link';
 
 type Step = 'contact' | 'payment' | 'confirmation';

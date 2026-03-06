@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForm, Controller } from 'react-hook-form';
-import { Button } from '@go-adventure/ui';
+import { Button } from '@djerba-fun/ui';
 import { usePreferences, useUpdatePreferences } from '@/lib/api/hooks';
 
 interface PreferencesFormData {
