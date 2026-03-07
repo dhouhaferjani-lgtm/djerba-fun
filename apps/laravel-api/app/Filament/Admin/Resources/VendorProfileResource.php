@@ -6,6 +6,8 @@ namespace App\Filament\Admin\Resources;
 
 use App\Enums\KycStatus;
 use App\Filament\Admin\Resources\VendorProfileResource\Pages;
+use App\Mail\Vendor\DocumentRequestMail;
+use App\Mail\Vendor\KycRejectedMail;
 use App\Models\VendorProfile;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Mail;
 
 class VendorProfileResource extends Resource
 {
@@ -276,7 +279,11 @@ class VendorProfileResource extends Resource
                                 'kyc_status' => KycStatus::REJECTED,
                             ]);
 
-                            // TODO: Send notification email to vendor
+                            // Send notification email to vendor
+                            if ($record->user?->email) {
+                                Mail::to($record->user->email)
+                                    ->queue(new KycRejectedMail($record, $data['reason']));
+                            }
 
                             Notification::make()
                                 ->title(__('filament.notifications.kyc_rejected'))
@@ -306,7 +313,15 @@ class VendorProfileResource extends Resource
                                 ->rows(2),
                         ])
                         ->action(function (VendorProfile $record, array $data) {
-                            // TODO: Send document request to vendor
+                            // Send document request email to vendor
+                            if ($record->user?->email) {
+                                Mail::to($record->user->email)
+                                    ->queue(new DocumentRequestMail(
+                                        $record,
+                                        $data['documents'],
+                                        $data['notes'] ?? null
+                                    ));
+                            }
 
                             Notification::make()
                                 ->title(__('filament.notifications.document_request_sent'))

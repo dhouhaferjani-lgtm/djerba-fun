@@ -10,7 +10,12 @@ import { MarketingMosaicSection } from '@/components/home/MarketingMosaicSection
 import { PromoBannerSection } from '@/components/home/PromoBannerSection';
 import { DestinationsBentoGrid } from '@/components/home/DestinationsBentoGrid';
 import { CTASectionWithBlobs } from '@/components/home/CTASectionWithBlobs';
-import { BlogSection, ExperienceCategoriesSection, TestimonialsSection } from '@/components/home';
+import {
+  BlogSection,
+  ExperienceCategoriesSection,
+  TestimonialsSection,
+  NewsletterSection,
+} from '@/components/home';
 import { BlockRenderer } from '@/components/cms';
 import { getPageByCode } from '@/lib/api/cms';
 import {
@@ -25,6 +30,7 @@ import {
   getBlogSectionData,
   getFeaturedPackagesSectionData,
   getCustomExperienceData,
+  getNewsletterData,
 } from '@/lib/api/server';
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -44,6 +50,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     blogSectionData,
     featuredPackagesData,
     customExperienceData,
+    newsletterData,
   ] = await Promise.all([
     getBrandingUrls(locale),
     getEventOfYearData(locale),
@@ -56,6 +63,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     getBlogSectionData(locale),
     getFeaturedPackagesSectionData(locale),
     getCustomExperienceData(locale),
+    getNewsletterData(locale),
   ]);
 
   // Fetch featured listings with the limit from CMS (must be separate due to dependency)
@@ -105,6 +113,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* Always show Blog section if enabled */}
       {blogSectionData.enabled && <BlogSection locale={locale} cmsData={blogSectionData} />}
+
+      {/* Newsletter section - CMS controlled */}
+      {newsletterData.enabled && <NewsletterSection cmsData={newsletterData} />}
     </MainLayout>
   );
 }

@@ -103,7 +103,12 @@ pnpm dev      # Watch mode
 - Types imported from `@djerba-fun/schemas` - never define API types locally
 - Utility: `cn()` from `apps/web/src/lib/utils/cn.ts` for Tailwind class merging
 
-**API modules in client.ts**: `authApi`, `listingsApi`, `bookingsApi`, `participantsApi`, `vouchersApi`, `magicLinksApi`, `reviewsApi`, `couponsApi`, `vendorsApi`, `cartApi`, `platformApi`, `userApi`, `locationsApi`, `activityTypesApi`, `categoryStatsApi`, `tagsApi`, `consentApi`, `travelTipsApi`, `customTripApi`
+**API modules**:
+
+- `client.ts`: `authApi`, `listingsApi`, `bookingsApi`, `participantsApi`, `vouchersApi`, `magicLinksApi`, `reviewsApi`, `couponsApi`, `vendorsApi`, `cartApi`, `platformApi`, `userApi`, `locationsApi`, `activityTypesApi`, `categoryStatsApi`, `tagsApi`, `consentApi`, `travelTipsApi`, `customTripApi`
+- `cms.ts`: `getPages`, `getPage`, `getPageByCode`, `getMenu` (CMS pages and menus)
+- `blog.ts`: `getBlogPosts`, `getBlogPost`, `getFeaturedBlogPosts`, `getRelatedBlogPosts`
+- `contact.ts`: `submitContactForm`
 
 ### Frontend Component Structure
 
@@ -134,7 +139,7 @@ Components in `apps/web/src/components/` follow atomic design:
 - **API Controllers**: `app/Http/Controllers/Api/V1/` - thin controllers delegating to Actions/Services
 - **Partner API**: `app/Http/Controllers/Api/Partner/` - B2B partner endpoints (X-Partner-Key auth)
 - **Actions**: Single-purpose business logic classes (prefer over fat services); create in `app/Actions/` for reusable business logic
-- **Services**: `app/Services/` - cross-cutting business logic (BookingService, CartService, CouponService, PriceCalculationService, etc.)
+- **Services**: `app/Services/` - cross-cutting business logic (BookingService, CartService, CouponService, PriceCalculationService, GeoPricingService, CurrencyConversionService, ExtrasService, VoucherPdfService, etc.)
 - **FormRequests**: `app/Http/Requests/` - input validation (always use, never validate in controllers)
 - **Resources**: `app/Http/Resources/` - JSON serialization (never return Eloquent models directly)
 - **Enums**: `app/Enums/` - PHP enums (BookingStatus, PaymentStatus, ListingStatus, UserRole, etc.)

@@ -149,7 +149,7 @@ return new class extends Migration
         // Partner API keys table indexes
         Schema::table('partner_api_keys', function (Blueprint $table) {
             $table->index('partner_id', 'idx_partner_keys_partner_id');
-            $table->index('is_active', 'idx_partner_keys_is_active');
+            $table->index('status', 'idx_partner_keys_status');
             $table->index('last_used_at', 'idx_partner_keys_last_used');
         });
 

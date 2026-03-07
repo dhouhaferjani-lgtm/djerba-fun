@@ -1564,4 +1564,101 @@ export const tagsApi = {
   },
 };
 
+// ============================================================================
+// WISHLIST API
+// ============================================================================
+
+export interface WishlistItem {
+  id: string;
+  listing_id: string;
+  added_at: string;
+  listing?: {
+    id: string;
+    slug: string;
+    title: string;
+    summary: string;
+    service_type: string;
+    hero_image: string | null;
+    location?: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+    activity_type?: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+    pricing: {
+      display_price: number;
+      display_currency: string;
+    };
+    duration: number | null;
+    rating_average: number | null;
+    review_count: number;
+  };
+}
+
+export const wishlistApi = {
+  /**
+   * Get user's wishlist (paginated)
+   */
+  list: async (params?: { page?: number; per_page?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', String(params.page));
+    if (params?.per_page) queryParams.append('per_page', String(params.per_page));
+    const queryString = queryParams.toString();
+    return fetchApi<{
+      data: WishlistItem[];
+      meta: { current_page: number; last_page: number; per_page: number; total: number };
+    }>(`/wishlists${queryString ? `?${queryString}` : ''}`);
+  },
+
+  /**
+   * Get wishlist listing IDs only (efficient client-side checking)
+   */
+  getIds: async () => {
+    return fetchApi<{ data: { listing_ids: string[] } }>('/wishlists/ids');
+  },
+
+  /**
+   * Add listing to wishlist
+   */
+  add: async (listingId: string) => {
+    return fetchApi<{ message: string; data: WishlistItem }>(`/wishlists/${listingId}`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Remove listing from wishlist
+   */
+  remove: async (listingId: string) => {
+    return fetchApi<{ message: string }>(`/wishlists/${listingId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  /**
+   * Toggle listing in wishlist
+   */
+  toggle: async (listingId: string) => {
+    return fetchApi<{
+      message: string;
+      data: { listing_id: string; in_wishlist: boolean; wishlist_id?: string };
+    }>(`/wishlists/${listingId}/toggle`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Check if listing is in wishlist
+   */
+  check: async (listingId: string) => {
+    return fetchApi<{ data: { listing_id: string; in_wishlist: boolean } }>(
+      `/wishlists/${listingId}/check`
+    );
+  },
+};
+
 export { ApiError };

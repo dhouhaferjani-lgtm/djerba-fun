@@ -107,8 +107,6 @@ import {
   ChevronRight,
   Minus,
   Plus,
-  Hotel,
-  UtensilsCrossed,
 } from 'lucide-react';
 import { resolveTranslation } from '@/lib/utils/translate';
 import { getGuestSessionId } from '@/lib/utils/session';
@@ -1153,68 +1151,6 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                       </ul>
                     </section>
                   )}
-
-                  {/* Accommodation & Meals (Accommodations only) */}
-                  {listing.serviceType === 'accommodation' &&
-                    (('accommodationType' in listing && listing.accommodationType) ||
-                      ('mealsIncluded' in listing && listing.mealsIncluded)) && (
-                      <section>
-                        <h2 className="font-display text-3xl font-bold text-heading mb-6 tracking-tight">
-                          {t('accommodation_and_meals')}
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {/* Accommodation Type */}
-                          {'accommodationType' in listing && listing.accommodationType && (
-                            <div className="flex items-start gap-4 p-4 rounded-xl bg-neutral-50 border border-neutral-200">
-                              <Hotel className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
-                              <div>
-                                <p className="font-semibold text-neutral-900">
-                                  {t('accommodation')}
-                                </p>
-                                <p className="text-neutral-600 mt-1">
-                                  {t(`accommodation_type_${listing.accommodationType}`)}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          {/* Meals Included */}
-                          {'mealsIncluded' in listing && listing.mealsIncluded && (
-                            <div className="flex items-start gap-4 p-4 rounded-xl bg-neutral-50 border border-neutral-200">
-                              <UtensilsCrossed className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
-                              <div>
-                                <p className="font-semibold text-neutral-900">
-                                  {t('meals_included')}
-                                </p>
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                  {listing.mealsIncluded.breakfast && (
-                                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                                      <CheckCircle className="h-3.5 w-3.5" /> {t('breakfast')}
-                                    </span>
-                                  )}
-                                  {listing.mealsIncluded.lunch && (
-                                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                                      <CheckCircle className="h-3.5 w-3.5" /> {t('lunch')}
-                                    </span>
-                                  )}
-                                  {listing.mealsIncluded.dinner && (
-                                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                                      <CheckCircle className="h-3.5 w-3.5" /> {t('dinner')}
-                                    </span>
-                                  )}
-                                  {!listing.mealsIncluded.breakfast &&
-                                    !listing.mealsIncluded.lunch &&
-                                    !listing.mealsIncluded.dinner && (
-                                      <span className="text-sm text-neutral-500">
-                                        {t('no_meals_included')}
-                                      </span>
-                                    )}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </section>
-                    )}
 
                   {/* Itinerary & Map Section */}
                   {'itinerary' in listing && listing.itinerary && listing.itinerary.length > 0 && (

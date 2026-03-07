@@ -37,6 +37,7 @@ export default function CartParticipantsPage() {
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
   const [firstSavedData, setFirstSavedData] = useState<ParticipantData[] | null>(null);
   const [isCopying, setIsCopying] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Get booking IDs from URL params
   const bookingIdsParam = searchParams.get('bookings');
@@ -169,7 +170,12 @@ export default function CartParticipantsPage() {
         }
       } catch (error) {
         console.error('Update participants failed:', error);
-        // TODO: Show error toast
+        setErrorMessage(
+          t('error_saving_participants') ||
+            'Failed to save participant information. Please try again.'
+        );
+        // Auto-dismiss error after 5 seconds
+        setTimeout(() => setErrorMessage(null), 5000);
       } finally {
         setSavingBooking(null);
       }
@@ -204,7 +210,11 @@ export default function CartParticipantsPage() {
       router.push(`/${locale}/checkout/vouchers?bookings=${bookingIds.join(',')}`);
     } catch (error) {
       console.error('Copy to all failed:', error);
-      // TODO: Show error toast
+      setErrorMessage(
+        t('error_copy_to_all') || 'Failed to copy participant information. Please try again.'
+      );
+      // Auto-dismiss error after 5 seconds
+      setTimeout(() => setErrorMessage(null), 5000);
     } finally {
       setIsCopying(false);
     }
@@ -308,6 +318,25 @@ export default function CartParticipantsPage() {
           }) || `${bookings.length} activities • ${totalParticipants} participants total`}
         </p>
       </div>
+
+      {/* Error notification banner */}
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-red-800">{errorMessage}</p>
+          </div>
+          <button
+            onClick={() => setErrorMessage(null)}
+            className="text-red-600 hover:text-red-800 p-1"
+            aria-label="Dismiss"
+          >
+            <span className="text-xl">&times;</span>
+          </button>
+        </div>
+      )}
 
       {/* "Copy to All" banner - shows after first activity is saved */}
       {showCopyToAll && (

@@ -177,7 +177,7 @@ class PartnerFinancialService
             'total_refunds' => round($refunds, 2),
             'total_adjustments' => round($adjustments, 2),
             'current_balance' => round($currentBalance, 2),
-            'currency' => 'EUR', // TODO: Make configurable
+            'currency' => config('payment.default_currency', 'EUR'),
         ];
     }
 

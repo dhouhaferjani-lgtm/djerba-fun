@@ -3,6 +3,18 @@
 return [
     /*
     |--------------------------------------------------------------------------
+    | Default Currency
+    |--------------------------------------------------------------------------
+    |
+    | This option controls the default currency used for financial reporting
+    | and display when no specific currency is set.
+    |
+    */
+
+    'default_currency' => env('PAYMENT_DEFAULT_CURRENCY', 'EUR'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Payment Gateway
     |--------------------------------------------------------------------------
     |

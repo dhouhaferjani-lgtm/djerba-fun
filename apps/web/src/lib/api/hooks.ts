@@ -15,6 +15,7 @@ import {
   activityTypesApi,
   categoryStatsApi,
   tagsApi,
+  wishlistApi,
   type ProcessPaymentRequest,
   type Cart,
   type UpdateParticipantData,
@@ -1090,4 +1091,85 @@ export function useCategoryStats() {
     staleTime: 5 * 60 * 1000, // 5 minutes - matches backend cache
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
   });
+}
+
+// ============================================================================
+// WISHLIST HOOKS
+// ============================================================================
+
+/**
+ * Get user's wishlist (paginated)
+ */
+export function useWishlist(params?: { page?: number; per_page?: number }, enabled = true) {
+  return useQuery({
+    queryKey: ['wishlist', params],
+    queryFn: () => wishlistApi.list(params),
+    enabled,
+    staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
+/**
+ * Get wishlist listing IDs for efficient client-side checking
+ * Used to show filled heart on listing cards
+ */
+export function useWishlistIds(enabled = true) {
+  return useQuery({
+    queryKey: ['wishlist', 'ids'],
+    queryFn: async () => {
+      const response = await wishlistApi.getIds();
+      return response.data.listing_ids;
+    },
+    enabled,
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+/**
+ * Toggle a listing in the wishlist
+ */
+export function useToggleWishlist() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (listingId: string) => wishlistApi.toggle(listingId),
+    onMutate: async (listingId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['wishlist'] });
+
+      // Snapshot the previous value (default to empty array if not cached yet)
+      const previousIds = queryClient.getQueryData<string[]>(['wishlist', 'ids']) ?? [];
+
+      // Optimistically update wishlist IDs
+      const isInWishlist = previousIds.includes(listingId);
+      queryClient.setQueryData<string[]>(
+        ['wishlist', 'ids'],
+        isInWishlist ? previousIds.filter((id) => id !== listingId) : [...previousIds, listingId]
+      );
+
+      return { previousIds };
+    },
+    onError: (_err, _listingId, context) => {
+      // Rollback on error
+      if (context?.previousIds !== undefined) {
+        queryClient.setQueryData(['wishlist', 'ids'], context.previousIds);
+      }
+    },
+    onSettled: () => {
+      // Refetch to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['wishlist'] });
+    },
+  });
+}
+
+/**
+ * Check if a specific listing is in the wishlist
+ */
+export function useIsInWishlist(listingId: string, enabled = true) {
+  const { data: wishlistIds, isLoading } = useWishlistIds(enabled);
+
+  return {
+    isInWishlist: wishlistIds?.includes(listingId) ?? false,
+    isLoading,
+  };
 }

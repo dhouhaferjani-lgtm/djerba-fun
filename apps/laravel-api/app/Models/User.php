@@ -7,6 +7,7 @@ use App\Enums\UserStatus;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Contracts\Translation\HasLocalePreference;
@@ -141,6 +142,31 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference
     public function vendorPayouts(): HasMany
     {
         return $this->hasMany(Payout::class, 'vendor_id');
+    }
+
+    /**
+     * Get the user's wishlist items.
+     */
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
+     * Get listings in the user's wishlist.
+     */
+    public function wishlistedListings(): BelongsToMany
+    {
+        return $this->belongsToMany(Listing::class, 'wishlists')
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if a listing is in the user's wishlist.
+     */
+    public function hasInWishlist(Listing $listing): bool
+    {
+        return $this->wishlists()->where('listing_id', $listing->id)->exists();
     }
 
     /**

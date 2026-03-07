@@ -399,6 +399,8 @@
       "loading_bookings": "Chargement des réservations...",
       "error_loading": "Erreur de chargement",
       "error_loading_message": "Nous n'avons pas pu charger les détails de vos réservations. Veuillez réessayer.",
+      "error_saving_participants": "Échec de l'enregistrement des participants. Veuillez réessayer.",
+      "error_copy_to_all": "Échec de la copie des informations. Veuillez réessayer.",
       "go_to_bookings": "Voir mes réservations",
       "entering_names_for": "Saisie des noms pour :",
       "participants": "participants",
@@ -1526,5 +1528,19 @@
     "unit_price": "Prix",
     "subtotal": "Sous-total",
     "total": "Total"
+  },
+  "wishlist": {
+    "title": "Ma Liste de Souhaits",
+    "count": "{count, plural, one {# élément} other {# éléments}}",
+    "empty_title": "Votre liste de souhaits est vide",
+    "empty_description": "Sauvegardez vos expériences préférées en cliquant sur l'icône cœur sur n'importe quelle annonce.",
+    "browse_listings": "Parcourir les Expériences",
+    "added": "Ajouté à la liste de souhaits",
+    "removed": "Retiré de la liste de souhaits",
+    "error": "Une erreur s'est produite. Veuillez réessayer.",
+    "error_loading": "Impossible de charger la liste de souhaits",
+    "login_required": "Veuillez vous connecter pour sauvegarder vos favoris",
+    "add_aria": "Ajouter à la liste de souhaits",
+    "remove_aria": "Retirer de la liste de souhaits"
   }
 }

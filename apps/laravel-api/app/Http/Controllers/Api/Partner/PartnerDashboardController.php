@@ -153,7 +153,7 @@ class PartnerDashboardController extends Controller
 
         return response()->json([
             'current_balance' => round($currentBalance, 2),
-            'currency' => 'EUR', // TODO: Make this configurable
+            'currency' => config('payment.default_currency', 'EUR'),
             'total_charges' => round($totalCharges, 2),
             'total_payments' => round($totalPayments, 2),
             'total_refunds' => round($totalRefunds, 2),

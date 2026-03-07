@@ -22,6 +22,16 @@ class VendorSeeder extends Seeder
             'status' => 'active',
         ]);
 
+        // Create test traveler user for E2E tests
+        User::create([
+            'display_name' => 'Test Traveler',
+            'email' => 'traveler@test.com',
+            'password' => Hash::make('TestPassword123!'),
+            'email_verified_at' => now(),
+            'role' => 'traveler',
+            'status' => 'active',
+        ]);
+
         // Create main vendor
         $vendor = User::create([
             'display_name' => 'Djerba Fun',

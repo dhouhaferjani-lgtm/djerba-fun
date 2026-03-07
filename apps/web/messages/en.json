@@ -424,6 +424,8 @@
       "loading_bookings": "Loading bookings...",
       "error_loading": "Error Loading Bookings",
       "error_loading_message": "We couldn't load your booking details. Please try again.",
+      "error_saving_participants": "Failed to save participant information. Please try again.",
+      "error_copy_to_all": "Failed to copy participant information. Please try again.",
       "go_to_bookings": "Go to My Bookings",
       "entering_names_for": "Entering participant names for:",
       "participants": "participants",
@@ -1526,5 +1528,19 @@
     "unit_price": "Price",
     "subtotal": "Subtotal",
     "total": "Total"
+  },
+  "wishlist": {
+    "title": "My Wishlist",
+    "count": "{count, plural, one {# item} other {# items}}",
+    "empty_title": "Your wishlist is empty",
+    "empty_description": "Save your favorite experiences by clicking the heart icon on any listing.",
+    "browse_listings": "Browse Experiences",
+    "added": "Added to wishlist",
+    "removed": "Removed from wishlist",
+    "error": "Something went wrong. Please try again.",
+    "error_loading": "Failed to load wishlist",
+    "login_required": "Please log in to save favorites",
+    "add_aria": "Add to wishlist",
+    "remove_aria": "Remove from wishlist"
   }
 }

@@ -39,6 +39,10 @@ export async function createTestUser(
   }
 ): Promise<TestUser> {
   const response = await request.post(`${API_BASE_URL}/auth/register`, {
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
     data: {
       email: userData.email,
       password: userData.password,
@@ -68,10 +72,25 @@ export async function loginTestUser(
   password: string
 ): Promise<TestUser> {
   const response = await request.post(`${API_BASE_URL}/auth/login`, {
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
     data: { email, password },
   });
 
   const data = await response.json();
+
+  // Debug: log actual response
+  if (!response.ok() || !data.user) {
+    console.error('Login failed:', {
+      status: response.status(),
+      statusText: response.statusText(),
+      data: JSON.stringify(data, null, 2),
+    });
+    throw new Error(`Login failed: ${response.status()} - ${JSON.stringify(data)}`);
+  }
+
   return {
     id: data.user.id,
     email: data.user.email,

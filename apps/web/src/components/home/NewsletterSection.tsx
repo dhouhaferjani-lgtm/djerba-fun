@@ -2,9 +2,20 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { Button } from '@djerba-fun/ui'; // Assuming Button component is updated with new variants
+import { Button } from '@djerba-fun/ui';
 
-export function NewsletterSection() {
+interface NewsletterCmsData {
+  enabled: boolean;
+  title: string | null;
+  subtitle: string | null;
+  buttonText: string | null;
+}
+
+interface NewsletterSectionProps {
+  cmsData?: NewsletterCmsData;
+}
+
+export function NewsletterSection({ cmsData }: NewsletterSectionProps) {
   const t = useTranslations('home');
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -41,9 +52,11 @@ export function NewsletterSection() {
           </div>
 
           <h2 className="text-3xl md:text-4xl font-bold text-neutral-darker mb-4">
-            {t('newsletter_title')}
+            {cmsData?.title || t('newsletter_title')}
           </h2>
-          <p className="text-lg text-neutral-dark mb-8">{t('newsletter_subtitle')}</p>
+          <p className="text-lg text-neutral-dark mb-8">
+            {cmsData?.subtitle || t('newsletter_subtitle')}
+          </p>
 
           <form
             onSubmit={handleSubmit}
@@ -95,7 +108,7 @@ export function NewsletterSection() {
                   Subscribed!
                 </span>
               ) : (
-                t('newsletter_button')
+                cmsData?.buttonText || t('newsletter_button')
               )}
             </Button>
           </form>

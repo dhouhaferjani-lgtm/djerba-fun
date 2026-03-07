@@ -1,8 +1,10 @@
 <?php
 
+use App\Models\Listing;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -10,6 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
+        then: function () {
+            // Explicit model binding for listing by uuid (for wishlist routes)
+            Route::bind('listing', function (string $value) {
+                // First try uuid, then fall back to slug
+                return Listing::where('uuid', $value)
+                    ->orWhere('slug', $value)
+                    ->firstOrFail();
+            });
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Trust all proxies (required for signed URL validation behind reverse proxy)

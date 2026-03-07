@@ -78,18 +78,6 @@ export function BookingReview({
       pricing.displayPrice || pricing.tndPrice || slot.displayPrice || slot.tndPrice || 0;
     const numericPrice = typeof basePrice === 'string' ? parseFloat(basePrice) : basePrice;
 
-    console.log('DEBUG getPersonTypes:', {
-      hasPricing: !!pricing,
-      hasPersonTypes: !!personTypes,
-      personTypesLength: personTypes?.length,
-      personTypes: personTypes,
-      displayPrice: pricing.displayPrice,
-      tndPrice: pricing.tndPrice,
-      slotDisplayPrice: slot.displayPrice,
-      slotTndPrice: slot.tndPrice,
-      basePrice: numericPrice,
-    });
-
     if (personTypes && Array.isArray(personTypes) && personTypes.length > 0) {
       // Use actual prices from API (displayPrice, tndPrice, or price)
       const typesWithPrices = personTypes.map((pt) => ({
@@ -97,11 +85,8 @@ export function BookingReview({
         price: Number(pt.displayPrice ?? pt.tndPrice ?? pt.price ?? numericPrice),
       }));
 
-      console.log('DEBUG using person types with filled prices:', typesWithPrices);
       return typesWithPrices;
     }
-
-    console.log('DEBUG using fallback person types with basePrice:', numericPrice);
 
     // Fallback: only return adult with base price (don't invent child/infant pricing)
     // This matches the backend's fallback behavior in PriceCalculationService.php
@@ -147,22 +132,12 @@ export function BookingReview({
       const personTypes = getPersonTypes();
       let total = 0;
 
-      console.log('Calculating subtotal from breakdown:', {
-        personTypeBreakdown,
-        personTypes: personTypes.map((pt) => ({ key: pt.key, price: pt.price })),
-      });
-
       for (const type of personTypes) {
         const qty = personTypeBreakdown[type.key] || 0;
         const price = type.price ?? 0;
         total += price * qty;
-
-        if (qty > 0) {
-          console.log(`  ${type.key}: ${qty} × ${price} = ${price * qty}`);
-        }
       }
 
-      console.log('Total calculated:', total);
       return total;
     }
 
@@ -173,7 +148,6 @@ export function BookingReview({
       listing.pricing?.displayPrice ||
       listing.pricing?.tndPrice ||
       0;
-    console.log('Using fallback price:', { unitPrice, quantity });
     return unitPrice * quantity;
   };
 

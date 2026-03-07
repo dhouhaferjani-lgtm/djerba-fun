@@ -19,6 +19,7 @@ import { useTranslations } from 'next-intl';
 import { Card } from '@djerba-fun/ui';
 import { RatingStars } from './RatingStars';
 import { PriceDisplay } from './PriceDisplay';
+import { WishlistButton } from '@/components/listing/WishlistButton';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import type { ListingSummary } from '@djerba-fun/schemas';
 import { resolveTranslation } from '@/lib/utils/translate';
@@ -94,6 +95,14 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
               </span>
             </div>
           )}
+
+          {/* Wishlist Button */}
+          <WishlistButton
+            listingId={listing.id}
+            className="absolute bottom-3 right-3 z-10"
+            variant="overlay"
+            size="sm"
+          />
         </div>
 
         {/* Content */}

@@ -39,6 +39,7 @@ use App\Http\Controllers\Api\V1\ContactController;
 use App\Http\Controllers\Api\V1\TagController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\VoucherController;
+use App\Http\Controllers\Api\V1\WishlistController;
 use App\Http\Controllers\Api\Vendor\VendorVoucherController;
 use App\Http\Controllers\Api\Webhooks\MailgunWebhookController;
 use App\Http\Controllers\Api\Webhooks\ResendWebhookController;
@@ -312,10 +313,15 @@ Route::prefix('v1')->group(function () {
             Route::post('/bookings/{booking}/vouchers/email', [VendorVoucherController::class, 'email']);
         });
 
-        // Additional protected routes will be added in later phases
-        // - User profile updates
-        // - Vendor listing management
-        // - etc.
+        // Wishlist management (uses listing uuid for route model binding)
+        Route::prefix('wishlists')->group(function () {
+            Route::get('/', [WishlistController::class, 'index']);
+            Route::get('/ids', [WishlistController::class, 'ids']);
+            Route::post('/{listing:uuid}', [WishlistController::class, 'store']);
+            Route::delete('/{listing:uuid}', [WishlistController::class, 'destroy']);
+            Route::post('/{listing:uuid}/toggle', [WishlistController::class, 'toggle']);
+            Route::get('/{listing:uuid}/check', [WishlistController::class, 'check']);
+        });
     });
 });
 
