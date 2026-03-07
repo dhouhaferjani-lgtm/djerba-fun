@@ -8,9 +8,11 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Listing Detail Page', () => {
   const testListingSlug = 'kroumirie-mountains-summit-trek';
+  const testListingLocation = 'ain-draham';
 
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/en/listings/${testListingSlug}`);
+    // URL format is /{locale}/{location}/{slug}
+    await page.goto(`/en/${testListingLocation}/${testListingSlug}`);
     await page.waitForLoadState('networkidle');
   });
 

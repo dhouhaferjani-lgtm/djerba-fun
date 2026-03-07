@@ -51,10 +51,11 @@ export async function loginToAdmin(page: Page): Promise<void> {
   await page.click('button[type="submit"]');
   await page.waitForURL(`${ADMIN_URL}/**`, { timeout: 15000 });
 
-  // Verify we're logged in by checking for navigation/sidebar
-  await expect(
-    page.locator('.fi-sidebar, nav, [class*="sidebar"], [class*="navigation"]').first()
-  ).toBeVisible({
+  // Verify we're logged in by checking for Filament panel body class
+  // The body.fi-body.fi-panel-admin class only appears on authenticated admin panel pages
+  await expect(page.locator('body.fi-body.fi-panel-admin')).toBeVisible({ timeout: 10000 });
+  // Also verify main content area loaded (confirms page finished loading)
+  await expect(page.locator('.fi-main, main, [class*="main"]').first()).toBeVisible({
     timeout: 10000,
   });
 }

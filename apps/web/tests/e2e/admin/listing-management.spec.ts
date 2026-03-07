@@ -50,7 +50,7 @@ test.describe('Admin Panel - Listing Management', () => {
     await navigateToAdminResource(page, 'listings');
 
     console.log('📍 Step 2: Click Create Listing');
-    await page.click('a:has-text("Create")');
+    await page.getByRole('link', { name: /Create/i }).click();
     await page.waitForLoadState('networkidle');
 
     console.log('📍 Step 3: Fill listing details');
@@ -119,7 +119,10 @@ test.describe('Admin Panel - Listing Management', () => {
     }
 
     console.log('📍 Step 4: Save as Draft');
-    await page.click('button:has-text("Create"), button:has-text("Save")');
+    await page
+      .getByRole('button', { name: /Create|Save/i })
+      .first()
+      .click();
     await page.waitForLoadState('networkidle');
 
     // Verify success notification
@@ -130,16 +133,17 @@ test.describe('Admin Panel - Listing Management', () => {
     console.log('📍 Step 5: Verify status is Draft');
     // Check the listing table for draft status
     await navigateToAdminResource(page, 'listings');
-    const draftBadge = page.locator(
-      `tr:has-text("${uniqueSlug}") .filament-badge:has-text("Draft")`
-    );
+    const draftBadge = page
+      .getByRole('row', { name: new RegExp(uniqueSlug, 'i') })
+      .locator('[role="status"], .fi-badge, .filament-badge')
+      .filter({ hasText: /Draft/i });
     // Note: Listing may start in different status based on Filament configuration
 
     console.log('📍 Step 6: Edit and submit for review');
     // Click edit on the listing
-    const listingRow = page.locator(`tr:has-text("${uniqueSlug}")`).first();
+    const listingRow = page.getByRole('row', { name: new RegExp(uniqueSlug, 'i') }).first();
     if (await listingRow.isVisible()) {
-      await listingRow.locator('a:has-text("Edit")').click();
+      await listingRow.getByRole('link', { name: /Edit/i }).click();
       await page.waitForLoadState('networkidle');
 
       // Change status to Pending Review
@@ -150,7 +154,7 @@ test.describe('Admin Panel - Listing Management', () => {
         await statusSelect.selectOption({ label: 'Pending Review' });
       }
 
-      await page.click('button:has-text("Save")');
+      await page.getByRole('button', { name: /Save/i }).click();
       await page.waitForLoadState('networkidle');
     }
 
@@ -158,15 +162,15 @@ test.describe('Admin Panel - Listing Management', () => {
     await navigateToAdminResource(page, 'listings');
 
     // Find the listing and use Approve action
-    const pendingRow = page.locator(`tr:has-text("${uniqueSlug}")`).first();
+    const pendingRow = page.getByRole('row', { name: new RegExp(uniqueSlug, 'i') }).first();
     if (await pendingRow.isVisible()) {
       // Open row actions
       await pendingRow
-        .locator('[data-actions] button, button[aria-label*="action"]')
+        .locator('[data-actions] button, button[aria-haspopup="menu"]')
         .first()
         .click();
       // Click approve
-      const approveButton = page.locator('button:has-text("Approve"), [data-action="approve"]');
+      const approveButton = page.getByRole('menuitem', { name: /Approve/i });
       if (await approveButton.isVisible()) {
         await approveButton.click();
         await page.waitForLoadState('networkidle');
@@ -175,9 +179,10 @@ test.describe('Admin Panel - Listing Management', () => {
 
     console.log('📍 Step 8: Verify status is Published');
     await page.reload();
-    const publishedBadge = page.locator(
-      `tr:has-text("${uniqueSlug}") .filament-badge:has-text("Published")`
-    );
+    const publishedBadge = page
+      .getByRole('row', { name: new RegExp(uniqueSlug, 'i') })
+      .locator('[role="status"], .fi-badge, .filament-badge')
+      .filter({ hasText: /Published/i });
     // Listing should now be published
 
     console.log('📍 Step 9: Verify listing appears on frontend');
@@ -194,7 +199,7 @@ test.describe('Admin Panel - Listing Management', () => {
 
     console.log('📍 Step 2: Find a listing with Pending Review status');
     // Filter for pending review listings
-    const filterButton = page.locator('button:has-text("Filter")');
+    const filterButton = page.getByRole('button', { name: /Filter/i });
     if (await filterButton.isVisible()) {
       await filterButton.click();
       // Select status filter for Pending Review
@@ -202,7 +207,10 @@ test.describe('Admin Panel - Listing Management', () => {
       if (await statusFilter.isVisible()) {
         await statusFilter.selectOption({ label: 'Pending Review' });
       }
-      await page.click('button:has-text("Apply")').catch(() => {});
+      await page
+        .getByRole('button', { name: /Apply/i })
+        .click()
+        .catch(() => {});
       await page.waitForLoadState('networkidle');
     }
 
@@ -210,10 +218,10 @@ test.describe('Admin Panel - Listing Management', () => {
     const firstRow = page.locator(adminSelectors.tableRow).first();
     if (await firstRow.isVisible()) {
       // Open row actions
-      await firstRow.locator('[data-actions] button, button[aria-label*="action"]').first().click();
+      await firstRow.locator('[data-actions] button, button[aria-haspopup="menu"]').first().click();
 
       // Click reject
-      const rejectButton = page.locator('button:has-text("Reject"), [data-action="reject"]');
+      const rejectButton = page.getByRole('menuitem', { name: /Reject/i });
       if (await rejectButton.isVisible()) {
         await rejectButton.click();
 
@@ -223,9 +231,8 @@ test.describe('Admin Panel - Listing Management', () => {
 
         // Fill rejection reason
         const reasonInput = page
-          .locator(
-            `${adminSelectors.modal} textarea, ${adminSelectors.modal} input[name*="reason"]`
-          )
+          .getByRole('dialog')
+          .locator('textarea, input[name*="reason"]')
           .first();
         if (await reasonInput.isVisible()) {
           await reasonInput.fill(
@@ -234,15 +241,19 @@ test.describe('Admin Panel - Listing Management', () => {
         }
 
         console.log('📍 Step 5: Confirm rejection');
-        await page.click(
-          `${adminSelectors.modal} button:has-text("Confirm"), ${adminSelectors.modal} button:has-text("Reject")`
-        );
+        await page
+          .getByRole('dialog')
+          .getByRole('button', { name: /Confirm|Reject/i })
+          .click();
         await page.waitForLoadState('networkidle');
       }
     }
 
     console.log('📍 Step 6: Verify status is Rejected');
-    const rejectedBadge = page.locator(`.filament-badge:has-text("Rejected")`).first();
+    const rejectedBadge = page
+      .locator('[role="status"], .fi-badge, .filament-badge')
+      .filter({ hasText: /Rejected/i })
+      .first();
     if (await rejectedBadge.isVisible()) {
       console.log('✅ Listing rejected successfully');
     }
@@ -257,14 +268,17 @@ test.describe('Admin Panel - Listing Management', () => {
     await navigateToAdminResource(page, 'listings');
 
     console.log('📍 Step 2: Filter for published listings');
-    const filterButton = page.locator('button:has-text("Filter")');
+    const filterButton = page.getByRole('button', { name: /Filter/i });
     if (await filterButton.isVisible()) {
       await filterButton.click();
       const statusFilter = page.locator('[data-filter="status"], select[name*="status"]').first();
       if (await statusFilter.isVisible()) {
         await statusFilter.selectOption({ label: 'Published' });
       }
-      await page.click('button:has-text("Apply")').catch(() => {});
+      await page
+        .getByRole('button', { name: /Apply/i })
+        .click()
+        .catch(() => {});
       await page.waitForLoadState('networkidle');
     }
 
@@ -282,7 +296,7 @@ test.describe('Admin Panel - Listing Management', () => {
 
       if (!isAlreadyFeatured && featuredCount < 3) {
         // Click edit to toggle featured
-        await row.locator('a:has-text("Edit")').click();
+        await row.getByRole('link', { name: /Edit/i }).click();
         await page.waitForLoadState('networkidle');
 
         // Toggle featured checkbox
@@ -291,7 +305,7 @@ test.describe('Admin Panel - Listing Management', () => {
           .first();
         if (await featuredCheckbox.isVisible()) {
           await featuredCheckbox.check();
-          await page.click('button:has-text("Save")');
+          await page.getByRole('button', { name: /Save/i }).click();
           await page.waitForLoadState('networkidle');
           featuredCount++;
           console.log(`✅ Featured listing ${featuredCount}/3`);
@@ -310,7 +324,7 @@ test.describe('Admin Panel - Listing Management', () => {
         const isAlreadyFeatured = await featuredStar.isVisible().catch(() => false);
 
         if (!isAlreadyFeatured) {
-          await row.locator('a:has-text("Edit")').click();
+          await row.getByRole('link', { name: /Edit/i }).click();
           await page.waitForLoadState('networkidle');
 
           const featuredCheckbox = page
@@ -318,7 +332,7 @@ test.describe('Admin Panel - Listing Management', () => {
             .first();
           if (await featuredCheckbox.isVisible()) {
             await featuredCheckbox.check();
-            await page.click('button:has-text("Save")');
+            await page.getByRole('button', { name: /Save/i }).click();
 
             // Expect error or warning
             const errorNotification = await waitForNotification(page, 'error', 3000);
@@ -351,14 +365,17 @@ test.describe('Admin Panel - Listing Management', () => {
     await navigateToAdminResource(page, 'listings');
 
     console.log('📍 Step 2: Filter for Pending Review listings');
-    const filterButton = page.locator('button:has-text("Filter")');
+    const filterButton = page.getByRole('button', { name: /Filter/i });
     if (await filterButton.isVisible()) {
       await filterButton.click();
       const statusFilter = page.locator('[data-filter="status"], select[name*="status"]').first();
       if (await statusFilter.isVisible()) {
         await statusFilter.selectOption({ label: 'Pending Review' });
       }
-      await page.click('button:has-text("Apply")').catch(() => {});
+      await page
+        .getByRole('button', { name: /Apply/i })
+        .click()
+        .catch(() => {});
       await page.waitForLoadState('networkidle');
     }
 
@@ -380,21 +397,17 @@ test.describe('Admin Panel - Listing Management', () => {
 
       console.log('📍 Step 4: Use Bulk Approve action');
       // Open bulk actions dropdown
-      const bulkActionsButton = page
-        .locator('[data-bulk-actions] button, button:has-text("Bulk actions")')
-        .first();
+      const bulkActionsButton = page.getByRole('button', { name: /Bulk actions/i });
       if (await bulkActionsButton.isVisible()) {
         await bulkActionsButton.click();
 
         // Click approve
-        const approveAction = page.locator(
-          'button:has-text("Approve"), [data-action="bulk-approve"]'
-        );
+        const approveAction = page.getByRole('menuitem', { name: /Approve/i });
         if (await approveAction.isVisible()) {
           await approveAction.click();
 
           // Confirm if modal appears
-          const confirmButton = page.locator(`${adminSelectors.modal} button:has-text("Confirm")`);
+          const confirmButton = page.getByRole('dialog').getByRole('button', { name: /Confirm/i });
           if (await confirmButton.isVisible()) {
             await confirmButton.click();
           }
@@ -418,14 +431,17 @@ test.describe('Admin Panel - Listing Management', () => {
     await navigateToAdminResource(page, 'listings');
 
     console.log('📍 Step 2: Find a published listing');
-    const filterButton = page.locator('button:has-text("Filter")');
+    const filterButton = page.getByRole('button', { name: /Filter/i });
     if (await filterButton.isVisible()) {
       await filterButton.click();
       const statusFilter = page.locator('[data-filter="status"], select[name*="status"]').first();
       if (await statusFilter.isVisible()) {
         await statusFilter.selectOption({ label: 'Published' });
       }
-      await page.click('button:has-text("Apply")').catch(() => {});
+      await page
+        .getByRole('button', { name: /Apply/i })
+        .click()
+        .catch(() => {});
       await page.waitForLoadState('networkidle');
     }
 
@@ -438,16 +454,16 @@ test.describe('Admin Panel - Listing Management', () => {
       console.log('📍 Step 3: Use Archive action');
       // Open row actions
       await publishedRow
-        .locator('[data-actions] button, button[aria-label*="action"]')
+        .locator('[data-actions] button, button[aria-haspopup="menu"]')
         .first()
         .click();
 
-      const archiveButton = page.locator('button:has-text("Archive"), [data-action="archive"]');
+      const archiveButton = page.getByRole('menuitem', { name: /Archive/i });
       if (await archiveButton.isVisible()) {
         await archiveButton.click();
 
         // Confirm if modal appears
-        const confirmButton = page.locator(`${adminSelectors.modal} button:has-text("Confirm")`);
+        const confirmButton = page.getByRole('dialog').getByRole('button', { name: /Confirm/i });
         if (await confirmButton.isVisible()) {
           await confirmButton.click();
         }
@@ -460,17 +476,24 @@ test.describe('Admin Panel - Listing Management', () => {
       await clearTableFilters(page);
 
       // Filter for archived
-      if (await filterButton.isVisible()) {
-        await filterButton.click();
+      const filterButtonAfterReload = page.getByRole('button', { name: /Filter/i });
+      if (await filterButtonAfterReload.isVisible()) {
+        await filterButtonAfterReload.click();
         const statusFilter = page.locator('[data-filter="status"], select[name*="status"]').first();
         if (await statusFilter.isVisible()) {
           await statusFilter.selectOption({ label: 'Archived' });
         }
-        await page.click('button:has-text("Apply")').catch(() => {});
+        await page
+          .getByRole('button', { name: /Apply/i })
+          .click()
+          .catch(() => {});
         await page.waitForLoadState('networkidle');
       }
 
-      const archivedBadge = page.locator('.filament-badge:has-text("Archived")').first();
+      const archivedBadge = page
+        .locator('[role="status"], .fi-badge, .filament-badge')
+        .filter({ hasText: /Archived/i })
+        .first();
       if (await archivedBadge.isVisible()) {
         console.log('✅ Listing archived successfully');
       }
@@ -479,18 +502,16 @@ test.describe('Admin Panel - Listing Management', () => {
       const archivedRow = page.locator(adminSelectors.tableRow).first();
       if (await archivedRow.isVisible()) {
         await archivedRow
-          .locator('[data-actions] button, button[aria-label*="action"]')
+          .locator('[data-actions] button, button[aria-haspopup="menu"]')
           .first()
           .click();
 
-        const republishButton = page.locator(
-          'button:has-text("Republish"), button:has-text("Publish"), [data-action="republish"]'
-        );
+        const republishButton = page.getByRole('menuitem', { name: /Republish|Publish/i });
         if (await republishButton.isVisible()) {
           await republishButton.click();
 
           // Confirm if modal appears
-          const confirmButton = page.locator(`${adminSelectors.modal} button:has-text("Confirm")`);
+          const confirmButton = page.getByRole('dialog').getByRole('button', { name: /Confirm/i });
           if (await confirmButton.isVisible()) {
             await confirmButton.click();
           }
@@ -501,7 +522,10 @@ test.describe('Admin Panel - Listing Management', () => {
 
       console.log('📍 Step 6: Verify status is Published again');
       await clearTableFilters(page);
-      const publishedBadge = page.locator('.filament-badge:has-text("Published")').first();
+      const publishedBadge = page
+        .locator('[role="status"], .fi-badge, .filament-badge')
+        .filter({ hasText: /Published/i })
+        .first();
       console.log('✅ Archive and Republish flow completed');
     }
   });
@@ -510,7 +534,7 @@ test.describe('Admin Panel - Listing Management', () => {
     console.log('📍 Step 1: Navigate to Listings');
     await navigateToAdminResource(page, 'listings');
 
-    const filterButton = page.locator('button:has-text("Filter")');
+    const filterButton = page.getByRole('button', { name: /Filter/i });
 
     console.log('📍 Step 2: Apply English Only filter');
     if (await filterButton.isVisible()) {
@@ -522,7 +546,10 @@ test.describe('Admin Panel - Listing Management', () => {
         .first();
       if (await languageFilter.isVisible()) {
         await languageFilter.selectOption({ label: 'English Only' });
-        await page.click('button:has-text("Apply")').catch(() => {});
+        await page
+          .getByRole('button', { name: /Apply/i })
+          .click()
+          .catch(() => {});
         await page.waitForLoadState('networkidle');
 
         const englishOnlyCount = await getTableRowCount(page);
@@ -532,15 +559,19 @@ test.describe('Admin Panel - Listing Management', () => {
 
     console.log('📍 Step 3: Apply French Only filter');
     await clearTableFilters(page);
-    if (await filterButton.isVisible()) {
-      await filterButton.click();
+    const filterButtonStep3 = page.getByRole('button', { name: /Filter/i });
+    if (await filterButtonStep3.isVisible()) {
+      await filterButtonStep3.click();
 
       const languageFilter = page
         .locator('[data-filter*="language"], [data-filter*="content"], select[name*="language"]')
         .first();
       if (await languageFilter.isVisible()) {
         await languageFilter.selectOption({ label: 'French Only' });
-        await page.click('button:has-text("Apply")').catch(() => {});
+        await page
+          .getByRole('button', { name: /Apply/i })
+          .click()
+          .catch(() => {});
         await page.waitForLoadState('networkidle');
 
         const frenchOnlyCount = await getTableRowCount(page);
@@ -550,15 +581,19 @@ test.describe('Admin Panel - Listing Management', () => {
 
     console.log('📍 Step 4: Apply Bilingual filter');
     await clearTableFilters(page);
-    if (await filterButton.isVisible()) {
-      await filterButton.click();
+    const filterButtonStep4 = page.getByRole('button', { name: /Filter/i });
+    if (await filterButtonStep4.isVisible()) {
+      await filterButtonStep4.click();
 
       const languageFilter = page
         .locator('[data-filter*="language"], [data-filter*="content"], select[name*="language"]')
         .first();
       if (await languageFilter.isVisible()) {
         await languageFilter.selectOption({ label: 'Bilingual' });
-        await page.click('button:has-text("Apply")').catch(() => {});
+        await page
+          .getByRole('button', { name: /Apply/i })
+          .click()
+          .catch(() => {});
         await page.waitForLoadState('networkidle');
 
         const bilingualCount = await getTableRowCount(page);
@@ -568,15 +603,19 @@ test.describe('Admin Panel - Listing Management', () => {
 
     console.log('📍 Step 5: Apply Missing English filter');
     await clearTableFilters(page);
-    if (await filterButton.isVisible()) {
-      await filterButton.click();
+    const filterButtonStep5 = page.getByRole('button', { name: /Filter/i });
+    if (await filterButtonStep5.isVisible()) {
+      await filterButtonStep5.click();
 
       const languageFilter = page
         .locator('[data-filter*="language"], [data-filter*="content"], select[name*="language"]')
         .first();
       if (await languageFilter.isVisible()) {
         await languageFilter.selectOption({ label: 'Missing EN' });
-        await page.click('button:has-text("Apply")').catch(() => {});
+        await page
+          .getByRole('button', { name: /Apply/i })
+          .click()
+          .catch(() => {});
         await page.waitForLoadState('networkidle');
 
         const missingEnCount = await getTableRowCount(page);
