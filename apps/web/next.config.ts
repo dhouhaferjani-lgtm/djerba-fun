@@ -36,19 +36,19 @@ const nextConfig: NextConfig = {
         protocol: 'http',
         hostname: 'localhost',
         port: '9000',
-        pathname: '/djerba-fun/**',
+        pathname: '/**', // Accept any bucket name (djerba-fun, evasion-djerba, etc.)
       },
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '9002',
-        pathname: '/djerba-fun/**',
+        pathname: '/**', // Accept any bucket name (djerba-fun, evasion-djerba, etc.)
       },
       {
         protocol: 'http',
         hostname: '127.0.0.1',
         port: '9002',
-        pathname: '/djerba-fun/**',
+        pathname: '/**', // Accept any bucket name (djerba-fun, evasion-djerba, etc.)
       },
       {
         protocol: 'https',

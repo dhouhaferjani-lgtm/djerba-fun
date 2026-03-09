@@ -110,10 +110,10 @@ services:
       AWS_ENDPOINT: http://minio:9000
       AWS_ACCESS_KEY_ID: minio
       AWS_SECRET_ACCESS_KEY: minio123
-      AWS_BUCKET: djerba-fun
+      AWS_BUCKET: evasion-djerba
       AWS_USE_PATH_STYLE_ENDPOINT: 'true'
       MEDIA_DISK: minio
-      MINIO_PUBLIC_URL: http://localhost:9002/djerba-fun
+      MINIO_PUBLIC_URL: http://localhost:9002/evasion-djerba
       MAIL_MAILER: smtp
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
