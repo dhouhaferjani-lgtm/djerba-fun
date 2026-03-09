@@ -120,17 +120,20 @@ test.describe('Blog Hero Images - Admin to Frontend Integration', () => {
       // Wait for page to fully render
       await page.waitForTimeout(2000);
 
-      // Check for hero section with images
-      const heroSection = page.locator('section').first();
-      const heroImages = heroSection.locator('img');
+      // Check for hero images - the component uses div with min-h-[60vh] class
+      // Next.js Image component renders with data-nimg attribute
+      const heroImage = page.locator('img[data-nimg]').first();
 
-      const imageCount = await heroImages.count();
-      console.log(`Found ${imageCount} images in hero section`);
+      // Wait for images to load
+      await page.waitForTimeout(3000);
+
+      const imageCount = await page.locator('img[data-nimg]').count();
+      console.log(`Found ${imageCount} Next.js images on page`);
 
       if (imageCount > 0) {
-        await expect(heroImages.first()).toBeVisible({ timeout: 10000 });
+        await expect(heroImage).toBeVisible({ timeout: 10000 });
 
-        const src = await heroImages.first().getAttribute('src');
+        const src = await heroImage.getAttribute('src');
         console.log(`Hero image src: ${src}`);
 
         // Should not be Unsplash fallback
@@ -140,7 +143,13 @@ test.describe('Blog Hero Images - Admin to Frontend Integration', () => {
 
         console.log('TC-BLOG-03: PASSED - Hero image visible on frontend');
       } else {
-        console.log('TC-BLOG-03: SKIPPED - No images in hero section');
+        // Check if the page shows fallback (green bg-primary)
+        const fallbackHero = page.locator('div.bg-primary');
+        if ((await fallbackHero.count()) > 0) {
+          console.log('TC-BLOG-03: FAILED - Showing fallback hero (no images loaded)');
+        } else {
+          console.log('TC-BLOG-03: SKIPPED - No images found');
+        }
       }
     } else {
       console.log('TC-BLOG-03: SKIPPED - No blog posts found');

@@ -22,34 +22,33 @@ const nextConfig: NextConfig = {
   images: {
     // Allow localhost/private IPs for local development with MinIO
     dangerouslyAllowSVG: true,
+    // Allow images from localhost that resolve to private IPs (127.0.0.1, ::1)
+    // Required in Next.js 16+ for local development with external API
+    dangerouslyAllowLocalIP: process.env.NODE_ENV === 'development',
     remotePatterns: [
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '8000',
         pathname: '/storage/**',
-        search: '',
       },
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '9000',
         pathname: '/djerba-fun/**',
-        search: '',
       },
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '9002',
         pathname: '/djerba-fun/**',
-        search: '',
       },
       {
         protocol: 'http',
         hostname: '127.0.0.1',
         port: '9002',
         pathname: '/djerba-fun/**',
-        search: '',
       },
       {
         protocol: 'https',
