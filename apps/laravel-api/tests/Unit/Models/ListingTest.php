@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models;
 
+use App\Enums\ListingStatus;
+use App\Enums\ServiceType;
 use App\Models\AvailabilitySlot;
 use App\Models\Booking;
 use App\Models\Listing;
@@ -11,6 +13,7 @@ use App\Models\Location;
 use App\Models\Review;
 use App\Models\VendorProfile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class ListingTest extends TestCase
@@ -254,5 +257,154 @@ class ListingTest extends TestCase
 
         // Assert
         $this->assertTrue($hasSlots);
+    }
+
+    /**
+     * Test accommodation listing can be published with nightly pricing.
+     */
+    public function test_accommodation_can_publish_with_nightly_pricing(): void
+    {
+        // Arrange - create valid accommodation with nightly pricing
+        $location = Location::factory()->create();
+        $listing = Listing::factory()->create([
+            'service_type' => ServiceType::ACCOMMODATION,
+            'status' => ListingStatus::DRAFT,
+            'nightly_price_tnd' => 150.00,
+            'nightly_price_eur' => 45.00,
+            'location_id' => $location->id,
+            'title' => ['en' => 'Beach Villa', 'fr' => 'Villa de Plage'],
+            'summary' => ['en' => 'A beautiful beach villa', 'fr' => 'Une belle villa de plage'],
+        ]);
+
+        // Act - change status to published
+        $listing->status = ListingStatus::PUBLISHED;
+        $listing->save();
+
+        // Assert
+        $this->assertEquals(ListingStatus::PUBLISHED, $listing->fresh()->status);
+    }
+
+    /**
+     * Test accommodation listing cannot be published without nightly pricing.
+     */
+    public function test_accommodation_cannot_publish_without_nightly_pricing(): void
+    {
+        // Arrange - create accommodation without nightly pricing
+        $location = Location::factory()->create();
+        $listing = Listing::factory()->create([
+            'service_type' => ServiceType::ACCOMMODATION,
+            'status' => ListingStatus::DRAFT,
+            'nightly_price_tnd' => null,
+            'nightly_price_eur' => null,
+            'location_id' => $location->id,
+            'title' => ['en' => 'Beach Villa', 'fr' => 'Villa de Plage'],
+            'summary' => ['en' => 'A beautiful beach villa', 'fr' => 'Une belle villa de plage'],
+        ]);
+
+        // Act & Assert - should throw validation exception
+        $this->expectException(ValidationException::class);
+
+        $listing->status = ListingStatus::PUBLISHED;
+        $listing->save();
+    }
+
+    /**
+     * Test accommodation with only TND nightly pricing can be published.
+     */
+    public function test_accommodation_can_publish_with_only_tnd_nightly_pricing(): void
+    {
+        // Arrange
+        $location = Location::factory()->create();
+        $listing = Listing::factory()->create([
+            'service_type' => ServiceType::ACCOMMODATION,
+            'status' => ListingStatus::DRAFT,
+            'nightly_price_tnd' => 150.00,
+            'nightly_price_eur' => null,
+            'location_id' => $location->id,
+            'title' => ['en' => 'Beach Villa'],
+            'summary' => ['en' => 'A beautiful beach villa'],
+        ]);
+
+        // Act
+        $listing->status = ListingStatus::PUBLISHED;
+        $listing->save();
+
+        // Assert
+        $this->assertEquals(ListingStatus::PUBLISHED, $listing->fresh()->status);
+    }
+
+    /**
+     * Test tour listing can be published with person type pricing.
+     */
+    public function test_tour_can_publish_with_person_type_pricing(): void
+    {
+        // Arrange
+        $location = Location::factory()->create();
+        $listing = Listing::factory()->create([
+            'service_type' => ServiceType::TOUR,
+            'status' => ListingStatus::DRAFT,
+            'pricing' => [
+                'person_types' => [
+                    ['type' => 'adult', 'tnd_price' => 100, 'eur_price' => 30],
+                ],
+            ],
+            'location_id' => $location->id,
+            'title' => ['en' => 'Desert Safari'],
+            'summary' => ['en' => 'An exciting desert safari'],
+        ]);
+
+        // Act
+        $listing->status = ListingStatus::PUBLISHED;
+        $listing->save();
+
+        // Assert
+        $this->assertEquals(ListingStatus::PUBLISHED, $listing->fresh()->status);
+    }
+
+    /**
+     * Test tour listing cannot be published without pricing.
+     */
+    public function test_tour_cannot_publish_without_pricing(): void
+    {
+        // Arrange - use empty pricing array (no person_types)
+        $location = Location::factory()->create();
+        $listing = Listing::factory()->create([
+            'service_type' => ServiceType::TOUR,
+            'status' => ListingStatus::DRAFT,
+            'pricing' => [], // Empty array - no person_types
+            'location_id' => $location->id,
+            'title' => ['en' => 'Desert Safari'],
+            'summary' => ['en' => 'An exciting desert safari'],
+        ]);
+
+        // Act & Assert
+        $this->expectException(ValidationException::class);
+
+        $listing->status = ListingStatus::PUBLISHED;
+        $listing->save();
+    }
+
+    /**
+     * Test nautical listing requires person type pricing (not nightly).
+     */
+    public function test_nautical_requires_person_type_pricing(): void
+    {
+        // Arrange - nautical with nightly pricing but no person_types
+        $location = Location::factory()->create();
+        $listing = Listing::factory()->create([
+            'service_type' => ServiceType::NAUTICAL,
+            'status' => ListingStatus::DRAFT,
+            'pricing' => [], // Empty array - no person_types
+            'nightly_price_tnd' => 100.00, // This should NOT count for nautical
+            'location_id' => $location->id,
+            'title' => ['en' => 'Jet Ski Tour'],
+            'summary' => ['en' => 'Exciting jet ski tour'],
+        ]);
+
+        // Act & Assert - should fail because nautical needs person_types, not nightly pricing
+        $this->expectException(ValidationException::class);
+
+        $listing->status = ListingStatus::PUBLISHED;
+        $listing->save();
     }
 }

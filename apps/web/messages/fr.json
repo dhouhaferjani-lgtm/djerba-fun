@@ -1542,5 +1542,28 @@
     "login_required": "Veuillez vous connecter pour sauvegarder vos favoris",
     "add_aria": "Ajouter à la liste de souhaits",
     "remove_aria": "Retirer de la liste de souhaits"
+  },
+  "accommodation": {
+    "select_dates": "Sélectionnez vos dates de séjour",
+    "select_date": "Sélectionnez une date",
+    "check_in": "Arrivée",
+    "check_out": "Départ",
+    "nights": "{count, plural, =1 {1 nuit} other {# nuits}}",
+    "night": "nuit",
+    "guests": "Voyageurs",
+    "guests_count": "Jusqu'à {max} personnes",
+    "price_per_night": "par nuit",
+    "total_for_nights": "Total pour {nights} nuits",
+    "minimum_stay": "Séjour minimum : {count} nuits",
+    "maximum_stay": "Séjour maximum : {count} nuits",
+    "nearby_attractions": "Attractions à Proximité",
+    "whole_property": "Logement entier",
+    "select_dates_to_see_price": "Sélectionnez les dates pour voir le prix total",
+    "clear": "Effacer",
+    "previous_month": "Mois précédent",
+    "next_month": "Mois suivant",
+    "check_in_time": "Arrivée à partir de {time}",
+    "total": "Total",
+    "extras": "Extras"
   }
 }

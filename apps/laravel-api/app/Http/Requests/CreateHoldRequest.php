@@ -29,8 +29,8 @@ class CreateHoldRequest extends BaseFormRequest
                 Rule::exists('availability_slots', 'id')
                     ->where('listing_id', $this->route('listing')->id),
             ],
-            // Either quantity or person_types is required
-            'quantity' => ['required_without:person_types', 'nullable', 'integer', 'min:1'],
+            // Either quantity or person_types is required (for non-accommodation bookings)
+            'quantity' => ['required_without_all:person_types,guests', 'nullable', 'integer', 'min:1'],
             'session_id' => ['nullable', 'string', 'max:255'],
             // Person type breakdown (optional - will use quantity if not provided)
             'person_types' => ['nullable', 'array'],
@@ -41,6 +41,10 @@ class CreateHoldRequest extends BaseFormRequest
             'extras' => ['nullable', 'array'],
             'extras.*.id' => ['required', 'string'],
             'extras.*.quantity' => ['required', 'integer', 'min:1'],
+            // Accommodation-specific fields
+            'check_in_date' => ['nullable', 'date', 'after_or_equal:today'],
+            'check_out_date' => ['nullable', 'date', 'after:check_in_date'],
+            'guests' => ['nullable', 'integer', 'min:1'],
         ];
     }
 
@@ -67,6 +71,57 @@ class CreateHoldRequest extends BaseFormRequest
         }
 
         return null;
+    }
+
+    /**
+     * Check if this is an accommodation booking (has date range).
+     */
+    public function isAccommodationBooking(): bool
+    {
+        return $this->filled('check_in_date') && $this->filled('check_out_date');
+    }
+
+    /**
+     * Get check-in date as Carbon instance.
+     */
+    public function getCheckInDate(): ?\Carbon\Carbon
+    {
+        return $this->filled('check_in_date')
+            ? \Carbon\Carbon::parse($this->check_in_date)
+            : null;
+    }
+
+    /**
+     * Get check-out date as Carbon instance.
+     */
+    public function getCheckOutDate(): ?\Carbon\Carbon
+    {
+        return $this->filled('check_out_date')
+            ? \Carbon\Carbon::parse($this->check_out_date)
+            : null;
+    }
+
+    /**
+     * Get number of nights for accommodation booking.
+     */
+    public function getNights(): int
+    {
+        $checkIn = $this->getCheckInDate();
+        $checkOut = $this->getCheckOutDate();
+
+        if (! $checkIn || ! $checkOut) {
+            return 0;
+        }
+
+        return $checkIn->diffInDays($checkOut);
+    }
+
+    /**
+     * Get guest count for accommodation booking.
+     */
+    public function getGuestCount(): int
+    {
+        return (int) ($this->guests ?? 1);
     }
 
     /**

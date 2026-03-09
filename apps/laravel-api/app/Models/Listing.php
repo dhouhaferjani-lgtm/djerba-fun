@@ -58,12 +58,21 @@ class Listing extends Model
                     $errors[] = 'Summary is required (English or French)';
                 }
 
-                // Check pricing - must have pricing data (new or old format)
-                $pricing = $listing->pricing;
-                $hasNewFormatPricing = !empty($pricing['person_types']) || !empty($pricing['personTypes']);
-                $hasOldFormatPricing = !empty($pricing['base_price']) || !empty($pricing['tnd_price']) || !empty($pricing['eur_price']);
-                if (!$hasNewFormatPricing && !$hasOldFormatPricing) {
-                    $errors[] = 'Pricing information is required';
+                // Check pricing based on service type
+                if ($listing->service_type === ServiceType::ACCOMMODATION) {
+                    // Accommodations use nightly pricing (direct columns, not JSON)
+                    $hasNightlyPricing = ! empty($listing->nightly_price_tnd) || ! empty($listing->nightly_price_eur);
+                    if (! $hasNightlyPricing) {
+                        $errors[] = 'Nightly pricing (TND or EUR) is required for accommodations';
+                    }
+                } else {
+                    // Tours/Events/Nautical use person type pricing (JSON field)
+                    $pricing = $listing->pricing;
+                    $hasNewFormatPricing = ! empty($pricing['person_types']) || ! empty($pricing['personTypes']);
+                    $hasOldFormatPricing = ! empty($pricing['base_price']) || ! empty($pricing['tnd_price']) || ! empty($pricing['eur_price']);
+                    if (! $hasNewFormatPricing && ! $hasOldFormatPricing) {
+                        $errors[] = 'Pricing information is required';
+                    }
                 }
 
                 // Check location
@@ -172,6 +181,8 @@ class Listing extends Model
         'has_elevation_profile' => false,
         'require_traveler_names' => false,
         'traveler_names_timing' => 'before_activity',
+        'pricing_model' => 'per_person',
+        'minimum_nights' => 1,
     ];
 
     /**
@@ -239,6 +250,12 @@ class Listing extends Model
         'check_out_time',
         'house_rules',
         'amenities',
+        // Accommodation pricing
+        'pricing_model',
+        'nightly_price_tnd',
+        'nightly_price_eur',
+        'minimum_nights',
+        'maximum_nights',
         // Nautical fields
         'boat_name',
         'boat_length',
@@ -309,6 +326,11 @@ class Listing extends Model
             'max_guests' => 'integer',
             'property_size' => 'integer',
             'amenities' => 'array',
+            // Accommodation pricing casts
+            'nightly_price_tnd' => 'decimal:2',
+            'nightly_price_eur' => 'decimal:2',
+            'minimum_nights' => 'integer',
+            'maximum_nights' => 'integer',
             // Nautical casts
             'boat_length' => 'decimal:2',
             'boat_capacity' => 'integer',
@@ -734,5 +756,81 @@ class Listing extends Model
     {
         return $this->requiresTravelerNames()
             && $this->traveler_names_timing === 'immediate';
+    }
+
+    /**
+     * Check if listing uses per-night pricing (for accommodations).
+     */
+    public function isPerNightPricing(): bool
+    {
+        return $this->pricing_model === 'per_night';
+    }
+
+    /**
+     * Check if listing uses per-person pricing (default for tours/events).
+     */
+    public function isPerPersonPricing(): bool
+    {
+        return $this->pricing_model === 'per_person' || $this->pricing_model === null;
+    }
+
+    /**
+     * Calculate total price for accommodation stay.
+     *
+     * @param  int  $nights  Number of nights to stay
+     * @param  string  $currency  Currency code ('TND' or 'EUR')
+     * @return float|null  Total price for the stay
+     */
+    public function calculateAccommodationPrice(int $nights, string $currency = 'EUR'): ?float
+    {
+        if (! $this->isAccommodation() || ! $this->isPerNightPricing()) {
+            return null;
+        }
+
+        $nightlyPrice = $currency === 'TND'
+            ? $this->nightly_price_tnd
+            : $this->nightly_price_eur;
+
+        if ($nightlyPrice === null) {
+            return null;
+        }
+
+        return (float) $nightlyPrice * $nights;
+    }
+
+    /**
+     * Get the nightly price in the specified currency.
+     *
+     * @param  string  $currency  Currency code ('TND' or 'EUR')
+     * @return float|null  Nightly price
+     */
+    public function getNightlyPrice(string $currency = 'EUR'): ?float
+    {
+        if (! $this->isAccommodation()) {
+            return null;
+        }
+
+        return $currency === 'TND'
+            ? (float) $this->nightly_price_tnd
+            : (float) $this->nightly_price_eur;
+    }
+
+    /**
+     * Check if the requested stay duration is valid.
+     *
+     * @param  int  $nights  Number of nights requested
+     * @return bool  True if duration is within min/max constraints
+     */
+    public function isValidStayDuration(int $nights): bool
+    {
+        if ($nights < ($this->minimum_nights ?? 1)) {
+            return false;
+        }
+
+        if ($this->maximum_nights !== null && $nights > $this->maximum_nights) {
+            return false;
+        }
+
+        return true;
     }
 }

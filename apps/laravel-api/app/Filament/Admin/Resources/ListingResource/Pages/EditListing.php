@@ -73,12 +73,21 @@ class EditListing extends EditRecord
                 $errors[] = __('filament.validation.summary_translation_required');
             }
 
-            // Check pricing from existing record
-            $pricing = $this->record->pricing;
-            $hasNewFormatPricing = ! empty($pricing['person_types']) || ! empty($pricing['personTypes']);
-            $hasOldFormatPricing = ! empty($pricing['base_price']) || ! empty($pricing['tnd_price']) || ! empty($pricing['eur_price']);
-            if (! $hasNewFormatPricing && ! $hasOldFormatPricing) {
-                $errors[] = 'Pricing information is required';
+            // Check pricing based on service type
+            if ($this->record->service_type === \App\Enums\ServiceType::ACCOMMODATION) {
+                // Accommodations use nightly pricing (direct columns)
+                $hasNightlyPricing = ! empty($this->record->nightly_price_tnd) || ! empty($this->record->nightly_price_eur);
+                if (! $hasNightlyPricing) {
+                    $errors[] = 'Nightly pricing (TND or EUR) is required for accommodations';
+                }
+            } else {
+                // Tours/Events/Nautical use person type pricing (JSON)
+                $pricing = $this->record->pricing;
+                $hasNewFormatPricing = ! empty($pricing['person_types']) || ! empty($pricing['personTypes']);
+                $hasOldFormatPricing = ! empty($pricing['base_price']) || ! empty($pricing['tnd_price']) || ! empty($pricing['eur_price']);
+                if (! $hasNewFormatPricing && ! $hasOldFormatPricing) {
+                    $errors[] = 'Pricing information is required';
+                }
             }
 
             // Check location - use form data if available, else record

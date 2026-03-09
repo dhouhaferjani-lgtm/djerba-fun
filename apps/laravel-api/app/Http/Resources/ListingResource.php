@@ -173,13 +173,35 @@ class ListingResource extends BaseResource
             $groupDiscount = $this->toCamelCase($groupDiscount);
         }
 
+        // Per-night pricing for accommodations
+        $pricingModel = $this->pricing_model ?? 'per_person';
+        $nightlyPriceTnd = $this->nightly_price_tnd;
+        $nightlyPriceEur = $this->nightly_price_eur;
+        $nightlyDisplayPrice = $detectedCurrency === 'TND' ? $nightlyPriceTnd : $nightlyPriceEur;
+        $minimumNights = $this->minimum_nights ?? 1;
+        $maximumNights = $this->maximum_nights;
+
+        // For per-night pricing, use nightly price as display price
+        if ($pricingModel === 'per_night') {
+            $displayPrice = $nightlyDisplayPrice;
+            $tndPrice = $nightlyPriceTnd;
+            $eurPrice = $nightlyPriceEur;
+        }
+
         return $this->toCamelCase([
+            'pricing_model' => $pricingModel,
             'tnd_price' => $tndPrice,
             'eur_price' => $eurPrice,
             'display_currency' => $detectedCurrency,
             'display_price' => $displayPrice,
             'person_types' => $personTypes,
             'group_discount' => $groupDiscount,
+            // Nightly pricing (for accommodations)
+            'nightly_price_tnd' => $nightlyPriceTnd,
+            'nightly_price_eur' => $nightlyPriceEur,
+            'nightly_display_price' => $nightlyDisplayPrice,
+            'minimum_nights' => $minimumNights,
+            'maximum_nights' => $maximumNights,
         ]);
     }
 

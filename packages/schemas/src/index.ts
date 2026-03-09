@@ -344,12 +344,25 @@ export const personTypeSchema = z.object({
   maxQuantity: z.number().int().positive().nullable(),
 });
 
+// Pricing model determines how prices are calculated
+export const pricingModelSchema = z.enum(['per_person', 'per_night', 'per_booking']);
+
 export const pricingSchema = z.object({
-  // Dual pricing fields
+  // Pricing model - determines calculation method
+  pricingModel: pricingModelSchema.optional().default('per_person'),
+
+  // Dual pricing fields (used for per-person pricing)
   tndPrice: z.number().nonnegative().optional(),
   eurPrice: z.number().nonnegative().optional(),
   displayCurrency: z.enum(['TND', 'EUR']).optional(),
   displayPrice: z.number().nonnegative().optional(),
+
+  // Per-night pricing fields (for accommodations)
+  nightlyPriceTnd: z.number().nonnegative().nullable().optional(),
+  nightlyPriceEur: z.number().nonnegative().nullable().optional(),
+  nightlyDisplayPrice: z.number().nonnegative().nullable().optional(),
+  minimumNights: z.number().int().positive().optional().default(1),
+  maximumNights: z.number().int().positive().nullable().optional(),
 
   // Legacy fields for backward compatibility
   basePrice: z.number().int().nonnegative().optional(),
@@ -750,6 +763,31 @@ export const bookingHoldSchema = z.object({
   statusLabel: z.string().optional(),
   isActive: z.boolean().optional(),
   createdAt: z.string().datetime().optional(),
+});
+
+// Accommodation date selection (check-in/check-out range)
+export const accommodationDateSelectionSchema = z.object({
+  checkInDate: z.string().date(),
+  checkOutDate: z.string().date(),
+  nights: z.number().int().positive(),
+  checkInTime: z.string().optional(), // e.g., "15:00"
+});
+
+// Request schema for creating accommodation holds
+export const createAccommodationHoldRequestSchema = z.object({
+  slotId: z.string().uuid().or(z.string()), // Check-in time slot
+  checkInDate: z.string().date(),
+  checkOutDate: z.string().date(),
+  guests: z.number().int().positive(),
+  sessionId: z.string().optional(),
+  extras: z
+    .array(
+      z.object({
+        id: z.string(),
+        quantity: z.number().int().positive(),
+      })
+    )
+    .default([]),
 });
 
 // ============================================================================
@@ -1267,6 +1305,9 @@ export const createHoldRequestSchema = z.object({
       })
     )
     .default([]),
+  // Accommodation-specific fields for date range bookings
+  check_in_date: z.string().date().optional(),
+  check_out_date: z.string().date().optional(),
 });
 
 // CreateHoldResponse extends BookingHold with nested listing and slot
@@ -1319,6 +1360,9 @@ export type DayOfWeek = z.infer<typeof dayOfWeekSchema>;
 export type AvailabilityRule = z.infer<typeof availabilityRuleSchema>;
 export type AvailabilitySlot = z.infer<typeof availabilitySlotSchema>;
 export type BookingHold = z.infer<typeof bookingHoldSchema>;
+export type AccommodationDateSelection = z.infer<typeof accommodationDateSelectionSchema>;
+export type CreateAccommodationHoldRequest = z.infer<typeof createAccommodationHoldRequestSchema>;
+export type PricingModel = z.infer<typeof pricingModelSchema>;
 
 export type BookingStatus = z.infer<typeof bookingStatusSchema>;
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
@@ -1376,6 +1420,7 @@ export const platformBrandingSchema = z.object({
   appleTouchIcon: z.string().url().nullable(),
   heroBanner: z.string().url().nullable(),
   heroBannerIsVideo: z.boolean().optional(),
+  heroBannerThumbnail: z.string().url().nullable().optional(),
   brandPillar1: z.string().url().nullable(),
   brandPillar2: z.string().url().nullable(),
   brandPillar3: z.string().url().nullable(),

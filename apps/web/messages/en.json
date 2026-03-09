@@ -1542,5 +1542,28 @@
     "login_required": "Please log in to save favorites",
     "add_aria": "Add to wishlist",
     "remove_aria": "Remove from wishlist"
+  },
+  "accommodation": {
+    "select_dates": "Select your stay dates",
+    "select_date": "Select a date",
+    "check_in": "Check-in",
+    "check_out": "Check-out",
+    "nights": "{count, plural, =1 {1 night} other {# nights}}",
+    "night": "night",
+    "guests": "Guests",
+    "guests_count": "Up to {max} guests",
+    "price_per_night": "per night",
+    "total_for_nights": "Total for {nights} nights",
+    "minimum_stay": "Minimum stay: {count} nights",
+    "maximum_stay": "Maximum stay: {count} nights",
+    "nearby_attractions": "Nearby Attractions",
+    "whole_property": "Entire property",
+    "select_dates_to_see_price": "Select dates to see total price",
+    "clear": "Clear",
+    "previous_month": "Previous month",
+    "next_month": "Next month",
+    "check_in_time": "Check-in from {time}",
+    "total": "Total",
+    "extras": "Extras"
   }
 }

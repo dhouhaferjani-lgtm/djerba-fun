@@ -34,6 +34,7 @@ class BookingHold extends Model
         'quantity',
         'person_type_breakdown',
         'extras',
+        'metadata',
         'currency',
         'price_snapshot',
         'pricing_country_code',
@@ -54,6 +55,7 @@ class BookingHold extends Model
             'status' => HoldStatus::class,
             'person_type_breakdown' => 'array',
             'extras' => 'array',
+            'metadata' => 'array',
             'price_snapshot' => 'decimal:2',
         ];
     }
@@ -263,6 +265,8 @@ class BookingHold extends Model
      * @param  float|null  $priceSnapshot  Price at time of hold creation
      * @param  string|null  $pricingCountryCode  Country code used for pricing
      * @param  string|null  $pricingSource  Source of pricing determination (ip_geo, user_billing, etc.)
+     * @param  array|null  $extras  Optional extras with quantities
+     * @param  array|null  $metadata  Optional additional metadata (e.g., accommodation check-in/out dates)
      */
     public static function createForSlot(
         AvailabilitySlot $slot,
@@ -274,10 +278,11 @@ class BookingHold extends Model
         ?float $priceSnapshot = null,
         ?string $pricingCountryCode = null,
         ?string $pricingSource = null,
-        ?array $extras = null
+        ?array $extras = null,
+        ?array $metadata = null
     ): ?self {
         // Wrap in transaction with row-level locking to prevent race conditions
-        return DB::transaction(function () use ($slot, $user, $quantity, $sessionId, $personTypeBreakdown, $currency, $priceSnapshot, $pricingCountryCode, $pricingSource, $extras) {
+        return DB::transaction(function () use ($slot, $user, $quantity, $sessionId, $personTypeBreakdown, $currency, $priceSnapshot, $pricingCountryCode, $pricingSource, $extras, $metadata) {
             // Lock the slot row for this transaction to prevent concurrent bookings
             $lockedSlot = AvailabilitySlot::lockForUpdate()->find($slot->id);
 
@@ -299,6 +304,7 @@ class BookingHold extends Model
                 'quantity' => $quantity,
                 'person_type_breakdown' => $personTypeBreakdown,
                 'extras' => $extras,
+                'metadata' => $metadata,
                 'currency' => $currency,
                 'price_snapshot' => $priceSnapshot,
                 'pricing_country_code' => $pricingCountryCode,

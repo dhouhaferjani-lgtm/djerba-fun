@@ -418,7 +418,8 @@ class ListingResource extends Resource
                                     Forms\Components\Hidden::make('elevation_profile')
                                         ->dehydrateStateUsing(fn ($state) => is_array($state) ? $state : null),
                                 ])
-                                ->visible(fn (Get $get): bool => in_array($get('service_type'), [ServiceType::TOUR->value, ServiceType::NAUTICAL->value, ServiceType::ACCOMMODATION->value])),
+                                // Only show tour details for Tour and Nautical - NOT for Accommodations
+                                ->visible(fn (Get $get): bool => in_array($get('service_type'), [ServiceType::TOUR->value, ServiceType::NAUTICAL->value])),
 
                             // Accommodation-specific fields
                             Forms\Components\Section::make('Accommodation Details')
@@ -670,7 +671,7 @@ class ListingResource extends Resource
                     Forms\Components\Wizard\Step::make('Route & Itinerary')
                         ->icon('heroicon-o-map-pin')
                         ->schema([
-                            // Display Settings
+                            // Display Settings - Hidden for accommodations (they always show location)
                             Forms\Components\Section::make('Display Settings')
                                 ->description('Control what route information is shown to travelers')
                                 ->schema([
@@ -700,9 +701,30 @@ class ListingResource extends Resource
                                                 }),
                                         ]),
                                 ])
-                                ->collapsed(false),
+                                ->collapsed(false)
+                                // Hide for accommodations - they only need nearby attractions
+                                ->visible(fn (Get $get): bool => $get('service_type') !== ServiceType::ACCOMMODATION->value),
 
-                            // Input Mode Selection
+                            // Nearby Attractions intro for accommodations
+                            Forms\Components\Section::make('Nearby Attractions')
+                                ->description('Add interesting places near your property that guests might want to visit')
+                                ->schema([
+                                    Forms\Components\Placeholder::make('attractions_intro')
+                                        ->label('')
+                                        ->content(new \Illuminate\Support\HtmlString(
+                                            '<div class="text-sm text-gray-600 bg-amber-50 p-4 rounded-lg">
+                                                <p class="font-medium mb-2">Help guests discover what\'s nearby:</p>
+                                                <ul class="list-disc list-inside space-y-1">
+                                                    <li>Add beaches, restaurants, markets, and attractions near your property</li>
+                                                    <li>Include approximate walking or driving time</li>
+                                                    <li>Add photos to showcase each location</li>
+                                                </ul>
+                                            </div>'
+                                        )),
+                                ])
+                                ->visible(fn (Get $get): bool => $get('service_type') === ServiceType::ACCOMMODATION->value),
+
+                            // Input Mode Selection - NOT for accommodations
                             Forms\Components\Section::make('Route Data Input')
                                 ->description('Choose how to enter your route data')
                                 ->schema([
@@ -730,7 +752,8 @@ class ListingResource extends Resource
                                             'gpx' => 'Best for hiking/cycling. Upload GPX to auto-generate checkpoints, then edit as needed.',
                                         ]),
                                 ])
-                                ->visible(fn (Get $get) => $get('show_itinerary')),
+                                // Only show for non-accommodation service types
+                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('service_type') !== ServiceType::ACCOMMODATION->value),
 
                             // GPX Import Section (only visible in GPX mode)
                             Forms\Components\Section::make('GPX Import')
@@ -832,10 +855,11 @@ class ListingResource extends Resource
                                             </div>'
                                         )),
                                 ])
-                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('itinerary_input_mode') === 'gpx')
+                                // GPX import not available for accommodations
+                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('itinerary_input_mode') === 'gpx' && $get('service_type') !== ServiceType::ACCOMMODATION->value)
                                 ->collapsible(),
 
-                            // Elevation Profile Preview (visible when we have elevation data)
+                            // Elevation Profile Preview (visible when we have elevation data) - NOT for accommodations
                             Forms\Components\Section::make('Elevation Profile Preview')
                                 ->schema([
                                     Forms\Components\Placeholder::make('elevation_preview')
@@ -873,11 +897,12 @@ class ListingResource extends Resource
                                             ));
                                         }),
                                 ])
-                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('show_elevation_profile'))
+                                // Elevation profile not available for accommodations
+                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('show_elevation_profile') && $get('service_type') !== ServiceType::ACCOMMODATION->value)
                                 ->collapsible()
                                 ->collapsed(),
 
-                            // Manual Entry Info (visible in manual mode)
+                            // Manual Entry Info (visible in manual mode) - NOT for accommodations
                             Forms\Components\Section::make('Manual Entry Instructions')
                                 ->schema([
                                     Forms\Components\Placeholder::make('manual_instructions')
@@ -898,22 +923,26 @@ class ListingResource extends Resource
                                             </div>'
                                         )),
                                 ])
-                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('itinerary_input_mode') === 'manual' && empty($get('itinerary')))
+                                // Manual entry instructions not needed for accommodations
+                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('itinerary_input_mode') === 'manual' && empty($get('itinerary')) && $get('service_type') !== ServiceType::ACCOMMODATION->value)
                                 ->collapsible()
                                 ->collapsed(),
 
-                            // Checkpoints Repeater (visible in both modes when show_itinerary is on)
-                            Forms\Components\Section::make('Route Checkpoints')
-                                ->description('Define the stops along your route. These will be displayed on the map.')
+                            // Route Checkpoints for Tours/Nautical (visible when show_itinerary is on)
+                            // For Accommodations: "Nearby Attractions" - always visible
+                            Forms\Components\Section::make(fn (Get $get): string => $get('service_type') === ServiceType::ACCOMMODATION->value ? 'Nearby Attractions' : 'Route Checkpoints')
+                                ->description(fn (Get $get): string => $get('service_type') === ServiceType::ACCOMMODATION->value
+                                    ? 'Add interesting places near your property that guests might want to visit'
+                                    : 'Define the stops along your route. These will be displayed on the map.')
                                 ->schema([
                                     Forms\Components\Actions::make([
                                         Forms\Components\Actions\Action::make('clearAllCheckpoints')
-                                            ->label('Clear All Checkpoints')
+                                            ->label(fn (Get $get): string => $get('service_type') === ServiceType::ACCOMMODATION->value ? 'Clear All Attractions' : 'Clear All Checkpoints')
                                             ->icon('heroicon-o-trash')
                                             ->color('danger')
                                             ->size('sm')
                                             ->requiresConfirmation()
-                                            ->modalHeading('Clear all checkpoints?')
+                                            ->modalHeading(fn (Get $get): string => $get('service_type') === ServiceType::ACCOMMODATION->value ? 'Clear all attractions?' : 'Clear all checkpoints?')
                                             ->modalDescription('This will remove all checkpoints and elevation data. This action cannot be undone.')
                                             ->action(function (Set $set) {
                                                 $set('itinerary', []);
@@ -930,7 +959,8 @@ class ListingResource extends Resource
                                             ->icon('heroicon-o-chart-bar')
                                             ->color('success')
                                             ->size('sm')
-                                            ->visible(fn (Get $get) => $get('itinerary_input_mode') === 'manual')
+                                            // Only for tours/nautical with manual entry mode
+                                            ->visible(fn (Get $get) => $get('itinerary_input_mode') === 'manual' && $get('service_type') !== ServiceType::ACCOMMODATION->value)
                                             ->action(function (Get $get, Set $set) {
                                                 $itinerary = $get('itinerary') ?? [];
 
@@ -1101,6 +1131,7 @@ class ListingResource extends Resource
                                                         ->maxLength(500),
                                                 ]),
 
+                                            // Coordinates grid - only for tours/nautical (not accommodations)
                                             Forms\Components\Grid::make(3)
                                                 ->schema([
                                                     Forms\Components\TextInput::make('lat')
@@ -1121,7 +1152,15 @@ class ListingResource extends Resource
                                                         ->nullable()
                                                         ->placeholder('e.g., 450')
                                                         ->helperText('Optional - for elevation profile'),
-                                                ]),
+                                                ])
+                                                ->visible(fn (Get $get): bool => self::getServiceTypeFromRepeater($get) !== ServiceType::ACCOMMODATION->value),
+
+                                            // Distance text - only for accommodations (nearby attractions)
+                                            Forms\Components\TextInput::make('distanceText')
+                                                ->label('Distance from Property')
+                                                ->placeholder('e.g., 5 min walk, 10 min drive')
+                                                ->helperText('How far is this attraction from your property?')
+                                                ->visible(fn (Get $get): bool => self::getServiceTypeFromRepeater($get) === ServiceType::ACCOMMODATION->value),
 
                                             Forms\Components\FileUpload::make('photos')
                                                 ->label('Photos of this location')
@@ -1158,11 +1197,12 @@ class ListingResource extends Resource
                                                 ? ($state['title']['en'] ?: 'Unnamed checkpoint')
                                                 : 'New checkpoint'
                                         )
-                                        ->addActionLabel('Add Checkpoint')
+                                        ->addActionLabel(fn (Get $get): string => $get('service_type') === ServiceType::ACCOMMODATION->value ? 'Add Attraction' : 'Add Checkpoint')
                                         ->defaultItems(0)
                                         ->columnSpanFull(),
                                 ])
-                                ->visible(fn (Get $get) => $get('show_itinerary')),
+                                // For accommodations: always visible; for others: only when show_itinerary is on
+                                ->visible(fn (Get $get) => $get('service_type') === ServiceType::ACCOMMODATION->value || $get('show_itinerary')),
                         ]),
 
                     // Step 5: Pricing & Capacity
@@ -1198,6 +1238,67 @@ class ListingResource extends Resource
                                         ->columnSpanFull(),
                                 ]),
 
+                            // Property Pricing - ONLY for Accommodations (per-night flat rate)
+                            Forms\Components\Section::make('Property Pricing')
+                                ->description('Set your nightly rate for the entire property. Guests will select check-in and check-out dates.')
+                                ->schema([
+                                    Forms\Components\Grid::make(2)->schema([
+                                        Forms\Components\TextInput::make('nightly_price_tnd')
+                                            ->label('Price per Night (TND)')
+                                            ->prefix('TND')
+                                            ->numeric()
+                                            ->step(0.01)
+                                            ->minValue(0)
+                                            ->required()
+                                            ->helperText('Price in Tunisian Dinar per night'),
+
+                                        Forms\Components\TextInput::make('nightly_price_eur')
+                                            ->label('Price per Night (EUR)')
+                                            ->prefix('€')
+                                            ->numeric()
+                                            ->step(0.01)
+                                            ->minValue(0)
+                                            ->required()
+                                            ->helperText('Price in Euro per night'),
+                                    ]),
+
+                                    Forms\Components\Grid::make(2)->schema([
+                                        Forms\Components\TextInput::make('minimum_nights')
+                                            ->label('Minimum Stay')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->default(1)
+                                            ->suffix('nights')
+                                            ->helperText('Minimum number of nights guests must book'),
+
+                                        Forms\Components\TextInput::make('maximum_nights')
+                                            ->label('Maximum Stay')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->suffix('nights')
+                                            ->nullable()
+                                            ->helperText('Leave empty for no maximum'),
+                                    ]),
+
+                                    // Hidden field to set pricing model
+                                    Forms\Components\Hidden::make('pricing_model')
+                                        ->default('per_night'),
+
+                                    // Explanation
+                                    Forms\Components\Placeholder::make('property_pricing_explanation')
+                                        ->label('')
+                                        ->content(new \Illuminate\Support\HtmlString(
+                                            '<div class="text-sm text-gray-500 bg-amber-50 p-3 rounded-lg">
+                                                <strong>How Property Pricing Works:</strong> Set a flat nightly rate for the entire property.
+                                                Guests will select their check-in and check-out dates, and the total price will be calculated
+                                                automatically (nightly rate × number of nights). Tunisian users see TND prices, international users see EUR prices.
+                                            </div>'
+                                        ))
+                                        ->dehydrated(false),
+                                ])
+                                ->visible(fn (Get $get): bool => $get('service_type') === ServiceType::ACCOMMODATION->value),
+
+                            // Person Type Pricing - for Tours, Nautical, Events (NOT accommodations)
                             Forms\Components\Section::make('Person Type Pricing')
                                 ->description('Configure pricing for different person types. At least one person type is required. Both TND and EUR prices must be set.')
                                 ->schema([
@@ -1314,7 +1415,9 @@ class ListingResource extends Resource
                                             </div>'
                                         ))
                                         ->dehydrated(false),
-                                ]),
+                                ])
+                                // Hide Person Type Pricing for accommodations (they use per-night pricing instead)
+                                ->visible(fn (Get $get): bool => $get('service_type') !== ServiceType::ACCOMMODATION->value),
 
                             Forms\Components\Section::make('Booking Settings')
                                 ->schema([
@@ -1400,21 +1503,23 @@ class ListingResource extends Resource
                                         Forms\Components\TimePicker::make('start_time')
                                             ->label('Start Time')
                                             ->default('09:00')
-                                            ->required(),
+                                            ->required(fn (Get $get): bool => $get('../../service_type') !== ServiceType::ACCOMMODATION->value),
 
                                         Forms\Components\TimePicker::make('end_time')
                                             ->label('End Time')
                                             ->default('17:00')
-                                            ->required(),
-                                    ]),
+                                            ->required(fn (Get $get): bool => $get('../../service_type') !== ServiceType::ACCOMMODATION->value),
+                                    ])
+                                        ->visible(fn (Get $get): bool => $get('../../service_type') !== ServiceType::ACCOMMODATION->value),
 
                                     Forms\Components\TextInput::make('capacity')
                                         ->label('Capacity')
                                         ->helperText('How many people can book this time slot?')
                                         ->numeric()
                                         ->minValue(1)
-                                        ->required()
-                                        ->default(fn ($get) => $get('../../max_group_size') ?? 10),
+                                        ->required(fn (Get $get): bool => $get('../../service_type') !== ServiceType::ACCOMMODATION->value)
+                                        ->default(fn ($get) => $get('../../max_group_size') ?? 10)
+                                        ->visible(fn (Get $get): bool => $get('../../service_type') !== ServiceType::ACCOMMODATION->value),
                                 ])
                                 ->maxItems(3)
                                 ->visible(fn ($get) => ! $get('_skip_availability'))
@@ -1724,22 +1829,31 @@ class ListingResource extends Resource
                             $errors[] = 'Meeting point address is required';
                         }
 
-                        // Pricing - Person Types
-                        if (empty($record->pricing['person_types'])) {
-                            $errors[] = 'At least one person type is required';
-                        } else {
-                            // Validate each person type has prices
-                            $hasValidPricing = false;
-
-                            foreach ($record->pricing['person_types'] as $personType) {
-                                if (! empty($personType['tnd_price']) && ! empty($personType['eur_price'])) {
-                                    $hasValidPricing = true;
-                                    break;
-                                }
+                        // Pricing validation based on service type
+                        if ($record->service_type === ServiceType::ACCOMMODATION) {
+                            // Accommodations use nightly pricing (direct columns)
+                            $hasNightlyPricing = ! empty($record->nightly_price_tnd) || ! empty($record->nightly_price_eur);
+                            if (! $hasNightlyPricing) {
+                                $errors[] = 'Nightly pricing (TND or EUR) is required for accommodations';
                             }
+                        } else {
+                            // Tours/Events/Nautical use person type pricing
+                            if (empty($record->pricing['person_types'])) {
+                                $errors[] = 'At least one person type is required';
+                            } else {
+                                // Validate each person type has prices
+                                $hasValidPricing = false;
 
-                            if (! $hasValidPricing) {
-                                $errors[] = 'At least one person type must have both TND and EUR prices';
+                                foreach ($record->pricing['person_types'] as $personType) {
+                                    if (! empty($personType['tnd_price']) && ! empty($personType['eur_price'])) {
+                                        $hasValidPricing = true;
+                                        break;
+                                    }
+                                }
+
+                                if (! $hasValidPricing) {
+                                    $errors[] = 'At least one person type must have both TND and EUR prices';
+                                }
                             }
                         }
 

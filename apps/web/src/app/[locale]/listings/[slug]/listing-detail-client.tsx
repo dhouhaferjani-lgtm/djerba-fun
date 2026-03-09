@@ -57,6 +57,20 @@ const ElevationProfile = dynamic(() => import('@/components/itinerary/ElevationP
   ssr: false,
 });
 
+const AccommodationDateRangePicker = dynamic(
+  () => import('@/components/availability/AccommodationDateRangePicker'),
+  {
+    loading: () => (
+      <div className="h-96 w-full rounded-lg flex items-center justify-center bg-neutral-100 animate-pulse">
+        <div className="text-neutral-500">Loading calendar...</div>
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
+import NightlyPriceDisplay from '@/components/booking/NightlyPriceDisplay';
+
 const BookingPanel = dynamic(
   () => import('@/components/booking/BookingPanel').then((mod) => ({ default: mod.BookingPanel })),
   {
@@ -632,6 +646,279 @@ function BookingFlowContent({
   );
 }
 
+// Accommodation Booking Flow Content - date range selection with nightly pricing
+interface AccommodationBookingFlowContentProps {
+  isLoadingAvailability: boolean;
+  availabilityData: AvailabilitySlot[] | undefined;
+  listing: Listing;
+  createHoldMutation: ReturnType<typeof useCreateHold>;
+  onCreateHold: (checkIn: Date, checkOut: Date, guests: number) => void;
+  onAddToCart: (checkIn: Date, checkOut: Date, guests: number) => void;
+  isAddingToCart: boolean;
+  locale: string;
+  tAccommodation: ReturnType<typeof useTranslations>;
+  tCommon: ReturnType<typeof useTranslations>;
+  tBooking: ReturnType<typeof useTranslations>;
+  tCart: ReturnType<typeof useTranslations>;
+  // Extras selection
+  selectedExtras: { id: string; quantity: number }[];
+  extrasExpanded: boolean;
+  onExtrasExpandedChange: (expanded: boolean) => void;
+  onExtraIncrement: (extraId: string, maxQty?: number | null) => void;
+  onExtraDecrement: (extraId: string) => void;
+  getExtraQuantity: (extraId: string) => number;
+}
+
+function AccommodationBookingFlowContent({
+  isLoadingAvailability,
+  availabilityData,
+  listing,
+  createHoldMutation,
+  onCreateHold,
+  onAddToCart,
+  isAddingToCart,
+  locale,
+  tAccommodation,
+  tCommon,
+  tBooking,
+  tCart,
+  selectedExtras,
+  extrasExpanded,
+  onExtrasExpandedChange,
+  onExtraIncrement,
+  onExtraDecrement,
+  getExtraQuantity,
+}: AccommodationBookingFlowContentProps) {
+  const [dateRange, setDateRange] = useState<{
+    checkIn: Date;
+    checkOut: Date;
+    nights: number;
+  } | null>(null);
+  const [guestCount, setGuestCount] = useState(2);
+
+  const pricing = listing.pricing || {};
+  const nightlyPrice = pricing.nightlyDisplayPrice || pricing.displayPrice || 0;
+  const currency = pricing.displayCurrency || 'EUR';
+  const minimumNights = pricing.minimumNights || 1;
+  const maximumNights = pricing.maximumNights || null;
+  // Type-safe accommodation access - this component is only used for accommodation listings
+  const accommodation = 'accommodation' in listing ? listing.accommodation : null;
+  const maxGuests = accommodation?.maxGuests || listing.maxGroupSize || 10;
+  const checkInTime = accommodation?.checkInTime || '15:00';
+
+  const canProceed = dateRange && dateRange.nights >= minimumNights && guestCount > 0;
+
+  // Calculate extras total
+  const extrasTotal = selectedExtras.reduce((sum, extra) => {
+    const listingExtra = listing.extras?.find((e: any) => e.id === extra.id);
+    const price = currency === 'TND' ? listingExtra?.priceTnd : listingExtra?.priceEur;
+    return sum + (price || 0) * extra.quantity;
+  }, 0);
+
+  const handleDateRangeChange = (
+    selection: { checkIn: Date; checkOut: Date; nights: number } | null
+  ) => {
+    setDateRange(selection);
+  };
+
+  const handleCreateHold = () => {
+    if (dateRange) {
+      onCreateHold(dateRange.checkIn, dateRange.checkOut, guestCount);
+    }
+  };
+
+  const handleAddToCart = () => {
+    if (dateRange) {
+      onAddToCart(dateRange.checkIn, dateRange.checkOut, guestCount);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Date Range Picker */}
+      <div>
+        <h3 className="font-semibold text-heading mb-4">{tAccommodation('select_dates')}</h3>
+        {isLoadingAvailability ? (
+          <p className="text-center text-neutral-500 py-8">{tCommon('loading')}</p>
+        ) : (
+          <AccommodationDateRangePicker
+            slots={availabilityData || []}
+            minimumNights={minimumNights}
+            maximumNights={maximumNights}
+            nightlyPrice={nightlyPrice}
+            currency={currency}
+            checkInTime={checkInTime}
+            onSelectionChange={handleDateRangeChange}
+            serviceTypeColor="amber"
+          />
+        )}
+      </div>
+
+      {/* Guest Count Selector */}
+      {dateRange && (
+        <div className="rounded-lg border border-neutral-200 bg-white p-4">
+          <h4 className="font-medium mb-3">{tAccommodation('guests')}</h4>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-neutral-600">
+              {tAccommodation('guests_count', { max: maxGuests })}
+            </span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setGuestCount((prev) => Math.max(1, prev - 1))}
+                disabled={guestCount <= 1}
+                className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center disabled:opacity-40 hover:bg-neutral-100 transition-colors cursor-pointer disabled:cursor-not-allowed"
+              >
+                <Minus className="h-4 w-4" />
+              </button>
+              <span className="w-8 text-center font-semibold">{guestCount}</span>
+              <button
+                onClick={() => setGuestCount((prev) => Math.min(maxGuests, prev + 1))}
+                disabled={guestCount >= maxGuests}
+                className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center disabled:opacity-40 hover:bg-neutral-100 transition-colors cursor-pointer disabled:cursor-not-allowed"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Collapsible Extras Section */}
+      {dateRange && listing.extras && listing.extras.length > 0 && (
+        <div
+          className="rounded-lg border border-neutral-200 bg-white p-4"
+          data-testid="extras-selection"
+        >
+          <button
+            onClick={() => onExtrasExpandedChange(!extrasExpanded)}
+            className="flex items-center justify-between w-full text-left cursor-pointer"
+          >
+            <span className="font-semibold text-heading flex items-center gap-2">
+              <Package className="h-5 w-5 text-amber-600" />
+              {tBooking('add_extras')}
+              <span className="text-sm font-normal text-neutral-500">
+                ({listing.extras.length} {tBooking('available')})
+              </span>
+            </span>
+            <ChevronDown
+              className={`h-5 w-5 text-neutral-500 transition-transform ${extrasExpanded ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          {extrasExpanded && (
+            <div className="mt-4 space-y-3">
+              {listing.extras.map((extra: any) => {
+                const qty = getExtraQuantity(extra.id);
+                const price = currency === 'TND' ? extra.priceTnd : extra.priceEur;
+                const pricingLabel =
+                  extra.pricingType === 'per_person'
+                    ? tBooking('per_person')
+                    : extra.pricingType === 'per_booking'
+                      ? tBooking('per_booking')
+                      : tBooking('per_unit');
+
+                return (
+                  <div
+                    key={extra.id}
+                    className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg"
+                    data-testid={`extra-item-${extra.id}`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-heading truncate">{extra.name}</div>
+                      <div className="text-sm text-neutral-500">
+                        {price?.toFixed(2)} {currency} {pricingLabel}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 ml-4">
+                      <button
+                        onClick={() => onExtraDecrement(extra.id)}
+                        disabled={qty === 0}
+                        className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center disabled:opacity-40 hover:bg-neutral-100 transition-colors cursor-pointer disabled:cursor-not-allowed"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="w-8 text-center font-medium">{qty}</span>
+                      <button
+                        onClick={() => onExtraIncrement(extra.id, extra.maxQuantity)}
+                        className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center hover:bg-neutral-100 transition-colors cursor-pointer"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Price Display */}
+      {dateRange && (
+        <NightlyPriceDisplay
+          nights={dateRange.nights}
+          nightlyPrice={nightlyPrice}
+          currency={currency}
+          guests={guestCount}
+          maxGuests={maxGuests}
+          selectedExtras={selectedExtras
+            .filter((e) => e.quantity > 0)
+            .map((e) => {
+              const listingExtra = listing.extras?.find((le: any) => le.id === e.id);
+              const price = currency === 'TND' ? listingExtra?.priceTnd : listingExtra?.priceEur;
+              return {
+                id: e.id,
+                name: listingExtra?.name || 'Extra',
+                price: price || 0,
+                quantity: e.quantity,
+              };
+            })}
+        />
+      )}
+
+      {/* Book Buttons */}
+      {dateRange && (
+        <div className="space-y-3">
+          <Button
+            variant="primary"
+            size="lg"
+            className="w-full"
+            onClick={handleCreateHold}
+            disabled={createHoldMutation.isPending || isAddingToCart || !canProceed}
+          >
+            {createHoldMutation.isPending ? tCommon('loading') : tBooking('continue')}
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full"
+            onClick={handleAddToCart}
+            disabled={createHoldMutation.isPending || isAddingToCart || !canProceed}
+          >
+            <ShoppingCart className="h-5 w-5 mr-2" />
+            {isAddingToCart ? tCommon('loading') : tCart('add_to_cart')}
+          </Button>
+          {createHoldMutation.isError && (
+            <div className="bg-error-light border border-error rounded-lg p-4 mt-3">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-error-dark flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-error-dark mb-1">
+                    {tBooking('booking_failed')}
+                  </p>
+                  <p className="text-sm text-error-dark">
+                    {parseHoldError(createHoldMutation.error, tBooking)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Route & Itinerary Tabs Component
 interface RouteItineraryTabsProps {
   itinerary: any[];
@@ -742,6 +1029,10 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
   const tAvail = useTranslations('availability');
   const tBooking = useTranslations('booking');
   const tCart = useTranslations('cart');
+  const tAccommodation = useTranslations('accommodation');
+
+  // Check if this is an accommodation listing
+  const isAccommodationListing = listing.serviceType === 'accommodation';
 
   // Booking flow state
   const [showBookingFlow, setShowBookingFlow] = useState(false);
@@ -910,6 +1201,92 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       setTimeout(() => setShowCartSuccess(false), 5000);
     } catch (err) {
       console.error('Failed to add to cart:', err);
+    }
+  };
+
+  // Accommodation-specific handlers
+  const handleAccommodationCreateHold = async (checkIn: Date, checkOut: Date, guests: number) => {
+    if (!availabilityData || availabilityData.length === 0) return;
+
+    // For accommodations, we use the check-in date to find a slot
+    const checkInDateStr = format(checkIn, 'yyyy-MM-dd');
+    const slot = availabilityData.find((s) => s.start.startsWith(checkInDateStr));
+
+    if (!slot) {
+      console.error('No slot found for check-in date');
+      return;
+    }
+
+    try {
+      const sessionId = getGuestSessionId();
+      const response = await createHoldMutation.mutateAsync({
+        slotId: String(slot.id),
+        // For accommodations, we pass check-in/check-out dates and guest count
+        check_in_date: format(checkIn, 'yyyy-MM-dd'),
+        check_out_date: format(checkOut, 'yyyy-MM-dd'),
+        guests,
+        person_types: { adult: guests }, // Fallback for legacy compatibility
+        session_id: sessionId,
+        extras: selectedExtras,
+      });
+      const holdId = response.data.id;
+
+      // Persist extras to sessionStorage for checkout
+      if (selectedExtras.length > 0) {
+        sessionStorage.setItem(`checkout-extras-${holdId}`, JSON.stringify(selectedExtras));
+      }
+
+      // Add to cart
+      await addToCartMutation.mutateAsync(holdId);
+
+      // Redirect to checkout
+      router.push(`/cart/checkout`);
+    } catch (err) {
+      console.error('Failed to create accommodation hold:', err);
+    }
+  };
+
+  const handleAccommodationAddToCart = async (checkIn: Date, checkOut: Date, guests: number) => {
+    if (!availabilityData || availabilityData.length === 0) return;
+
+    // For accommodations, we use the check-in date to find a slot
+    const checkInDateStr = format(checkIn, 'yyyy-MM-dd');
+    const slot = availabilityData.find((s) => s.start.startsWith(checkInDateStr));
+
+    if (!slot) {
+      console.error('No slot found for check-in date');
+      return;
+    }
+
+    try {
+      const sessionId = getGuestSessionId();
+      const holdResponse = await createHoldMutation.mutateAsync({
+        slotId: String(slot.id),
+        check_in_date: format(checkIn, 'yyyy-MM-dd'),
+        check_out_date: format(checkOut, 'yyyy-MM-dd'),
+        guests,
+        person_types: { adult: guests },
+        session_id: sessionId,
+        extras: selectedExtras,
+      });
+      const holdId = holdResponse.data.id;
+
+      // Persist extras to sessionStorage
+      if (selectedExtras.length > 0) {
+        sessionStorage.setItem(`checkout-extras-${holdId}`, JSON.stringify(selectedExtras));
+      }
+
+      // Add to cart
+      await addToCartMutation.mutateAsync(holdId);
+
+      // Show success message and reset
+      setShowCartSuccess(true);
+      setShowBookingFlow(false);
+      setSelectedExtras([]);
+
+      setTimeout(() => setShowCartSuccess(false), 5000);
+    } catch (err) {
+      console.error('Failed to add accommodation to cart:', err);
     }
   };
 
@@ -1521,37 +1898,60 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                 availabilityData={availabilityData}
                 hasActualReviews={false}
               >
-                <BookingFlowContent
-                  isLoadingAvailability={isLoadingAvailability}
-                  availabilityData={availabilityData}
-                  selectedDate={selectedDate}
-                  selectedSlot={selectedSlot}
-                  slotsForSelectedDate={slotsForSelectedDate}
-                  personTypes={personTypes}
-                  personTypeBreakdown={personTypeBreakdown}
-                  maxCapacity={maxCapacity}
-                  listing={listing}
-                  createHoldMutation={createHoldMutation}
-                  onDateSelect={handleDateSelect}
-                  onSlotSelect={handleSlotSelect}
-                  onPersonTypeChange={setPersonTypeBreakdown}
-                  onCreateHold={handleCreateHold}
-                  onAddToCart={handleAddToCart}
-                  isAddingToCart={addToCartMutation.isPending}
-                  onClose={() => setShowBookingFlow(false)}
-                  locale={locale}
-                  t={t}
-                  tAvail={tAvail}
-                  tBooking={tBooking}
-                  tCommon={tCommon}
-                  tCart={tCart}
-                  selectedExtras={selectedExtras}
-                  extrasExpanded={extrasExpanded}
-                  onExtrasExpandedChange={setExtrasExpanded}
-                  onExtraIncrement={incrementExtra}
-                  onExtraDecrement={decrementExtra}
-                  getExtraQuantity={getExtraQuantity}
-                />
+                {isAccommodationListing ? (
+                  <AccommodationBookingFlowContent
+                    isLoadingAvailability={isLoadingAvailability}
+                    availabilityData={availabilityData}
+                    listing={listing}
+                    createHoldMutation={createHoldMutation}
+                    onCreateHold={handleAccommodationCreateHold}
+                    onAddToCart={handleAccommodationAddToCart}
+                    isAddingToCart={addToCartMutation.isPending}
+                    locale={locale}
+                    tAccommodation={tAccommodation}
+                    tCommon={tCommon}
+                    tBooking={tBooking}
+                    tCart={tCart}
+                    selectedExtras={selectedExtras}
+                    extrasExpanded={extrasExpanded}
+                    onExtrasExpandedChange={setExtrasExpanded}
+                    onExtraIncrement={incrementExtra}
+                    onExtraDecrement={decrementExtra}
+                    getExtraQuantity={getExtraQuantity}
+                  />
+                ) : (
+                  <BookingFlowContent
+                    isLoadingAvailability={isLoadingAvailability}
+                    availabilityData={availabilityData}
+                    selectedDate={selectedDate}
+                    selectedSlot={selectedSlot}
+                    slotsForSelectedDate={slotsForSelectedDate}
+                    personTypes={personTypes}
+                    personTypeBreakdown={personTypeBreakdown}
+                    maxCapacity={maxCapacity}
+                    listing={listing}
+                    createHoldMutation={createHoldMutation}
+                    onDateSelect={handleDateSelect}
+                    onSlotSelect={handleSlotSelect}
+                    onPersonTypeChange={setPersonTypeBreakdown}
+                    onCreateHold={handleCreateHold}
+                    onAddToCart={handleAddToCart}
+                    isAddingToCart={addToCartMutation.isPending}
+                    onClose={() => setShowBookingFlow(false)}
+                    locale={locale}
+                    t={t}
+                    tAvail={tAvail}
+                    tBooking={tBooking}
+                    tCommon={tCommon}
+                    tCart={tCart}
+                    selectedExtras={selectedExtras}
+                    extrasExpanded={extrasExpanded}
+                    onExtrasExpandedChange={setExtrasExpanded}
+                    onExtraIncrement={incrementExtra}
+                    onExtraDecrement={decrementExtra}
+                    getExtraQuantity={getExtraQuantity}
+                  />
+                )}
               </FixedBookingPanel>
             </div>
           </div>
@@ -1566,37 +1966,60 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
           isOpen={showBookingFlow}
           onOpenChange={setShowBookingFlow}
         >
-          <BookingFlowContent
-            isLoadingAvailability={isLoadingAvailability}
-            availabilityData={availabilityData}
-            selectedDate={selectedDate}
-            selectedSlot={selectedSlot}
-            slotsForSelectedDate={slotsForSelectedDate}
-            personTypes={personTypes}
-            personTypeBreakdown={personTypeBreakdown}
-            maxCapacity={maxCapacity}
-            listing={listing}
-            createHoldMutation={createHoldMutation}
-            onDateSelect={handleDateSelect}
-            onSlotSelect={handleSlotSelect}
-            onPersonTypeChange={setPersonTypeBreakdown}
-            onCreateHold={handleCreateHold}
-            onAddToCart={handleAddToCart}
-            isAddingToCart={addToCartMutation.isPending}
-            onClose={() => setShowBookingFlow(false)}
-            locale={locale}
-            t={t}
-            tAvail={tAvail}
-            tBooking={tBooking}
-            tCommon={tCommon}
-            tCart={tCart}
-            selectedExtras={selectedExtras}
-            extrasExpanded={extrasExpanded}
-            onExtrasExpandedChange={setExtrasExpanded}
-            onExtraIncrement={incrementExtra}
-            onExtraDecrement={decrementExtra}
-            getExtraQuantity={getExtraQuantity}
-          />
+          {isAccommodationListing ? (
+            <AccommodationBookingFlowContent
+              isLoadingAvailability={isLoadingAvailability}
+              availabilityData={availabilityData}
+              listing={listing}
+              createHoldMutation={createHoldMutation}
+              onCreateHold={handleAccommodationCreateHold}
+              onAddToCart={handleAccommodationAddToCart}
+              isAddingToCart={addToCartMutation.isPending}
+              locale={locale}
+              tAccommodation={tAccommodation}
+              tCommon={tCommon}
+              tBooking={tBooking}
+              tCart={tCart}
+              selectedExtras={selectedExtras}
+              extrasExpanded={extrasExpanded}
+              onExtrasExpandedChange={setExtrasExpanded}
+              onExtraIncrement={incrementExtra}
+              onExtraDecrement={decrementExtra}
+              getExtraQuantity={getExtraQuantity}
+            />
+          ) : (
+            <BookingFlowContent
+              isLoadingAvailability={isLoadingAvailability}
+              availabilityData={availabilityData}
+              selectedDate={selectedDate}
+              selectedSlot={selectedSlot}
+              slotsForSelectedDate={slotsForSelectedDate}
+              personTypes={personTypes}
+              personTypeBreakdown={personTypeBreakdown}
+              maxCapacity={maxCapacity}
+              listing={listing}
+              createHoldMutation={createHoldMutation}
+              onDateSelect={handleDateSelect}
+              onSlotSelect={handleSlotSelect}
+              onPersonTypeChange={setPersonTypeBreakdown}
+              onCreateHold={handleCreateHold}
+              onAddToCart={handleAddToCart}
+              isAddingToCart={addToCartMutation.isPending}
+              onClose={() => setShowBookingFlow(false)}
+              locale={locale}
+              t={t}
+              tAvail={tAvail}
+              tBooking={tBooking}
+              tCommon={tCommon}
+              tCart={tCart}
+              selectedExtras={selectedExtras}
+              extrasExpanded={extrasExpanded}
+              onExtrasExpandedChange={setExtrasExpanded}
+              onExtraIncrement={incrementExtra}
+              onExtraDecrement={decrementExtra}
+              getExtraQuantity={getExtraQuantity}
+            />
+          )}
         </BookingPanel>
       </div>
 
