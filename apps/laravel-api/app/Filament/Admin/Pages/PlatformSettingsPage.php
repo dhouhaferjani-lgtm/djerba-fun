@@ -241,12 +241,14 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('logo_light')
                             ->collection('logo_light')
+                            ->model(fn () => $this->getFormModel())
                             ->label('Logo (Light Mode)')
                             ->image()
                             ->maxSize(2048)
                             ->helperText('Used on light backgrounds'),
                         Forms\Components\SpatieMediaLibraryFileUpload::make('logo_dark')
                             ->collection('logo_dark')
+                            ->model(fn () => $this->getFormModel())
                             ->label('Logo (Dark Mode)')
                             ->image()
                             ->maxSize(2048)
@@ -259,12 +261,14 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('favicon')
                             ->collection('favicon')
+                            ->model(fn () => $this->getFormModel())
                             ->label('Favicon')
                             ->image()
                             ->maxSize(512)
                             ->helperText('Recommended: 32x32 or 16x16 PNG/ICO'),
                         Forms\Components\SpatieMediaLibraryFileUpload::make('apple_touch_icon')
                             ->collection('apple_touch_icon')
+                            ->model(fn () => $this->getFormModel())
                             ->label('Apple Touch Icon')
                             ->image()
                             ->maxSize(1024)
@@ -277,6 +281,7 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('og_image')
                             ->collection('og_image')
+                            ->model(fn () => $this->getFormModel())
                             ->label('OG Image')
                             ->image()
                             ->maxSize(2048)
@@ -288,6 +293,7 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('hero_banner')
                             ->collection('hero_banner')
+                            ->model(fn () => $this->getFormModel())
                             ->label('Hero Banner (Image or Video)')
                             ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp', 'video/mp4', 'video/webm'])
                             ->maxSize(20480)
@@ -340,18 +346,21 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('brand_pillar_1')
                             ->collection('brand_pillar_1')
+                            ->model(fn () => $this->getFormModel())
                             ->label('Pillar 1: Sustainable Travel')
                             ->image()
                             ->maxSize(5120)
                             ->helperText('Recommended: 1080x1080 square image'),
                         Forms\Components\SpatieMediaLibraryFileUpload::make('brand_pillar_2')
                             ->collection('brand_pillar_2')
+                            ->model(fn () => $this->getFormModel())
                             ->label('Pillar 2: Authentic Experiences')
                             ->image()
                             ->maxSize(5120)
                             ->helperText('Recommended: 1080x1080 square image'),
                         Forms\Components\SpatieMediaLibraryFileUpload::make('brand_pillar_3')
                             ->collection('brand_pillar_3')
+                            ->model(fn () => $this->getFormModel())
                             ->label('Pillar 3: Epic Adventures')
                             ->image()
                             ->maxSize(5120)
@@ -542,6 +551,7 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('event_of_year_image')
                             ->collection('event_of_year_image')
+                            ->model(fn () => $this->getFormModel())
                             ->label('Event Banner Image')
                             ->image()
                             ->maxSize(5120)
@@ -1256,6 +1266,7 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\SpatieMediaLibraryFileUpload::make('about_hero_image')
                             ->collection('about_hero_image')
+                            ->model(fn () => $this->getFormModel())
                             ->label('Hero Background Image')
                             ->image()
                             ->maxSize(5120)
@@ -1359,6 +1370,7 @@ class PlatformSettingsPage extends Page implements HasForms
 
                         Forms\Components\SpatieMediaLibraryFileUpload::make('about_founder_photo')
                             ->collection('about_founder_photo')
+                            ->model(fn () => $this->getFormModel())
                             ->label('Founder Photo')
                             ->image()
                             ->maxSize(2048)
@@ -2413,11 +2425,13 @@ class PlatformSettingsPage extends Page implements HasForms
             $this->settings->fill($data);
             $this->settings->save();
 
-            // CRITICAL: Explicitly save relationships (media uploads)
-            // This must happen AFTER model save so media has a model_id to associate with
+            // CRITICAL: Re-fetch fresh model instance before saving relationships
+            // This ensures the model has a valid ID and is in the proper state for media association
             // SpatieMediaLibraryFileUpload stores uploads in temp storage during form interaction
             // This call moves them to permanent storage and creates media table records
-            $this->form->model($this->settings)->saveRelationships();
+            $this->settings = $this->settings->fresh();
+            $this->form->model($this->settings);
+            $this->form->saveRelationships();
 
             // Clear cache so API returns fresh data
             PlatformSettings::clearCache();

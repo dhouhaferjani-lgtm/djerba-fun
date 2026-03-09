@@ -36,7 +36,14 @@ class PlatformSettingsService
     {
         // Always get fresh from DB to ensure media is current
         // Cannot rely on cached instance for media URLs
-        return PlatformSettings::with('media')->firstOrCreate([]);
+        $settings = PlatformSettings::with('media')->first();
+
+        if (! $settings) {
+            $settings = PlatformSettings::create([]);
+            $settings->load('media');
+        }
+
+        return $settings;
     }
 
     /**
@@ -94,6 +101,7 @@ class PlatformSettingsService
                 'appleTouchIcon' => $s->apple_touch_icon_url,
                 'heroBanner' => $s->hero_banner_url,
                 'heroBannerIsVideo' => str_starts_with($s->getFirstMedia('hero_banner')?->mime_type ?? '', 'video/'),
+                'heroBannerThumbnail' => $s->hero_banner_thumbnail_url,
                 'brandPillar1' => $s->brand_pillar_1_url,
                 'brandPillar2' => $s->brand_pillar_2_url,
                 'brandPillar3' => $s->brand_pillar_3_url,
