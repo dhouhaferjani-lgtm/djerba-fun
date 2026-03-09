@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { HeroSearchForm } from '../molecules/HeroSearchForm';
 import { shouldUnoptimizeImage } from '@/lib/utils/image';
 import { travelTipsApi, type TravelTip } from '@/lib/api/client';
@@ -15,17 +15,25 @@ const TYPING_SPEED = 30; // ms per character
 const PAUSE_AFTER_TYPING = 3000; // ms to pause after typing completes
 
 // Running Traveler SVG Component - Dynamic running pose facing right
-function RunningTraveler({ isRunning }: { isRunning: boolean }) {
+function RunningTraveler({
+  isRunning,
+  style,
+}: {
+  isRunning: boolean;
+  style?: React.CSSProperties;
+}) {
   return (
     <svg
+      data-testid="running-traveler"
       width="28"
       height="24"
       viewBox="0 0 28 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="inline-block align-middle ml-1"
+      className="absolute"
       style={{
         transform: 'translateY(-2px)',
+        ...style,
       }}
     >
       {/* Motion lines behind (left side) when running */}
@@ -295,6 +303,10 @@ export function HeroSection({
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
 
+  // Ref and state for traveler positioning (keeps traveler on first line)
+  const textMeasureRef = useRef<HTMLSpanElement>(null);
+  const [travelerLeft, setTravelerLeft] = useState(0);
+
   // Fallback tip from translations
   const fallbackTip = t('hero_travel_tip_content');
 
@@ -344,6 +356,14 @@ export function HeroSection({
 
     return () => clearInterval(typingInterval);
   }, [currentTip, currentTipIndex]);
+
+  // Update traveler position based on text width (keeps traveler on first line)
+  useEffect(() => {
+    if (textMeasureRef.current) {
+      const textWidth = textMeasureRef.current.offsetWidth;
+      setTravelerLeft(textWidth);
+    }
+  }, [displayedText]);
 
   // Move to next tip after pause
   useEffect(() => {
@@ -440,18 +460,33 @@ export function HeroSection({
           </div>
 
           {/* Travel Tip Banner - Transparent with white border, typewriter effect with running traveler */}
-          <div className="w-full max-w-5xl mx-auto bg-white/10 backdrop-blur-sm border border-[#F5B041]/60 px-8 py-3 rounded-lg overflow-hidden">
-            <p className="text-white text-sm text-center">
-              <span className="inline-flex items-center justify-center">
-                <span className="relative">
-                  <span className="invisible">{longestTip}</span>
-                  <span className="absolute inset-0 text-center">
+          <div
+            className="w-full max-w-5xl mx-auto bg-white/10 backdrop-blur-sm border border-[#F5B041]/60 px-8 py-3 rounded-lg overflow-hidden"
+            data-testid="travel-tip-bar"
+          >
+            <div className="relative text-white text-sm text-center">
+              {/* Invisible spacer for height reservation */}
+              <span className="invisible block">{longestTip}</span>
+
+              {/* Visible text container - positioned over the spacer */}
+              <span className="absolute inset-0 flex justify-center items-start">
+                <span className="relative inline-block">
+                  {/* Visible text - measured for traveler positioning */}
+                  <span ref={textMeasureRef} className="whitespace-pre-wrap">
                     {displayedText}
-                    <RunningTraveler isRunning={isTyping} />
                   </span>
+
+                  {/* Running Traveler - absolutely positioned at first line */}
+                  <RunningTraveler
+                    isRunning={isTyping}
+                    style={{
+                      left: `${travelerLeft + 4}px`,
+                      top: '0px',
+                    }}
+                  />
                 </span>
               </span>
-            </p>
+            </div>
           </div>
         </div>
       </div>
