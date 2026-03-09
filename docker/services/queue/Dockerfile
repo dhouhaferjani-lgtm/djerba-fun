@@ -17,6 +17,7 @@ RUN apk add --no-cache \
     linux-headers \
     oniguruma-dev \
     libzip-dev \
+    ffmpeg \
     $PHPIZE_DEPS
 
 # Install PHP extensions

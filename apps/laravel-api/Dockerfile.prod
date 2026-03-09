@@ -17,7 +17,8 @@ RUN apk add --no-cache \
     curl \
     nginx \
     supervisor \
-    netcat-openbsd
+    netcat-openbsd \
+    ffmpeg
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \

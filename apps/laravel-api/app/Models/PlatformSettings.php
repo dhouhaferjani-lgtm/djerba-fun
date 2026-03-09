@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Translatable\HasTranslations;
 
 class PlatformSettings extends Model implements HasMedia
@@ -441,6 +442,24 @@ class PlatformSettings extends Model implements HasMedia
     }
 
     /**
+     * Register media conversions for generating thumbnails from videos.
+     *
+     * This ensures that when a video is uploaded to hero_banner,
+     * a thumbnail image is automatically extracted from the first second.
+     * This thumbnail serves as the poster image while the video loads,
+     * ensuring alignment between poster and video content.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumbnail')
+            ->width(1920)
+            ->height(1080)
+            ->extractVideoFrameAtSecond(1)
+            ->performOnCollections('hero_banner')
+            ->nonQueued(); // Generate synchronously to ensure it's ready immediately
+    }
+
+    /**
      * Get the singleton instance (cached).
      *
      * WARNING: Do NOT use this for Filament forms with media uploads.
@@ -577,6 +596,39 @@ class PlatformSettings extends Model implements HasMedia
     public function getHeroBannerUrlAttribute(): ?string
     {
         return $this->getFirstMediaUrl('hero_banner') ?: null;
+    }
+
+    /**
+     * Get the hero banner thumbnail URL.
+     *
+     * For videos: returns the auto-generated thumbnail from the first second.
+     * For images: returns the image itself (no separate thumbnail needed).
+     * This ensures the poster image always matches the hero content.
+     *
+     * Returns null if thumbnail conversion doesn't exist (e.g., FFmpeg not available),
+     * allowing the frontend to use its default fallback image.
+     */
+    public function getHeroBannerThumbnailUrlAttribute(): ?string
+    {
+        $media = $this->getFirstMedia('hero_banner');
+
+        if (! $media) {
+            return null;
+        }
+
+        // If it's a video, return the thumbnail conversion only if it exists
+        if (str_starts_with($media->mime_type, 'video/')) {
+            // Check if thumbnail conversion was actually generated
+            // (may fail if FFmpeg is not available)
+            if (! $media->hasGeneratedConversion('thumbnail')) {
+                return null;
+            }
+
+            return $media->getUrl('thumbnail') ?: null;
+        }
+
+        // If it's an image, return the image itself as the "thumbnail"
+        return $media->getUrl();
     }
 
     public function getBrandPillar1UrlAttribute(): ?string

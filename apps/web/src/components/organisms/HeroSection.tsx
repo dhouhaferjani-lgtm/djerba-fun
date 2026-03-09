@@ -230,6 +230,7 @@ interface HeroSectionProps {
   locale: string;
   heroBannerUrl?: string | null;
   heroBannerIsVideo?: boolean;
+  heroBannerThumbnail?: string | null;
   heroData?: HeroData;
 }
 
@@ -237,6 +238,7 @@ export function HeroSection({
   locale,
   heroBannerUrl,
   heroBannerIsVideo,
+  heroBannerThumbnail,
   heroData,
 }: HeroSectionProps) {
   const t = useTranslations('home');
@@ -245,15 +247,37 @@ export function HeroSection({
   // If CMS has an IMAGE banner, NO video renders — preserving the admin's choice
   const showVideo = heroBannerIsVideo || !heroBannerUrl;
   const videoSrc = heroBannerIsVideo && heroBannerUrl ? heroBannerUrl : DEFAULT_HERO_VIDEO;
-  const backgroundImage = heroBannerUrl && !heroBannerIsVideo ? heroBannerUrl : DEFAULT_HERO_IMAGE;
+
+  // Background image priority:
+  // 1. If video mode with CMS thumbnail → use auto-generated thumbnail (ensures alignment with video)
+  // 2. If CMS has image banner → use that image
+  // 3. Fallback to default static image
+  const backgroundImage =
+    heroBannerThumbnail ||
+    (heroBannerUrl && !heroBannerIsVideo ? heroBannerUrl : DEFAULT_HERO_IMAGE);
 
   // Video readiness state — poster shows until video is buffered
   const [videoReady, setVideoReady] = useState(false);
+
+  // Image error state — fallback to default if thumbnail fails to load
+  const [imageError, setImageError] = useState(false);
+
+  // Effective background image — use fallback if CMS image fails
+  const effectiveBackgroundImage = imageError ? DEFAULT_HERO_IMAGE : backgroundImage;
 
   // Reset video readiness if we switch away from video mode
   useEffect(() => {
     if (!showVideo) setVideoReady(false);
   }, [showVideo]);
+
+  // Fallback: show video after timeout even if onCanPlay doesn't fire
+  // This handles servers that don't support Range requests (like php artisan serve)
+  useEffect(() => {
+    if (showVideo && !videoReady) {
+      const timeout = setTimeout(() => setVideoReady(true), 3000);
+      return () => clearTimeout(timeout);
+    }
+  }, [showVideo, videoReady]);
 
   // Use CMS values with translation fallbacks
   // Fallback combines the two translation keys for backwards compatibility
@@ -338,12 +362,13 @@ export function HeroSection({
       <div className="absolute inset-0 z-0 overflow-hidden">
         {/* Poster image — shows immediately, fades out once video is ready on desktop */}
         <Image
-          src={backgroundImage}
+          src={effectiveBackgroundImage}
           alt="Hero Banner"
           fill
           className={`object-cover transition-opacity duration-1000 ${showVideo && videoReady ? 'md:opacity-0' : 'opacity-100'}`}
           priority
-          unoptimized={shouldUnoptimizeImage(backgroundImage)}
+          unoptimized={shouldUnoptimizeImage(effectiveBackgroundImage)}
+          onError={() => setImageError(true)}
         />
 
         {/* Video background — only rendered when we have a video to show (CMS video or no CMS banner) */}
