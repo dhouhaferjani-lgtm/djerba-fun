@@ -2405,6 +2405,11 @@ class PlatformSettingsPage extends Page implements HasForms
             // Sanitize KeyValue fields to prevent array-as-value errors
             $data = $this->sanitizeKeyValueFields($data);
 
+            // Filter out null values to preserve existing database values
+            // This prevents NOT NULL constraint violations when form fields are empty
+            // Fields like organization_type, address_country, etc. have defaults but NOT nullable
+            $data = $this->filterNullValues($data);
+
             // Merge captured nested data back into form state
             if (isset($data['featured_destinations'])) {
                 foreach ($data['featured_destinations'] as &$dest) {
@@ -2425,20 +2430,26 @@ class PlatformSettingsPage extends Page implements HasForms
             $this->settings->fill($data);
             $this->settings->save();
 
-            // CRITICAL: Re-fetch fresh model instance before saving relationships
-            // This ensures the model has a valid ID and is in the proper state for media association
-            // SpatieMediaLibraryFileUpload stores uploads in temp storage during form interaction
-            // This call moves them to permanent storage and creates media table records
-            $this->settings = $this->settings->fresh();
-            $this->form->model($this->settings);
+            // CRITICAL FIX: Save relationships (media uploads) BEFORE refreshing the model
+            // The SpatieMediaLibraryFileUpload component holds references to temporary files
+            // in the form state that are bound to the CURRENT model instance ($this->settings).
+            // Calling fresh() before saveRelationships() breaks this binding because:
+            // 1. fresh() creates a NEW model instance from the database
+            // 2. The form's internal upload state was bound to the ORIGINAL instance
+            // 3. saveRelationships() can't find the uploads because the binding is lost
+            //
+            // By calling saveRelationships() FIRST, while the original model instance
+            // is still bound, the uploads are properly moved from temp to permanent storage
+            // and associated with the model via Spatie Media Library.
             $this->form->saveRelationships();
+
+            // NOW it's safe to refresh the model to get the latest data including
+            // any media that was just attached by saveRelationships()
+            $this->settings->refresh();
+            $this->settings->load('media');
 
             // Clear cache so API returns fresh data
             PlatformSettings::clearCache();
-
-            // Refresh model with new media
-            $this->settings->refresh();
-            $this->settings->load('media');
 
             Notification::make()
                 ->title('Settings saved successfully')
@@ -2466,5 +2477,26 @@ class PlatformSettingsPage extends Page implements HasForms
                 ->submit('form')
                 ->keyBindings(['mod+s']),
         ];
+    }
+
+    /**
+     * Filter out null values from data array to preserve existing database values.
+     *
+     * This prevents NOT NULL constraint violations when form fields return null.
+     * Fields like organization_type, address_country, default_currency have database
+     * defaults but are NOT nullable - passing null would cause SQL errors.
+     *
+     * Note: This intentionally keeps empty strings and false booleans, only filtering null.
+     */
+    protected function filterNullValues(array $data): array
+    {
+        return array_filter($data, function ($value) {
+            // Keep all non-null values including:
+            // - Empty strings (explicit empty)
+            // - False booleans
+            // - Zero values
+            // - Empty arrays
+            return $value !== null;
+        });
     }
 }

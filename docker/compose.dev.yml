@@ -99,13 +99,8 @@ services:
       APP_ENV: local
       APP_DEBUG: 'true'
       APP_URL: http://localhost:8000
-      APP_KEY: ${APP_KEY:-}
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: djerba_fun
-      DB_USERNAME: djerba_fun
-      DB_PASSWORD: secret
+      # APP_KEY and DB_* come from .env file in mounted volume
+      # This allows phpunit.xml to override DB settings for tests
       REDIS_HOST: redis
       REDIS_PORT: 6379
       QUEUE_CONNECTION: redis
@@ -147,12 +142,7 @@ services:
         condition: service_healthy
     environment:
       APP_ENV: local
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: djerba_fun
-      DB_USERNAME: djerba_fun
-      DB_PASSWORD: secret
+      # DB_* come from .env file in mounted volume
       REDIS_HOST: redis
       QUEUE_CONNECTION: redis
     volumes:
@@ -171,12 +161,7 @@ services:
         condition: service_healthy
     environment:
       APP_ENV: local
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: djerba_fun
-      DB_USERNAME: djerba_fun
-      DB_PASSWORD: secret
+      # DB_* come from .env file in mounted volume
       REDIS_HOST: redis
       QUEUE_CONNECTION: redis
     volumes:

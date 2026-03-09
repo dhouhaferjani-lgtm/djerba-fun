@@ -12,13 +12,23 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            // Platform-wide settings (must be first - other seeders may depend on it)
+            PlatformSettingsSeeder::class,
+
+            // Core reference data
             CurrencySeeder::class,
             IncomePricingConfigSeeder::class,
             PaymentGatewaySeeder::class,
             TagSeeder::class,
+
+            // Users (admin, vendors, test traveler)
             VendorSeeder::class,
+
+            // Location and category data
             LocationSeeder::class,
             BlogCategorySeeder::class,
+
+            // Content
             ListingSeeder::class,
             HikingTourWithMapSeeder::class,
             TravelTipSeeder::class,
