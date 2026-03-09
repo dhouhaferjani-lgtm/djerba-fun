@@ -13,12 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
         then: function () {
-            // Explicit model binding for listing by uuid (for wishlist routes)
+            // Explicit model binding for listing by uuid or slug
             Route::bind('listing', function (string $value) {
-                // First try uuid, then fall back to slug
-                return Listing::where('uuid', $value)
-                    ->orWhere('slug', $value)
-                    ->firstOrFail();
+                // Check if value is a valid UUID format to avoid PostgreSQL type casting errors
+                if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $value)) {
+                    return Listing::where('uuid', $value)->firstOrFail();
+                }
+                // Otherwise try by slug
+                return Listing::where('slug', $value)->firstOrFail();
             });
         },
     )

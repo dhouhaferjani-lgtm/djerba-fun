@@ -93,7 +93,8 @@ class ListingResource extends BaseResource
                 'houseRules' => $this->getTranslationWithFallback($this->getTranslations('house_rules'), $locale),
                 'amenities' => $this->amenities ?? [],
                 'mealsIncluded' => $this->meals_included,
-                'numberOfDays' => $this->number_of_days,
+                // Derive numberOfDays from duration for accommodations
+                'numberOfDays' => is_array($this->duration) ? ($this->duration['value'] ?? null) : null,
             ]),
 
             // Nautical-specific fields
