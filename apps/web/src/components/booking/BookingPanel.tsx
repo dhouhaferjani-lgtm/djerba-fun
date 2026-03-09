@@ -6,11 +6,14 @@ import { Card, Button, Dialog } from '@djerba-fun/ui';
 import { Calendar } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { PriceDisplay } from '@/components/molecules/PriceDisplay';
-import type { Pricing } from '@djerba-fun/schemas';
+import { getServiceTypeColors, getServiceTypeButtonClasses } from '@/lib/utils/serviceTypeColors';
+import { cn } from '@/lib/utils/cn';
+import type { Pricing, ServiceType } from '@djerba-fun/schemas';
 
 interface BookingPanelProps {
   children: React.ReactNode;
   pricing: Pricing;
+  serviceType: ServiceType;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -18,6 +21,7 @@ interface BookingPanelProps {
 export function BookingPanel({
   children,
   pricing,
+  serviceType,
   isOpen: controlledIsOpen,
   onOpenChange,
 }: BookingPanelProps) {
@@ -35,6 +39,10 @@ export function BookingPanel({
   const basePrice = pricing.displayPrice || pricing.tndPrice || 0;
   const currency = pricing.displayCurrency || 'EUR';
 
+  // Get service-type colors for theming
+  const colors = getServiceTypeColors(serviceType);
+  const buttonClasses = getServiceTypeButtonClasses(serviceType);
+
   // Desktop: Render as sticky sidebar card
   if (!isMobile) {
     return (
@@ -47,19 +55,24 @@ export function BookingPanel({
   // Mobile: Render with floating button + dialog
   return (
     <>
-      {/* Floating Book Now button at bottom of screen */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 shadow-lg safe-area-bottom">
+      {/* Floating Book Now button at bottom of screen - Service-type colored border */}
+      <div
+        className={cn(
+          'fixed bottom-0 left-0 right-0 bg-white border-t-2 z-40 shadow-lg safe-area-bottom',
+          colors.border
+        )}
+      >
         <div className="px-4 py-3 max-w-lg mx-auto space-y-3">
           {/* Price - stacked on top for better visibility */}
           <div className="flex items-center justify-between" data-testid="listing-price">
             <PriceDisplay amount={basePrice} currency={currency} size="md" showFrom perPerson />
           </div>
-          {/* Full-width button for better mobile UX */}
+          {/* Full-width button for better mobile UX - Service-type colored */}
           <Button
             variant="primary"
             size="lg"
             onClick={() => setIsOpen(true)}
-            className="w-full py-4 text-base font-semibold"
+            className={cn('w-full py-4 text-base font-semibold', buttonClasses)}
             data-testid="book-now-button"
           >
             <Calendar className="h-5 w-5 mr-2" />

@@ -4,24 +4,35 @@ import { useState, useEffect, useCallback } from 'react';
 import { Star, MessageSquare, Loader2, PenLine } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Badge } from '@djerba-fun/ui';
-import type { Review, ReviewSummary } from '@djerba-fun/schemas';
+import type { Review, ReviewSummary, ServiceType } from '@djerba-fun/schemas';
 import { format } from 'date-fns';
 import { reviewsApi } from '@/lib/api/client';
 import { useCanReview } from '@/lib/api/hooks';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { getServiceTypeColors } from '@/lib/utils/serviceTypeColors';
+import { cn } from '@/lib/utils/cn';
 import Link from 'next/link';
 
 interface ReviewsSectionProps {
   listingSlug: string;
   rating?: number;
   reviewsCount: number;
+  serviceType?: ServiceType;
 }
 
-export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSectionProps) {
+export function ReviewsSection({
+  listingSlug,
+  rating,
+  reviewsCount,
+  serviceType = 'tour',
+}: ReviewsSectionProps) {
   const t = useTranslations('reviews');
   const tCommon = useTranslations('common');
   const { isAuthenticated } = useAuth();
   const { data: canReviewData } = useCanReview(listingSlug, isAuthenticated);
+
+  // Get service-type colors for theming
+  const colors = getServiceTypeColors(serviceType);
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [summary, setSummary] = useState<ReviewSummary | null>(null);
@@ -92,11 +103,11 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
   };
 
   return (
-    <section className="border-t border-neutral-200 pt-12">
-      {/* Section Header */}
+    <section className="border-t border-neutral-200 pt-12" data-testid="reviews-section">
+      {/* Section Header - Service-type colored */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Star className="h-6 w-6 text-primary fill-secondary" />
+          <Star className={cn('h-6 w-6', colors.accent, colors.fill)} />
           <h2 className="font-display text-3xl font-bold text-heading tracking-tight">
             {tCommon('reviews', { count: totalCount })}
           </h2>
@@ -112,11 +123,14 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
         )}
       </div>
 
-      {/* Review Summary */}
+      {/* Review Summary - Service-type colored */}
       {summary && (
         <div className="grid md:grid-cols-[300px_1fr] gap-8 mb-12">
           {/* Overall Rating */}
-          <div className="bg-accent-light rounded-2xl p-6 text-center">
+          <div
+            className={cn('rounded-2xl p-6 text-center', colors.bg)}
+            data-testid="rating-summary"
+          >
             <div className="text-5xl font-display font-bold text-heading mb-2">
               {summary.averageRating.toFixed(1)}
             </div>
@@ -124,22 +138,30 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
-                  className={`h-5 w-5 ${
+                  className={cn(
+                    'h-5 w-5',
                     star <= Math.round(summary.averageRating)
-                      ? 'fill-secondary text-secondary'
+                      ? cn(colors.fill, colors.accent)
                       : 'text-neutral-300'
-                  }`}
+                  )}
                 />
               ))}
             </div>
             <p className="text-sm text-neutral-600">{t('based_on', { count: totalCount })}</p>
           </div>
 
-          {/* Rating Breakdown */}
+          {/* Rating Breakdown - Service-type colored bars */}
           <div className="space-y-3">
             {[5, 4, 3, 2, 1].map((stars) => {
               const count = summary.ratingBreakdown[stars as keyof typeof summary.ratingBreakdown];
               const percentage = getRatingPercentage(count);
+              // Get bar color based on service type
+              const barColors: Record<ServiceType, string> = {
+                tour: 'bg-emerald-500',
+                nautical: 'bg-navy-500',
+                accommodation: 'bg-orange-500',
+                event: 'bg-gold-500',
+              };
               return (
                 <div key={stars} className="flex items-center gap-3">
                   <span className="text-sm font-medium text-neutral-700 w-12">
@@ -147,7 +169,7 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
                   </span>
                   <div className="flex-1 h-3 bg-neutral-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-secondary transition-all duration-300"
+                      className={cn('h-full transition-all duration-300', barColors[serviceType])}
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
@@ -165,7 +187,7 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
       {reviews.length > 0 && (
         <div className="space-y-8">
           {reviews.slice(0, 5).map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <ReviewCard key={review.id} review={review} serviceType={serviceType} />
           ))}
 
           {reviews.length > 5 && (
@@ -179,14 +201,27 @@ export function ReviewsSection({ listingSlug, rating, reviewsCount }: ReviewsSec
   );
 }
 
-// Individual Review Card Component
-function ReviewCard({ review }: { review: Review }) {
+// Individual Review Card Component - Service-type colored
+function ReviewCard({
+  review,
+  serviceType = 'tour',
+}: {
+  review: Review;
+  serviceType?: ServiceType;
+}) {
+  const colors = getServiceTypeColors(serviceType);
+
   return (
     <article className="border-b border-neutral-200 pb-8 last:border-0">
       {/* Reviewer Info */}
       <div className="flex items-start gap-4 mb-4">
-        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <span className="text-primary font-semibold text-lg">
+        <div
+          className={cn(
+            'w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0',
+            colors.bg
+          )}
+        >
+          <span className={cn('font-semibold text-lg', colors.text)}>
             {review.user?.displayName?.charAt(0).toUpperCase() || 'T'}
           </span>
         </div>
@@ -202,9 +237,10 @@ function ReviewCard({ review }: { review: Review }) {
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
-                  className={`h-4 w-4 ${
-                    star <= review.rating ? 'fill-secondary text-secondary' : 'text-neutral-300'
-                  }`}
+                  className={cn(
+                    'h-4 w-4',
+                    star <= review.rating ? cn(colors.fill, colors.accent) : 'text-neutral-300'
+                  )}
                 />
               ))}
             </div>

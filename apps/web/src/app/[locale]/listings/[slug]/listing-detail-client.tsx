@@ -111,6 +111,12 @@ import {
 import { resolveTranslation } from '@/lib/utils/translate';
 import { getGuestSessionId } from '@/lib/utils/session';
 import { normalizeMediaUrl } from '@/lib/utils/image';
+import {
+  getServiceTypeColors,
+  getServiceTypeBadgeClasses,
+  getServiceTypeDotClasses,
+} from '@/lib/utils/serviceTypeColors';
+import { cn } from '@/lib/utils/cn';
 import type { AvailabilitySlot, Listing, PersonType } from '@djerba-fun/schemas';
 
 // Parse API errors from hold creation
@@ -372,6 +378,7 @@ function BookingFlowContent({
                         ? 'border-primary bg-primary/5'
                         : 'border-neutral-200 hover:border-neutral-300'
                     }`}
+                    data-testid="time-slot"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium">{format(new Date(slot.start), 'HH:mm')}</span>
@@ -435,13 +442,15 @@ function BookingFlowContent({
 
           {/* Collapsible Extras Section */}
           {listing.extras && listing.extras.length > 0 && (
-            <div className="mt-6 pt-4 border-t border-neutral-200">
+            <div className="mt-6 pt-4 border-t border-neutral-200" data-testid="extras-selection">
               <button
                 onClick={() => onExtrasExpandedChange(!extrasExpanded)}
                 className="flex items-center justify-between w-full text-left py-2 cursor-pointer"
               >
                 <span className="font-semibold text-heading flex items-center gap-2">
-                  <Package className="h-5 w-5 text-primary" />
+                  <Package
+                    className={cn('h-5 w-5', getServiceTypeColors(listing.serviceType).accent)}
+                  />
                   {tBooking('add_extras')}
                   <span className="text-sm font-normal text-neutral-500">
                     ({listing.extras.length} {tBooking('available')})
@@ -470,6 +479,7 @@ function BookingFlowContent({
                       <div
                         key={extra.id}
                         className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg"
+                        data-testid={`extra-item-${extra.id}`}
                       >
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-heading truncate">{extra.name}</div>
@@ -632,6 +642,7 @@ interface RouteItineraryTabsProps {
   isAccommodation?: boolean;
   skipRouting?: boolean;
   routingProfile?: 'foot' | 'driving' | 'cycling';
+  serviceType: 'tour' | 'nautical' | 'accommodation' | 'event';
 }
 
 function RouteItineraryTabs({
@@ -643,9 +654,22 @@ function RouteItineraryTabs({
   isAccommodation,
   skipRouting,
   routingProfile,
+  serviceType,
 }: RouteItineraryTabsProps) {
   const [activeTab, setActiveTab] = useState<'map' | 'itinerary'>('map');
   const t = useTranslations('listing');
+  const colors = getServiceTypeColors(serviceType);
+
+  // Get border color class for active tab
+  const getActiveTabClasses = () => {
+    const borderColors: Record<string, string> = {
+      tour: 'border-emerald-600',
+      nautical: 'border-navy-600',
+      accommodation: 'border-orange-600',
+      event: 'border-gold-600',
+    };
+    return `${colors.accent} border-b-2 ${borderColors[serviceType] || borderColors.tour}`;
+  };
 
   return (
     <div className="space-y-4">
@@ -653,21 +677,21 @@ function RouteItineraryTabs({
       <div className="flex gap-2 border-b border-neutral-200">
         <button
           onClick={() => setActiveTab('map')}
-          className={`px-6 py-3 font-semibold transition-colors relative ${
-            activeTab === 'map'
-              ? 'text-primary border-b-2 border-primary'
-              : 'text-neutral-600 hover:text-neutral-900'
-          }`}
+          className={cn(
+            'px-6 py-3 font-semibold transition-colors relative',
+            activeTab === 'map' ? getActiveTabClasses() : 'text-neutral-600 hover:text-neutral-900'
+          )}
         >
           {t('trail_map')}
         </button>
         <button
           onClick={() => setActiveTab('itinerary')}
-          className={`px-6 py-3 font-semibold transition-colors relative ${
+          className={cn(
+            'px-6 py-3 font-semibold transition-colors relative',
             activeTab === 'itinerary'
-              ? 'text-primary border-b-2 border-primary'
+              ? getActiveTabClasses()
               : 'text-neutral-600 hover:text-neutral-900'
-          }`}
+          )}
         >
           {t('itinerary')}
         </button>
@@ -923,30 +947,24 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       )}
 
       {/* Hero Section + Content - Unified Layout */}
-      <div className="bg-accent min-h-screen">
+      <div className="bg-neutral-50 min-h-screen">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 py-6">
             {/* Left Column: Hero + Content */}
             <div className="space-y-3">
-              {/* Badge */}
+              {/* Badge - Service-type colored */}
               <div>
                 <span
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-sm font-semibold uppercase tracking-wider"
-                  style={
-                    (listing.serviceType === 'tour' || listing.serviceType === 'accommodation') &&
-                    listing.activityType?.color
-                      ? { color: listing.activityType.color }
-                      : { color: 'var(--color-primary)' }
-                  }
+                  className={cn(
+                    'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold uppercase tracking-wider',
+                    getServiceTypeBadgeClasses(listing.serviceType)
+                  )}
                 >
                   <span
-                    className="w-2 h-2 rounded-full"
-                    style={
-                      (listing.serviceType === 'tour' || listing.serviceType === 'accommodation') &&
-                      listing.activityType?.color
-                        ? { backgroundColor: listing.activityType.color }
-                        : { backgroundColor: 'var(--color-secondary)' }
-                    }
+                    className={cn(
+                      'w-2 h-2 rounded-full',
+                      getServiceTypeDotClasses(listing.serviceType)
+                    )}
                   ></span>
                   {listing.serviceType === 'tour' || listing.serviceType === 'accommodation'
                     ? listing.activityType
@@ -954,7 +972,9 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                       : listing.serviceType === 'accommodation'
                         ? t('default_accommodation_type')
                         : t('default_tour_type')
-                    : t('default_event_type')}
+                    : listing.serviceType === 'nautical'
+                      ? t('default_nautical_type')
+                      : t('default_event_type')}
                 </span>
               </div>
 
@@ -963,16 +983,20 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                 {title}
               </h1>
 
-              {/* Meta Row */}
+              {/* Meta Row - Service-type colored icons */}
               <div className="flex flex-wrap gap-4 text-sm text-body">
                 <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-primary" />
+                  <MapPin
+                    className={cn('h-4 w-4', getServiceTypeColors(listing.serviceType).accent)}
+                  />
                   <span>{listing.meetingPoint?.address || t('default_location')}</span>
                 </div>
                 {(listing.serviceType === 'tour' || listing.serviceType === 'accommodation') &&
                   listing.duration && (
                     <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-primary" />
+                      <Clock
+                        className={cn('h-4 w-4', getServiceTypeColors(listing.serviceType).accent)}
+                      />
                       <span>
                         {listing.duration.value}{' '}
                         {t(
@@ -985,7 +1009,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   listing.difficulty && (
                     <div className="flex items-center gap-2">
                       <svg
-                        className="h-4 w-4 text-primary"
+                        className={cn('h-4 w-4', getServiceTypeColors(listing.serviceType).accent)}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1003,12 +1027,20 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                     </div>
                   )}
                 <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" />
+                  <Users
+                    className={cn('h-4 w-4', getServiceTypeColors(listing.serviceType).accent)}
+                  />
                   <span>{t('max_guests', { count: listing.maxGroupSize })}</span>
                 </div>
                 {listing.rating && (
                   <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 fill-secondary text-secondary" />
+                    <Star
+                      className={cn(
+                        'h-4 w-4',
+                        getServiceTypeColors(listing.serviceType).fill,
+                        getServiceTypeColors(listing.serviceType).accent
+                      )}
+                    />
                     <span className="font-semibold">{listing.rating}</span>
                     <span>({tCommon('reviews', { count: listing.reviewsCount || 0 })})</span>
                   </div>
@@ -1140,8 +1172,18 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                       <ul className="space-y-4">
                         {listing.highlights.map((highlight: any, index: number) => (
                           <li key={index} className="flex items-start gap-4">
-                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center mt-1">
-                              <CheckCircle className="h-4 w-4 text-primary" />
+                            <div
+                              className={cn(
+                                'flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mt-1',
+                                getServiceTypeColors(listing.serviceType).bg
+                              )}
+                            >
+                              <CheckCircle
+                                className={cn(
+                                  'h-4 w-4',
+                                  getServiceTypeColors(listing.serviceType).accent
+                                )}
+                              />
                             </div>
                             <span className="font-sans text-lg text-neutral-700 leading-relaxed">
                               {tr(highlight)}
@@ -1219,6 +1261,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                               ? 'cycling'
                               : 'foot'
                         }
+                        serviceType={listing.serviceType}
                       />
 
                       {/* Elevation Profile */}
@@ -1317,11 +1360,12 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                     </section>
                   )}
 
-                  {/* Reviews Section */}
+                  {/* Reviews Section - Service-type colored */}
                   <ReviewsSection
                     listingSlug={slug}
                     rating={listing.rating ?? undefined}
                     reviewsCount={listing.reviewsCount || 0}
+                    serviceType={listing.serviceType}
                   />
 
                   {/* Included / Not Included */}
@@ -1334,7 +1378,12 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                         <ul className="space-y-3">
                           {listing.included.map((item: any, index: number) => (
                             <li key={index} className="flex items-start gap-3">
-                              <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                              <CheckCircle
+                                className={cn(
+                                  'h-5 w-5 flex-shrink-0 mt-0.5',
+                                  getServiceTypeColors(listing.serviceType).accent
+                                )}
+                              />
                               <span className="font-sans text-neutral-700">{tr(item)}</span>
                             </li>
                           ))}
@@ -1363,7 +1412,12 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   {listing.extras && listing.extras.length > 0 && (
                     <section id="extras">
                       <h3 className="font-display text-2xl font-bold text-heading mb-6 tracking-tight flex items-center gap-3">
-                        <Package className="h-6 w-6 text-primary" />
+                        <Package
+                          className={cn(
+                            'h-6 w-6',
+                            getServiceTypeColors(listing.serviceType).accent
+                          )}
+                        />
                         {t('available_extras')}
                       </h3>
                       <p className="text-neutral-600 mb-6">{t('extras_description')}</p>
@@ -1393,7 +1447,12 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                                   )}
                                 </div>
                                 <div className="text-right flex-shrink-0">
-                                  <span className="font-bold text-primary text-lg">
+                                  <span
+                                    className={cn(
+                                      'font-bold text-lg',
+                                      getServiceTypeColors(listing.serviceType).accent
+                                    )}
+                                  >
                                     {price?.toFixed(2)} {currency}
                                   </span>
                                   <span className="text-xs text-neutral-500 block">
@@ -1503,6 +1562,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       <div className="lg:hidden">
         <BookingPanel
           pricing={listing.pricing}
+          serviceType={listing.serviceType}
           isOpen={showBookingFlow}
           onOpenChange={setShowBookingFlow}
         >

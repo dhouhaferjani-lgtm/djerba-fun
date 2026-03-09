@@ -15,6 +15,8 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { PriceDisplay } from '@/components/molecules/PriceDisplay';
+import { getServiceTypeColors, getServiceTypeButtonClasses } from '@/lib/utils/serviceTypeColors';
+import { cn } from '@/lib/utils/cn';
 import type { Listing, AvailabilitySlot } from '@djerba-fun/schemas';
 import { isToday, isTomorrow, parseISO } from 'date-fns';
 
@@ -158,9 +160,13 @@ export function FixedBookingPanel({
     }
   };
 
+  // Get service-type colors for theming
+  const colors = getServiceTypeColors(listing.serviceType);
+  const buttonClasses = getServiceTypeButtonClasses(listing.serviceType);
+
   return (
     <div className="sticky top-24 w-full lg:w-[380px]">
-      <div className="bg-neutral-50 rounded-2xl p-4 shadow-lg border border-neutral-200">
+      <div className={cn('bg-white rounded-2xl p-4 shadow-lg border-2', colors.border)}>
         <div>
           {/* Price Display */}
           <div className="mb-4" data-testid="listing-price">
@@ -192,7 +198,7 @@ export function FixedBookingPanel({
               <Button
                 variant="primary"
                 size="lg"
-                className="w-full py-4 font-bold text-base"
+                className={cn('w-full py-4 font-bold text-base', buttonClasses)}
                 onClick={() => setShowBookingFlow(true)}
                 data-testid="book-now-button"
               >
@@ -200,10 +206,10 @@ export function FixedBookingPanel({
                 {t('check_availability')}
               </Button>
 
-              {/* Dynamic Trust Signals */}
+              {/* Dynamic Trust Signals - Service-type colored */}
               <div className="space-y-3 text-sm">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary flex-shrink-0" />
+                  <Clock className={cn('h-4 w-4 flex-shrink-0', colors.accent)} />
                   <span className="text-neutral-800">
                     {t('trust_signals.instant_confirmation')}
                   </span>
@@ -211,7 +217,7 @@ export function FixedBookingPanel({
 
                 {cancellationMessageKey && (
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CheckCircle className={cn('h-4 w-4 flex-shrink-0', colors.accent)} />
                     <span className="text-neutral-800">{t(cancellationMessageKey)}</span>
                   </div>
                 )}
@@ -228,13 +234,13 @@ export function FixedBookingPanel({
                 )}
 
                 <div className="flex items-center gap-2">
-                  <Smartphone className="h-4 w-4 text-primary flex-shrink-0" />
+                  <Smartphone className={cn('h-4 w-4 flex-shrink-0', colors.accent)} />
                   <span className="text-neutral-800">{t('trust_signals.mobile_ticket')}</span>
                 </div>
 
                 {listing.maxGroupSize && (
                   <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-primary flex-shrink-0" />
+                    <Users className={cn('h-4 w-4 flex-shrink-0', colors.accent)} />
                     <span className="text-neutral-800">
                       {t('trust_signals.small_group', { size: listing.maxGroupSize })}
                     </span>
@@ -242,7 +248,7 @@ export function FixedBookingPanel({
                 )}
 
                 <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-primary flex-shrink-0" />
+                  <Shield className={cn('h-4 w-4 flex-shrink-0', colors.accent)} />
                   <span className="text-neutral-800">{t('trust_signals.secure_payment')}</span>
                 </div>
               </div>

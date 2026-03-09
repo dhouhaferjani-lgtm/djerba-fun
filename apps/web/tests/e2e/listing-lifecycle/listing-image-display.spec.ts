@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
-import { loginToVendor, navigateToVendorResource } from '../fixtures/vendor-helpers';
-import { loginToAdmin, navigateToAdminResource } from '../fixtures/admin-helpers';
-import { vendorUsers, adminUsers, VENDOR_URL, FRONTEND_URL } from '../fixtures/test-data';
+import { loginToVendor, navigateToVendorResource } from '../../fixtures/vendor-helpers';
+import { loginToAdmin, navigateToAdminResource } from '../../fixtures/admin-helpers';
+import { vendorUsers, adminUsers, VENDOR_URL, FRONTEND_URL } from '../../fixtures/test-data';
 
 /**
  * E2E Test: Listing Image Display Verification
