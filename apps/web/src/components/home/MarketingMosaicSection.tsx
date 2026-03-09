@@ -226,7 +226,7 @@ export function MarketingMosaicSection({
                 {/* Square aspect ratio container */}
                 <div className="relative w-full" style={{ paddingBottom: '100%' }}>
                   {/* Card container */}
-                  <div className="absolute inset-0 overflow-hidden cursor-pointer group">
+                  <div className="absolute inset-0 overflow-hidden rounded-2xl cursor-pointer group">
                     {/* Background Image with Hover Zoom */}
                     <Image
                       src={pillar.image}
@@ -236,41 +236,14 @@ export function MarketingMosaicSection({
                       unoptimized={shouldUnoptimizeImage(pillar.image)}
                     />
 
-                    {/* White border segments (stops at colored square edges) */}
-                    {/* Top border - full width */}
+                    {/* White rounded border frame */}
                     <div
-                      className="absolute h-[1px] bg-white"
+                      className="absolute border border-white rounded-2xl pointer-events-none"
                       style={{
                         left: '6%',
                         right: '10%',
                         top: '6%',
-                      }}
-                    />
-                    {/* Left border - full height */}
-                    <div
-                      className="absolute w-[1px] bg-white"
-                      style={{
-                        left: '6%',
-                        top: '6%',
                         bottom: '10%',
-                      }}
-                    />
-                    {/* Right border - stops at colored square top (10%) */}
-                    <div
-                      className="absolute w-[1px] bg-white"
-                      style={{
-                        right: '10%',
-                        top: '6%',
-                        height: '4%',
-                      }}
-                    />
-                    {/* Bottom border - stops at colored square left (10%) */}
-                    <div
-                      className="absolute h-[1px] bg-white"
-                      style={{
-                        left: '6%',
-                        bottom: '10%',
-                        width: '4%',
                       }}
                     />
 
