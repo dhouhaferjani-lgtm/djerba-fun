@@ -9,6 +9,8 @@ use App\Models\BlogCategory;
 use App\Models\BlogPost;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class BlogPostTest extends TestCase
@@ -212,5 +214,170 @@ class BlogPostTest extends TestCase
 
         // Assert
         $this->assertEquals(11, $post->fresh()->views_count);
+    }
+
+    /**
+     * Test hero images are returned in API response.
+     *
+     * Bug: Hero images uploaded in admin were not displaying on frontend.
+     * Root cause: Browser cached 403 from broken storage symlink.
+     */
+    public function test_hero_images_returned_in_api_response(): void
+    {
+        // Arrange
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('hero.jpg', 1920, 1080);
+        $path = $image->store('blog-images', 'public');
+
+        $post = BlogPost::factory()->published()->create([
+            'hero_images' => [$path],
+        ]);
+
+        // Act
+        $response = $this->getJson("/api/v1/blog/posts/{$post->slug}");
+
+        // Assert
+        $response->assertStatus(200);
+        $heroImages = $response->json('data.heroImages');
+
+        $this->assertIsArray($heroImages);
+        $this->assertCount(1, $heroImages);
+        $this->assertStringContainsString('storage/blog-images', $heroImages[0]);
+    }
+
+    /**
+     * Test hero image URLs are public (not admin proxy).
+     */
+    public function test_hero_image_urls_are_public_not_admin_proxy(): void
+    {
+        // Arrange
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('hero.jpg', 1920, 1080);
+        $path = $image->store('blog-images', 'public');
+
+        $post = BlogPost::factory()->published()->create([
+            'hero_images' => [$path],
+        ]);
+
+        // Act
+        $response = $this->getJson("/api/v1/blog/posts/{$post->slug}");
+
+        // Assert
+        $response->assertStatus(200);
+        $heroImages = $response->json('data.heroImages');
+
+        // URLs should NOT be admin proxy URLs
+        foreach ($heroImages as $url) {
+            $this->assertStringNotContainsString('/admin/storage-proxy/', $url);
+        }
+    }
+
+    /**
+     * Test featured image equals first hero image.
+     */
+    public function test_featured_image_equals_first_hero_image(): void
+    {
+        // Arrange
+        Storage::fake('public');
+
+        $image1 = UploadedFile::fake()->image('hero1.jpg', 1920, 1080);
+        $image2 = UploadedFile::fake()->image('hero2.jpg', 1920, 1080);
+        $path1 = $image1->store('blog-images', 'public');
+        $path2 = $image2->store('blog-images', 'public');
+
+        $post = BlogPost::factory()->published()->create([
+            'hero_images' => [$path1, $path2],
+        ]);
+
+        // Act
+        $response = $this->getJson("/api/v1/blog/posts/{$post->slug}");
+
+        // Assert
+        $response->assertStatus(200);
+
+        $featuredImage = $response->json('data.featuredImage');
+        $heroImages = $response->json('data.heroImages');
+
+        // Featured image should be the first hero image
+        $this->assertEquals($featuredImage, $heroImages[0]);
+    }
+
+    /**
+     * Test multiple hero images are returned in correct order.
+     */
+    public function test_multiple_hero_images_returned_in_order(): void
+    {
+        // Arrange
+        Storage::fake('public');
+
+        $images = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $image = UploadedFile::fake()->image("hero{$i}.jpg", 1920, 1080);
+            $images[] = $image->store('blog-images', 'public');
+        }
+
+        $post = BlogPost::factory()->published()->create([
+            'hero_images' => $images,
+        ]);
+
+        // Act
+        $response = $this->getJson("/api/v1/blog/posts/{$post->slug}");
+
+        // Assert
+        $response->assertStatus(200);
+        $heroImages = $response->json('data.heroImages');
+
+        $this->assertCount(3, $heroImages);
+        $response->assertJsonPath('data.heroImageCount', 3);
+    }
+
+    /**
+     * Test API response includes heroImageCount.
+     */
+    public function test_api_response_includes_hero_image_count(): void
+    {
+        // Arrange
+        Storage::fake('public');
+
+        $images = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $image = UploadedFile::fake()->image("hero{$i}.jpg", 800, 600);
+            $images[] = $image->store('blog-images', 'public');
+        }
+
+        $post = BlogPost::factory()->published()->create([
+            'hero_images' => $images,
+        ]);
+
+        // Act
+        $response = $this->getJson("/api/v1/blog/posts/{$post->slug}");
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJsonPath('data.heroImageCount', 5);
+    }
+
+    /**
+     * Test blog post without hero images returns empty array.
+     */
+    public function test_blog_post_without_hero_images_returns_empty_array(): void
+    {
+        // Arrange
+        $post = BlogPost::factory()->published()->create([
+            'hero_images' => [],
+        ]);
+
+        // Act
+        $response = $this->getJson("/api/v1/blog/posts/{$post->slug}");
+
+        // Assert
+        $response->assertStatus(200);
+        $heroImages = $response->json('data.heroImages');
+
+        $this->assertIsArray($heroImages);
+        $this->assertCount(0, $heroImages);
+        $response->assertJsonPath('data.featuredImage', null);
     }
 }
