@@ -63,7 +63,19 @@ class ListingResource extends Resource
                                 ListingStatus::ARCHIVED->value => ListingStatus::ARCHIVED->label(),
                                 ListingStatus::REJECTED->value => ListingStatus::REJECTED->label(),
                             ])
-                            ->required(),
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function (string $state, Forms\Set $set, Forms\Get $get) {
+                                // Auto-fill published_at when status becomes 'published' and field is empty
+                                if ($state === ListingStatus::PUBLISHED->value && empty($get('published_at'))) {
+                                    $set('published_at', now());
+                                }
+                            }),
+
+                        Forms\Components\DateTimePicker::make('published_at')
+                            ->label(__('filament.labels.publish_date'))
+                            ->seconds(false)
+                            ->visible(fn (Forms\Get $get) => $get('status') === ListingStatus::PUBLISHED->value),
 
                         Forms\Components\TextInput::make('slug')
                             ->disabled(),
