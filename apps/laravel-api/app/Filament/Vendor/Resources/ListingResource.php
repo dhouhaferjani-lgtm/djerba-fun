@@ -1046,6 +1046,7 @@ class ListingResource extends Resource
 
                                     Forms\Components\Repeater::make('itinerary')
                                         ->label('')
+                                        ->dehydrated() // CRITICAL: Always save itinerary data even if section is hidden
                                         ->schema([
                                             Forms\Components\Hidden::make('id')
                                                 ->default(fn () => (string) Str::uuid()),
