@@ -14,18 +14,6 @@ const animationStyles = `
     to { transform: rotate(360deg); }
   }
 
-  /* Pulsing glow effect - enhanced for more visible breathing */
-  @keyframes pulse-glow {
-    0%, 100% {
-      opacity: 0.3;
-      transform: scale(0.95);
-    }
-    50% {
-      opacity: 0.8;
-      transform: scale(1.15);
-    }
-  }
-
   /* Fade up entrance animation */
   @keyframes fade-up {
     from {
@@ -38,30 +26,25 @@ const animationStyles = `
     }
   }
 
-  /* Ring pulse on hover */
-  @keyframes ring-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(var(--ring-color-rgb), 0.4); }
-    50% { box-shadow: 0 0 20px 5px rgba(var(--ring-color-rgb), 0.2); }
-  }
-
-  /* Subtle breathing animation for the entire circle */
-  @keyframes breathe {
-    0%, 100% {
-      transform: scale(1);
+  /* Orbiting particle animation - clockwise */
+  @keyframes orbit-cw {
+    from {
+      transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg);
     }
-    50% {
-      transform: scale(1.03);
+    to {
+      transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg);
     }
   }
 
-  .pillar-image-container {
-    animation: breathe 4s ease-in-out infinite;
+  /* Orbiting particle animation - counter-clockwise */
+  @keyframes orbit-ccw {
+    from {
+      transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg);
+    }
+    to {
+      transform: rotate(-360deg) translateX(var(--orbit-radius)) rotate(360deg);
+    }
   }
-
-  /* Staggered breathing for each pillar */
-  .pillar-card:nth-child(1) .pillar-image-container { animation-delay: 0s; }
-  .pillar-card:nth-child(2) .pillar-image-container { animation-delay: 1.3s; }
-  .pillar-card:nth-child(3) .pillar-image-container { animation-delay: 2.6s; }
 
   .pillar-card {
     animation: fade-up 0.8s ease-out forwards;
@@ -76,12 +59,30 @@ const animationStyles = `
     animation: spin-slow 20s linear infinite;
   }
 
-  .pulsing-glow {
-    animation: pulse-glow 3s ease-in-out infinite;
-  }
-
   .pillar-image-container:hover .rotating-ring {
     animation-duration: 8s;
+  }
+
+  /* Orbiting particles */
+  .orbit-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    margin-top: -4px;
+    margin-left: -4px;
+    filter: blur(0.5px);
+    box-shadow: 0 0 8px 2px var(--particle-color);
+  }
+
+  .orbit-particle-cw {
+    animation: orbit-cw var(--orbit-duration) linear infinite;
+  }
+
+  .orbit-particle-ccw {
+    animation: orbit-ccw var(--orbit-duration) linear infinite;
   }
 `;
 
@@ -179,7 +180,7 @@ export function MarketingMosaicSection({
   );
 
   return (
-    <section className="pt-24 pb-16 bg-neutral-100">
+    <section className="pb-16 bg-neutral-100">
       <style dangerouslySetInnerHTML={{ __html: animationStyles }} />
       <div className="container mx-auto px-4">
         <div className="relative">
@@ -200,10 +201,54 @@ export function MarketingMosaicSection({
               >
                 {/* Circular image container */}
                 <div className="pillar-image-container relative group cursor-pointer">
-                  {/* Animated pulsing glow background */}
+                  {/* Orbiting particles */}
                   <div
-                    className="pulsing-glow absolute -inset-4 rounded-full blur-2xl"
-                    style={{ backgroundColor: pillar.ringColor }}
+                    className="orbit-particle orbit-particle-cw"
+                    style={
+                      {
+                        '--orbit-radius': '140px',
+                        '--orbit-duration': '8s',
+                        '--particle-color': pillar.ringColor,
+                        backgroundColor: pillar.ringColor,
+                        animationDelay: '0s',
+                      } as React.CSSProperties
+                    }
+                  />
+                  <div
+                    className="orbit-particle orbit-particle-cw"
+                    style={
+                      {
+                        '--orbit-radius': '140px',
+                        '--orbit-duration': '8s',
+                        '--particle-color': pillar.ringColor,
+                        backgroundColor: pillar.ringColor,
+                        animationDelay: '-4s',
+                      } as React.CSSProperties
+                    }
+                  />
+                  <div
+                    className="orbit-particle orbit-particle-ccw"
+                    style={
+                      {
+                        '--orbit-radius': '150px',
+                        '--orbit-duration': '12s',
+                        '--particle-color': pillar.accentColor,
+                        backgroundColor: pillar.accentColor,
+                        animationDelay: '-3s',
+                      } as React.CSSProperties
+                    }
+                  />
+                  <div
+                    className="orbit-particle orbit-particle-ccw"
+                    style={
+                      {
+                        '--orbit-radius': '150px',
+                        '--orbit-duration': '12s',
+                        '--particle-color': pillar.accentColor,
+                        backgroundColor: pillar.accentColor,
+                        animationDelay: '-9s',
+                      } as React.CSSProperties
+                    }
                   />
 
                   {/* Rotating gradient ring */}
