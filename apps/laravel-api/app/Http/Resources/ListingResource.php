@@ -76,6 +76,7 @@ class ListingResource extends BaseResource
             'distance' => $this->when($this->isTourLike(), $this->distance),
             'itinerary' => $this->when($this->isTourLike(), is_array($this->itinerary) ? $this->toCamelCase($this->itinerary) : $this->itinerary),
             'hasElevationProfile' => $this->when($this->isTourLike(), $this->has_elevation_profile),
+            'mapDisplayType' => $this->map_display_type ?? 'markers',
             'elevationProfile' => $this->when(
                 $this->isTourLike() && $this->has_elevation_profile && $this->elevation_profile,
                 fn () => is_array($this->elevation_profile) ? $this->toCamelCase($this->elevation_profile) : $this->elevation_profile

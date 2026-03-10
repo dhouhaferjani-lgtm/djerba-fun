@@ -217,6 +217,7 @@ class Listing extends Model
         'itinerary',
         'has_elevation_profile',
         'elevation_profile',
+        'map_display_type',
         // Event fields
         'event_type',
         'start_date',

@@ -930,6 +930,7 @@ interface RouteItineraryTabsProps {
   skipRouting?: boolean;
   routingProfile?: 'foot' | 'driving' | 'cycling';
   serviceType: 'tour' | 'nautical' | 'accommodation' | 'event';
+  mapDisplayType?: 'markers' | 'circle';
 }
 
 function RouteItineraryTabs({
@@ -942,6 +943,7 @@ function RouteItineraryTabs({
   skipRouting,
   routingProfile,
   serviceType,
+  mapDisplayType = 'markers',
 }: RouteItineraryTabsProps) {
   const [activeTab, setActiveTab] = useState<'map' | 'itinerary'>('map');
   const t = useTranslations('listing');
@@ -998,6 +1000,7 @@ function RouteItineraryTabs({
               routingProfile={routingProfile}
               locale={locale}
               className="h-full w-full"
+              mapDisplayType={mapDisplayType}
             />
           </div>
         )}
@@ -1571,171 +1574,207 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                     </section>
                   )}
 
-                  {/* Itinerary & Map Section */}
-                  {'itinerary' in listing && listing.itinerary && listing.itinerary.length > 0 && (
-                    <section>
-                      <h2 className="font-display text-3xl font-bold text-heading mb-6 tracking-tight">
-                        {listing.serviceType === 'accommodation'
-                          ? t('day_by_day_program')
-                          : t('route_itinerary')}
-                      </h2>
+                  {/* Itinerary & Map Section - Hidden for accommodations in circle mode (privacy) */}
+                  {'itinerary' in listing &&
+                    listing.itinerary &&
+                    listing.itinerary.length > 0 &&
+                    !(
+                      listing.serviceType === 'accommodation' && listing.mapDisplayType === 'circle'
+                    ) && (
+                      <section>
+                        <h2 className="font-display text-3xl font-bold text-heading mb-6 tracking-tight">
+                          {listing.serviceType === 'accommodation'
+                            ? t('day_by_day_program')
+                            : t('route_itinerary')}
+                        </h2>
 
-                      {/* Tabs */}
-                      <RouteItineraryTabs
-                        itinerary={(listing.itinerary as any[]).map((stop: any, index: number) => {
-                          // GeoJSON coordinates are [lng, lat]
-                          const coords = stop.coordinates?.coordinates;
-                          const lat = stop.lat || (coords ? coords[1] : 0);
-                          const lng = stop.lng || (coords ? coords[0] : 0);
-                          return {
-                            id: stop.id || index.toString(),
-                            listingId: listing.id,
-                            order: index,
-                            title: stop.title,
-                            description: stop.description,
-                            durationMinutes: stop.durationMinutes || stop.duration || null,
-                            stopType:
-                              index === 0
-                                ? 'start'
-                                : index === (listing.itinerary as any[]).length - 1
-                                  ? 'end'
-                                  : 'waypoint',
-                            lat,
-                            lng,
-                            elevationMeters: stop.elevationMeters || null,
-                            photos: stop.photos || [],
-                            day: stop.day ?? undefined,
-                          };
-                        })}
-                        center={(() => {
-                          const firstStop = (listing.itinerary as any[])[0];
-                          const coords = firstStop?.coordinates?.coordinates;
-                          return [
-                            firstStop?.lat || (coords ? coords[1] : 36.8),
-                            firstStop?.lng || (coords ? coords[0] : 10.2),
-                          ] as [number, number];
-                        })()}
-                        title={title}
-                        imageUrl={normalizeMediaUrl(listing.media?.[0]?.url)}
-                        locale={locale}
-                        isAccommodation={listing.serviceType === 'accommodation'}
-                        skipRouting={[
-                          'fishing',
-                          'boat',
-                          'diving',
-                          'snorkeling',
-                          'sailing',
-                          'kayak',
-                        ].some((w) => listing.activityType?.slug?.includes(w))}
-                        routingProfile={
-                          ['car', 'drive', 'quad', '4x4', 'buggy'].some((w) =>
-                            listing.activityType?.slug?.includes(w)
-                          )
-                            ? 'driving'
-                            : ['cycling', 'bike', 'velo', 'vélo'].some((w) =>
-                                  listing.activityType?.slug?.includes(w)
-                                )
-                              ? 'cycling'
-                              : 'foot'
-                        }
-                        serviceType={listing.serviceType}
-                      />
+                        {/* Tabs */}
+                        <RouteItineraryTabs
+                          itinerary={(listing.itinerary as any[]).map(
+                            (stop: any, index: number) => {
+                              // GeoJSON coordinates are [lng, lat]
+                              const coords = stop.coordinates?.coordinates;
+                              const lat = stop.lat || (coords ? coords[1] : 0);
+                              const lng = stop.lng || (coords ? coords[0] : 0);
+                              return {
+                                id: stop.id || index.toString(),
+                                listingId: listing.id,
+                                order: index,
+                                title: stop.title,
+                                description: stop.description,
+                                durationMinutes: stop.durationMinutes || stop.duration || null,
+                                stopType:
+                                  index === 0
+                                    ? 'start'
+                                    : index === (listing.itinerary as any[]).length - 1
+                                      ? 'end'
+                                      : 'waypoint',
+                                lat,
+                                lng,
+                                elevationMeters: stop.elevationMeters || null,
+                                photos: stop.photos || [],
+                                day: stop.day ?? undefined,
+                              };
+                            }
+                          )}
+                          center={(() => {
+                            const firstStop = (listing.itinerary as any[])[0];
+                            const coords = firstStop?.coordinates?.coordinates;
+                            return [
+                              firstStop?.lat || (coords ? coords[1] : 36.8),
+                              firstStop?.lng || (coords ? coords[0] : 10.2),
+                            ] as [number, number];
+                          })()}
+                          title={title}
+                          imageUrl={normalizeMediaUrl(listing.media?.[0]?.url)}
+                          locale={locale}
+                          isAccommodation={listing.serviceType === 'accommodation'}
+                          skipRouting={[
+                            'fishing',
+                            'boat',
+                            'diving',
+                            'snorkeling',
+                            'sailing',
+                            'kayak',
+                          ].some((w) => listing.activityType?.slug?.includes(w))}
+                          routingProfile={
+                            ['car', 'drive', 'quad', '4x4', 'buggy'].some((w) =>
+                              listing.activityType?.slug?.includes(w)
+                            )
+                              ? 'driving'
+                              : ['cycling', 'bike', 'velo', 'vélo'].some((w) =>
+                                    listing.activityType?.slug?.includes(w)
+                                  )
+                                ? 'cycling'
+                                : 'foot'
+                          }
+                          serviceType={listing.serviceType}
+                          mapDisplayType={listing.mapDisplayType}
+                        />
 
-                      {/* Elevation Profile */}
-                      {'hasElevationProfile' in listing &&
-                        listing.hasElevationProfile &&
-                        (listing.itinerary as any[]).some((stop: any) => stop.elevationMeters) && (
-                          <div className="mt-8">
-                            <ElevationProfile
-                              checkpoints={(listing.itinerary as any[]).map(
-                                (stop: any, index: number) => {
-                                  const coords = stop.coordinates?.coordinates;
-                                  const lat = stop.lat || (coords ? coords[1] : 0);
-                                  const lng = stop.lng || (coords ? coords[0] : 0);
-                                  return {
-                                    id: (stop.order ?? index).toString(),
-                                    listingId: listing.id,
-                                    order: stop.order ?? index,
-                                    title: stop.title,
-                                    description: stop.description,
-                                    durationMinutes: stop.duration,
-                                    stopType:
-                                      (stop.order ?? index) === 0
-                                        ? 'start'
-                                        : (stop.order ?? index) ===
-                                            (listing.itinerary as any[]).length - 1
-                                          ? 'end'
-                                          : 'waypoint',
-                                    lat,
-                                    lng,
-                                    elevationMeters: stop.elevationMeters || null,
-                                    photos: [],
-                                  };
-                                }
-                              )}
-                              locale={locale}
-                              profile={(() => {
-                                const itineraryArr = listing.itinerary as any[];
-                                // Helper to get lat/lng from GeoJSON or direct props
-                                const getCoords = (stop: any) => {
-                                  const coords = stop.coordinates?.coordinates;
-                                  return {
-                                    lat: stop.lat || (coords ? coords[1] : 0),
-                                    lng: stop.lng || (coords ? coords[0] : 0),
-                                  };
-                                };
-                                // Calculate elevation profile from itinerary
-                                const points = itineraryArr.map((stop: any, index: number) => {
-                                  let distance = 0;
-                                  if (index > 0) {
-                                    // Calculate cumulative distance using Haversine formula
-                                    for (let i = 1; i <= index; i++) {
-                                      const prev = getCoords(itineraryArr[i - 1]);
-                                      const curr = getCoords(itineraryArr[i]);
-                                      const R = 6371000; // Earth's radius in meters
-                                      const dLat = ((curr.lat - prev.lat) * Math.PI) / 180;
-                                      const dLon = ((curr.lng - prev.lng) * Math.PI) / 180;
-                                      const a =
-                                        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                                        Math.cos((prev.lat * Math.PI) / 180) *
-                                          Math.cos((curr.lat * Math.PI) / 180) *
-                                          Math.sin(dLon / 2) *
-                                          Math.sin(dLon / 2);
-                                      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                                      distance += R * c;
-                                    }
+                        {/* Elevation Profile */}
+                        {'hasElevationProfile' in listing &&
+                          listing.hasElevationProfile &&
+                          (listing.itinerary as any[]).some(
+                            (stop: any) => stop.elevationMeters
+                          ) && (
+                            <div className="mt-8">
+                              <ElevationProfile
+                                checkpoints={(listing.itinerary as any[]).map(
+                                  (stop: any, index: number) => {
+                                    const coords = stop.coordinates?.coordinates;
+                                    const lat = stop.lat || (coords ? coords[1] : 0);
+                                    const lng = stop.lng || (coords ? coords[0] : 0);
+                                    return {
+                                      id: (stop.order ?? index).toString(),
+                                      listingId: listing.id,
+                                      order: stop.order ?? index,
+                                      title: stop.title,
+                                      description: stop.description,
+                                      durationMinutes: stop.duration,
+                                      stopType:
+                                        (stop.order ?? index) === 0
+                                          ? 'start'
+                                          : (stop.order ?? index) ===
+                                              (listing.itinerary as any[]).length - 1
+                                            ? 'end'
+                                            : 'waypoint',
+                                      lat,
+                                      lng,
+                                      elevationMeters: stop.elevationMeters || null,
+                                      photos: [],
+                                    };
                                   }
-                                  return {
-                                    distance,
-                                    elevation: stop.elevationMeters || 0,
+                                )}
+                                locale={locale}
+                                profile={(() => {
+                                  const itineraryArr = listing.itinerary as any[];
+                                  // Helper to get lat/lng from GeoJSON or direct props
+                                  const getCoords = (stop: any) => {
+                                    const coords = stop.coordinates?.coordinates;
+                                    return {
+                                      lat: stop.lat || (coords ? coords[1] : 0),
+                                      lng: stop.lng || (coords ? coords[0] : 0),
+                                    };
                                   };
-                                });
+                                  // Calculate elevation profile from itinerary
+                                  const points = itineraryArr.map((stop: any, index: number) => {
+                                    let distance = 0;
+                                    if (index > 0) {
+                                      // Calculate cumulative distance using Haversine formula
+                                      for (let i = 1; i <= index; i++) {
+                                        const prev = getCoords(itineraryArr[i - 1]);
+                                        const curr = getCoords(itineraryArr[i]);
+                                        const R = 6371000; // Earth's radius in meters
+                                        const dLat = ((curr.lat - prev.lat) * Math.PI) / 180;
+                                        const dLon = ((curr.lng - prev.lng) * Math.PI) / 180;
+                                        const a =
+                                          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                                          Math.cos((prev.lat * Math.PI) / 180) *
+                                            Math.cos((curr.lat * Math.PI) / 180) *
+                                            Math.sin(dLon / 2) *
+                                            Math.sin(dLon / 2);
+                                        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                                        distance += R * c;
+                                      }
+                                    }
+                                    return {
+                                      distance,
+                                      elevation: stop.elevationMeters || 0,
+                                    };
+                                  });
 
-                                // Calculate total ascent/descent
-                                let totalAscent = 0;
-                                let totalDescent = 0;
-                                for (let i = 1; i < points.length; i++) {
-                                  const diff = points[i].elevation - points[i - 1].elevation;
-                                  if (diff > 0) totalAscent += diff;
-                                  else totalDescent += Math.abs(diff);
-                                }
+                                  // Calculate total ascent/descent
+                                  let totalAscent = 0;
+                                  let totalDescent = 0;
+                                  for (let i = 1; i < points.length; i++) {
+                                    const diff = points[i].elevation - points[i - 1].elevation;
+                                    if (diff > 0) totalAscent += diff;
+                                    else totalDescent += Math.abs(diff);
+                                  }
 
-                                const elevations = points.map((p) => p.elevation);
-                                return {
-                                  listingId: listing.id,
-                                  points,
-                                  totalAscent,
-                                  totalDescent,
-                                  maxElevation: Math.max(...elevations),
-                                  minElevation: Math.min(...elevations),
-                                  totalDistance: points[points.length - 1]?.distance || 0,
-                                };
-                              })()}
-                            />
-                          </div>
-                        )}
-                    </section>
-                  )}
+                                  const elevations = points.map((p) => p.elevation);
+                                  return {
+                                    listingId: listing.id,
+                                    points,
+                                    totalAscent,
+                                    totalDescent,
+                                    maxElevation: Math.max(...elevations),
+                                    minElevation: Math.min(...elevations),
+                                    totalDistance: points[points.length - 1]?.distance || 0,
+                                  };
+                                })()}
+                              />
+                            </div>
+                          )}
+                      </section>
+                    )}
+
+                  {/* Location Map for accommodations in circle mode - shows general area for privacy */}
+                  {listing.serviceType === 'accommodation' &&
+                    listing.mapDisplayType === 'circle' &&
+                    listing.location && (
+                      <section>
+                        <h2 className="font-display text-3xl font-bold text-heading mb-6 tracking-tight">
+                          {t('location')}
+                        </h2>
+                        <div className="h-[400px] rounded-lg overflow-hidden border border-neutral-200 relative z-0">
+                          <ListingMap
+                            center={[
+                              listing.location.latitude ?? 33.8,
+                              listing.location.longitude ?? 10.8,
+                            ]}
+                            title={title}
+                            imageUrl={normalizeMediaUrl(listing.media?.[0]?.url)}
+                            locale={locale}
+                            isAccommodation={true}
+                            className="h-full w-full"
+                            mapDisplayType="circle"
+                          />
+                        </div>
+                        <p className="text-sm text-body mt-3">{t('approximate_location_shown')}</p>
+                      </section>
+                    )}
 
                   {/* Reviews Section - Service-type colored */}
                   <ReviewsSection

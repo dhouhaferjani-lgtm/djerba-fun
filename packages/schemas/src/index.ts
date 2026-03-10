@@ -448,6 +448,14 @@ const listingBaseFields = {
   notIncluded: z.array(translatableSchema),
   requirements: z.array(translatableSchema),
   locationId: z.string().uuid(),
+  location: z
+    .object({
+      id: z.string().uuid(),
+      name: z.string(),
+      latitude: z.number().min(-90).max(90).nullable(),
+      longitude: z.number().min(-180).max(180).nullable(),
+    })
+    .nullable(),
   meetingPoint: z.object({
     address: z.string(),
     coordinates: geoPointSchema,
@@ -506,6 +514,8 @@ const listingBaseFields = {
     .optional(),
   // Tags for categorization and filtering
   tags: z.array(tagSchema).optional(),
+  // Map display mode: 'markers' shows exact location, 'circle' shows 3km radius for privacy
+  mapDisplayType: z.enum(['markers', 'circle']).default('markers'),
 };
 
 export const tourSchema = z.object({

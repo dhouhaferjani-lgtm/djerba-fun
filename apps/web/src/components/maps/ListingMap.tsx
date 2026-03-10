@@ -20,6 +20,8 @@ interface ListingMapProps {
   routingProfile?: RoutingProfile;
   locale?: string;
   className?: string;
+  mapDisplayType?: 'markers' | 'circle';
+  radiusMeters?: number; // Default 3000 (3km)
 }
 
 interface RouteProps {
@@ -43,12 +45,42 @@ export default function ListingMap({
   routingProfile = 'foot',
   locale,
   className,
+  mapDisplayType = 'markers',
+  radiusMeters = 3000, // 3km default radius
 }: ListingMapProps) {
   const [RouteComponent, setRouteComponent] = useState<React.ComponentType<RouteProps> | null>(
     null
   );
   const [AccommodationRouteComponent, setAccommodationRouteComponent] =
     useState<React.ComponentType<AccommodationRouteProps> | null>(null);
+  const [CircleComponent, setCircleComponent] = useState<React.ComponentType<{
+    center: LatLngTuple;
+    radius: number;
+  }> | null>(null);
+
+  // Load Circle component for privacy mode
+  useEffect(() => {
+    if (mapDisplayType === 'circle') {
+      import('react-leaflet').then((module) => {
+        const { Circle } = module;
+
+        const Component = ({ center: c, radius }: { center: LatLngTuple; radius: number }) => (
+          <Circle
+            center={c}
+            radius={radius}
+            pathOptions={{
+              color: '#0D642E', // Primary green border
+              fillColor: '#0D642E',
+              fillOpacity: 0.15,
+              weight: 2,
+            }}
+          />
+        );
+
+        setCircleComponent(() => Component);
+      });
+    }
+  }, [mapDisplayType]);
 
   // Sort itinerary by order for reliable first/last detection
   const sortedItinerary = useMemo(() => {
@@ -296,21 +328,30 @@ export default function ListingMap({
     }
   }, [itinerary, isAccommodation]);
 
+  // In circle mode, use lower zoom to show the full radius
+  const circleZoom = 12;
+  const showMarkersAndRoutes = mapDisplayType !== 'circle';
+
   return (
     <MapContainer
       center={center}
-      zoom={13}
-      bounds={accommodationBounds}
+      zoom={mapDisplayType === 'circle' ? circleZoom : 13}
+      bounds={showMarkersAndRoutes ? accommodationBounds : undefined}
       className={className}
       data-testid="location-map"
     >
-      {/* Main listing marker — hide for accommodations (day markers) and when itinerary exists (stop markers) */}
-      {!isAccommodation && (!itinerary || itinerary.length === 0) && (
+      {/* Circle mode: show radius circle instead of exact location */}
+      {mapDisplayType === 'circle' && CircleComponent && (
+        <CircleComponent center={center} radius={radiusMeters} />
+      )}
+
+      {/* Main listing marker — hide for accommodations (day markers), when itinerary exists (stop markers), and in circle mode */}
+      {showMarkersAndRoutes && !isAccommodation && (!itinerary || itinerary.length === 0) && (
         <MarkerPopup position={center} title={title} imageUrl={imageUrl} type="listing" />
       )}
 
-      {/* Itinerary route and markers */}
-      {itinerary && itinerary.length > 0 && (
+      {/* Itinerary route and markers — only in markers mode */}
+      {showMarkersAndRoutes && itinerary && itinerary.length > 0 && (
         <>
           {/* Standard route for tours */}
           {!isAccommodation && RouteComponent && (
@@ -376,8 +417,8 @@ export default function ListingMap({
         </>
       )}
 
-      {/* Day color legend for accommodations */}
-      {isAccommodation && itinerary && itinerary.length > 0 && (
+      {/* Day color legend for accommodations — only in markers mode */}
+      {showMarkersAndRoutes && isAccommodation && itinerary && itinerary.length > 0 && (
         <DayLegend stops={itinerary} locale={locale} />
       )}
     </MapContainer>

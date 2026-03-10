@@ -700,31 +700,62 @@ class ListingResource extends Resource
                                                     }
                                                 }),
                                         ]),
+                                    Forms\Components\Select::make('map_display_type')
+                                        ->label('Map Display Mode')
+                                        ->options([
+                                            'markers' => 'Show Markers - Display numbered pins for each checkpoint',
+                                            'circle' => 'Show Circle - Display 3km radius area (privacy mode)',
+                                        ])
+                                        ->default('markers')
+                                        ->helperText('Circle mode hides exact checkpoint locations, showing only a general area')
+                                        ->columnSpanFull(),
                                 ])
                                 ->collapsed(false)
                                 // Hide for accommodations - they only need nearby attractions
                                 ->visible(fn (Get $get): bool => $get('service_type') !== ServiceType::ACCOMMODATION->value),
 
-                            // Nearby Attractions intro for accommodations
-                            Forms\Components\Section::make('Nearby Attractions')
-                                ->description('Add interesting places near your property that guests might want to visit')
+                            // Display Settings for accommodations
+                            Forms\Components\Section::make('Map & Location Settings')
+                                ->description('Control how your property location is displayed to guests')
                                 ->schema([
+                                    Forms\Components\Select::make('map_display_type')
+                                        ->label('Map Display Mode')
+                                        ->options([
+                                            'markers' => 'Show Exact Location - Display precise property location',
+                                            'circle' => 'Show Approximate Area - Display 3km radius for privacy',
+                                        ])
+                                        ->default('circle')
+                                        ->helperText('Circle mode protects your exact address, showing only the general neighborhood')
+                                        ->columnSpanFull(),
+                                    Forms\Components\Toggle::make('show_itinerary')
+                                        ->label('Show Nearby Attractions & Route')
+                                        ->helperText('Add points of interest near your property with optional route/map display')
+                                        ->default(false)
+                                        ->afterStateHydrated(function (Forms\Components\Toggle $component, $record) {
+                                            // Auto-enable when editing a listing that has itinerary data
+                                            if ($record && ! empty($record->itinerary)) {
+                                                $component->state(true);
+                                            }
+                                        })
+                                        ->live(),
                                     Forms\Components\Placeholder::make('attractions_intro')
                                         ->label('')
                                         ->content(new \Illuminate\Support\HtmlString(
-                                            '<div class="text-sm text-gray-600 bg-amber-50 p-4 rounded-lg">
-                                                <p class="font-medium mb-2">Help guests discover what\'s nearby:</p>
+                                            '<div class="text-sm text-gray-600 bg-amber-50 p-4 rounded-lg mt-4">
+                                                <p class="font-medium mb-2">Add nearby attractions (optional):</p>
                                                 <ul class="list-disc list-inside space-y-1">
                                                     <li>Add beaches, restaurants, markets, and attractions near your property</li>
                                                     <li>Include approximate walking or driving time</li>
                                                     <li>Add photos to showcase each location</li>
                                                 </ul>
+                                                <p class="mt-2 text-xs text-gray-500">Note: Nearby attractions are hidden when using "Approximate Area" mode.</p>
                                             </div>'
-                                        )),
+                                        ))
+                                        ->visible(fn (Get $get): bool => ! $get('show_itinerary')),
                                 ])
                                 ->visible(fn (Get $get): bool => $get('service_type') === ServiceType::ACCOMMODATION->value),
 
-                            // Input Mode Selection - NOT for accommodations
+                            // Input Mode Selection - Available for all service types with show_itinerary enabled
                             Forms\Components\Section::make('Route Data Input')
                                 ->description('Choose how to enter your route data')
                                 ->schema([
@@ -752,8 +783,8 @@ class ListingResource extends Resource
                                             'gpx' => 'Best for hiking/cycling. Upload GPX to auto-generate checkpoints, then edit as needed.',
                                         ]),
                                 ])
-                                // Only show for non-accommodation service types
-                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('service_type') !== ServiceType::ACCOMMODATION->value),
+                                // Show when show_itinerary is enabled (for all service types)
+                                ->visible(fn (Get $get) => $get('show_itinerary')),
 
                             // GPX Import Section (only visible in GPX mode)
                             Forms\Components\Section::make('GPX Import')
@@ -855,8 +886,8 @@ class ListingResource extends Resource
                                             </div>'
                                         )),
                                 ])
-                                // GPX import not available for accommodations
-                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('itinerary_input_mode') === 'gpx' && $get('service_type') !== ServiceType::ACCOMMODATION->value)
+                                // GPX import available for all service types with show_itinerary enabled
+                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('itinerary_input_mode') === 'gpx')
                                 ->collapsible(),
 
                             // Elevation Profile Preview (visible when we have elevation data) - NOT for accommodations
@@ -897,8 +928,8 @@ class ListingResource extends Resource
                                             ));
                                         }),
                                 ])
-                                // Elevation profile not available for accommodations
-                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('show_elevation_profile') && $get('service_type') !== ServiceType::ACCOMMODATION->value)
+                                // Elevation profile available for all service types
+                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('show_elevation_profile'))
                                 ->collapsible()
                                 ->collapsed(),
 
@@ -923,8 +954,8 @@ class ListingResource extends Resource
                                             </div>'
                                         )),
                                 ])
-                                // Manual entry instructions not needed for accommodations
-                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('itinerary_input_mode') === 'manual' && empty($get('itinerary')) && $get('service_type') !== ServiceType::ACCOMMODATION->value)
+                                // Manual entry instructions for all service types
+                                ->visible(fn (Get $get) => $get('show_itinerary') && $get('itinerary_input_mode') === 'manual' && empty($get('itinerary')))
                                 ->collapsible()
                                 ->collapsed(),
 
