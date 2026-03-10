@@ -1,5 +1,7 @@
 'use client';
 
+import 'leaflet/dist/leaflet.css'; // Import CSS directly to avoid race condition
+
 import { useEffect, useState } from 'react';
 import type { LatLngTuple } from 'leaflet';
 
@@ -62,16 +64,6 @@ export default function MapContainer({
         setMapComponent(() => Component);
       }
     );
-
-    // Load Leaflet CSS
-    if (typeof document !== 'undefined') {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-      link.crossOrigin = '';
-      document.head.appendChild(link);
-    }
   }, []);
 
   if (!MapComponent) {

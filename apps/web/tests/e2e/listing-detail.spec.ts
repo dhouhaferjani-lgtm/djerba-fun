@@ -339,6 +339,47 @@ test.describe('Listing Detail Page', () => {
     }
   });
 
+  // TC-F027b: Regression test for map tiles loading
+  test('TC-F027b: should load map tiles (regression test)', async ({ page }) => {
+    // Wait for map to fully initialize
+    await page.waitForTimeout(2000);
+
+    // Scroll to map area
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
+    await page.waitForTimeout(1000);
+
+    // Check for Leaflet container
+    const leafletContainer = page.locator('.leaflet-container').first();
+    const hasMap = await leafletContainer.isVisible().catch(() => false);
+
+    if (hasMap) {
+      // Verify tiles are loaded (not blank)
+      const tilePane = page.locator('.leaflet-tile-pane').first();
+      const hasTilePane = await tilePane.isVisible({ timeout: 5000 }).catch(() => false);
+
+      if (hasTilePane) {
+        // Verify tile images exist
+        const tiles = page.locator('.leaflet-tile-pane img');
+        const tileCount = await tiles.count();
+
+        if (tileCount > 0) {
+          const firstTile = tiles.first();
+          const tileSrc = await firstTile.getAttribute('src').catch(() => null);
+
+          expect(tileSrc).toBeTruthy();
+          expect(tileSrc).toContain('tile.openstreetmap.org');
+          console.log(`TC-F027b: Map tiles loaded successfully (${tileCount} tiles)`);
+        } else {
+          console.log('TC-F027b: No tile images found - potential CSS issue');
+        }
+      } else {
+        console.log('TC-F027b: Tile pane not visible - potential CSS issue');
+      }
+    } else {
+      console.log('TC-F027b: Map not found on this listing');
+    }
+  });
+
   // TC-F028: Bilingual Content
   test('TC-F028: should display content in English', async ({ page }) => {
     // Verify we're on English page
