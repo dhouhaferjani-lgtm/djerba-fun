@@ -6,107 +6,6 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { shouldUnoptimizeImage } from '@/lib/utils/image';
 import { cn } from '@/lib/utils/cn';
 
-// CSS for single line sliding around the square perimeter
-const cornerAnimationStyles = `
-  /* Animation 1: Starts from top-left, goes clockwise */
-  @keyframes slideLine {
-    /* Top edge: slide left to right */
-    0% {
-      top: 12px; left: 12px;
-      width: 40px; height: 2px;
-    }
-    20% {
-      top: 12px; left: calc(100% - 52px);
-      width: 40px; height: 2px;
-    }
-    /* Right edge: slide top to bottom */
-    25% {
-      top: 12px; left: calc(100% - 14px);
-      width: 2px; height: 40px;
-    }
-    45% {
-      top: calc(100% - 52px); left: calc(100% - 14px);
-      width: 2px; height: 40px;
-    }
-    /* Bottom edge: slide right to left */
-    50% {
-      top: calc(100% - 14px); left: calc(100% - 52px);
-      width: 40px; height: 2px;
-    }
-    70% {
-      top: calc(100% - 14px); left: 12px;
-      width: 40px; height: 2px;
-    }
-    /* Left edge: slide bottom to top */
-    75% {
-      top: calc(100% - 52px); left: 12px;
-      width: 2px; height: 40px;
-    }
-    95% {
-      top: 12px; left: 12px;
-      width: 2px; height: 40px;
-    }
-    /* Back to top edge */
-    100% {
-      top: 12px; left: 12px;
-      width: 40px; height: 2px;
-    }
-  }
-
-  /* Animation 2: Starts from right edge, goes clockwise */
-  @keyframes slideLineFromRight {
-    /* Right edge: slide top to bottom */
-    0% {
-      top: 12px; left: calc(100% - 14px);
-      width: 2px; height: 40px;
-    }
-    20% {
-      top: calc(100% - 52px); left: calc(100% - 14px);
-      width: 2px; height: 40px;
-    }
-    /* Bottom edge: slide right to left */
-    25% {
-      top: calc(100% - 14px); left: calc(100% - 52px);
-      width: 40px; height: 2px;
-    }
-    45% {
-      top: calc(100% - 14px); left: 12px;
-      width: 40px; height: 2px;
-    }
-    /* Left edge: slide bottom to top */
-    50% {
-      top: calc(100% - 52px); left: 12px;
-      width: 2px; height: 40px;
-    }
-    70% {
-      top: 12px; left: 12px;
-      width: 2px; height: 40px;
-    }
-    /* Top edge: slide left to right */
-    75% {
-      top: 12px; left: 12px;
-      width: 40px; height: 2px;
-    }
-    95% {
-      top: 12px; left: calc(100% - 52px);
-      width: 40px; height: 2px;
-    }
-    /* Back to right edge */
-    100% {
-      top: 12px; left: calc(100% - 14px);
-      width: 2px; height: 40px;
-    }
-  }
-
-  .snake-line {
-    animation: slideLine 6s linear infinite;
-  }
-
-  .snake-line-from-right {
-    animation: slideLineFromRight 6s linear infinite;
-  }
-`;
-
 // Default fallback images when CMS images are not uploaded
 const defaultImages = {
   pillar1: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800',
@@ -149,30 +48,24 @@ export function MarketingMosaicSection({
       image: brandPillar1Url || defaultImages.pillar1,
       title: brandPillarsData?.pillar1?.title || t('pillar_sustainable_title'),
       description: brandPillarsData?.pillar1?.description || t('pillar_sustainable_description'),
-      overlayBg: 'rgba(205, 92, 92, 0.92)', // Coral
-      textColor: 'white',
-      lineColor: '#F5B041', // Gold line
-      lineAnimation: 'snake-line',
+      ringColor: '#CD5C5C', // Coral
+      accentColor: '#F5B041', // Gold accent
     },
     {
       id: 'authentic',
       image: brandPillar2Url || defaultImages.pillar2,
       title: brandPillarsData?.pillar2?.title || t('pillar_authentic_title'),
       description: brandPillarsData?.pillar2?.description || t('pillar_authentic_description'),
-      overlayBg: 'rgba(180, 83, 53, 0.90)', // Terracotta
-      textColor: 'white',
-      lineColor: '#FFD700', // Golden line
-      lineAnimation: 'snake-line-from-right',
+      ringColor: '#B45335', // Terracotta
+      accentColor: '#FFD700', // Golden accent
     },
     {
       id: 'adventure',
       image: brandPillar3Url || defaultImages.pillar3,
       title: brandPillarsData?.pillar3?.title || t('pillar_adventure_title'),
       description: brandPillarsData?.pillar3?.description || t('pillar_adventure_description'),
-      overlayBg: 'rgba(218, 165, 32, 0.88)', // Golden yellow
-      textColor: '#5D3A1A', // Dark brown text for contrast
-      lineColor: '#5D3A1A', // Dark brown line
-      lineAnimation: 'snake-line',
+      ringColor: '#DAA520', // Golden yellow
+      accentColor: '#5D3A1A', // Dark brown accent
     },
   ];
 
@@ -205,13 +98,12 @@ export function MarketingMosaicSection({
 
   return (
     <section className="py-16 bg-neutral-100">
-      <style dangerouslySetInnerHTML={{ __html: cornerAnimationStyles }} />
       <div className="container mx-auto px-4">
         <div className="relative">
           {/* Horizontal scroll carousel */}
           <div
             ref={scrollContainerRef}
-            className="flex gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide scroll-smooth pb-4"
+            className="flex gap-6 md:gap-8 overflow-x-auto snap-x snap-mandatory scrollbar-hide scroll-smooth pb-4"
             data-testid="pillar-carousel"
             role="region"
             aria-roledescription="carousel"
@@ -220,80 +112,58 @@ export function MarketingMosaicSection({
             {brandPillars.map((pillar) => (
               <div
                 key={pillar.id}
-                className="flex-shrink-0 w-[85vw] sm:w-[45vw] md:w-[calc(33.333%-1rem)] snap-start"
+                className="flex-shrink-0 w-[85vw] sm:w-[45vw] md:w-[calc(33.333%-1.5rem)] snap-start flex flex-col items-center"
                 data-testid="pillar-card"
               >
-                {/* Square aspect ratio container */}
-                <div className="relative w-full" style={{ paddingBottom: '100%' }}>
-                  {/* Card container */}
-                  <div className="absolute inset-0 overflow-hidden rounded-2xl cursor-pointer group">
-                    {/* Background Image with Hover Zoom */}
+                {/* Circular image container */}
+                <div className="relative group cursor-pointer">
+                  {/* Outer glow effect on hover */}
+                  <div
+                    className="absolute -inset-2 rounded-full opacity-0 group-hover:opacity-40 transition-opacity duration-300 blur-xl"
+                    style={{ backgroundColor: pillar.ringColor }}
+                  />
+
+                  {/* Circular image with colored ring */}
+                  <div
+                    className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-full overflow-hidden ring-4 ring-offset-4 ring-offset-neutral-100 transition-transform duration-300 group-hover:scale-105"
+                    style={{ '--tw-ring-color': pillar.ringColor } as React.CSSProperties}
+                  >
                     <Image
                       src={pillar.image}
                       alt={pillar.title}
                       fill
-                      className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                       unoptimized={shouldUnoptimizeImage(pillar.image)}
                     />
 
-                    {/* White rounded border frame */}
+                    {/* Subtle overlay on hover */}
                     <div
-                      className="absolute border border-white rounded-2xl pointer-events-none"
-                      style={{
-                        left: '6%',
-                        right: '10%',
-                        top: '6%',
-                        bottom: '10%',
-                      }}
+                      className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300"
+                      style={{ backgroundColor: pillar.ringColor }}
                     />
-
-                    {/* Centered Colored Overlay with Rounded Corners */}
-                    <div
-                      className="absolute flex flex-col justify-center items-start p-6 text-left rounded-2xl"
-                      data-testid="pillar-overlay"
-                      style={{
-                        backgroundColor: pillar.overlayBg,
-                        left: '10%',
-                        right: '6%',
-                        top: '10%',
-                        bottom: '6%',
-                      }}
-                    >
-                      {/* Single line that slides around the square perimeter */}
-                      <div
-                        className={`absolute ${pillar.lineAnimation}`}
-                        style={{ backgroundColor: pillar.lineColor }}
-                      />
-
-                      {/* Text Content */}
-                      <div>
-                        <h3
-                          className="text-5xl md:text-6xl font-bold uppercase tracking-wide leading-tight"
-                          style={{ color: pillar.textColor }}
-                        >
-                          {pillar.title}
-                        </h3>
-                        {/* Separator Line */}
-                        <div
-                          className="w-10 h-[4px] my-3"
-                          style={{ backgroundColor: pillar.lineColor }}
-                        />
-                        <p
-                          className="text-sm md:text-base leading-relaxed uppercase tracking-wide opacity-90"
-                          style={{ color: pillar.textColor }}
-                        >
-                          {pillar.description}
-                        </p>
-                      </div>
-                    </div>
                   </div>
+                </div>
+
+                {/* Text content below circle */}
+                <div className="mt-6 text-center px-4">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 uppercase tracking-wide">
+                    {pillar.title}
+                  </h3>
+                  {/* Colored separator line */}
+                  <div
+                    className="w-12 h-1 mx-auto my-3 rounded-full"
+                    style={{ backgroundColor: pillar.ringColor }}
+                  />
+                  <p className="text-sm md:text-base text-gray-600 leading-relaxed max-w-xs mx-auto">
+                    {pillar.description}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Mobile scroll indicators (dots) */}
-          <div className="flex justify-center gap-2 mt-2 md:hidden" role="tablist">
+          <div className="flex justify-center gap-2 mt-4 md:hidden" role="tablist">
             {brandPillars.map((pillar, idx) => (
               <button
                 key={pillar.id}
