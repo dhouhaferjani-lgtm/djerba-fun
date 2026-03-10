@@ -20,16 +20,16 @@ const serviceTypes = [
 
 type ServiceType = (typeof serviceTypes)[number];
 
-// Animated GIF icons by service type slug
+// Animated GIF icons with stick-figure humans by service type slug
 const serviceTypeImages: Record<string, string> = {
-  tour: '/images/experiences/tours.gif',
-  nautical: '/images/experiences/jetski.gif',
-  accommodation: '/images/experiences/accommodation.gif',
-  event: '/images/experiences/adventure.gif',
+  tour: '/images/experiences/activites.gif',
+  nautical: '/images/experiences/nautique.gif',
+  accommodation: '/images/experiences/hebergements.gif',
+  event: '/images/experiences/evenements.gif',
 };
 
 // Default fallback image
-const defaultFallbackImage = '/images/experiences/tours.gif';
+const defaultFallbackImage = '/images/experiences/activites.gif';
 
 interface ServiceTypeCardProps {
   serviceType: ServiceType;
