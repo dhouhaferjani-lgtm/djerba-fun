@@ -919,21 +919,18 @@ class ListingResource extends Resource
                                 ->collapsible()
                                 ->collapsed(),
 
-                            // Route Checkpoints for Tours/Nautical (visible when show_itinerary is on)
-                            // For Accommodations: "Nearby Attractions" - always visible
-                            Forms\Components\Section::make(fn (Get $get): string => $get('service_type') === ServiceType::ACCOMMODATION->value ? 'Nearby Attractions' : 'Route Checkpoints')
-                                ->description(fn (Get $get): string => $get('service_type') === ServiceType::ACCOMMODATION->value
-                                    ? 'Add interesting places near your property that guests might want to visit'
-                                    : 'Define the stops along your route. These will be displayed on the map.')
+                            // Route Checkpoints - unified for ALL service types
+                            Forms\Components\Section::make('Route Checkpoints')
+                                ->description('Define the stops along your route. These will be displayed on the map.')
                                 ->schema([
                                     Forms\Components\Actions::make([
                                         Forms\Components\Actions\Action::make('clearAllCheckpoints')
-                                            ->label(fn (Get $get): string => $get('service_type') === ServiceType::ACCOMMODATION->value ? 'Clear All Attractions' : 'Clear All Checkpoints')
+                                            ->label('Clear All Checkpoints')
                                             ->icon('heroicon-o-trash')
                                             ->color('danger')
                                             ->size('sm')
                                             ->requiresConfirmation()
-                                            ->modalHeading(fn (Get $get): string => $get('service_type') === ServiceType::ACCOMMODATION->value ? 'Clear all attractions?' : 'Clear all checkpoints?')
+                                            ->modalHeading('Clear all checkpoints?')
                                             ->modalDescription('This will remove all checkpoints and elevation data. This action cannot be undone.')
                                             ->action(function (Set $set) {
                                                 $set('itinerary', []);
@@ -950,8 +947,8 @@ class ListingResource extends Resource
                                             ->icon('heroicon-o-chart-bar')
                                             ->color('success')
                                             ->size('sm')
-                                            // Only for tours/nautical with manual entry mode
-                                            ->visible(fn (Get $get) => $get('itinerary_input_mode') === 'manual' && $get('service_type') !== ServiceType::ACCOMMODATION->value)
+                                            // Available for all service types in manual entry mode
+                                            ->visible(fn (Get $get) => $get('itinerary_input_mode') === 'manual')
                                             ->action(function (Get $get, Set $set) {
                                                 $itinerary = $get('itinerary') ?? [];
 
@@ -1053,15 +1050,6 @@ class ListingResource extends Resource
                                             Forms\Components\Hidden::make('id')
                                                 ->default(fn () => (string) Str::uuid()),
 
-                                            Forms\Components\TextInput::make('day')
-                                                ->label('Day')
-                                                ->numeric()
-                                                ->minValue(1)
-                                                ->default(1)
-                                                ->helperText('Which day of the accommodation stay (e.g., 1, 2, 3)')
-                                                ->visible(fn (Get $get): bool => self::getServiceTypeFromRepeater($get) === ServiceType::ACCOMMODATION->value)
-                                                ->columnSpan(1),
-
                                             Forms\Components\Grid::make(4)
                                                 ->schema([
                                                     Forms\Components\TextInput::make('title.en')
@@ -1122,7 +1110,7 @@ class ListingResource extends Resource
                                                         ->maxLength(500),
                                                 ]),
 
-                                            // Coordinates grid - only for tours/nautical (not accommodations)
+                                            // Coordinates grid - visible for ALL service types
                                             Forms\Components\Grid::make(3)
                                                 ->schema([
                                                     Forms\Components\TextInput::make('lat')
@@ -1143,15 +1131,7 @@ class ListingResource extends Resource
                                                         ->nullable()
                                                         ->placeholder('e.g., 450')
                                                         ->helperText('Optional - for elevation profile'),
-                                                ])
-                                                ->visible(fn (Get $get): bool => self::getServiceTypeFromRepeater($get) !== ServiceType::ACCOMMODATION->value),
-
-                                            // Distance text - only for accommodations (nearby attractions)
-                                            Forms\Components\TextInput::make('distanceText')
-                                                ->label('Distance from Property')
-                                                ->placeholder('e.g., 5 min walk, 10 min drive')
-                                                ->helperText('How far is this attraction from your property?')
-                                                ->visible(fn (Get $get): bool => self::getServiceTypeFromRepeater($get) === ServiceType::ACCOMMODATION->value),
+                                                ]),
 
                                             Forms\Components\FileUpload::make('photos')
                                                 ->label('Photos of this location')
@@ -1188,7 +1168,7 @@ class ListingResource extends Resource
                                                 ? ($state['title']['en'] ?: 'Unnamed checkpoint')
                                                 : 'New checkpoint'
                                         )
-                                        ->addActionLabel(fn (Get $get): string => $get('service_type') === ServiceType::ACCOMMODATION->value ? 'Add Attraction' : 'Add Checkpoint')
+                                        ->addActionLabel('Add Checkpoint')
                                         ->defaultItems(0)
                                         ->columnSpanFull(),
                                 ])
