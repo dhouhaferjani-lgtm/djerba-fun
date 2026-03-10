@@ -88,6 +88,15 @@ export default function ListingMap({
     return [...itinerary].sort((a, b) => a.order - b.order);
   }, [itinerary]);
 
+  // In circle mode, use the first itinerary point as center (not listing location)
+  const circleCenter: LatLngTuple = useMemo(() => {
+    if (mapDisplayType === 'circle' && sortedItinerary.length > 0) {
+      const firstStop = sortedItinerary[0];
+      return [firstStop.lat, firstStop.lng];
+    }
+    return center;
+  }, [mapDisplayType, sortedItinerary, center]);
+
   // Compute bounds for accommodations from all itinerary stops
   const accommodationBounds: LatLngTuple[] | undefined = useMemo(() => {
     if (!isAccommodation || !itinerary || itinerary.length < 2) return undefined;
@@ -334,15 +343,15 @@ export default function ListingMap({
 
   return (
     <MapContainer
-      center={center}
+      center={mapDisplayType === 'circle' ? circleCenter : center}
       zoom={mapDisplayType === 'circle' ? circleZoom : 13}
       bounds={showMarkersAndRoutes ? accommodationBounds : undefined}
       className={className}
       data-testid="location-map"
     >
-      {/* Circle mode: show radius circle instead of exact location */}
+      {/* Circle mode: show radius circle on first itinerary point */}
       {mapDisplayType === 'circle' && CircleComponent && (
-        <CircleComponent center={center} radius={radiusMeters} />
+        <CircleComponent center={circleCenter} radius={radiusMeters} />
       )}
 
       {/* Main listing marker — hide for accommodations (day markers), when itinerary exists (stop markers), and in circle mode */}

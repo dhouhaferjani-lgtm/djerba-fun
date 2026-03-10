@@ -717,6 +717,10 @@ class ListingResource extends Resource
                                         ->live()
                                         ->dehydrated(false) // Don't save to database
                                         ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                            if ($state === 'gpx') {
+                                                // GPX mode always uses markers (all points displayed)
+                                                $set('map_display_type', 'markers');
+                                            }
                                             if ($state === 'manual' && $get('gpx_file_path')) {
                                                 // Warn user that switching to manual will clear GPX data
                                                 Notification::make()
