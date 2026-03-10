@@ -52,8 +52,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV HUSKY=0
 
 # Build workspace dependencies first (schemas, ui)
-RUN pnpm --filter "@go-adventure/schemas" build
-RUN pnpm --filter "@go-adventure/ui" build
+RUN pnpm --filter "@djerba-fun/schemas" build
+RUN pnpm --filter "@djerba-fun/ui" build
 
 # Build ONLY the web app (not all workspaces)
 RUN pnpm --filter web build
