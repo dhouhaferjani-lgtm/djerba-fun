@@ -11,8 +11,11 @@ return [
     /*
      * The maximum file size of an item in bytes.
      * Adding a larger file will result in an exception.
+     *
+     * NOTE: This must match the maxSize() declared on Filament upload fields.
+     * Hero banner allows 20MB for video uploads (see PlatformSettingsPage.php).
      */
-    'max_file_size' => 1024 * 1024 * 10, // 10MB
+    'max_file_size' => 1024 * 1024 * 20, // 20MB
 
     /*
      * This queue connection will be used to generate derived and responsive images.
