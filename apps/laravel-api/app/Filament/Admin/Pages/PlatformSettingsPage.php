@@ -244,15 +244,19 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->model(fn () => $this->getFormModel())
                             ->label('Logo (Light Mode)')
                             ->image()
+                            ->imageEditor()
+                            ->imageEditorAspectRatios([null])
                             ->maxSize(2048)
-                            ->helperText('Used on light backgrounds'),
+                            ->helperText('Used on light backgrounds. Click edit icon to crop/zoom.'),
                         Forms\Components\SpatieMediaLibraryFileUpload::make('logo_dark')
                             ->collection('logo_dark')
                             ->model(fn () => $this->getFormModel())
                             ->label('Logo (Dark Mode)')
                             ->image()
+                            ->imageEditor()
+                            ->imageEditorAspectRatios([null])
                             ->maxSize(2048)
-                            ->helperText('Used on dark backgrounds'),
+                            ->helperText('Used on dark backgrounds. Click edit icon to crop/zoom.'),
                     ])
                     ->columns(2),
 
