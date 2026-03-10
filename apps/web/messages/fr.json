@@ -173,6 +173,8 @@
     "default_tour_type": "Activité guidée",
     "default_event_type": "Événement spécial",
     "default_sejour_type": "Séjour d'aventure",
+    "default_nautical_type": "Activité nautique",
+    "default_accommodation_type": "Hébergement",
     "day_experience": "Jours d'Aventure",
     "sejour_booking_note": "Réservez le package complet multi-jours",
     "day_by_day_program": "Programme Jour par Jour",
