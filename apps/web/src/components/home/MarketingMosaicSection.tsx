@@ -14,15 +14,15 @@ const animationStyles = `
     to { transform: rotate(360deg); }
   }
 
-  /* Pulsing glow effect */
+  /* Pulsing glow effect - enhanced for more visible breathing */
   @keyframes pulse-glow {
     0%, 100% {
-      opacity: 0.4;
-      transform: scale(1);
+      opacity: 0.3;
+      transform: scale(0.95);
     }
     50% {
-      opacity: 0.7;
-      transform: scale(1.08);
+      opacity: 0.8;
+      transform: scale(1.15);
     }
   }
 
@@ -43,6 +43,25 @@ const animationStyles = `
     0%, 100% { box-shadow: 0 0 0 0 rgba(var(--ring-color-rgb), 0.4); }
     50% { box-shadow: 0 0 20px 5px rgba(var(--ring-color-rgb), 0.2); }
   }
+
+  /* Subtle breathing animation for the entire circle */
+  @keyframes breathe {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.03);
+    }
+  }
+
+  .pillar-image-container {
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  /* Staggered breathing for each pillar */
+  .pillar-card:nth-child(1) .pillar-image-container { animation-delay: 0s; }
+  .pillar-card:nth-child(2) .pillar-image-container { animation-delay: 1.3s; }
+  .pillar-card:nth-child(3) .pillar-image-container { animation-delay: 2.6s; }
 
   .pillar-card {
     animation: fade-up 0.8s ease-out forwards;
@@ -167,7 +186,7 @@ export function MarketingMosaicSection({
           {/* Horizontal scroll carousel */}
           <div
             ref={scrollContainerRef}
-            className="flex gap-6 md:gap-8 overflow-x-auto snap-x snap-mandatory scrollbar-hide scroll-smooth pb-4"
+            className="flex gap-6 md:gap-8 overflow-x-auto snap-x snap-mandatory scrollbar-hide scroll-smooth py-8 px-4 -mx-4"
             data-testid="pillar-carousel"
             role="region"
             aria-roledescription="carousel"
