@@ -9,6 +9,7 @@ interface MapContainerProps {
   bounds?: LatLngTuple[];
   className?: string;
   children?: React.ReactNode;
+  'data-testid'?: string;
 }
 
 export default function MapContainer({
@@ -17,6 +18,7 @@ export default function MapContainer({
   bounds,
   className = 'h-96 w-full rounded-lg',
   children,
+  'data-testid': dataTestId,
 }: MapContainerProps) {
   const [MapComponent, setMapComponent] = useState<React.ComponentType<MapContainerProps> | null>(
     null
@@ -74,15 +76,20 @@ export default function MapContainer({
 
   if (!MapComponent) {
     return (
-      <div className={`${className} flex items-center justify-center bg-neutral-100`}>
+      <div
+        className={`${className} flex items-center justify-center bg-neutral-100`}
+        data-testid={dataTestId}
+      >
         <div className="text-neutral-500">Loading map...</div>
       </div>
     );
   }
 
   return (
-    <MapComponent center={center} zoom={zoom} bounds={bounds} className={className}>
-      {children}
-    </MapComponent>
+    <div data-testid={dataTestId}>
+      <MapComponent center={center} zoom={zoom} bounds={bounds} className={className}>
+        {children}
+      </MapComponent>
+    </div>
   );
 }

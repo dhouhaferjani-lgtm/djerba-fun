@@ -43,7 +43,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
   const tDict = useTranslations('listing');
 
   return (
-    <Link href={href} className="group">
+    <Link href={href} className="group" data-testid="listing-card">
       <Card
         variant="interactive"
         padding="none"
@@ -109,7 +109,10 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
         <div className="p-4 flex flex-col gap-3">
           {/* Title and Rating */}
           <div>
-            <h3 className="font-semibold text-lg text-neutral-900 line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+            <h3
+              className="font-semibold text-lg text-neutral-900 line-clamp-2 mb-1 group-hover:text-primary transition-colors"
+              data-testid="listing-title"
+            >
               {tr(listing.title)}
             </h3>
             {listing.rating && (
@@ -140,7 +143,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
           )}
 
           {/* Price */}
-          <div className="mt-auto pt-3 border-t border-neutral-100">
+          <div className="mt-auto pt-3 border-t border-neutral-100" data-testid="listing-price">
             {listing.pricing.displayPrice || listing.pricing.tndPrice ? (
               <PriceDisplay
                 amount={listing.pricing.displayPrice || listing.pricing.tndPrice || 0}

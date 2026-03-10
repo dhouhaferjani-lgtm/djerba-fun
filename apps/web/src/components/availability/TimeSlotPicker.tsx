@@ -72,7 +72,8 @@ export default function TimeSlotPicker({
             <button
               key={slot.id}
               onClick={() => onSlotSelect(slot)}
-              data-testid={`time-slot-${formatTime(slot.start)}`}
+              data-testid="time-slot"
+              data-slot-time={formatTime(slot.start)}
               className={`
                 relative rounded-lg border-2 p-4 text-left transition-all cursor-pointer
                 ${isSelected ? 'border-primary ring-2 ring-primary ring-opacity-50' : getSlotStatusColor(slot.status)}

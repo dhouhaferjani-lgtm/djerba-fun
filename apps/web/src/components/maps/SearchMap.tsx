@@ -56,7 +56,7 @@ export default function SearchMap({
   }, [listings, center]);
 
   return (
-    <MapContainer center={mapCenter} zoom={zoom} className={className}>
+    <MapContainer center={mapCenter} zoom={zoom} className={className} data-testid="listings-map">
       {listings.map((listing) => {
         const loc = listing.location as any;
         // Skip listings without valid coordinates

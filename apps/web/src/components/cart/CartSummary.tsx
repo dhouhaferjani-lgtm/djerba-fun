@@ -60,7 +60,10 @@ export function CartSummary({ cart, locale }: CartSummaryProps) {
   const allHoldsValid = cart.items.every((item) => item.holdValid);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm sticky top-24">
+    <div
+      data-testid="cart-summary"
+      className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm sticky top-24"
+    >
       {/* Timer */}
       <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
         <div className="flex items-center gap-2 text-gray-600">
@@ -121,7 +124,7 @@ export function CartSummary({ cart, locale }: CartSummaryProps) {
 
         <div className="flex justify-between text-lg font-bold pt-3 border-t border-gray-200">
           <span>{t('total')}</span>
-          <span className="flex items-baseline gap-1">
+          <span data-testid="cart-total" className="flex items-baseline gap-1">
             <span className="text-sm font-semibold">{cart.currency}</span>
             <span className="text-xl font-bold">{cart.subtotal.toFixed(2)}</span>
           </span>
@@ -130,7 +133,12 @@ export function CartSummary({ cart, locale }: CartSummaryProps) {
 
       {/* Checkout Button */}
       <Link href={`/${locale}/cart/checkout` as any}>
-        <Button className="w-full" size="lg" disabled={!allHoldsValid}>
+        <Button
+          data-testid="checkout-button"
+          className="w-full"
+          size="lg"
+          disabled={!allHoldsValid}
+        >
           {t('proceed_to_checkout')}
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>

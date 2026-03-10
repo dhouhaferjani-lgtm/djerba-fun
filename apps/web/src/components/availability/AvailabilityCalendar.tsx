@@ -141,7 +141,7 @@ export default function AvailabilityCalendar({
   const isPastDate = (date: Date) => isBefore(date, today);
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-4 ${className}`} data-testid="booking-date-selector">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-neutral-900">
           {format(currentMonth, 'MMMM yyyy', { locale: dateFnsLocale })}

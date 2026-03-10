@@ -80,7 +80,10 @@ export function CartItemCard({ item, locale }: CartItemCardProps) {
   }, [item.personTypeBreakdown, item.extras, item.unitPrice, t]);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+    <div
+      data-testid="cart-item"
+      className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"
+    >
       <div className="flex gap-4">
         {/* Placeholder image */}
         <div className="w-24 h-24 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
@@ -93,6 +96,7 @@ export function CartItemCard({ item, locale }: CartItemCardProps) {
             <Button
               variant="ghost"
               size="sm"
+              data-testid="remove-cart-item"
               onClick={() => removeItem(item.id)}
               disabled={isRemovingItem}
               className="text-gray-400 hover:text-error flex-shrink-0"
@@ -135,7 +139,7 @@ export function CartItemCard({ item, locale }: CartItemCardProps) {
 
         {/* Price (simple display for header) */}
         <div className="text-right flex-shrink-0">
-          <p className="font-semibold text-gray-900">
+          <p data-testid="item-price" className="font-semibold text-gray-900">
             {item.currency} {item.total.toFixed(2)}
           </p>
           {item.extrasTotal > 0 && (

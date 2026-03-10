@@ -56,7 +56,7 @@ export function ImageLightbox({ images, initialIndex = 0, isOpen, onClose }: Ima
 
   return (
     <Dialog isOpen={isOpen} onClose={onClose}>
-      <div className="fixed inset-0 z-50 bg-black">
+      <div className="fixed inset-0 z-50 bg-black" data-testid="lightbox">
         {/* Header */}
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
           <div className="text-white font-medium">
@@ -66,6 +66,7 @@ export function ImageLightbox({ images, initialIndex = 0, isOpen, onClose }: Ima
             onClick={onClose}
             className="text-white hover:text-neutral-300 transition-colors p-2 rounded-full hover:bg-white/10"
             aria-label="Close lightbox"
+            data-testid="lightbox-close"
           >
             <X className="h-6 w-6" />
           </button>
@@ -93,6 +94,7 @@ export function ImageLightbox({ images, initialIndex = 0, isOpen, onClose }: Ima
               onClick={goToPrevious}
               className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-white hover:text-neutral-300 transition-colors p-3 rounded-full hover:bg-white/10 backdrop-blur-sm"
               aria-label="Previous image"
+              data-testid="lightbox-prev"
             >
               <ChevronLeft className="h-8 w-8" />
             </button>
@@ -100,6 +102,7 @@ export function ImageLightbox({ images, initialIndex = 0, isOpen, onClose }: Ima
               onClick={goToNext}
               className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-white hover:text-neutral-300 transition-colors p-3 rounded-full hover:bg-white/10 backdrop-blur-sm"
               aria-label="Next image"
+              data-testid="lightbox-next"
             >
               <ChevronRight className="h-8 w-8" />
             </button>

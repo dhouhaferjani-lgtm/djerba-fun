@@ -297,7 +297,13 @@ export default function ListingMap({
   }, [itinerary, isAccommodation]);
 
   return (
-    <MapContainer center={center} zoom={13} bounds={accommodationBounds} className={className}>
+    <MapContainer
+      center={center}
+      zoom={13}
+      bounds={accommodationBounds}
+      className={className}
+      data-testid="location-map"
+    >
       {/* Main listing marker — hide for accommodations (day markers) and when itinerary exists (stop markers) */}
       {!isAccommodation && (!itinerary || itinerary.length === 0) && (
         <MarkerPopup position={center} title={title} imageUrl={imageUrl} type="listing" />

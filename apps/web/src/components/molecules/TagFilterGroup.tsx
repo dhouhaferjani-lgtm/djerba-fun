@@ -27,7 +27,7 @@ export function TagFilterGroup({
   }
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn('space-y-4', className)} data-testid="category-filter">
       {tagGroups.map((group) => (
         <div key={group.type}>
           <h4 className="text-sm font-medium text-neutral-700 mb-2">{group.label}</h4>

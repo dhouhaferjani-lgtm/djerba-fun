@@ -88,6 +88,7 @@ export async function getBrandingUrls(locale?: string) {
     appleTouchIcon: settings?.data?.branding?.appleTouchIcon ?? null,
     heroBanner: settings?.data?.branding?.heroBanner ?? null,
     heroBannerIsVideo: settings?.data?.branding?.heroBannerIsVideo ?? false,
+    heroBannerThumbnail: settings?.data?.branding?.heroBannerThumbnail ?? null,
     brandPillar1: settings?.data?.branding?.brandPillar1 ?? null,
     brandPillar2: settings?.data?.branding?.brandPillar2 ?? null,
     brandPillar3: settings?.data?.branding?.brandPillar3 ?? null,

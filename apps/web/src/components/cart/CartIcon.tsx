@@ -39,6 +39,7 @@ export function CartIcon({ locale, className }: CartIconProps) {
   return (
     <Link
       href={`/${locale}/cart`}
+      data-testid="cart-icon"
       className={cn(
         'relative p-2 text-white hover:bg-primary-light rounded-lg transition-colors',
         isAnimating && 'animate-bounce',
@@ -49,6 +50,7 @@ export function CartIcon({ locale, className }: CartIconProps) {
       <ShoppingCart className="h-5 w-5" />
       {itemCount > 0 && !isLoading && (
         <span
+          data-testid="cart-count"
           className={cn(
             'absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-primary border border-primary/20 transition-all',
             isAnimating && 'scale-150 ring-4 ring-white shadow-lg'

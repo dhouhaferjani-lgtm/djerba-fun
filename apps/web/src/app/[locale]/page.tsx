@@ -76,6 +76,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         locale={locale}
         heroBannerUrl={branding.heroBanner}
         heroBannerIsVideo={branding.heroBannerIsVideo}
+        heroBannerThumbnail={branding.heroBannerThumbnail}
         heroData={heroData}
       />
       <MarketingMosaicSection
