@@ -1,7 +1,5 @@
 'use client';
 
-import 'leaflet/dist/leaflet.css'; // Import CSS directly to avoid race condition
-
 import { useEffect, useState } from 'react';
 import type { LatLngTuple } from 'leaflet';
 

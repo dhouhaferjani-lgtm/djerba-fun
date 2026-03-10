@@ -9,6 +9,9 @@ import { OrganizationJsonLd } from '@/components/seo/JsonLd';
 import { WebVitals } from '../web-vitals';
 import { getBrandingUrls, getSchemaOrgData } from '@/lib/api/server';
 import '../globals.css';
+// Leaflet CSS must be imported in layout (not in dynamically imported components)
+// to ensure CSS is loaded before map components render
+import 'leaflet/dist/leaflet.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://evasiondjerba.com';
 // Fallback GA ID from env (CMS value is preferred and fetched in layout)
