@@ -160,7 +160,7 @@ export function MarketingMosaicSection({
   );
 
   return (
-    <section className="py-16 bg-neutral-100 overflow-hidden">
+    <section className="pt-24 pb-16 bg-neutral-100">
       <style dangerouslySetInnerHTML={{ __html: animationStyles }} />
       <div className="container mx-auto px-4">
         <div className="relative">
