@@ -76,7 +76,7 @@ export default function MapContainer({
   }
 
   return (
-    <div data-testid={dataTestId}>
+    <div data-testid={dataTestId} className="h-full w-full">
       <MapComponent center={center} zoom={zoom} bounds={bounds} className={className}>
         {children}
       </MapComponent>

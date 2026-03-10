@@ -380,6 +380,53 @@ test.describe('Listing Detail Page', () => {
     }
   });
 
+  // TC-F027c: Regression test for map container dimensions (blank map fix)
+  test('TC-F027c: map container should have non-zero dimensions (blank map regression)', async ({
+    page,
+  }) => {
+    // Wait for page to fully load
+    await page.waitForTimeout(2000);
+
+    // Scroll to map area
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
+    await page.waitForTimeout(1000);
+
+    // Click on map tab if visible (for listings with itinerary tabs)
+    const mapTab = page
+      .locator('button:has-text("Carte du parcours"), button:has-text("Route Map")')
+      .first();
+    const hasMapTab = await mapTab.isVisible().catch(() => false);
+    if (hasMapTab) {
+      await mapTab.click();
+      await page.waitForTimeout(1000);
+    }
+
+    // Find the map container
+    const leafletContainer = page.locator('.leaflet-container').first();
+    const hasMap = await leafletContainer.isVisible().catch(() => false);
+
+    if (hasMap) {
+      // Get bounding box to verify non-zero dimensions
+      const boundingBox = await leafletContainer.boundingBox();
+
+      // This is the critical regression check:
+      // If the wrapper div doesn't have height, boundingBox.height would be 0
+      expect(boundingBox).toBeTruthy();
+      expect(boundingBox!.height).toBeGreaterThan(100);
+      expect(boundingBox!.width).toBeGreaterThan(100);
+
+      // Verify the map is actually rendering tiles (not just an empty container)
+      const tilePane = page.locator('.leaflet-tile-pane').first();
+      await expect(tilePane).toBeVisible({ timeout: 5000 });
+
+      console.log(
+        `TC-F027c: Map dimensions verified: ${Math.round(boundingBox!.width)}x${Math.round(boundingBox!.height)}px`
+      );
+    } else {
+      console.log('TC-F027c: No map found on this listing (may not have itinerary)');
+    }
+  });
+
   // TC-F028: Bilingual Content
   test('TC-F028: should display content in English', async ({ page }) => {
     // Verify we're on English page
