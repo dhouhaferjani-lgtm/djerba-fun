@@ -63,7 +63,7 @@ const animationStyles = `
     animation-duration: 8s;
   }
 
-  /* Orbiting particles */
+  /* Orbiting particles - sharp contoured dots */
   .orbit-particle {
     position: absolute;
     width: 8px;
@@ -73,8 +73,7 @@ const animationStyles = `
     left: 50%;
     margin-top: -4px;
     margin-left: -4px;
-    filter: blur(0.5px);
-    box-shadow: 0 0 8px 2px var(--particle-color);
+    border: 2px solid var(--particle-color);
   }
 
   .orbit-particle-cw {
@@ -180,7 +179,7 @@ export function MarketingMosaicSection({
   );
 
   return (
-    <section className="pb-16 bg-neutral-100">
+    <section className="pt-16 pb-16 bg-neutral-100">
       <style dangerouslySetInnerHTML={{ __html: animationStyles }} />
       <div className="container mx-auto px-4">
         <div className="relative">
