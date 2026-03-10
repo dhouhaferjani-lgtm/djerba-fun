@@ -20,16 +20,16 @@ const serviceTypes = [
 
 type ServiceType = (typeof serviceTypes)[number];
 
-// Placeholder images by service type slug (to be updated later)
+// Animated GIF icons by service type slug
 const serviceTypeImages: Record<string, string> = {
-  tour: '/images/experiences/island-tours.jpg',
-  nautical: '/images/experiences/nautical-activities.jpg',
-  accommodation: '/images/experiences/beach-relaxation.jpg',
-  event: '/images/experiences/cultural-heritage.jpg',
+  tour: '/images/experiences/tours.gif',
+  nautical: '/images/experiences/jetski.gif',
+  accommodation: '/images/experiences/accommodation.gif',
+  event: '/images/experiences/adventure.gif',
 };
 
 // Default fallback image
-const defaultFallbackImage = '/images/experiences/island-tours.jpg';
+const defaultFallbackImage = '/images/experiences/tours.gif';
 
 interface ServiceTypeCardProps {
   serviceType: ServiceType;
@@ -45,13 +45,14 @@ function ServiceTypeCard({ serviceType, locale, label }: ServiceTypeCardProps) {
       href={`/${locale}/listings?type=${serviceType.slug}`}
       className="group relative block overflow-hidden rounded-2xl h-56 md:h-64"
     >
-      {/* Background Image */}
+      {/* Animated GIF Icon */}
       <Image
         src={image}
         alt={label}
         fill
         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
         className="object-cover transition-transform duration-500 group-hover:scale-110"
+        unoptimized
       />
 
       {/* Gradient Overlay */}
