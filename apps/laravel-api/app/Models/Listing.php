@@ -34,6 +34,14 @@ class Listing extends Model
             }
         });
 
+        // Auto-set pricing_model for accommodations to 'per_night'
+        // This ensures accommodations always use nightly pricing regardless of how they were created
+        static::saving(function (Listing $listing) {
+            if ($listing->isAccommodation() && $listing->pricing_model !== 'per_night') {
+                $listing->pricing_model = 'per_night';
+            }
+        });
+
         // Validate and set published_at when status changes to PUBLISHED
         static::updating(function (Listing $listing) {
             if ($listing->isDirty('status') && $listing->status === ListingStatus::PUBLISHED) {

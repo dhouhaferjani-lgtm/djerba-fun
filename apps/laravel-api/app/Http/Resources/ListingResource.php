@@ -175,7 +175,12 @@ class ListingResource extends BaseResource
         }
 
         // Per-night pricing for accommodations
-        $pricingModel = $this->pricing_model ?? 'per_person';
+        // Auto-detect accommodation service type and force per_night pricing model
+        // This safeguards against listings where pricing_model wasn't set correctly
+        $pricingModel = $this->pricing_model;
+        if (! $pricingModel || ($this->isAccommodation() && $pricingModel !== 'per_night')) {
+            $pricingModel = $this->isAccommodation() ? 'per_night' : 'per_person';
+        }
         $nightlyPriceTnd = $this->nightly_price_tnd;
         $nightlyPriceEur = $this->nightly_price_eur;
         $nightlyDisplayPrice = $detectedCurrency === 'TND' ? $nightlyPriceTnd : $nightlyPriceEur;
