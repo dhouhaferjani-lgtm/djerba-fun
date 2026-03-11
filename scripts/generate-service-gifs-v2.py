@@ -22,11 +22,17 @@ from PIL import Image, ImageDraw
 
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'apps', 'web', 'public', 'images', 'experiences')
 
+# Standard resolution
 WIDTH = 400
 HEIGHT = 400
 FRAME_DURATION = 70  # milliseconds
 TOTAL_FRAMES = 24
 STROKE_WIDTH = 3
+
+# Hi-res settings for activites and nautique (draw at 2x, resize down with LANCZOS)
+HIRES_SIZE = 800
+OUTPUT_SIZE = 400
+SCALE = 2  # HIRES_SIZE / OUTPUT_SIZE
 
 # Color palette
 COLORS = {
@@ -46,6 +52,16 @@ COLORS = {
 def create_frame():
     """Create a new transparent frame."""
     return Image.new('RGBA', (WIDTH, HEIGHT), COLORS['transparent'])
+
+
+def create_hires_frame():
+    """Create a hi-res transparent frame for better quality."""
+    return Image.new('RGBA', (HIRES_SIZE, HIRES_SIZE), COLORS['transparent'])
+
+
+def resize_frame(frame):
+    """Resize hi-res frame to output size with LANCZOS for crisp anti-aliasing."""
+    return frame.resize((OUTPUT_SIZE, OUTPUT_SIZE), Image.LANCZOS)
 
 
 def save_gif(frames, filename, duration=FRAME_DURATION):
@@ -167,152 +183,248 @@ def draw_walking_person(draw, x, y, walk_phase, color=COLORS['navy'], with_suitc
 
 
 # ============================================================================
-# GIF 1: ACTIVITÉS - Horse & Rider
+# GIF 1: ACTIVITÉS - Horse & Rider (Hi-Res Version)
 # ============================================================================
 
-def draw_horse(draw, x, y, leg_phase, tail_phase, bob_offset=0, color=COLORS['navy'], fill=COLORS['green']):
-    """Draw a horse with animated legs and tail."""
+def draw_horse_hires(draw, x, y, leg_phase, tail_phase, bob_offset=0, color=COLORS['navy'], fill=COLORS['green']):
+    """Draw a refined horse with proper anatomy at 800x800 scale.
+
+    Horse anatomy:
+    - Body: horizontal oval (long, not round)
+    - Neck: trapezoid angling upward
+    - Head: elongated oval with ear and eye
+    - 4 legs with knee bends and hooves
+    - Flowing tail
+    """
     y = y + bob_offset
+    stroke = 6  # Stroke width at hi-res (appears as 3px after resize)
 
-    # Body (ellipse)
-    body_width = 80
-    body_height = 45
+    # Body - horizontal oval (horses are LONG, not round)
+    body_width = 160  # Wide
+    body_height = 80  # Shorter
+    body_left = x - body_width // 2
+    body_right = x + body_width // 2
+    body_top = y - body_height // 2
+    body_bottom = y + body_height // 2
+
     draw.ellipse(
-        [x - body_width//2, y - body_height//2, x + body_width//2, y + body_height//2],
+        [body_left, body_top, body_right, body_bottom],
         fill=fill,
         outline=color,
-        width=STROKE_WIDTH
+        width=stroke
     )
 
-    # Neck
-    neck_start_x = x + body_width//2 - 10
-    neck_start_y = y - body_height//4
-    neck_end_x = neck_start_x + 25
-    neck_end_y = y - body_height - 10
-    draw.line([(neck_start_x, neck_start_y), (neck_end_x, neck_end_y)], fill=color, width=8)
+    # Neck - trapezoid from front of body, angling upward
+    neck_base_x = x + body_width // 2 - 30
+    neck_base_y = y - body_height // 4
+    neck_top_x = neck_base_x + 50
+    neck_top_y = y - body_height - 40
+    neck_width_base = 50
+    neck_width_top = 30
 
-    # Head
-    head_x = neck_end_x + 15
-    head_y = neck_end_y + 5
-    head_points = [
-        (neck_end_x, neck_end_y - 5),
-        (head_x, head_y - 15),
-        (head_x + 20, head_y - 10),
-        (head_x + 25, head_y),
-        (head_x + 20, head_y + 5),
-        (neck_end_x + 5, neck_end_y + 10),
+    neck_points = [
+        (neck_base_x - neck_width_base // 2, neck_base_y),
+        (neck_top_x - neck_width_top // 2, neck_top_y),
+        (neck_top_x + neck_width_top // 2, neck_top_y),
+        (neck_base_x + neck_width_base // 2, neck_base_y),
     ]
-    draw.polygon(head_points, fill=fill, outline=color, width=STROKE_WIDTH)
+    draw.polygon(neck_points, fill=fill, outline=color, width=stroke)
 
-    # Ear
-    ear_x = head_x + 5
-    ear_y = head_y - 20
-    draw.polygon(
-        [(ear_x, ear_y + 15), (ear_x + 5, ear_y), (ear_x + 10, ear_y + 15)],
+    # Head - elongated horizontal oval
+    head_cx = neck_top_x + 45
+    head_cy = neck_top_y + 15
+    head_width = 70
+    head_height = 40
+
+    draw.ellipse(
+        [head_cx - head_width // 2, head_cy - head_height // 2,
+         head_cx + head_width // 2, head_cy + head_height // 2],
         fill=fill,
         outline=color,
-        width=2
+        width=stroke
     )
 
-    # Eye
-    draw.ellipse([head_x + 8, head_y - 8, head_x + 14, head_y - 2], fill=color)
+    # Ear - triangular on back of head
+    ear_base_x = head_cx - 10
+    ear_base_y = head_cy - head_height // 2
+    ear_points = [
+        (ear_base_x - 8, ear_base_y),
+        (ear_base_x, ear_base_y - 25),
+        (ear_base_x + 8, ear_base_y),
+    ]
+    draw.polygon(ear_points, fill=fill, outline=color, width=4)
 
-    # Legs - trot animation
-    leg_length = 50
-    leg_y_start = y + body_height//2 - 5
+    # Eye - dot
+    eye_x = head_cx + 10
+    eye_y = head_cy - 5
+    draw.ellipse([eye_x - 6, eye_y - 6, eye_x + 6, eye_y + 6], fill=color)
 
-    # Front legs
-    front_leg_x = x + body_width//4
-    fl_angle1 = 20 * math.sin(leg_phase * 2 * math.pi)
-    fl_angle2 = 20 * math.sin(leg_phase * 2 * math.pi + math.pi)
+    # Muzzle line (nostril hint)
+    draw.arc(
+        [head_cx + head_width // 2 - 20, head_cy,
+         head_cx + head_width // 2, head_cy + 15],
+        start=180, end=270, fill=color, width=4
+    )
 
-    # Front left
-    fl1_end_x = front_leg_x + leg_length * math.sin(math.radians(fl_angle1))
-    fl1_end_y = leg_y_start + leg_length * math.cos(math.radians(fl_angle1))
-    draw.line([(front_leg_x, leg_y_start), (fl1_end_x, fl1_end_y)], fill=color, width=6)
+    # Legs with knee bends - trot animation
+    leg_hip_y = y + body_height // 2 - 10
+    upper_leg_length = 50
+    lower_leg_length = 50
+    leg_width = 14
+    hoof_width = 18
+    hoof_height = 12
 
-    # Front right (slightly offset)
-    fl2_end_x = front_leg_x + 5 + leg_length * math.sin(math.radians(fl_angle2))
-    fl2_end_y = leg_y_start + leg_length * math.cos(math.radians(fl_angle2))
-    draw.line([(front_leg_x + 5, leg_y_start), (fl2_end_x, fl2_end_y)], fill=color, width=6)
+    # Trot phases - front pair and back pair move opposite
+    front_phase = leg_phase * 2 * math.pi
+    back_phase = front_phase + math.pi  # Opposite phase
 
-    # Back legs
-    back_leg_x = x - body_width//4
-    bl_angle1 = 20 * math.sin(leg_phase * 2 * math.pi + math.pi)
-    bl_angle2 = 20 * math.sin(leg_phase * 2 * math.pi)
+    def draw_leg(hip_x, hip_y, phase, is_front=True):
+        """Draw a single leg with knee bend."""
+        # Swing angle for upper leg
+        swing = 25 * math.sin(phase)
+        # Knee bend varies with swing
+        knee_bend = 25 + 15 * math.cos(phase)
 
-    # Back left
-    bl1_end_x = back_leg_x + leg_length * math.sin(math.radians(bl_angle1))
-    bl1_end_y = leg_y_start + leg_length * math.cos(math.radians(bl_angle1))
-    draw.line([(back_leg_x, leg_y_start), (bl1_end_x, bl1_end_y)], fill=color, width=6)
+        # Upper leg
+        upper_angle = math.radians(-swing)
+        knee_x = hip_x + upper_leg_length * math.sin(upper_angle)
+        knee_y = hip_y + upper_leg_length * math.cos(upper_angle)
 
-    # Back right
-    bl2_end_x = back_leg_x + 5 + leg_length * math.sin(math.radians(bl_angle2))
-    bl2_end_y = leg_y_start + leg_length * math.cos(math.radians(bl_angle2))
-    draw.line([(back_leg_x + 5, leg_y_start), (bl2_end_x, bl2_end_y)], fill=color, width=6)
+        # Draw upper leg as thick line
+        draw.line([(hip_x, hip_y), (knee_x, knee_y)], fill=color, width=leg_width)
 
-    # Tail
-    tail_swing = 15 * math.sin(tail_phase * 2 * math.pi)
-    tail_start_x = x - body_width//2
-    tail_start_y = y
+        # Lower leg - bends at knee
+        lower_angle = upper_angle + math.radians(knee_bend)
+        hoof_x = knee_x + lower_leg_length * math.sin(lower_angle)
+        hoof_y = knee_y + lower_leg_length * math.cos(lower_angle)
+
+        # Draw lower leg
+        draw.line([(knee_x, knee_y), (hoof_x, hoof_y)], fill=color, width=leg_width - 2)
+
+        # Hoof - small rounded rectangle
+        draw.ellipse(
+            [hoof_x - hoof_width // 2, hoof_y - 4,
+             hoof_x + hoof_width // 2, hoof_y + hoof_height],
+            fill=color
+        )
+
+        return (hoof_x, hoof_y)
+
+    # Front legs (at front of body)
+    front_leg_x = x + body_width // 4
+    draw_leg(front_leg_x - 8, leg_hip_y, front_phase + 0.3)  # Front left
+    hoof_pos = draw_leg(front_leg_x + 8, leg_hip_y, front_phase - 0.3)  # Front right
+
+    # Back legs (at back of body)
+    back_leg_x = x - body_width // 4
+    draw_leg(back_leg_x - 8, leg_hip_y, back_phase + 0.3)  # Back left
+    draw_leg(back_leg_x + 8, leg_hip_y, back_phase - 0.3)  # Back right
+
+    # Tail - flowing curve from back
+    tail_swing = 20 * math.sin(tail_phase * 2 * math.pi)
+    tail_start_x = x - body_width // 2 + 10
+    tail_start_y = y + 10
+
+    # Draw tail as curved line segments
     tail_points = [
         (tail_start_x, tail_start_y),
-        (tail_start_x - 20, tail_start_y + 20 + tail_swing),
-        (tail_start_x - 30, tail_start_y + 40 + tail_swing),
+        (tail_start_x - 30, tail_start_y + 30 + tail_swing * 0.5),
+        (tail_start_x - 50, tail_start_y + 60 + tail_swing),
+        (tail_start_x - 40, tail_start_y + 90 + tail_swing * 0.7),
     ]
-    draw.line(tail_points, fill=color, width=5)
+    draw.line(tail_points, fill=color, width=10)
 
-    return (bl1_end_x, fl1_end_y)  # Return hoof position for dust
+    # Tail hair strands
+    for i, offset in enumerate([-15, 0, 15]):
+        strand_swing = tail_swing + offset * 0.3
+        end_x = tail_start_x - 55 + offset
+        end_y = tail_start_y + 100 + strand_swing
+        draw.line(
+            [(tail_start_x - 40, tail_start_y + 90 + tail_swing * 0.7), (end_x, end_y)],
+            fill=color, width=6
+        )
+
+    return hoof_pos  # Return position for dust
 
 
-def draw_rider_on_horse(draw, x, y, bob_offset=0, arm_sway=0, color=COLORS['navy']):
-    """Draw a stick figure rider sitting on horse."""
+def draw_rider_hires(draw, x, y, bob_offset=0, arm_sway=0, color=COLORS['navy'], head_pos=None):
+    """Draw a refined stick figure rider at 800x800 scale."""
     y = y + bob_offset
-    rider_y = y - 60  # Above horse body
+    rider_y = y - 100  # Above horse body
+    stroke = 6  # Stroke width at hi-res
 
-    # Head
-    draw_stick_head(draw, x + 10, rider_y - 25, radius=12, color=color)
+    # Head - proportional circle
+    head_radius = 24
+    head_x = x + 20
+    head_y = rider_y - 40
+    draw.ellipse(
+        [head_x - head_radius, head_y - head_radius,
+         head_x + head_radius, head_y + head_radius],
+        outline=color, width=stroke
+    )
 
-    # Body (leaning slightly forward)
-    body_top = rider_y - 13
-    body_bottom = rider_y + 20
-    draw.line([(x + 10, body_top), (x + 5, body_bottom)], fill=color, width=STROKE_WIDTH)
+    # Torso - rectangular, sitting upright
+    shoulder_y = head_y + head_radius + 5
+    hip_y = shoulder_y + 50
+    draw.line([(head_x, shoulder_y), (head_x - 5, hip_y)], fill=color, width=stroke)
 
-    # Raised arm (right, waving)
-    arm_angle = 60 + arm_sway * 10
-    arm_end_x = x + 10 + 30 * math.cos(math.radians(arm_angle))
-    arm_end_y = body_top + 5 - 30 * math.sin(math.radians(arm_angle))
-    draw.line([(x + 10, body_top + 5), (arm_end_x, arm_end_y)], fill=color, width=STROKE_WIDTH)
+    # Left arm (holding reins) - extends forward to horse head
+    rein_end_x = head_pos[0] if head_pos else x + 100
+    rein_end_y = head_pos[1] if head_pos else rider_y
+    draw.line([(head_x - 5, shoulder_y + 10), (head_x + 30, shoulder_y + 30)], fill=color, width=stroke)
+    # Reins line
+    draw.line([(head_x + 30, shoulder_y + 30), (rein_end_x, rein_end_y)], fill=color, width=3)
 
-    # Left arm (holding reins)
-    draw.line([(x + 10, body_top + 5), (x + 35, body_top + 25)], fill=color, width=STROKE_WIDTH)
+    # Right arm (raised, waving)
+    arm_angle = 50 + arm_sway * 15
+    arm_length = 50
+    arm_end_x = head_x + arm_length * math.cos(math.radians(arm_angle))
+    arm_end_y = shoulder_y + 10 - arm_length * math.sin(math.radians(arm_angle))
+    draw.line([(head_x + 5, shoulder_y + 10), (arm_end_x, arm_end_y)], fill=color, width=stroke)
 
-    # Legs (bent, sitting position)
-    draw.line([(x + 5, body_bottom), (x + 25, body_bottom + 15)], fill=color, width=STROKE_WIDTH)
-    draw.line([(x + 5, body_bottom), (x - 15, body_bottom + 15)], fill=color, width=STROKE_WIDTH)
+    # Legs (bent, hanging on each side of horse)
+    # Left leg (visible, hanging down-left)
+    knee_l_x = head_x - 30
+    knee_l_y = hip_y + 30
+    foot_l_x = knee_l_x - 10
+    foot_l_y = knee_l_y + 35
+    draw.line([(head_x - 5, hip_y), (knee_l_x, knee_l_y)], fill=color, width=stroke)
+    draw.line([(knee_l_x, knee_l_y), (foot_l_x, foot_l_y)], fill=color, width=stroke)
+
+    # Right leg (hanging down-right)
+    knee_r_x = head_x + 30
+    knee_r_y = hip_y + 25
+    foot_r_x = knee_r_x + 10
+    foot_r_y = knee_r_y + 35
+    draw.line([(head_x - 5, hip_y), (knee_r_x, knee_r_y)], fill=color, width=stroke)
+    draw.line([(knee_r_x, knee_r_y), (foot_r_x, foot_r_y)], fill=color, width=stroke)
 
 
-def draw_ground_path(draw, offset, y_pos, color=COLORS['gray']):
-    """Draw scrolling ground path."""
-    # Main ground line
-    draw.line([(0, y_pos), (WIDTH, y_pos)], fill=color, width=2)
+def draw_ground_path_hires(draw, offset, y_pos, color=COLORS['gray']):
+    """Draw scrolling ground path at 800x800 scale."""
+    width = HIRES_SIZE
 
-    # Dotted path marks
-    for i in range(-1, 15):
-        mark_x = (i * 40 - offset) % (WIDTH + 80) - 40
-        if 0 <= mark_x <= WIDTH:
-            draw.line([(mark_x, y_pos + 5), (mark_x + 20, y_pos + 5)], fill=color, width=2)
+    # Main ground line - dashed
+    dash_length = 40
+    gap_length = 20
+    for i in range(-2, 20):
+        dash_x = (i * (dash_length + gap_length) - offset) % (width + 200) - 100
+        if -dash_length <= dash_x <= width:
+            draw.line(
+                [(max(0, dash_x), y_pos), (min(width, dash_x + dash_length), y_pos)],
+                fill=color, width=4
+            )
 
 
-def draw_dust_puffs(draw, x, y, frame, particles):
-    """Draw animated dust particles."""
+def draw_dust_puffs_hires(draw, x, y, frame, particles, scale=2):
+    """Draw animated dust particles at hi-res scale."""
     for p in particles:
         age = frame - p['start_frame']
         if 0 <= age < p['lifetime']:
-            alpha = int(255 * (1 - age / p['lifetime']))
-            size = p['size'] + age * 0.5
-            px = p['x'] + p['vx'] * age
-            py = p['y'] + p['vy'] * age
+            alpha = int(200 * (1 - age / p['lifetime']))
+            size = (p['size'] + age * 1) * scale
+            px = p['x'] * scale + p['vx'] * age * scale
+            py = p['y'] * scale + p['vy'] * age * scale
 
             dust_color = COLORS['gray'][:3] + (alpha,)
             draw.ellipse(
@@ -322,141 +434,321 @@ def draw_dust_puffs(draw, x, y, frame, particles):
 
 
 def generate_activites_gif():
-    """Generate the activites.gif - horse and rider animation."""
-    print("Generating activites.gif...")
+    """Generate the activites.gif - horse and rider animation at hi-res."""
+    print("Generating activites.gif (hi-res)...")
     frames = []
 
-    horse_x = WIDTH // 2 - 20
-    horse_y = HEIGHT // 2 + 20
-    ground_y = HEIGHT - 80
+    # Positions at hi-res scale (800x800)
+    horse_x = HIRES_SIZE // 2 - 40
+    horse_y = HIRES_SIZE // 2 + 40
+    ground_y = HIRES_SIZE - 160
 
-    # Pre-generate dust particles
+    # Pre-generate dust particles (at original scale, will be scaled during draw)
     dust_particles = []
     for i in range(TOTAL_FRAMES):
         if i % 3 == 0:  # New dust every 3 frames
             dust_particles.append({
-                'x': horse_x - 60 + random.randint(-10, 10),
-                'y': ground_y - 10,
-                'vx': random.uniform(-2, -0.5),
-                'vy': random.uniform(-1, -0.3),
-                'size': random.randint(4, 8),
+                'x': (horse_x // 2) - 60 + random.randint(-10, 10),
+                'y': (ground_y // 2) - 10,
+                'vx': random.uniform(-3, -1),
+                'vy': random.uniform(-1.5, -0.5),
+                'size': random.randint(6, 12),
                 'start_frame': i,
-                'lifetime': 8
+                'lifetime': 10
             })
 
     for i in range(TOTAL_FRAMES):
-        frame = create_frame()
+        # Create hi-res frame
+        frame = create_hires_frame()
         draw = ImageDraw.Draw(frame)
 
         # Calculate animation phases
         leg_phase = i / 6  # Complete leg cycle every 6 frames
         tail_phase = i / 8
-        bob_offset = 4 * math.sin(leg_phase * 2 * math.pi)
+        bob_offset = 8 * math.sin(leg_phase * 2 * math.pi)  # 8px at hi-res = 4px at output
         arm_sway = math.sin(i / 4 * math.pi)
-        ground_offset = i * 8  # Ground scrolls
+        ground_offset = i * 16  # Ground scrolls (doubled for hi-res)
 
         # Draw ground path
-        draw_ground_path(draw, ground_offset, ground_y)
+        draw_ground_path_hires(draw, ground_offset, ground_y)
 
         # Draw dust
-        draw_dust_puffs(draw, horse_x, ground_y, i, dust_particles)
+        draw_dust_puffs_hires(draw, horse_x, ground_y, i, dust_particles)
+
+        # Calculate head position for reins
+        head_x = horse_x + 80 + 45  # neck_top_x + head offset
+        head_y = horse_y - 80 - 40 + 15 + int(bob_offset)  # neck_top_y + head_cy offset
 
         # Draw horse
-        draw_horse(draw, horse_x, horse_y, leg_phase, tail_phase, int(bob_offset))
+        draw_horse_hires(draw, horse_x, horse_y, leg_phase, tail_phase, int(bob_offset))
 
         # Draw rider
-        draw_rider_on_horse(draw, horse_x, horse_y, int(bob_offset), arm_sway)
+        draw_rider_hires(draw, horse_x, horse_y, int(bob_offset), arm_sway, head_pos=(head_x, head_y))
 
-        frames.append(frame)
+        # Resize to output size with LANCZOS
+        frames.append(resize_frame(frame))
 
     return save_gif(frames, 'activites.gif')
 
 
 # ============================================================================
-# GIF 2: NAUTIQUE - Jet Ski with Rider
+# GIF 2: NAUTIQUE - Jet Ski with Rider (Hi-Res Version)
 # ============================================================================
 
-def draw_jetski_with_rider(draw, x, y, tilt=0, color=COLORS['navy'], fill=COLORS['green']):
-    """Draw jet ski with rider."""
-    # Jet ski body
-    body_points = [
-        (x - 50, y + 10),
-        (x - 45, y - 15),
-        (x - 20, y - 25),
-        (x + 20, y - 30),
-        (x + 50, y - 20),
-        (x + 70, y - 10),
-        (x + 75, y + 5),
-        (x + 70, y + 15),
-        (x - 50, y + 15),
+def draw_jetski_hires(draw, x, y, tilt=0, color=COLORS['navy'], fill=COLORS['green']):
+    """Draw a refined jet ski hull at 800x800 scale.
+
+    Hull: smooth elongated wedge shape taking ~40% canvas width
+    - Pointed/narrow at front with upward curve (boat bow)
+    - Wider at back
+    - Seat bump in middle
+    - Handlebars in front
+    """
+    stroke = 6
+
+    # Hull dimensions - takes 40% of 800 = 320px
+    hull_length = 320
+    hull_height = 60
+
+    # Hull - smooth wedge shape with bow curve
+    # Front tip is elevated and narrow, back is wider and flat
+    hull_points = [
+        # Front bow (elevated, narrow)
+        (x + hull_length // 2 + 20, y - 30),  # Tip
+        (x + hull_length // 2, y - 35),  # Bow curve top
+        (x + hull_length // 4, y - 45),  # Upper front curve
+
+        # Top deck
+        (x, y - 50),  # Mid-top
+        (x - hull_length // 4, y - 45),  # Upper rear
+
+        # Rear
+        (x - hull_length // 2 + 20, y - 35),  # Rear top corner
+        (x - hull_length // 2, y + 5),  # Rear bottom
+
+        # Bottom hull
+        (x - hull_length // 4, y + 20),  # Rear underside
+        (x, y + 25),  # Mid bottom
+        (x + hull_length // 4, y + 15),  # Front underside
+        (x + hull_length // 2, y - 5),  # Front bottom curve
     ]
-    draw.polygon(body_points, fill=fill, outline=color, width=STROKE_WIDTH)
+    draw.polygon(hull_points, fill=fill, outline=color, width=stroke)
 
-    # Handlebar
-    draw.line([(x + 10, y - 30), (x + 20, y - 50)], fill=color, width=4)
-    draw.line([(x + 10, y - 50), (x + 30, y - 50)], fill=color, width=4)
-
-    # Rider
-    rider_x = x - 10
-    rider_y = y - 60
-
-    # Head
-    draw_stick_head(draw, rider_x, rider_y, radius=12, color=color)
-
-    # Hair/scarf blowing back
-    hair_points = [
-        (rider_x - 5, rider_y - 8),
-        (rider_x - 25, rider_y - 5 + tilt),
-        (rider_x - 35, rider_y + tilt * 0.5),
+    # Seat bump - raised section in middle-back
+    seat_points = [
+        (x - 60, y - 45),
+        (x - 50, y - 65),
+        (x + 20, y - 65),
+        (x + 40, y - 50),
     ]
-    draw.line(hair_points, fill=color, width=3)
+    draw.polygon(seat_points, fill=fill, outline=color, width=stroke)
 
-    # Body (leaning forward)
-    body_angle = 30 + tilt * 2
-    body_length = 40
-    body_end_x = rider_x + body_length * math.sin(math.radians(body_angle))
-    body_end_y = rider_y + 12 + body_length * math.cos(math.radians(body_angle))
-    draw.line([(rider_x, rider_y + 12), (body_end_x, body_end_y)], fill=color, width=STROKE_WIDTH)
+    # Handlebars - two angled lines
+    handlebar_base_x = x + 80
+    handlebar_base_y = y - 55
+    handlebar_top_y = y - 100
 
-    # Arms reaching to handlebar
-    draw.line([(rider_x + 5, rider_y + 20), (x + 20, y - 50)], fill=color, width=STROKE_WIDTH)
-    draw.line([(rider_x + 5, rider_y + 20), (x + 10, y - 50)], fill=color, width=STROKE_WIDTH)
+    # Stem
+    draw.line(
+        [(handlebar_base_x, handlebar_base_y), (handlebar_base_x + 10, handlebar_top_y)],
+        fill=color, width=8
+    )
+    # Crossbar
+    draw.line(
+        [(handlebar_base_x - 15, handlebar_top_y - 5), (handlebar_base_x + 35, handlebar_top_y + 5)],
+        fill=color, width=8
+    )
+    # Grips
+    draw.ellipse(
+        [handlebar_base_x - 20, handlebar_top_y - 12, handlebar_base_x - 8, handlebar_top_y + 2],
+        fill=color
+    )
+    draw.ellipse(
+        [handlebar_base_x + 28, handlebar_top_y - 2, handlebar_base_x + 40, handlebar_top_y + 12],
+        fill=color
+    )
 
-    # Legs
-    draw.line([(body_end_x, body_end_y), (x + 30, y - 15)], fill=color, width=STROKE_WIDTH)
-    draw.line([(body_end_x, body_end_y), (x - 20, y - 10)], fill=color, width=STROKE_WIDTH)
+    return (handlebar_base_x - 15, handlebar_top_y - 5, handlebar_base_x + 35, handlebar_top_y + 5)
 
 
-def draw_waves(draw, offset, y_base, color=COLORS['navy']):
-    """Draw scrolling wave lines."""
-    wave_amplitude = 8
-    wave_length = 60
+def draw_jetski_rider_hires(draw, x, y, tilt=0, scarf_phase=0, handlebar_pos=None, color=COLORS['navy']):
+    """Draw refined jet ski rider at 800x800 scale.
 
-    for wave_idx, wave_y in enumerate([y_base, y_base + 25, y_base + 50]):
+    - Leaning forward dynamically
+    - Arms gripping handlebars
+    - Scarf/bandana trailing
+    - Smile on face
+    """
+    stroke = 6
+
+    # Rider position (sitting on seat)
+    rider_x = x - 20
+    rider_y = y - 130
+
+    # Head - circle with forward lean
+    head_radius = 26
+    head_x = rider_x + 30
+    head_y = rider_y - 20
+    draw.ellipse(
+        [head_x - head_radius, head_y - head_radius,
+         head_x + head_radius, head_y + head_radius],
+        outline=color, width=stroke
+    )
+
+    # Smile - arc on face
+    smile_y = head_y + 5
+    draw.arc(
+        [head_x - 12, smile_y - 8, head_x + 12, smile_y + 8],
+        start=20, end=160, fill=color, width=4
+    )
+
+    # Eyes - two dots
+    draw.ellipse([head_x - 10, head_y - 8, head_x - 4, head_y - 2], fill=color)
+    draw.ellipse([head_x + 4, head_y - 8, head_x + 10, head_y - 2], fill=color)
+
+    # Scarf/bandana trailing - 3 wavy lines
+    scarf_base_x = head_x - head_radius + 5
+    scarf_base_y = head_y
+
+    for i, offset in enumerate([0, 8, 16]):
+        wave = 10 * math.sin(scarf_phase + i * 0.5)
+        scarf_points = [
+            (scarf_base_x, scarf_base_y + offset),
+            (scarf_base_x - 30, scarf_base_y + offset + wave * 0.5 + tilt),
+            (scarf_base_x - 60, scarf_base_y + offset + wave + tilt * 1.5),
+            (scarf_base_x - 80, scarf_base_y + offset + wave * 0.7 + tilt * 2),
+        ]
+        draw.line(scarf_points, fill=COLORS['orange'], width=6 - i)
+
+    # Torso - bent forward (dynamic riding posture)
+    shoulder_x = head_x - 5
+    shoulder_y = head_y + head_radius + 10
+    hip_x = rider_x - 10
+    hip_y = y - 70
+
+    draw.line([(shoulder_x, shoulder_y), (hip_x, hip_y)], fill=color, width=stroke)
+
+    # Arms - extended forward to handlebars
+    if handlebar_pos:
+        left_grip = (handlebar_pos[0], handlebar_pos[1])
+        right_grip = (handlebar_pos[2], handlebar_pos[3])
+    else:
+        left_grip = (x + 65, y - 105)
+        right_grip = (x + 115, y - 95)
+
+    # Left arm
+    elbow_l_x = shoulder_x + 20
+    elbow_l_y = shoulder_y + 15
+    draw.line([(shoulder_x, shoulder_y), (elbow_l_x, elbow_l_y)], fill=color, width=stroke)
+    draw.line([(elbow_l_x, elbow_l_y), left_grip], fill=color, width=stroke)
+
+    # Right arm
+    elbow_r_x = shoulder_x + 35
+    elbow_r_y = shoulder_y + 10
+    draw.line([(shoulder_x + 5, shoulder_y), (elbow_r_x, elbow_r_y)], fill=color, width=stroke)
+    draw.line([(elbow_r_x, elbow_r_y), right_grip], fill=color, width=stroke)
+
+    # Legs - bent, sitting on seat
+    knee_y = hip_y + 40
+
+    # Left leg
+    knee_l_x = hip_x - 25
+    foot_l_x = knee_l_x + 10
+    foot_l_y = knee_y + 35
+    draw.line([(hip_x, hip_y), (knee_l_x, knee_y)], fill=color, width=stroke)
+    draw.line([(knee_l_x, knee_y), (foot_l_x, foot_l_y)], fill=color, width=stroke)
+
+    # Right leg
+    knee_r_x = hip_x + 35
+    foot_r_x = knee_r_x + 15
+    foot_r_y = knee_y + 30
+    draw.line([(hip_x, hip_y), (knee_r_x, knee_y)], fill=color, width=stroke)
+    draw.line([(knee_r_x, knee_y), (foot_r_x, foot_r_y)], fill=color, width=stroke)
+
+
+def draw_waves_hires(draw, offset, y_base, color=COLORS['navy']):
+    """Draw scrolling wave lines at 800x800 scale."""
+    wave_amplitude = 16  # Doubled for hi-res
+    wave_length = 120
+    width = HIRES_SIZE
+
+    for wave_idx, wave_y in enumerate([y_base, y_base + 50, y_base + 100]):
         points = []
-        phase_offset = wave_idx * 0.3
-        for px in range(-20, WIDTH + 40, 4):
+        phase_offset = wave_idx * 0.4
+        for px in range(-40, width + 80, 8):
             adjusted_x = px + offset
             py = wave_y + wave_amplitude * math.sin(2 * math.pi * adjusted_x / wave_length + phase_offset)
-            points.append((px, py))
+            points.append((int(px), int(py)))
 
         if len(points) > 1:
-            draw.line(points, fill=color, width=3)
+            draw.line(points, fill=color, width=6)
 
 
-def draw_splash_particles(draw, x, y, frame, particles):
-    """Draw splash particles."""
+def draw_rooster_tail_hires(draw, x, y, phase, color=COLORS['white']):
+    """Draw V-shaped rooster-tail water spray behind jet ski."""
+    # Pulsing size
+    pulse = 0.7 + 0.3 * math.sin(phase * 4)
+    base_height = 80 * pulse
+    spread = 60 * pulse
+
+    spray_base_x = x - 140
+    spray_base_y = y + 20
+
+    # V-shape spray
+    # Left spray arm
+    for i in range(5):
+        progress = i / 4
+        spray_x = spray_base_x - spread * progress - 10 * progress
+        spray_y = spray_base_y - base_height * progress
+        size = (12 - i * 2) * pulse
+        alpha = int(200 * (1 - progress * 0.5))
+        spray_color = color[:3] + (alpha,)
+        draw.ellipse(
+            [spray_x - size, spray_y - size, spray_x + size, spray_y + size],
+            fill=spray_color
+        )
+
+    # Right spray arm
+    for i in range(5):
+        progress = i / 4
+        spray_x = spray_base_x - spread * progress - 10 * progress
+        spray_y = spray_base_y + base_height * progress * 0.3  # Less downward
+        size = (10 - i * 2) * pulse
+        alpha = int(180 * (1 - progress * 0.5))
+        spray_color = color[:3] + (alpha,)
+        draw.ellipse(
+            [spray_x - size, spray_y - size, spray_x + size, spray_y + size],
+            fill=spray_color
+        )
+
+    # Center spray particles
+    for i in range(8):
+        angle = math.radians(-120 + i * 10)
+        dist = (30 + i * 8) * pulse
+        px = spray_base_x + dist * math.cos(angle)
+        py = spray_base_y + dist * math.sin(angle)
+        size = (8 - i * 0.5) * pulse
+        alpha = int(220 * (1 - i / 10))
+        spray_color = color[:3] + (alpha,)
+        draw.ellipse(
+            [px - size, py - size, px + size, py + size],
+            fill=spray_color
+        )
+
+
+def draw_splash_particles_hires(draw, x, y, frame, particles):
+    """Draw splash particles at hi-res scale."""
     for p in particles:
         age = frame - p['start_frame']
         if 0 <= age < p['lifetime']:
             progress = age / p['lifetime']
-            alpha = int(255 * (1 - progress))
+            alpha = int(220 * (1 - progress))
 
-            # Parabolic motion
-            px = p['x'] + p['vx'] * age
-            py = p['y'] + p['vy'] * age + 0.5 * age * age  # Gravity
+            # Parabolic motion (scaled for hi-res)
+            px = p['x'] * 2 + p['vx'] * age * 2
+            py = p['y'] * 2 + p['vy'] * age * 2 + 0.8 * age * age
 
-            size = p['size'] * (1 - progress * 0.5)
+            size = p['size'] * 2 * (1 - progress * 0.4)
 
             splash_color = COLORS['white'][:3] + (alpha,)
             draw.ellipse(
@@ -466,60 +758,73 @@ def draw_splash_particles(draw, x, y, frame, particles):
 
 
 def generate_nautique_gif():
-    """Generate the nautique.gif - jet ski with rider."""
-    print("Generating nautique.gif...")
+    """Generate the nautique.gif - jet ski with rider at hi-res."""
+    print("Generating nautique.gif (hi-res)...")
     frames = []
 
-    jetski_x = WIDTH // 2
-    jetski_base_y = HEIGHT // 2 - 30
-    wave_y = HEIGHT // 2 + 60
+    # Positions at hi-res scale (800x800)
+    jetski_x = HIRES_SIZE // 2
+    jetski_base_y = HIRES_SIZE // 2 - 60
+    wave_y = HIRES_SIZE // 2 + 120
 
-    # Pre-generate splash particles
+    # Pre-generate splash particles (at original scale, will be scaled during draw)
     splash_particles = []
     for i in range(TOTAL_FRAMES):
         if i % 4 == 0:  # Regular splash
-            for _ in range(3):
+            for _ in range(4):
                 splash_particles.append({
-                    'x': jetski_x - 55 + random.randint(-5, 5),
-                    'y': jetski_base_y + 20,
-                    'vx': random.uniform(-3, -1),
-                    'vy': random.uniform(-4, -2),
-                    'size': random.randint(3, 6),
-                    'start_frame': i,
-                    'lifetime': 10
-                })
-        if i % 8 == 0:  # Big splash
-            for _ in range(5):
-                splash_particles.append({
-                    'x': jetski_x - 55 + random.randint(-10, 10),
-                    'y': jetski_base_y + 20,
-                    'vx': random.uniform(-5, -2),
-                    'vy': random.uniform(-6, -3),
-                    'size': random.randint(5, 10),
+                    'x': jetski_x // 2 - 70 + random.randint(-10, 10),
+                    'y': jetski_base_y // 2 + 15,
+                    'vx': random.uniform(-4, -1),
+                    'vy': random.uniform(-5, -2),
+                    'size': random.randint(4, 8),
                     'start_frame': i,
                     'lifetime': 12
                 })
+        if i % 8 == 0:  # Big splash
+            for _ in range(6):
+                splash_particles.append({
+                    'x': jetski_x // 2 - 70 + random.randint(-15, 15),
+                    'y': jetski_base_y // 2 + 15,
+                    'vx': random.uniform(-6, -2),
+                    'vy': random.uniform(-7, -3),
+                    'size': random.randint(6, 12),
+                    'start_frame': i,
+                    'lifetime': 14
+                })
 
     for i in range(TOTAL_FRAMES):
-        frame = create_frame()
+        # Create hi-res frame
+        frame = create_hires_frame()
         draw = ImageDraw.Draw(frame)
 
         # Wave motion
         wave_phase = i / TOTAL_FRAMES * 2 * math.pi
-        bounce = 8 * math.sin(wave_phase)
-        tilt = 3 * math.sin(wave_phase)
-        wave_offset = i * 10
+        bounce = 16 * math.sin(wave_phase)  # Doubled for hi-res
+        tilt = 5 * math.sin(wave_phase)
+        wave_offset = i * 20  # Doubled for hi-res
+        scarf_phase = i / 3 * math.pi
 
-        # Draw waves
-        draw_waves(draw, wave_offset, wave_y)
+        # Draw waves (behind everything)
+        draw_waves_hires(draw, wave_offset, wave_y)
 
-        # Draw splash
-        draw_splash_particles(draw, jetski_x, jetski_base_y, i, splash_particles)
+        # Draw splash particles
+        draw_splash_particles_hires(draw, jetski_x, jetski_base_y, i, splash_particles)
 
-        # Draw jet ski with rider
-        draw_jetski_with_rider(draw, jetski_x, int(jetski_base_y + bounce), tilt)
+        # Draw rooster-tail spray
+        draw_rooster_tail_hires(draw, jetski_x, int(jetski_base_y + bounce), wave_phase)
 
-        frames.append(frame)
+        # Draw jet ski
+        handlebar_pos = draw_jetski_hires(draw, jetski_x, int(jetski_base_y + bounce), tilt)
+
+        # Draw rider
+        draw_jetski_rider_hires(
+            draw, jetski_x, int(jetski_base_y + bounce),
+            tilt, scarf_phase, handlebar_pos
+        )
+
+        # Resize to output size with LANCZOS
+        frames.append(resize_frame(frame))
 
     return save_gif(frames, 'nautique.gif')
 
@@ -877,26 +1182,42 @@ def generate_evenements_gif():
 # ============================================================================
 
 def main():
-    """Generate all GIF files."""
+    """Generate GIF files."""
+    import sys
+
     print("=" * 60)
-    print("Generating Service Type GIFs v2 with Stick Figures")
+    print("Generating Service Type GIFs v2 (Hi-Res Quality)")
     print("=" * 60)
     print(f"Output directory: {OUTPUT_DIR}")
     print(f"Frame duration: {FRAME_DURATION}ms")
-    print(f"Canvas size: {WIDTH}x{HEIGHT}px")
+    print(f"Output size: {OUTPUT_SIZE}x{OUTPUT_SIZE}px")
+    print(f"Working size: {HIRES_SIZE}x{HIRES_SIZE}px (for activites & nautique)")
     print(f"Total frames: {TOTAL_FRAMES}")
     print()
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    generate_activites_gif()
-    generate_nautique_gif()
-    generate_hebergements_gif()
-    generate_evenements_gif()
+    # Check for command line args to generate specific GIFs
+    args = sys.argv[1:] if len(sys.argv) > 1 else ['all']
+
+    if 'all' in args:
+        generate_activites_gif()
+        generate_nautique_gif()
+        generate_hebergements_gif()
+        generate_evenements_gif()
+    else:
+        if 'activites' in args or 'horse' in args:
+            generate_activites_gif()
+        if 'nautique' in args or 'jetski' in args:
+            generate_nautique_gif()
+        if 'hebergements' in args or 'house' in args:
+            generate_hebergements_gif()
+        if 'evenements' in args or 'events' in args:
+            generate_evenements_gif()
 
     print()
     print("=" * 60)
-    print("All GIFs generated successfully!")
+    print("GIF generation complete!")
     print("=" * 60)
 
 
