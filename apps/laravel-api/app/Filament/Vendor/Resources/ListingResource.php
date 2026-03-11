@@ -8,12 +8,11 @@ use AmidEsfahani\FilamentTinyEditor\TinyEditor;
 use App\Enums\DifficultyLevel;
 use App\Enums\ListingStatus;
 use App\Enums\ServiceType;
-use App\Enums\TagType;
-use App\Models\Tag;
 use App\Filament\Vendor\Resources\ListingResource\Pages;
 use App\Filament\Vendor\Resources\ListingResource\RelationManagers;
 use App\Models\Listing;
 use App\Models\Location;
+use App\Models\Tag;
 use App\Services\GpxParserService;
 use Filament\Forms;
 use Filament\Forms\Components\BaseFileUpload;
@@ -123,6 +122,7 @@ class ListingResource extends Resource
 
                                     // Don't override if French title already generated the slug
                                     $frenchTitle = $get('title.fr');
+
                                     if (! empty($frenchTitle) && ! empty($get('_auto_slug'))) {
                                         return;
                                     }
@@ -153,6 +153,7 @@ class ListingResource extends Resource
                                     }
 
                                     $englishTitle = $get('title.en');
+
                                     if (! empty($englishTitle)) {
                                         return; // Don't override if English title exists
                                     }
@@ -721,6 +722,7 @@ class ListingResource extends Resource
                                                 // GPX mode always uses markers (all points displayed)
                                                 $set('map_display_type', 'markers');
                                             }
+
                                             if ($state === 'manual' && $get('gpx_file_path')) {
                                                 // Warn user that switching to manual will clear GPX data
                                                 Notification::make()
@@ -1148,6 +1150,7 @@ class ListingResource extends Resource
                                                 ->reorderable()
                                                 ->getUploadedFileUsing(static function (BaseFileUpload $component, string $file): ?array {
                                                     $storage = $component->getDisk();
+
                                                     if (! $storage->exists($file)) {
                                                         return null;
                                                     }
@@ -1531,12 +1534,12 @@ class ListingResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->label('Title')
-                    ->formatStateUsing(function ($record) {
+                    ->state(function (Listing $record): string {
                         $currentLocale = app()->getLocale();
                         $alternateLocale = $currentLocale === 'en' ? 'fr' : 'en';
 
-                        // Try current locale first
-                        $title = $record->getTranslation('title', $currentLocale);
+                        // Try current locale first (disable Spatie's auto-fallback to show indicator)
+                        $title = $record->getTranslation('title', $currentLocale, false);
                         $usedLocale = $currentLocale;
 
                         // Handle malformed nested arrays from earlier bug
@@ -1550,7 +1553,7 @@ class ListingResource extends Resource
 
                         // If empty, try alternate locale
                         if (empty($title)) {
-                            $title = $record->getTranslation('title', $alternateLocale);
+                            $title = $record->getTranslation('title', $alternateLocale, false);
                             $usedLocale = $alternateLocale;
 
                             if (is_array($title)) {
@@ -1809,6 +1812,7 @@ class ListingResource extends Resource
                         if ($record->service_type === ServiceType::ACCOMMODATION) {
                             // Accommodations use nightly pricing (direct columns)
                             $hasNightlyPricing = ! empty($record->nightly_price_tnd) || ! empty($record->nightly_price_eur);
+
                             if (! $hasNightlyPricing) {
                                 $errors[] = 'Nightly pricing (TND or EUR) is required for accommodations';
                             }
@@ -1964,6 +1968,7 @@ class ListingResource extends Resource
         // Try various parent depths since repeater nesting varies
         foreach (['../../service_type', '../../../service_type', '../../../../service_type'] as $path) {
             $value = $get($path);
+
             if ($value) {
                 return $value;
             }

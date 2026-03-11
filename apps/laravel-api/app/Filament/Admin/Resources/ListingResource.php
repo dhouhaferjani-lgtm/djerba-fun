@@ -153,6 +153,7 @@ class ListingResource extends Resource
                                 if ($record?->is_featured) {
                                     return false;
                                 }
+
                                 // Check if 3 listings are already featured
                                 return Listing::where('is_featured', true)->count() >= 3;
                             })
@@ -161,16 +162,19 @@ class ListingResource extends Resource
                                     return __('filament.helpers.show_on_homepage');
                                 }
                                 $featuredCount = Listing::where('is_featured', true)->count();
+
                                 if ($featuredCount >= 3) {
                                     return __('filament.helpers.featured_limit_reached');
                                 }
+
                                 return __('filament.helpers.show_on_homepage');
                             })
                             ->rules([
                                 function (?Listing $record) {
                                     return function (string $attribute, $value, \Closure $fail) use ($record) {
-                                        if ($value && !$record?->is_featured) {
+                                        if ($value && ! $record?->is_featured) {
                                             $featuredCount = Listing::where('is_featured', true)->count();
+
                                             if ($featuredCount >= 3) {
                                                 $fail(__('filament.helpers.featured_limit_reached'));
                                             }
@@ -189,12 +193,12 @@ class ListingResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->label(__('filament.labels.title'))
-                    ->formatStateUsing(function ($record) {
+                    ->state(function (Listing $record): string {
                         $currentLocale = app()->getLocale();
                         $alternateLocale = $currentLocale === 'en' ? 'fr' : 'en';
 
-                        // Try current locale first
-                        $title = $record->getTranslation('title', $currentLocale);
+                        // Try current locale first (disable Spatie's auto-fallback to show indicator)
+                        $title = $record->getTranslation('title', $currentLocale, false);
                         $usedLocale = $currentLocale;
 
                         // Handle malformed nested arrays from earlier bug
@@ -208,7 +212,7 @@ class ListingResource extends Resource
 
                         // If empty, try alternate locale
                         if (empty($title)) {
-                            $title = $record->getTranslation('title', $alternateLocale);
+                            $title = $record->getTranslation('title', $alternateLocale, false);
                             $usedLocale = $alternateLocale;
 
                             if (is_array($title)) {
@@ -337,9 +341,11 @@ class ListingResource extends Resource
                         }
                         // Get the translated name
                         $locale = app()->getLocale();
+
                         if (is_array($state)) {
                             return $state[$locale] ?? $state['en'] ?? reset($state) ?: $state;
                         }
+
                         return $state;
                     })
                     ->color(fn ($record) => 'gray')
@@ -542,8 +548,10 @@ class ListingResource extends Resource
                             // Send database notification to vendor
                             try {
                                 $vendor = $record->vendor;
+
                                 if ($vendor) {
                                     $listingTitle = $record->getTranslation('title', 'en') ?: $record->getTranslation('title', 'fr') ?: 'Untitled';
+
                                     if (is_array($listingTitle)) {
                                         $listingTitle = reset($listingTitle) ?: 'Untitled';
                                     }
@@ -599,8 +607,10 @@ class ListingResource extends Resource
                             // Send database notification to vendor with rejection reason
                             try {
                                 $vendor = $record->vendor;
+
                                 if ($vendor) {
                                     $listingTitle = $record->getTranslation('title', 'en') ?: $record->getTranslation('title', 'fr') ?: 'Untitled';
+
                                     if (is_array($listingTitle)) {
                                         $listingTitle = reset($listingTitle) ?: 'Untitled';
                                     }
