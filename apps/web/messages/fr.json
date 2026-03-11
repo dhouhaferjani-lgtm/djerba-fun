@@ -4,6 +4,7 @@
     "book_now": "Réserver",
     "from": "À partir de",
     "per_person": "par personne",
+    "per_night": "par nuit",
     "reviews": "{count, plural, =0 {Aucun avis} =1 {1 avis} other {# avis}}",
     "loading": "Chargement...",
     "error": "Une erreur est survenue",

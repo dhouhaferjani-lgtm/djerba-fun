@@ -36,7 +36,12 @@ export function BookingPanel({
   // Check if we're on mobile (less than 1024px)
   const isMobile = useMediaQuery('(max-width: 1023px)');
 
-  const basePrice = pricing.displayPrice || pricing.tndPrice || 0;
+  // Use nightly price for accommodations, per-person price for other service types
+  const pricingModel = pricing.pricingModel || 'per_person';
+  const isNightlyPricing = pricingModel === 'per_night';
+  const basePrice = isNightlyPricing
+    ? pricing.nightlyDisplayPrice || pricing.nightlyPriceTnd || 0
+    : pricing.displayPrice || pricing.tndPrice || 0;
   const currency = pricing.displayCurrency || 'EUR';
 
   // Get service-type colors for theming
@@ -65,7 +70,14 @@ export function BookingPanel({
         <div className="px-4 py-3 max-w-lg mx-auto space-y-3">
           {/* Price - stacked on top for better visibility */}
           <div className="flex items-center justify-between" data-testid="listing-price">
-            <PriceDisplay amount={basePrice} currency={currency} size="md" showFrom perPerson />
+            <PriceDisplay
+              amount={basePrice}
+              currency={currency}
+              size="md"
+              showFrom
+              perPerson={!isNightlyPricing}
+              perNight={isNightlyPricing}
+            />
           </div>
           {/* Full-width button for better mobile UX - Service-type colored */}
           <Button

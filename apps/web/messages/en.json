@@ -4,6 +4,7 @@
     "book_now": "Book Now",
     "from": "From",
     "per_person": "per person",
+    "per_night": "per night",
     "reviews": "{count, plural, =0 {No reviews} =1 {1 review} other {# reviews}}",
     "loading": "Loading...",
     "error": "Something went wrong",

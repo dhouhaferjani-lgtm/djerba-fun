@@ -138,7 +138,12 @@ export function FixedBookingPanel({
   const tCommon = useTranslations('common');
   const [showBookingFlow, setShowBookingFlow] = useState(false);
 
-  const basePrice = listing.pricing?.displayPrice || listing.pricing?.tndPrice || 0;
+  // Use nightly price for accommodations, per-person price for other service types
+  const pricingModel = listing.pricing?.pricingModel || 'per_person';
+  const isNightlyPricing = pricingModel === 'per_night';
+  const basePrice = isNightlyPricing
+    ? listing.pricing?.nightlyDisplayPrice || listing.pricing?.nightlyPriceTnd || 0
+    : listing.pricing?.displayPrice || listing.pricing?.tndPrice || 0;
   const currency = listing.pricing?.displayCurrency || 'TND';
   const isPriceNotSet = basePrice === 0;
 
@@ -170,7 +175,14 @@ export function FixedBookingPanel({
         <div>
           {/* Price Display */}
           <div className="mb-4" data-testid="listing-price">
-            <PriceDisplay amount={basePrice} currency={currency} size="lg" showFrom />
+            <PriceDisplay
+              amount={basePrice}
+              currency={currency}
+              size="lg"
+              showFrom
+              perPerson={!isNightlyPricing}
+              perNight={isNightlyPricing}
+            />
             {isPriceNotSet && (
               <div className="mt-2 flex items-center gap-1.5 text-xs text-warning-dark">
                 <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />

@@ -29,8 +29,14 @@ class CreateHoldRequest extends BaseFormRequest
                 Rule::exists('availability_slots', 'id')
                     ->where('listing_id', $this->route('listing')->id),
             ],
-            // Either quantity or person_types is required (for non-accommodation bookings)
-            'quantity' => ['required_without_all:person_types,guests', 'nullable', 'integer', 'min:1'],
+            // Quantity is required for standard bookings (tours, events, nautical)
+            // Not required for accommodation bookings (use guests instead) or when person_types is provided
+            'quantity' => [
+                Rule::requiredIf(fn () => ! $this->filled('check_in_date') && ! $this->filled('person_types')),
+                'nullable',
+                'integer',
+                'min:1',
+            ],
             'session_id' => ['nullable', 'string', 'max:255'],
             // Person type breakdown (optional - will use quantity if not provided)
             'person_types' => ['nullable', 'array'],

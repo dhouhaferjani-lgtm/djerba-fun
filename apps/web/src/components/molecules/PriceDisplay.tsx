@@ -19,6 +19,7 @@ interface PriceDisplayProps {
   size?: 'sm' | 'md' | 'lg';
   showFrom?: boolean;
   perPerson?: boolean;
+  perNight?: boolean;
   className?: string;
 }
 
@@ -50,6 +51,7 @@ function PriceDisplayComponent({
   size = 'md',
   showFrom = false,
   perPerson = true,
+  perNight = false,
   className = '',
 }: PriceDisplayProps) {
   const t = useTranslations('common');
@@ -58,6 +60,10 @@ function PriceDisplayComponent({
   const symbol = useMemo(() => currencySymbols[currency] || currency, [currency]);
   const formattedAmount = useMemo(() => Number(amount).toFixed(2), [amount]);
 
+  // Determine which label to show (perNight takes precedence)
+  const showLabel = perNight || perPerson;
+  const labelKey = perNight ? 'per_night' : 'per_person';
+
   return (
     <div className={`flex flex-col ${className}`}>
       <div className="flex items-baseline gap-1">
@@ -65,7 +71,7 @@ function PriceDisplayComponent({
         <span className={symbolSizeClasses[size]}>{symbol}</span>
         <span className={`font-bold text-primary ${sizeClasses[size]}`}>{formattedAmount}</span>
       </div>
-      {perPerson && <span className="text-xs text-neutral-500">{t('per_person')}</span>}
+      {showLabel && <span className="text-xs text-neutral-500">{t(labelKey)}</span>}
     </div>
   );
 }

@@ -386,13 +386,11 @@ export default function AccommodationDateRangePicker({
           <div className="flex items-center justify-between pt-2 border-t border-neutral-200">
             <div className="flex items-center gap-2">
               <Moon className="h-4 w-4 text-neutral-500" />
-              <span className="text-sm">
-                {nights} {nights === 1 ? t('night') : t('nights')}
-              </span>
+              <span className="text-sm">{t('nights', { count: nights })}</span>
             </div>
             <div className="text-right">
               <p className="text-xs text-neutral-500">
-                {nightlyPrice.toLocaleString(locale)} {currency} × {nights} {t('nights')}
+                {nightlyPrice.toLocaleString(locale)} {currency} × {t('nights', { count: nights })}
               </p>
               <p className="font-semibold text-lg">
                 {totalPrice.toLocaleString(locale)} {currency}
