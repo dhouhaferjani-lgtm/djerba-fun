@@ -298,6 +298,9 @@ export const listingsApi = {
       session_id?: string;
       quantity?: number;
       person_types?: Record<string, number>;
+      check_in_date?: string;
+      check_out_date?: string;
+      guests?: number;
     }
   ) => {
     // Build request body - either use person_types or quantity
@@ -305,6 +308,17 @@ export const listingsApi = {
       slot_id: request.slotId,
       session_id: request.session_id,
     };
+
+    // Add accommodation-specific fields if provided (date range booking)
+    if (request.check_in_date) {
+      body.check_in_date = request.check_in_date;
+    }
+    if (request.check_out_date) {
+      body.check_out_date = request.check_out_date;
+    }
+    if (request.guests !== undefined) {
+      body.guests = request.guests;
+    }
 
     // If person_types is provided and has values, use it; otherwise use quantity
     if (request.person_types && Object.keys(request.person_types).length > 0) {

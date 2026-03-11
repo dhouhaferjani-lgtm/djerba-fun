@@ -69,9 +69,28 @@ class CartService
                 $currency = request()->attributes->get('user_currency', 'EUR');
             }
 
-            // Calculate unit price from listing based on detected currency
-            $pricing = $listing->pricing;
-            $basePrice = $this->getPriceForCurrency($pricing, $currency);
+            // Extract accommodation data from hold metadata (if present)
+            $metadata = $hold->metadata ?? [];
+            $pricingModel = 'per_person';
+            $checkInDate = null;
+            $checkOutDate = null;
+            $nights = null;
+            $nightlyRate = null;
+            $basePrice = 0;
+
+            if (! empty($metadata['pricing_model']) && $metadata['pricing_model'] === 'per_night') {
+                // Accommodation booking
+                $pricingModel = 'per_night';
+                $checkInDate = $metadata['check_in_date'] ?? null;
+                $checkOutDate = $metadata['check_out_date'] ?? null;
+                $nights = $metadata['nights'] ?? 1;
+                $nightlyRate = $metadata['nightly_rate'] ?? 0;
+                $basePrice = (float) $nightlyRate; // For display purposes
+            } else {
+                // Standard per-person pricing
+                $pricing = $listing->pricing;
+                $basePrice = $this->getPriceForCurrency($pricing, $currency);
+            }
 
             // Enrich extras from hold with price and name info
             $enrichedExtras = null;
@@ -96,13 +115,19 @@ class CartService
                 'hold_id' => $hold->id,
                 'listing_id' => $listing->id,
                 'listing_title' => $this->extractListingTitle($listing),
-                'slot_start' => $hold->slot->start_time,
-                'slot_end' => $hold->slot->end_time,
+                'slot_start' => $hold->slot->start_time ?? null,
+                'slot_end' => $hold->slot->end_time ?? null,
                 'quantity' => $hold->quantity,
                 'person_type_breakdown' => $hold->person_type_breakdown,
                 'unit_price' => $basePrice,
                 'currency' => $currency,
                 'extras' => $enrichedExtras,
+                // Accommodation-specific fields
+                'check_in_date' => $checkInDate,
+                'check_out_date' => $checkOutDate,
+                'nights' => $nights,
+                'nightly_rate' => $nightlyRate,
+                'pricing_model' => $pricingModel,
             ]);
 
             // Extend cart expiration
@@ -203,8 +228,25 @@ class CartService
                 continue;
             }
 
-            // Calculate item price using person type breakdown if available
-            if (! empty($item->person_type_breakdown)) {
+            $breakdown = null;
+            $itemSubtotal = 0;
+
+            // Branch based on pricing model
+            if ($item->pricing_model === 'per_night') {
+                // Accommodation: nights * nightly_rate
+                $itemSubtotal = (float) ($item->nightly_rate ?? 0) * ($item->nights ?? 1);
+                $currency = $item->currency;
+                $breakdown = [
+                    [
+                        'type' => 'accommodation',
+                        'label' => ['en' => 'Nightly Rate', 'fr' => 'Tarif par nuit'],
+                        'unitPrice' => (float) $item->nightly_rate,
+                        'quantity' => $item->nights,
+                        'total' => $itemSubtotal,
+                    ],
+                ];
+            } elseif (! empty($item->person_type_breakdown)) {
+                // Calculate item price using person type breakdown if available
                 $result = $this->priceService->calculateTotal($listing, $item->person_type_breakdown, $item->currency);
                 $itemSubtotal = $result['total'];
                 $currency = $result['currency'];
@@ -213,13 +255,12 @@ class CartService
                 $result = $this->priceService->calculateSimpleTotal($listing, $item->quantity, $item->currency);
                 $itemSubtotal = $result['total'];
                 $currency = $result['currency'];
-                $breakdown = null;
             }
 
             // Add extras
             $extrasTotal = $item->getExtrasTotal();
 
-            $items[] = [
+            $itemData = [
                 'id' => $item->id,
                 'listing_id' => $item->listing_id,
                 'title' => $item->getTitle(),
@@ -231,7 +272,15 @@ class CartService
                 'subtotal' => $itemSubtotal,
                 'extras_total' => $extrasTotal,
                 'total' => $itemSubtotal + $extrasTotal,
+                // Accommodation data (null for non-accommodation items)
+                'pricing_model' => $item->pricing_model,
+                'check_in_date' => $item->check_in_date?->format('Y-m-d'),
+                'check_out_date' => $item->check_out_date?->format('Y-m-d'),
+                'nights' => $item->nights,
+                'nightly_rate' => $item->nightly_rate ? (float) $item->nightly_rate : null,
             ];
+
+            $items[] = $itemData;
 
             $subtotal += $itemSubtotal + $extrasTotal;
         }

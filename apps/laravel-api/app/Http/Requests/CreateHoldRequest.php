@@ -43,7 +43,7 @@ class CreateHoldRequest extends BaseFormRequest
             'extras.*.quantity' => ['required', 'integer', 'min:1'],
             // Accommodation-specific fields
             'check_in_date' => ['nullable', 'date', 'after_or_equal:today'],
-            'check_out_date' => ['nullable', 'date', 'after:check_in_date'],
+            'check_out_date' => ['nullable', 'date', 'after_or_equal:check_in_date'],
             'guests' => ['nullable', 'integer', 'min:1'],
         ];
     }
@@ -103,6 +103,7 @@ class CreateHoldRequest extends BaseFormRequest
 
     /**
      * Get number of nights for accommodation booking.
+     * Same-day selection (check-in = check-out) is treated as 1 night.
      */
     public function getNights(): int
     {
@@ -113,7 +114,10 @@ class CreateHoldRequest extends BaseFormRequest
             return 0;
         }
 
-        return $checkIn->diffInDays($checkOut);
+        $nights = $checkIn->diffInDays($checkOut);
+
+        // Same-day selection = 1 night minimum
+        return max(1, $nights);
     }
 
     /**

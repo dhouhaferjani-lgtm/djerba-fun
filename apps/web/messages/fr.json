@@ -1567,6 +1567,9 @@
     "next_month": "Mois suivant",
     "check_in_time": "Arrivée à partir de {time}",
     "total": "Total",
-    "extras": "Extras"
+    "extras": "Extras",
+    "next_day_unavailable": "Le jour suivant n'est pas disponible pour un séjour d'1 nuit",
+    "select_checkout": "Sélectionnez maintenant votre date de départ",
+    "blocked_dates_in_range": "Certaines dates de votre sélection ne sont pas disponibles"
   }
 }

@@ -28,6 +28,12 @@ class CartItem extends Model
         'person_type_breakdown',
         'unit_price',
         'currency',
+        // Accommodation-specific fields
+        'check_in_date',
+        'check_out_date',
+        'nights',
+        'nightly_rate',
+        'pricing_model',
     ];
 
     protected function casts(): array
@@ -41,6 +47,11 @@ class CartItem extends Model
             'slot_start' => 'datetime',
             'slot_end' => 'datetime',
             'unit_price' => 'decimal:2',
+            // Accommodation fields
+            'check_in_date' => 'date',
+            'check_out_date' => 'date',
+            'nights' => 'integer',
+            'nightly_rate' => 'decimal:2',
         ];
     }
 
@@ -73,6 +84,11 @@ class CartItem extends Model
      */
     public function getSubtotal(): float
     {
+        // Accommodation: nights * nightly_rate
+        if ($this->isAccommodation() && $this->nights && $this->nightly_rate) {
+            return (float) $this->nightly_rate * $this->nights;
+        }
+
         // Use PriceCalculationService when listing is available for accurate per-type pricing
         if (! empty($this->person_type_breakdown) && $this->relationLoaded('listing') && $this->listing) {
             $priceService = app(\App\Services\PriceCalculationService::class);
@@ -94,6 +110,30 @@ class CartItem extends Model
 
         // Simple calculation: unit price * quantity
         return (float) $this->unit_price * $this->quantity;
+    }
+
+    /**
+     * Check if this is an accommodation item (per-night pricing).
+     */
+    public function isAccommodation(): bool
+    {
+        return $this->pricing_model === 'per_night';
+    }
+
+    /**
+     * Get date range for accommodation items.
+     */
+    public function getDateRange(): ?array
+    {
+        if (! $this->isAccommodation()) {
+            return null;
+        }
+
+        return [
+            'checkIn' => $this->check_in_date?->format('Y-m-d'),
+            'checkOut' => $this->check_out_date?->format('Y-m-d'),
+            'nights' => $this->nights,
+        ];
     }
 
     /**

@@ -24,6 +24,11 @@ class AccommodationBookingService
     {
         $nights = $checkIn->diffInDays($checkOut);
 
+        // Same-day selection = 1 night minimum (user selected same date for check-in/check-out)
+        if ($nights === 0 && $checkIn->isSameDay($checkOut)) {
+            $nights = 1;
+        }
+
         // Validate minimum nights
         $minimumNights = $listing->minimum_nights ?? 1;
         if ($nights < $minimumNights) {
@@ -84,6 +89,11 @@ class AccommodationBookingService
      */
     public function getBlockedDates(Listing $listing, Carbon $start, Carbon $end): array
     {
+        // Handle same-day booking (1 night): only check the start date
+        if ($start->isSameDay($end)) {
+            $end = $start->copy()->addDay();
+        }
+
         // Get all nights in the range (check-out date is exclusive)
         $period = CarbonPeriod::create($start, $end->copy()->subDay());
         $blockedDates = [];

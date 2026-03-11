@@ -65,6 +65,7 @@ export default function AccommodationDateRangePicker({
   const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
   const [selectionMode, setSelectionMode] = useState<'check-in' | 'check-out'>('check-in');
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
 
   // Initialize dates on client side only to avoid hydration mismatch
   useEffect(() => {
@@ -153,20 +154,54 @@ export default function AccommodationDateRangePicker({
     const status = getDateStatus(date);
     if (status !== 'available') return;
 
+    setValidationMessage(null); // Clear previous message
+
     if (selectionMode === 'check-in') {
       setCheckInDate(date);
       setCheckOutDate(null);
       setSelectionMode('check-out');
     } else {
       // Check-out mode
-      if (checkInDate && isAfter(date, checkInDate) && isValidCheckOutDate(date)) {
-        setCheckOutDate(date);
-        setSelectionMode('check-in');
-      } else if (checkInDate && (isBefore(date, checkInDate) || isSameDay(date, checkInDate))) {
-        // Clicked before check-in, reset to new check-in
+      if (!checkInDate) return;
+
+      // Same-day click = 1-night stay (auto-advance to next day)
+      if (isSameDay(date, checkInDate)) {
+        const nextDay = addDays(date, 1);
+        const nextDayStatus = getDateStatus(nextDay);
+
+        if (nextDayStatus === 'available' || nextDayStatus === null) {
+          // Next day is available (or no slot data, assume OK) - set as checkout
+          setCheckOutDate(nextDay);
+          setSelectionMode('check-in');
+        } else {
+          // Next day is blocked - show error
+          setValidationMessage(t('next_day_unavailable'));
+        }
+        return;
+      }
+
+      // Clicked before check-in - reset to new check-in
+      if (isBefore(date, checkInDate)) {
         setCheckInDate(date);
         setCheckOutDate(null);
         setSelectionMode('check-out');
+        return;
+      }
+
+      // Normal checkout selection
+      if (isAfter(date, checkInDate) && isValidCheckOutDate(date)) {
+        setCheckOutDate(date);
+        setSelectionMode('check-in');
+      } else if (isAfter(date, checkInDate) && !isValidCheckOutDate(date)) {
+        // Show why it's invalid
+        const nights = differenceInDays(date, checkInDate);
+        if (nights < minimumNights) {
+          setValidationMessage(t('minimum_stay', { count: minimumNights }));
+        } else if (maximumNights && nights > maximumNights) {
+          setValidationMessage(t('maximum_stay', { count: maximumNights }));
+        } else {
+          setValidationMessage(t('blocked_dates_in_range'));
+        }
       }
     }
   };
@@ -182,6 +217,7 @@ export default function AccommodationDateRangePicker({
     setCheckOutDate(null);
     setHoverDate(null);
     setSelectionMode('check-in');
+    setValidationMessage(null);
   };
 
   // Don't render until dates are initialized
@@ -366,10 +402,19 @@ export default function AccommodationDateRangePicker({
         )}
 
         {/* Validation messages */}
-        {minimumNights > 1 && !checkOutDate && (
+        {validationMessage && (
+          <p className="text-xs text-red-600 flex items-center gap-1">
+            <span className="inline-block w-1 h-1 rounded-full bg-red-600" />
+            {validationMessage}
+          </p>
+        )}
+        {!validationMessage && selectionMode === 'check-out' && checkInDate && !checkOutDate && (
+          <p className="text-xs text-amber-600">{t('select_checkout')}</p>
+        )}
+        {minimumNights > 1 && !checkOutDate && !validationMessage && (
           <p className="text-xs text-amber-600">{t('minimum_stay', { count: minimumNights })}</p>
         )}
-        {maximumNights && !checkOutDate && (
+        {maximumNights && !checkOutDate && !validationMessage && (
           <p className="text-xs text-neutral-500">{t('maximum_stay', { count: maximumNights })}</p>
         )}
       </div>
