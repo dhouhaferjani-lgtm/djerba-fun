@@ -89,8 +89,7 @@ export default function NightlyPriceDisplay({
             <div className="flex items-center gap-2">
               <Moon className="h-4 w-4 text-neutral-400" />
               <span>
-                {formatPrice(nightlyPrice)} {currency} × {nights}{' '}
-                {nights === 1 ? t('night') : t('nights')}
+                {formatPrice(nightlyPrice)} {currency} × {t('nights', { count: nights })}
               </span>
             </div>
             <span className="font-medium">
@@ -140,9 +139,7 @@ export default function NightlyPriceDisplay({
       {!showBreakdown && (
         <div className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-neutral-600">
-              {nights} {nights === 1 ? t('night') : t('nights')}
-            </span>
+            <span className="text-neutral-600">{t('nights', { count: nights })}</span>
             <span className="text-xl font-bold">
               {formatPrice(grandTotal)} {currency}
             </span>
