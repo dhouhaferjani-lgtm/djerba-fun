@@ -155,11 +155,11 @@ def generate_horse_frame(frame_num, total_frames):
     t = frame_num / total_frames
     phase = t * 2 * math.pi
 
-    # Trot cycle - smoother gallop
-    leg_phase = frame_num / 4  # Slightly faster cycle
+    # Gallop cycle - faster for dynamic motion
+    leg_phase = frame_num / 3  # Faster cycle for gallop
 
-    # Vertical bob (subtle)
-    bob_y = 3 * math.sin(phase * 2)
+    # Vertical bob - more pronounced for gallop
+    bob_y = 6 * math.sin(phase * 2)
 
     # Tail swish
     tail_wave = 8 * math.sin(phase * 1.2)
@@ -192,27 +192,30 @@ def generate_horse_frame(frame_num, total_frames):
         draw.path(tail_path, tail_pen)
 
     # =========================================================================
-    # HORSE BACK LEGS (behind body)
+    # HORSE BACK LEGS (behind body) - GALLOPING MOTION
     # =========================================================================
-    # Back legs - realistic trot gait
+    # Back legs - dramatic gallop with legs far extended
     for leg_idx in range(2):
-        # Offset for front/back leg of the pair
-        leg_offset = leg_idx * 12
-        # Phase offset for diagonal gait
-        swing = 22 * math.sin(leg_phase * math.pi * 2 + leg_idx * math.pi)
+        leg_offset = leg_idx * 10
+        # DRAMATIC swing for gallop - 50° instead of 22°
+        swing = 50 * math.sin(leg_phase * math.pi * 2 + leg_idx * math.pi)
 
         # Hip position
-        hip_x = horse_cx - 45 + leg_offset
-        hip_y = horse_cy + 25
+        hip_x = horse_cx - 50 + leg_offset
+        hip_y = horse_cy + 20
 
-        # Upper leg (thigh)
-        upper_angle = math.radians(-10 + swing)
-        upper_len = 45
+        # Upper leg - dramatic extension
+        upper_angle = math.radians(swing)  # Full swing angle
+        upper_len = 50
         knee_x = hip_x + upper_len * math.sin(upper_angle)
         knee_y = hip_y + upper_len * math.cos(upper_angle)
 
-        # Lower leg (cannon)
-        lower_angle = math.radians(5 + swing * 0.6)
+        # Lower leg - follows upper with bend
+        # When extended back, lower leg also extends; when tucked, it bends
+        if swing > 0:  # Leg extending backward
+            lower_angle = math.radians(swing * 0.8)
+        else:  # Leg tucking forward/under
+            lower_angle = math.radians(swing * 0.4 - 20)  # Bend at knee
         lower_len = 50
         hoof_x = knee_x + lower_len * math.sin(lower_angle)
         hoof_y = knee_y + lower_len * math.cos(lower_angle)
@@ -271,25 +274,28 @@ def generate_horse_frame(frame_num, total_frames):
     draw.path(body_path, horse_pen, horse_brush)
 
     # =========================================================================
-    # HORSE FRONT LEGS
+    # HORSE FRONT LEGS - GALLOPING MOTION
     # =========================================================================
     for leg_idx in range(2):
-        leg_offset = leg_idx * 15
-        # Opposite phase from back legs (diagonal gait)
-        swing = 22 * math.sin(leg_phase * math.pi * 2 + math.pi + leg_idx * math.pi)
+        leg_offset = leg_idx * 12
+        # Opposite phase from back legs - DRAMATIC swing for gallop
+        swing = 50 * math.sin(leg_phase * math.pi * 2 + math.pi + leg_idx * math.pi)
 
         # Shoulder position
-        hip_x = horse_cx + 40 + leg_offset
-        hip_y = horse_cy + 22
+        hip_x = horse_cx + 45 + leg_offset
+        hip_y = horse_cy + 18
 
-        # Upper leg
-        upper_angle = math.radians(-8 + swing)
-        upper_len = 45
+        # Upper leg - dramatic forward reach
+        upper_angle = math.radians(swing)  # Full swing
+        upper_len = 50
         knee_x = hip_x + upper_len * math.sin(upper_angle)
         knee_y = hip_y + upper_len * math.cos(upper_angle)
 
-        # Lower leg
-        lower_angle = math.radians(3 + swing * 0.5)
+        # Lower leg - extends when reaching forward, bends when tucking
+        if swing > 0:  # Leg reaching forward
+            lower_angle = math.radians(swing * 0.7)  # Extends forward
+        else:  # Leg tucking back/under
+            lower_angle = math.radians(swing * 0.3 - 15)  # Bends at knee
         lower_len = 50
         hoof_x = knee_x + lower_len * math.sin(lower_angle)
         hoof_y = knee_y + lower_len * math.cos(lower_angle)
