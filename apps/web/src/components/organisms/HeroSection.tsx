@@ -256,22 +256,27 @@ export function HeroSection({
   const showVideo = heroBannerIsVideo || !heroBannerUrl;
   const videoSrc = heroBannerIsVideo && heroBannerUrl ? heroBannerUrl : DEFAULT_HERO_VIDEO;
 
-  // Background image priority:
-  // 1. If video mode with CMS thumbnail → use auto-generated thumbnail (ensures alignment with video)
-  // 2. If CMS has image banner → use that image
-  // 3. Fallback to default static image
-  const backgroundImage =
-    heroBannerThumbnail ||
-    (heroBannerUrl && !heroBannerIsVideo ? heroBannerUrl : DEFAULT_HERO_IMAGE);
+  // Background image logic - avoid showing mismatched static fallback for videos
+  // When CMS has a video:
+  //   - Use the auto-generated thumbnail if available
+  //   - If no thumbnail, show gradient background (no mismatched static image)
+  // When CMS has an image: use that image
+  // When no CMS content at all: use default static image (acceptable for default video)
+  const backgroundImage = heroBannerIsVideo
+    ? heroBannerThumbnail // null is OK - we'll show gradient instead of mismatched fallback
+    : heroBannerUrl || (!heroBannerUrl ? DEFAULT_HERO_IMAGE : null);
+
+  // Whether we have a valid poster image to show
+  const hasBackgroundImage = Boolean(backgroundImage);
 
   // Video readiness state — poster shows until video is buffered
   const [videoReady, setVideoReady] = useState(false);
 
-  // Image error state — fallback to default if thumbnail fails to load
+  // Image error state — hide image if it fails to load (show gradient instead)
   const [imageError, setImageError] = useState(false);
 
-  // Effective background image — use fallback if CMS image fails
-  const effectiveBackgroundImage = imageError ? DEFAULT_HERO_IMAGE : backgroundImage;
+  // Effective background image — only use if valid and no error
+  const effectiveBackgroundImage = imageError ? null : backgroundImage;
 
   // Reset video readiness if we switch away from video mode
   useEffect(() => {
@@ -381,15 +386,18 @@ export function HeroSection({
       {/* Background — Poster image + Video (desktop only) */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         {/* Poster image — shows immediately, fades out once video is ready on desktop */}
-        <Image
-          src={effectiveBackgroundImage}
-          alt="Hero Banner"
-          fill
-          className={`object-cover transition-opacity duration-1000 ${showVideo && videoReady ? 'md:opacity-0' : 'opacity-100'}`}
-          priority
-          unoptimized={shouldUnoptimizeImage(effectiveBackgroundImage)}
-          onError={() => setImageError(true)}
-        />
+        {/* Only render if we have a valid background image - avoids mismatched static fallback for videos */}
+        {hasBackgroundImage && effectiveBackgroundImage && (
+          <Image
+            src={effectiveBackgroundImage}
+            alt="Hero Banner"
+            fill
+            className={`object-cover transition-opacity duration-1000 ${showVideo && videoReady ? 'md:opacity-0' : 'opacity-100'}`}
+            priority
+            unoptimized={shouldUnoptimizeImage(effectiveBackgroundImage)}
+            onError={() => setImageError(true)}
+          />
+        )}
 
         {/* Video background — only rendered when we have a video to show (CMS video or no CMS banner) */}
         {showVideo && (
