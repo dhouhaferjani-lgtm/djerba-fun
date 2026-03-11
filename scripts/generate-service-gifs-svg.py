@@ -39,6 +39,12 @@ COLORS = {
     'white': '#FFFFFF',
     'gray': '#C8CDD3',
     'light_blue': '#87CEEB',
+    # Horse colors (for realistic style)
+    'horse_body': '#9A8B7A',      # Taupe/grayish-brown
+    'horse_dark': '#6B5D4D',      # Darker brown for mane/tail
+    'horse_outline': '#5A4D3F',   # Dark outline
+    'rider_body': '#F5F5F5',      # Off-white rider
+    'rider_outline': '#B0A090',   # Light taupe outline for rider
 }
 
 
@@ -131,280 +137,339 @@ def draw_smooth_line(draw, x1, y1, x2, y2, pen):
 # ============================================================================
 
 def generate_horse_frame(frame_num, total_frames):
-    """Generate a single horse and rider frame."""
+    """Generate a single horse and rider frame - realistic minimalist style."""
     frame = create_frame()
     draw = aggdraw.Draw(frame)
 
-    # Pens and brushes
-    navy_pen = aggdraw.Pen(COLORS['navy'], 3)
-    navy_pen_thick = aggdraw.Pen(COLORS['navy'], 6)
-    navy_pen_medium = aggdraw.Pen(COLORS['navy'], 4)
-    navy_brush = aggdraw.Brush(COLORS['navy'])
-    green_brush = aggdraw.Brush(COLORS['green'])
-    white_brush = aggdraw.Brush(COLORS['white'])
-    orange_brush = aggdraw.Brush(COLORS['orange'])
-    gray_brush = aggdraw.Brush(COLORS['gray'])
-    gray_pen = aggdraw.Pen(COLORS['gray'], 3)
+    # Pens and brushes - realistic horse colors
+    horse_brush = aggdraw.Brush(COLORS['horse_body'])
+    horse_pen = aggdraw.Pen(COLORS['horse_outline'], 2)
+    dark_brush = aggdraw.Brush(COLORS['horse_dark'])
+    dark_pen = aggdraw.Pen(COLORS['horse_dark'], 3)
+    hoof_brush = aggdraw.Brush('#2A2420')  # Very dark brown/black hooves
+    rider_brush = aggdraw.Brush(COLORS['rider_body'])
+    rider_pen = aggdraw.Pen(COLORS['rider_outline'], 1.5)
+    rein_pen = aggdraw.Pen(COLORS['horse_dark'], 1.5)
 
     # Animation parameters
     t = frame_num / total_frames
     phase = t * 2 * math.pi
 
-    # Trot cycle
-    leg_phase = frame_num / 5
+    # Trot cycle - smoother gallop
+    leg_phase = frame_num / 4  # Slightly faster cycle
 
-    # Vertical bob
-    bob_y = 4 * math.sin(phase * 2)
+    # Vertical bob (subtle)
+    bob_y = 3 * math.sin(phase * 2)
 
     # Tail swish
-    tail_angle = 10 * math.sin(phase * 1.5)
+    tail_wave = 8 * math.sin(phase * 1.2)
 
-    # Ground scroll
-    ground_offset = (frame_num * 12) % 60
+    # Mane wave
+    mane_wave = 5 * math.sin(phase * 1.5)
 
-    # Arm wave (reduced for subtle movement)
-    arm_wave = 8 * math.sin(phase)
-
-    # Center positions
+    # Center positions - horse positioned in frame
     horse_cx = 200
-    horse_cy = 230 + bob_y  # Adjusted for new body shape
+    horse_cy = 210 + bob_y
 
-    # Horse body dimensions (2:1 ratio - longer, flatter)
-    body_left = horse_cx - 80
-    body_right = horse_cx + 80
+    # =========================================================================
+    # HORSE TAIL (behind everything)
+    # =========================================================================
+    tail_base_x = horse_cx - 75
+    tail_base_y = horse_cy + 5
 
-    # --- Ground (dashed line) ---
-    for i in range(-1, 8):
-        dash_x = i * 60 - ground_offset
-        if -30 < dash_x < WIDTH + 30:
-            draw_smooth_line(draw, dash_x, 340, dash_x + 40, 340, gray_pen)
+    # Flowing tail with multiple strands
+    tail_pen = aggdraw.Pen(COLORS['horse_dark'], 4)
+    for i in range(5):
+        offset = (i - 2) * 6
+        wave = tail_wave + i * 2
+        tail_path = aggdraw.Path()
+        tail_path.moveto(tail_base_x, tail_base_y + offset * 0.3)
+        tail_path.curveto(
+            tail_base_x - 30 + wave, tail_base_y + 25 + offset,
+            tail_base_x - 45 + wave * 0.8, tail_base_y + 55 + offset,
+            tail_base_x - 35 + wave * 0.5, tail_base_y + 80 + offset
+        )
+        draw.path(tail_path, tail_pen)
 
-    # --- Dust particles ---
-    if frame_num % 4 < 2:
-        dust_offset = (frame_num % 8) * 4
-        for i in range(3):
-            dust_x = horse_cx - 80 - dust_offset + i * 8
-            dust_y = 320 - dust_offset * 0.5 + bob_y + i * 3
-            dust_r = max(2, 6 - dust_offset * 0.3)
-            dust_alpha = max(50, 150 - dust_offset * 15)
-            dust_color = f'#C8CDD3{dust_alpha:02x}'
-            dust_brush = aggdraw.Brush(dust_color)
-            draw_smooth_ellipse(draw, dust_x, dust_y, dust_r, dust_r, None, dust_brush)
+    # =========================================================================
+    # HORSE BACK LEGS (behind body)
+    # =========================================================================
+    # Back legs - realistic trot gait
+    for leg_idx in range(2):
+        # Offset for front/back leg of the pair
+        leg_offset = leg_idx * 12
+        # Phase offset for diagonal gait
+        swing = 22 * math.sin(leg_phase * math.pi * 2 + leg_idx * math.pi)
 
-    # --- Horse Tail ---
-    tail_start_x = body_left + 5
-    tail_start_y = horse_cy + 5
+        # Hip position
+        hip_x = horse_cx - 45 + leg_offset
+        hip_y = horse_cy + 25
 
-    # Draw tail as curved path
-    tail_points = [
-        (tail_start_x, tail_start_y),
-        (tail_start_x - 25 + tail_angle, tail_start_y + 35),
-        (tail_start_x - 35 + tail_angle * 0.7, tail_start_y + 60),
-        (tail_start_x - 25 + tail_angle * 0.5, tail_start_y + 85),
-    ]
-    draw_bezier_path(draw, tail_points, navy_pen_medium)
+        # Upper leg (thigh)
+        upper_angle = math.radians(-10 + swing)
+        upper_len = 45
+        knee_x = hip_x + upper_len * math.sin(upper_angle)
+        knee_y = hip_y + upper_len * math.cos(upper_angle)
 
-    # Tail hair strands
-    for offset in [-10, 0, 10]:
-        strand_points = [
-            (tail_start_x - 25 + tail_angle * 0.5, tail_start_y + 85),
-            (tail_start_x - 30 + offset + tail_angle * 0.3, tail_start_y + 95 + abs(offset) * 0.3),
-        ]
-        draw_smooth_line(draw, strand_points[0][0], strand_points[0][1],
-                        strand_points[1][0], strand_points[1][1], navy_pen)
+        # Lower leg (cannon)
+        lower_angle = math.radians(5 + swing * 0.6)
+        lower_len = 50
+        hoof_x = knee_x + lower_len * math.sin(lower_angle)
+        hoof_y = knee_y + lower_len * math.cos(lower_angle)
 
-    # --- Horse Back Legs (behind body) - Longer and thinner ---
-    back_leg_x = horse_cx - 50
+        # Draw leg segments
+        upper_pen = aggdraw.Pen(COLORS['horse_body'], 14)
+        lower_pen = aggdraw.Pen(COLORS['horse_body'], 10)
 
-    for i, offset in enumerate([0, 18]):
-        leg_swing = 18 * math.sin(leg_phase * math.pi * 2 + (i * math.pi))
-
-        hip_x = back_leg_x + offset
-        hip_y = horse_cy + 22
-        knee_x = hip_x + leg_swing * 0.4
-        knee_y = hip_y + 50  # Longer upper leg
-        hoof_x = knee_x + leg_swing * 0.25
-        hoof_y = knee_y + 50  # Longer lower leg
-
-        # Upper leg (thinner)
-        leg_pen = aggdraw.Pen(COLORS['navy'], 10)
-        draw_smooth_line(draw, hip_x, hip_y, knee_x, knee_y, leg_pen)
-
-        # Lower leg (thinner)
-        leg_pen_lower = aggdraw.Pen(COLORS['navy'], 8)
-        draw_smooth_line(draw, knee_x, knee_y, hoof_x, hoof_y, leg_pen_lower)
+        draw_smooth_line(draw, hip_x, hip_y, knee_x, knee_y, upper_pen)
+        draw_smooth_line(draw, knee_x, knee_y, hoof_x, hoof_y, lower_pen)
 
         # Hoof
-        draw_smooth_ellipse(draw, hoof_x, hoof_y + 5, 7, 5, None, navy_brush)
+        draw_smooth_ellipse(draw, hoof_x, hoof_y + 3, 6, 4, None, hoof_brush)
 
-    # --- Horse Body (realistic shape with flat back, curved belly) ---
+    # =========================================================================
+    # HORSE BODY - Realistic shape
+    # =========================================================================
     body_path = aggdraw.Path()
-    # Start at chest (front-top)
-    body_path.moveto(body_right - 5, horse_cy - 20)
-    # Flat back (top edge) - slight rise at withers, then flat saddle area
-    body_path.curveto(body_right - 30, horse_cy - 30,   # Slight rise at withers
-                      horse_cx - 10, horse_cy - 28,      # Flat saddle area
-                      body_left + 25, horse_cy - 18)     # Slope down to hindquarters
-    # Hindquarters (back-top to back-bottom)
-    body_path.curveto(body_left + 5, horse_cy - 10,
-                      body_left - 5, horse_cy + 10,
-                      body_left + 10, horse_cy + 25)
-    # Belly (bottom edge) - curved downward
-    body_path.curveto(body_left + 50, horse_cy + 35,     # Belly curves down
-                      body_right - 50, horse_cy + 32,
-                      body_right - 10, horse_cy + 18)
-    # Chest (front-bottom to front-top) - broad and upright
-    body_path.curveto(body_right + 8, horse_cy + 5,
-                      body_right + 5, horse_cy - 10,
-                      body_right - 5, horse_cy - 20)
+
+    # Dimensions
+    body_left = horse_cx - 78
+    body_right = horse_cx + 72
+
+    # Start at chest (front upper)
+    body_path.moveto(body_right, horse_cy - 15)
+
+    # Back line - withers rise, then saddle dip, then croup
+    body_path.curveto(
+        body_right - 25, horse_cy - 28,   # Withers (high point)
+        horse_cx - 20, horse_cy - 25,      # Saddle area (slight dip)
+        body_left + 30, horse_cy - 18      # Croup starts
+    )
+
+    # Hindquarters - round curve down
+    body_path.curveto(
+        body_left + 5, horse_cy - 8,
+        body_left - 5, horse_cy + 15,
+        body_left + 15, horse_cy + 30
+    )
+
+    # Belly - curves under
+    body_path.curveto(
+        body_left + 45, horse_cy + 40,
+        body_right - 45, horse_cy + 38,
+        body_right - 5, horse_cy + 25
+    )
+
+    # Chest - broad, curves up to start
+    body_path.curveto(
+        body_right + 10, horse_cy + 10,
+        body_right + 8, horse_cy - 5,
+        body_right, horse_cy - 15
+    )
+
     body_path.close()
-    draw.path(body_path, navy_pen, green_brush)
+    draw.path(body_path, horse_pen, horse_brush)
 
-    # --- Horse Front Legs - Longer and thinner ---
-    front_leg_x = horse_cx + 45
+    # =========================================================================
+    # HORSE FRONT LEGS
+    # =========================================================================
+    for leg_idx in range(2):
+        leg_offset = leg_idx * 15
+        # Opposite phase from back legs (diagonal gait)
+        swing = 22 * math.sin(leg_phase * math.pi * 2 + math.pi + leg_idx * math.pi)
 
-    for i, offset in enumerate([0, 18]):
-        leg_swing = 18 * math.sin(leg_phase * math.pi * 2 + math.pi + (i * math.pi))
+        # Shoulder position
+        hip_x = horse_cx + 40 + leg_offset
+        hip_y = horse_cy + 22
 
-        hip_x = front_leg_x + offset
-        hip_y = horse_cy + 20
-        knee_x = hip_x + leg_swing * 0.4
-        knee_y = hip_y + 50  # Longer upper leg
-        hoof_x = knee_x + leg_swing * 0.25
-        hoof_y = knee_y + 50  # Longer lower leg
+        # Upper leg
+        upper_angle = math.radians(-8 + swing)
+        upper_len = 45
+        knee_x = hip_x + upper_len * math.sin(upper_angle)
+        knee_y = hip_y + upper_len * math.cos(upper_angle)
 
-        # Upper leg (thinner)
-        leg_pen = aggdraw.Pen(COLORS['navy'], 10)
-        draw_smooth_line(draw, hip_x, hip_y, knee_x, knee_y, leg_pen)
+        # Lower leg
+        lower_angle = math.radians(3 + swing * 0.5)
+        lower_len = 50
+        hoof_x = knee_x + lower_len * math.sin(lower_angle)
+        hoof_y = knee_y + lower_len * math.cos(lower_angle)
 
-        # Lower leg (thinner)
-        leg_pen_lower = aggdraw.Pen(COLORS['navy'], 8)
-        draw_smooth_line(draw, knee_x, knee_y, hoof_x, hoof_y, leg_pen_lower)
+        # Draw leg segments
+        upper_pen = aggdraw.Pen(COLORS['horse_body'], 12)
+        lower_pen = aggdraw.Pen(COLORS['horse_body'], 9)
+
+        draw_smooth_line(draw, hip_x, hip_y, knee_x, knee_y, upper_pen)
+        draw_smooth_line(draw, knee_x, knee_y, hoof_x, hoof_y, lower_pen)
 
         # Hoof
-        draw_smooth_ellipse(draw, hoof_x, hoof_y + 5, 7, 5, None, navy_brush)
+        draw_smooth_ellipse(draw, hoof_x, hoof_y + 3, 6, 4, None, hoof_brush)
 
-    # --- Horse Neck (from chest at ~50° angle) ---
-    neck_base_x = body_right - 10
-    neck_base_y = horse_cy - 22
-    neck_top_x = neck_base_x + 40
-    neck_top_y = horse_cy - 90
+    # =========================================================================
+    # HORSE NECK - Elegant curve
+    # =========================================================================
+    neck_base_x = body_right - 5
+    neck_base_y = horse_cy - 18
+    neck_top_x = neck_base_x + 45
+    neck_top_y = horse_cy - 85
 
-    # Draw neck as filled polygon
     neck_path = aggdraw.Path()
-    neck_path.moveto(neck_base_x - 15, neck_base_y + 5)
-    neck_path.curveto(neck_base_x - 5, neck_base_y - 25,
-                      neck_top_x - 25, neck_top_y + 20,
-                      neck_top_x - 12, neck_top_y + 5)
-    neck_path.lineto(neck_top_x + 10, neck_top_y + 10)
-    neck_path.curveto(neck_top_x + 15, neck_top_y + 30,
-                      neck_base_x + 20, neck_base_y - 5,
-                      neck_base_x + 15, neck_base_y + 10)
+    # Back of neck (left side)
+    neck_path.moveto(neck_base_x - 20, neck_base_y + 5)
+    neck_path.curveto(
+        neck_base_x - 10, neck_base_y - 30,
+        neck_top_x - 30, neck_top_y + 25,
+        neck_top_x - 15, neck_top_y
+    )
+    # Front of neck (connects to head area)
+    neck_path.lineto(neck_top_x + 8, neck_top_y + 8)
+    # Front of neck (right side)
+    neck_path.curveto(
+        neck_top_x + 15, neck_top_y + 35,
+        neck_base_x + 20, neck_base_y - 10,
+        neck_base_x + 15, neck_base_y + 10
+    )
     neck_path.close()
-    draw.path(neck_path, navy_pen, green_brush)
+    draw.path(neck_path, horse_pen, horse_brush)
 
-    # --- Horse Mane ---
-    for i in range(4):
-        mane_t = 0.2 + i * 0.2
-        mane_x = neck_base_x + (neck_top_x - neck_base_x) * mane_t - 15
-        mane_y = neck_base_y + (neck_top_y - neck_base_y) * mane_t
-        mane_wave = 4 * math.sin(phase + i * 0.5)
-        draw_smooth_line(draw, mane_x, mane_y,
-                        mane_x - 10 + mane_wave, mane_y + 18, navy_pen)
+    # =========================================================================
+    # HORSE MANE - Flowing dark mane
+    # =========================================================================
+    mane_pen = aggdraw.Pen(COLORS['horse_dark'], 5)
+    for i in range(7):
+        mane_t = 0.1 + i * 0.12
+        # Position along neck
+        mx = neck_base_x - 15 + (neck_top_x - 15 - neck_base_x + 15) * mane_t
+        my = neck_base_y + 5 + (neck_top_y - neck_base_y - 5) * mane_t
+        # Wave animation
+        wave = mane_wave * (1 - mane_t * 0.5)
+        # Draw mane strand
+        mane_path = aggdraw.Path()
+        mane_path.moveto(mx, my)
+        mane_path.curveto(
+            mx - 12 + wave, my + 10,
+            mx - 18 + wave * 0.7, my + 20,
+            mx - 15 + wave * 0.5, my + 28
+        )
+        draw.path(mane_path, mane_pen)
 
-    # --- Horse Head (elongated snout shape) ---
-    head_cx = neck_top_x + 32
-    head_cy = neck_top_y + 18
-    # More elongated head (snout shape)
-    draw_smooth_ellipse(draw, head_cx, head_cy, 38, 15, navy_pen, green_brush)
+    # =========================================================================
+    # HORSE HEAD - Elegant elongated shape
+    # =========================================================================
+    head_cx = neck_top_x + 35
+    head_cy = neck_top_y + 15
 
-    # Ear (pointing up)
+    # Head shape - elongated, slightly downward pointing
+    head_path = aggdraw.Path()
+    head_path.moveto(head_cx - 30, head_cy - 8)  # Back of head
+    # Top of head/forehead
+    head_path.curveto(
+        head_cx - 20, head_cy - 18,
+        head_cx + 10, head_cy - 15,
+        head_cx + 35, head_cy - 5
+    )
+    # Nose/muzzle
+    head_path.curveto(
+        head_cx + 42, head_cy + 2,
+        head_cx + 40, head_cy + 12,
+        head_cx + 32, head_cy + 15
+    )
+    # Bottom of head/jaw
+    head_path.curveto(
+        head_cx + 15, head_cy + 18,
+        head_cx - 10, head_cy + 15,
+        head_cx - 30, head_cy + 5
+    )
+    head_path.close()
+    draw.path(head_path, horse_pen, horse_brush)
+
+    # Ear
     ear_path = aggdraw.Path()
-    ear_path.moveto(head_cx - 18, head_cy - 8)
-    ear_path.lineto(head_cx - 12, head_cy - 28)
-    ear_path.lineto(head_cx - 2, head_cy - 6)
+    ear_path.moveto(head_cx - 22, head_cy - 10)
+    ear_path.curveto(
+        head_cx - 25, head_cy - 25,
+        head_cx - 15, head_cy - 30,
+        head_cx - 12, head_cy - 15
+    )
     ear_path.close()
-    ear_pen = aggdraw.Pen(COLORS['navy'], 2)
-    draw.path(ear_path, ear_pen, green_brush)
+    draw.path(ear_path, horse_pen, horse_brush)
 
-    # Eye
-    draw_smooth_ellipse(draw, head_cx - 5, head_cy - 2, 4, 4, None, navy_brush)
+    # Eye - simple dark dot
+    draw_smooth_ellipse(draw, head_cx - 5, head_cy - 3, 3, 3, None, dark_brush)
 
-    # Nostril (at front of snout)
-    draw_smooth_ellipse(draw, head_cx + 32, head_cy + 4, 3, 3, None, navy_brush)
+    # Nostril
+    draw_smooth_ellipse(draw, head_cx + 32, head_cy + 8, 3, 2, None, dark_brush)
 
-    # --- Rider (centered on horse's back) ---
-    rider_x = horse_cx - 5  # Centered on flat back area
-    rider_y = horse_cy - 68  # Adjusted for new body shape
+    # =========================================================================
+    # RIDER - Simple minimalist white silhouette
+    # =========================================================================
+    rider_x = horse_cx + 5
+    rider_y = horse_cy - 70
 
-    # Rider torso (upright)
-    torso_path = aggdraw.Path()
-    torso_path.moveto(rider_x - 12, rider_y + 12)
-    torso_path.lineto(rider_x - 10, rider_y + 45)
-    torso_path.lineto(rider_x + 10, rider_y + 45)
-    torso_path.lineto(rider_x + 12, rider_y + 12)
-    torso_path.close()
-    draw.path(torso_path, None, navy_brush)
-
-    # Rider legs (hanging naturally with stirrups)
-    rider_leg_pen = aggdraw.Pen(COLORS['navy'], 7)
-    stirrup_pen = aggdraw.Pen(COLORS['navy'], 3)
-    # Left leg - hanging down left side
-    draw_smooth_line(draw, rider_x - 6, rider_y + 43,
-                    rider_x - 22, rider_y + 78, rider_leg_pen)
-    # Left stirrup
-    draw_smooth_line(draw, rider_x - 25, rider_y + 78,
-                    rider_x - 19, rider_y + 78, stirrup_pen)
-
-    # Right leg - hanging down right side
-    draw_smooth_line(draw, rider_x + 6, rider_y + 43,
-                    rider_x + 22, rider_y + 78, rider_leg_pen)
-    # Right stirrup
-    draw_smooth_line(draw, rider_x + 19, rider_y + 78,
-                    rider_x + 25, rider_y + 78, stirrup_pen)
-
-    # Rider left arm (holding reins - forward and down)
-    arm_pen = aggdraw.Pen(COLORS['navy'], 6)
-    rein_hand_x = rider_x + 50
-    rein_hand_y = rider_y + 32
-    draw_smooth_line(draw, rider_x + 8, rider_y + 18,
-                    rein_hand_x, rein_hand_y, arm_pen)
-    # Reins (thin line to horse head)
-    rein_pen = aggdraw.Pen(COLORS['navy'], 2)
-    draw_smooth_line(draw, rein_hand_x, rein_hand_y,
-                    head_cx - 15, head_cy + 10, rein_pen)
-
-    # Rider right arm (at side with subtle wave)
-    arm_end_x = rider_x - 28
-    arm_end_y = rider_y + 38 - arm_wave  # Mostly down, slight wave
-    draw_smooth_line(draw, rider_x - 8, rider_y + 18,
-                    arm_end_x, arm_end_y, arm_pen)
+    # Rider body (simple shape)
+    rider_body_path = aggdraw.Path()
+    # Torso - upright
+    rider_body_path.moveto(rider_x - 10, rider_y + 10)
+    rider_body_path.lineto(rider_x - 8, rider_y + 40)
+    rider_body_path.lineto(rider_x + 8, rider_y + 40)
+    rider_body_path.lineto(rider_x + 10, rider_y + 10)
+    rider_body_path.close()
+    draw.path(rider_body_path, rider_pen, rider_brush)
 
     # Rider head
-    draw_smooth_ellipse(draw, rider_x, rider_y, 16, 16, aggdraw.Pen(COLORS['navy'], 2.5), white_brush)
+    draw_smooth_ellipse(draw, rider_x, rider_y - 2, 12, 13, rider_pen, rider_brush)
 
-    # Face - eyes
-    draw_smooth_ellipse(draw, rider_x - 5, rider_y - 2, 2, 2, None, navy_brush)
-    draw_smooth_ellipse(draw, rider_x + 5, rider_y - 2, 2, 2, None, navy_brush)
+    # Rider arms - both forward holding reins
+    arm_pen = aggdraw.Pen(COLORS['rider_body'], 6)
+    arm_outline_pen = aggdraw.Pen(COLORS['rider_outline'], 1)
 
-    # Face - smile
-    smile_pen = aggdraw.Pen(COLORS['navy'], 2)
-    smile_path = aggdraw.Path()
-    smile_path.moveto(rider_x - 6, rider_y + 5)
-    smile_path.curveto(rider_x - 3, rider_y + 10,
-                       rider_x + 3, rider_y + 10,
-                       rider_x + 6, rider_y + 5)
-    draw.path(smile_path, smile_pen)
+    # Right arm (forward to reins)
+    arm_path_r = aggdraw.Path()
+    arm_path_r.moveto(rider_x + 6, rider_y + 15)
+    arm_path_r.curveto(
+        rider_x + 25, rider_y + 20,
+        rider_x + 40, rider_y + 30,
+        rider_x + 50, rider_y + 35
+    )
+    draw.path(arm_path_r, arm_pen)
 
-    # Rider hat/cap
-    hat_pen = aggdraw.Pen(COLORS['navy'], 1.5)
-    draw_smooth_ellipse(draw, rider_x, rider_y - 14, 14, 6, hat_pen, orange_brush)
-    hat_top = aggdraw.Path()
-    hat_top.moveto(rider_x - 12, rider_y - 14)
-    hat_top.curveto(rider_x - 12, rider_y - 25,
-                    rider_x + 12, rider_y - 25,
-                    rider_x + 12, rider_y - 14)
-    draw.path(hat_top, hat_pen, orange_brush)
+    # Left arm (forward to reins, slightly behind)
+    arm_path_l = aggdraw.Path()
+    arm_path_l.moveto(rider_x - 2, rider_y + 15)
+    arm_path_l.curveto(
+        rider_x + 15, rider_y + 22,
+        rider_x + 35, rider_y + 32,
+        rider_x + 48, rider_y + 38
+    )
+    draw.path(arm_path_l, arm_pen)
+
+    # Reins - thin lines from hands to horse head
+    draw_smooth_line(draw, rider_x + 50, rider_y + 35,
+                    head_cx - 10, head_cy + 12, rein_pen)
+    draw_smooth_line(draw, rider_x + 48, rider_y + 38,
+                    head_cx - 8, head_cy + 14, rein_pen)
+
+    # Rider legs - hanging on sides of horse
+    leg_pen = aggdraw.Pen(COLORS['rider_body'], 7)
+
+    # Right leg
+    leg_path_r = aggdraw.Path()
+    leg_path_r.moveto(rider_x + 5, rider_y + 38)
+    leg_path_r.curveto(
+        rider_x + 15, rider_y + 50,
+        rider_x + 22, rider_y + 65,
+        rider_x + 20, rider_y + 80
+    )
+    draw.path(leg_path_r, leg_pen)
+
+    # Left leg
+    leg_path_l = aggdraw.Path()
+    leg_path_l.moveto(rider_x - 5, rider_y + 38)
+    leg_path_l.curveto(
+        rider_x - 15, rider_y + 50,
+        rider_x - 22, rider_y + 65,
+        rider_x - 20, rider_y + 80
+    )
+    draw.path(leg_path_l, leg_pen)
 
     draw.flush()
     return frame
