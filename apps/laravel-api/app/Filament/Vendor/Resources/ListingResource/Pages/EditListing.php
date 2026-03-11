@@ -145,65 +145,6 @@ class EditListing extends EditRecord
                     $this->redirect($this->getResource()::getUrl('index'));
                 }),
 
-            Actions\Action::make('auto_translate')
-                ->label(__('filament.actions.auto_translate'))
-                ->icon('heroicon-o-language')
-                ->color('info')
-                ->requiresConfirmation()
-                ->modalHeading(__('filament.modals.auto_translate'))
-                ->modalDescription(__('filament.modals.auto_translate_description'))
-                ->form([
-                    \Filament\Forms\Components\Select::make('target_language')
-                        ->label(__('filament.labels.target_language'))
-                        ->options([
-                            'en' => 'English (from French)',
-                            'fr' => 'French (from English)',
-                        ])
-                        ->required()
-                        ->default('en'),
-                ])
-                ->action(function (array $data) {
-                    $translationService = app(\App\Services\TranslationService::class);
-
-                    if (! $translationService->isEnabled()) {
-                        Notification::make()
-                            ->title(__('filament.notifications.translation_not_configured'))
-                            ->body(__('filament.notifications.translation_not_configured_body'))
-                            ->warning()
-                            ->send();
-
-                        return;
-                    }
-
-                    $result = $translationService->translateListing(
-                        $this->record,
-                        $data['target_language']
-                    );
-
-                    if (! empty($result['translated_fields'])) {
-                        $this->record->save();
-
-                        Notification::make()
-                            ->title(__('filament.notifications.translation_complete'))
-                            ->body(__('filament.notifications.translation_complete_body', [
-                                'fields' => implode(', ', $result['translated_fields']),
-                                'language' => $data['target_language'] === 'en' ? 'English' : 'French',
-                            ]))
-                            ->success()
-                            ->send();
-
-                        // Refresh the form data
-                        $this->fillForm();
-                    } else {
-                        Notification::make()
-                            ->title(__('filament.notifications.no_translation_needed'))
-                            ->body(__('filament.notifications.no_translation_needed_body'))
-                            ->info()
-                            ->send();
-                    }
-                })
-                ->visible(fn () => $this->record->exists),
-
             Actions\ViewAction::make(),
             Actions\DeleteAction::make(),
         ];
