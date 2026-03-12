@@ -78,6 +78,8 @@ class PlatformSettings extends Model implements HasMedia
         'about_team_title',
         'about_team_description',
         'about_impact_text',
+        'about_initiatives_title',
+        'about_initiatives_description',
     ];
 
     /**
@@ -310,6 +312,9 @@ class PlatformSettings extends Model implements HasMedia
         'about_commitments',
         'about_partners',
         'about_initiatives',
+        'about_initiatives_title',
+        'about_initiatives_description',
+        'about_initiatives_bullets',
     ];
 
     protected function casts(): array
@@ -330,6 +335,7 @@ class PlatformSettings extends Model implements HasMedia
             'about_commitments' => 'array',
             'about_partners' => 'array',
             'about_initiatives' => 'array',
+            'about_initiatives_bullets' => 'array',
 
             // Booleans
             'enable_reviews' => 'boolean',

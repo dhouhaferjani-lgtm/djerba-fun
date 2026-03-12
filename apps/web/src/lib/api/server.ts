@@ -473,5 +473,47 @@ export async function getAboutPageData(locale?: string) {
         image: string;
         alt: string;
       }>) ?? [],
+    // New: Initiatives text section (the lime green box with bullet points)
+    initiativesText: {
+      title: data?.initiativesText?.title ?? null,
+      description: data?.initiativesText?.description ?? null,
+      bullets: (data?.initiativesText?.bullets as string[]) ?? [],
+    },
+  };
+}
+
+/**
+ * Get Contact page data from CMS.
+ * Returns contact info, address, and social links.
+ */
+export async function getContactPageData(locale?: string) {
+  const settings = await getPlatformSettings(locale);
+  const data = settings?.data as any;
+
+  return {
+    contact: {
+      phone: data?.contact?.phone ?? null,
+      whatsapp: data?.contact?.whatsapp ?? null,
+      supportEmail: data?.contact?.supportEmail ?? null,
+      generalEmail: data?.contact?.generalEmail ?? null,
+      businessHours: data?.contact?.businessHours ?? null,
+    },
+    address: {
+      street: data?.address?.street ?? null,
+      city: data?.address?.city ?? null,
+      region: data?.address?.region ?? null,
+      postalCode: data?.address?.postalCode ?? null,
+      country: data?.address?.country ?? null,
+      full: data?.address?.full ?? null,
+      googleMapsUrl: data?.address?.googleMapsUrl ?? null,
+    },
+    social: {
+      facebook: data?.social?.facebook ?? null,
+      instagram: data?.social?.instagram ?? null,
+      twitter: data?.social?.twitter ?? null,
+      linkedin: data?.social?.linkedin ?? null,
+      youtube: data?.social?.youtube ?? null,
+      tiktok: data?.social?.tiktok ?? null,
+    },
   };
 }

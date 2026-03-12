@@ -1443,6 +1443,59 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->collapsible()
                     ->collapsed(),
 
+                // Initiatives Text Section (the lime green box)
+                Forms\Components\Section::make('Initiatives Text Section')
+                    ->description('The green box with community initiatives text and bullet points (displayed next to Team section)')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Section::make('English')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('about_initiatives_title.en')
+                                            ->label('Title')
+                                            ->placeholder('Community Initiatives')
+                                            ->maxLength(100),
+                                        Forms\Components\Textarea::make('about_initiatives_description.en')
+                                            ->label('Description')
+                                            ->rows(2)
+                                            ->maxLength(500)
+                                            ->placeholder('We believe in giving back to the communities that make our adventures possible.'),
+                                    ]),
+                                Forms\Components\Section::make('Français')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('about_initiatives_title.fr')
+                                            ->label('Titre')
+                                            ->placeholder('Initiatives Solidaires')
+                                            ->maxLength(100),
+                                        Forms\Components\Textarea::make('about_initiatives_description.fr')
+                                            ->label('Description')
+                                            ->rows(2)
+                                            ->maxLength(500),
+                                    ]),
+                            ]),
+                        Forms\Components\Repeater::make('about_initiatives_bullets')
+                            ->label('Bullet Points')
+                            ->schema([
+                                Forms\Components\TextInput::make('text_en')
+                                    ->label('English')
+                                    ->required()
+                                    ->maxLength(200),
+                                Forms\Components\TextInput::make('text_fr')
+                                    ->label('Français')
+                                    ->required()
+                                    ->maxLength(200),
+                            ])
+                            ->columns(2)
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string => $state['text_en'] ?? null)
+                            ->defaultItems(0)
+                            ->maxItems(6)
+                            ->reorderable()
+                            ->helperText('Add bullet points that describe your community initiatives'),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+
                 // Impact Text
                 Forms\Components\Section::make('Impact Banner')
                     ->description('The 1% impact banner text')

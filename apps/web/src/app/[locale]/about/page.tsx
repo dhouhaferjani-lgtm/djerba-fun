@@ -299,22 +299,21 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             {/* Initiatives Box - Lime */}
             <div className="bg-[#4ade9a] p-8 rounded-lg">
               <h3 className="text-2xl font-bold text-gray-900 mb-4 uppercase">
-                {t('initiatives')}
+                {cmsData.initiativesText.title || t('initiatives')}
               </h3>
-              <p className="text-gray-800 mb-4 leading-relaxed">{t('initiatives_desc')}</p>
+              <p className="text-gray-800 mb-4 leading-relaxed">
+                {cmsData.initiativesText.description || t('initiatives_desc')}
+              </p>
               <ul className="space-y-2 text-gray-800">
-                <li className="flex items-start">
-                  <span className="mr-2">•</span>
-                  <span>{t('initiatives_bullet1')}</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-2">•</span>
-                  <span>{t('initiatives_bullet2')}</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-2">•</span>
-                  <span>{t('initiatives_bullet3')}</span>
-                </li>
+                {(cmsData.initiativesText.bullets.length > 0
+                  ? cmsData.initiativesText.bullets
+                  : [t('initiatives_bullet1'), t('initiatives_bullet2'), t('initiatives_bullet3')]
+                ).map((bullet, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="mr-2">•</span>
+                    <span>{bullet}</span>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>

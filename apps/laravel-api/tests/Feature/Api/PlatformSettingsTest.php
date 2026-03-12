@@ -466,4 +466,169 @@ class PlatformSettingsTest extends TestCase
         $this->assertNotNull($pillarUrl);
         $this->assertStringNotContainsString('/admin/media-proxy/', $pillarUrl);
     }
+
+    /**
+     * Test contact information is returned in API response.
+     */
+    public function test_contact_information_returned_in_api(): void
+    {
+        // Arrange
+        PlatformSettings::create([
+            'support_email' => 'support@test.com',
+            'general_email' => 'hello@test.com',
+            'phone_number' => '+216 99 123 456',
+            'whatsapp_number' => '+216 99 123 456',
+        ]);
+
+        // Act
+        $response = $this->getJson('/api/v1/platform/settings');
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJsonPath('data.contact.supportEmail', 'support@test.com')
+            ->assertJsonPath('data.contact.generalEmail', 'hello@test.com')
+            ->assertJsonPath('data.contact.phone', '+216 99 123 456')
+            ->assertJsonPath('data.contact.whatsapp', '+216 99 123 456');
+    }
+
+    /**
+     * Test address information is returned in API response.
+     */
+    public function test_address_information_returned_in_api(): void
+    {
+        // Arrange
+        PlatformSettings::create([
+            'address_street' => '123 Test Street',
+            'address_city' => 'Djerba',
+            'address_region' => 'Medenine',
+            'address_postal_code' => '4180',
+            'address_country' => 'TN',
+            'google_maps_url' => 'https://maps.google.com/test',
+        ]);
+
+        // Act
+        $response = $this->getJson('/api/v1/platform/settings');
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJsonPath('data.address.street', '123 Test Street')
+            ->assertJsonPath('data.address.city', 'Djerba')
+            ->assertJsonPath('data.address.region', 'Medenine')
+            ->assertJsonPath('data.address.postalCode', '4180')
+            ->assertJsonPath('data.address.country', 'TN')
+            ->assertJsonPath('data.address.googleMapsUrl', 'https://maps.google.com/test');
+
+        // Verify full address is generated
+        $fullAddress = $response->json('data.address.full');
+        $this->assertNotNull($fullAddress);
+        $this->assertStringContainsString('Djerba', $fullAddress);
+    }
+
+    /**
+     * Test social media links are returned in API response.
+     */
+    public function test_social_media_links_returned_in_api(): void
+    {
+        // Arrange
+        PlatformSettings::create([
+            'social_facebook' => 'https://facebook.com/test',
+            'social_instagram' => 'https://instagram.com/test',
+            'social_twitter' => 'https://twitter.com/test',
+            'social_linkedin' => 'https://linkedin.com/company/test',
+            'social_youtube' => 'https://youtube.com/@test',
+            'social_tiktok' => 'https://tiktok.com/@test',
+        ]);
+
+        // Act
+        $response = $this->getJson('/api/v1/platform/settings');
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJsonPath('data.social.facebook', 'https://facebook.com/test')
+            ->assertJsonPath('data.social.instagram', 'https://instagram.com/test')
+            ->assertJsonPath('data.social.twitter', 'https://twitter.com/test')
+            ->assertJsonPath('data.social.linkedin', 'https://linkedin.com/company/test')
+            ->assertJsonPath('data.social.youtube', 'https://youtube.com/@test')
+            ->assertJsonPath('data.social.tiktok', 'https://tiktok.com/@test');
+    }
+
+    /**
+     * Test about page initiatives text is returned in API response.
+     */
+    public function test_about_initiatives_text_returned_in_api(): void
+    {
+        // Arrange
+        PlatformSettings::create([
+            'about_initiatives_title' => ['en' => 'Our Initiatives', 'fr' => 'Nos Initiatives'],
+            'about_initiatives_description' => ['en' => 'We give back', 'fr' => 'Nous redonnons'],
+            'about_initiatives_bullets' => [
+                ['text_en' => 'Education programs', 'text_fr' => 'Programmes éducatifs'],
+                ['text_en' => 'Environment protection', 'text_fr' => 'Protection environnementale'],
+                ['text_en' => 'Local community support', 'text_fr' => 'Soutien communautaire local'],
+            ],
+        ]);
+
+        // Act - English
+        $responseEn = $this->getJson('/api/v1/platform/settings?locale=en');
+
+        // Assert - English
+        $responseEn->assertStatus(200)
+            ->assertJsonPath('data.about.initiativesText.title', 'Our Initiatives')
+            ->assertJsonPath('data.about.initiativesText.description', 'We give back')
+            ->assertJsonPath('data.about.initiativesText.bullets.0', 'Education programs')
+            ->assertJsonPath('data.about.initiativesText.bullets.1', 'Environment protection')
+            ->assertJsonPath('data.about.initiativesText.bullets.2', 'Local community support');
+
+        // Act - French
+        $responseFr = $this->getJson('/api/v1/platform/settings?locale=fr');
+
+        // Assert - French
+        $responseFr->assertStatus(200)
+            ->assertJsonPath('data.about.initiativesText.title', 'Nos Initiatives')
+            ->assertJsonPath('data.about.initiativesText.description', 'Nous redonnons')
+            ->assertJsonPath('data.about.initiativesText.bullets.0', 'Programmes éducatifs')
+            ->assertJsonPath('data.about.initiativesText.bullets.1', 'Protection environnementale')
+            ->assertJsonPath('data.about.initiativesText.bullets.2', 'Soutien communautaire local');
+    }
+
+    /**
+     * Test about page structure includes all expected sections.
+     */
+    public function test_about_page_structure_returned_in_api(): void
+    {
+        // Arrange
+        PlatformSettings::create([
+            'about_hero_title' => ['en' => 'About Us', 'fr' => 'À Propos'],
+            'about_founder_name' => 'Seif Ben Helel',
+            'about_team_title' => ['en' => 'Our Team', 'fr' => 'Notre Équipe'],
+            'about_impact_text' => ['en' => '1% for nature', 'fr' => '1% pour la nature'],
+        ]);
+
+        // Act
+        $response = $this->getJson('/api/v1/platform/settings?locale=en');
+
+        // Assert structure
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'about' => [
+                        'hero' => ['title', 'subtitle', 'tagline', 'image'],
+                        'story' => ['heading', 'intro', 'text1', 'text2'],
+                        'founder' => ['name', 'photo', 'story', 'quote'],
+                        'team' => ['title', 'description'],
+                        'impactText',
+                        'commitments',
+                        'partners',
+                        'initiatives',
+                        'initiativesText' => ['title', 'description', 'bullets'],
+                    ],
+                ],
+            ]);
+
+        // Assert values
+        $response->assertJsonPath('data.about.hero.title', 'About Us')
+            ->assertJsonPath('data.about.founder.name', 'Seif Ben Helel')
+            ->assertJsonPath('data.about.team.title', 'Our Team')
+            ->assertJsonPath('data.about.impactText', '1% for nature');
+    }
 }

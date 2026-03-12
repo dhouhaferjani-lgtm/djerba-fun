@@ -333,6 +333,16 @@ class PlatformSettingsService
                         'alt' => $locale === 'fr' ? ($initiative['alt_fr'] ?? $initiative['alt_en'] ?? '') : ($initiative['alt_en'] ?? ''),
                     ];
                 })->values()->toArray(),
+                // Initiatives Text Section (the lime green box with bullet points)
+                'initiativesText' => [
+                    'title' => $s->getTranslation('about_initiatives_title', $locale),
+                    'description' => $s->getTranslation('about_initiatives_description', $locale),
+                    'bullets' => collect($s->about_initiatives_bullets ?? [])->map(function ($bullet) use ($locale) {
+                        return $locale === 'fr'
+                            ? ($bullet['text_fr'] ?? $bullet['text_en'] ?? '')
+                            : ($bullet['text_en'] ?? '');
+                    })->values()->toArray(),
+                ],
             ],
         ];
     }
