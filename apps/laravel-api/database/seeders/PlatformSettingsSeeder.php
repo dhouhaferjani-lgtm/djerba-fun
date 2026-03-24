@@ -35,9 +35,51 @@ class PlatformSettingsSeeder extends Seeder
                 'en' => 'Discover Djerba island with unique tours, nautical activities, and authentic accommodations. Your Mediterranean adventure starts here!',
                 'fr' => 'Découvrez l\'île de Djerba avec des excursions uniques, des activités nautiques et des hébergements authentiques. Votre aventure méditerranéenne commence ici!',
             ],
-            'primary_domain' => 'djerbafun.com',
+            'primary_domain' => 'https://djerbafun.com',
             'api_url' => env('APP_URL', 'http://localhost:8000'),
             'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
+            // Hero Section
+            'hero_title' => [
+                'en' => 'Discover Djerba',
+                'fr' => 'Découvrez Djerba',
+            ],
+            'hero_subtitle' => [
+                'en' => 'Your Mediterranean adventure awaits',
+                'fr' => 'Votre aventure méditerranéenne vous attend',
+            ],
+
+            // Brand Pillars
+            'pillar_1_title' => [
+                'en' => 'Adventure',
+                'fr' => 'Aventure',
+            ],
+            'pillar_1_description' => [
+                'en' => 'Thrilling experiences await on land and sea',
+                'fr' => 'Des expériences palpitantes vous attendent sur terre et en mer',
+            ],
+            'pillar_2_title' => [
+                'en' => 'Culture',
+                'fr' => 'Culture',
+            ],
+            'pillar_2_description' => [
+                'en' => 'Immerse yourself in local traditions',
+                'fr' => 'Plongez dans les traditions locales',
+            ],
+            'pillar_3_title' => [
+                'en' => 'Relaxation',
+                'fr' => 'Détente',
+            ],
+            'pillar_3_description' => [
+                'en' => 'Unwind on pristine beaches',
+                'fr' => 'Détendez-vous sur des plages immaculées',
+            ],
+
+            // Event of the Year
+            'event_of_year_title' => [
+                'en' => 'Featured Event',
+                'fr' => 'Événement à la Une',
+            ],
 
             // SEO & Metadata
             'meta_title' => [
@@ -54,8 +96,8 @@ class PlatformSettingsSeeder extends Seeder
             'founded_year' => 2024,
 
             // Contact Information
-            'support_email' => 'support@djerba.fun',
-            'general_email' => 'contact@djerba.fun',
+            'support_email' => 'support@djerbafun.com',
+            'general_email' => 'contact@djerbafun.com',
             'phone_number' => '+216 75 123 456',
             'whatsapp_number' => '+21675123456',
             'business_hours' => [
@@ -86,10 +128,10 @@ class PlatformSettingsSeeder extends Seeder
 
             // Email Settings
             'email_from_name' => 'Djerba Fun',
-            'email_from_address' => 'noreply@djerba.fun',
-            'email_reply_to' => 'support@djerba.fun',
-            'email_terms_url' => '/terms',
-            'email_privacy_url' => '/privacy',
+            'email_from_address' => 'noreply@djerbafun.com',
+            'email_reply_to' => 'support@djerbafun.com',
+            'email_terms_url' => 'https://djerbafun.com/terms',
+            'email_privacy_url' => 'https://djerbafun.com/privacy',
 
             // Payment & Commerce
             'default_currency' => 'TND',
@@ -147,11 +189,11 @@ class PlatformSettingsSeeder extends Seeder
             'sentry_dsn' => null,
 
             // Legal & Compliance
-            'terms_url' => '/terms',
-            'privacy_url' => '/privacy',
-            'cookie_policy_url' => '/cookies',
-            'refund_policy_url' => '/refund-policy',
-            'data_deletion_policy_url' => '/data-deletion',
+            'terms_url' => 'https://djerbafun.com/terms',
+            'privacy_url' => 'https://djerbafun.com/privacy',
+            'cookie_policy_url' => 'https://djerbafun.com/cookies',
+            'refund_policy_url' => 'https://djerbafun.com/refund-policy',
+            'data_deletion_policy_url' => 'https://djerbafun.com/data-deletion',
             'cookie_consent_enabled' => true,
             'gdpr_mode_enabled' => true,
             'data_retention_days' => 365,
@@ -180,6 +222,48 @@ class PlatformSettingsSeeder extends Seeder
             'experience_categories_subtitle' => [
                 'en' => 'Find your perfect adventure in Djerba',
                 'fr' => 'Trouvez votre aventure parfaite à Djerba',
+            ],
+            'experience_categories' => [
+                [
+                    'id' => 'tour',
+                    'display_order' => 0,
+                    'name_en' => 'Tours',
+                    'name_fr' => 'Excursions',
+                    'description_en' => 'Discover guided tours and adventures',
+                    'description_fr' => 'Découvrez des excursions et aventures guidées',
+                    'image' => null,
+                    'link' => '/listings?type=tour',
+                ],
+                [
+                    'id' => 'nautical',
+                    'display_order' => 1,
+                    'name_en' => 'Nautical Activities',
+                    'name_fr' => 'Activités Nautiques',
+                    'description_en' => 'Water sports and boat tours',
+                    'description_fr' => 'Sports nautiques et tours en bateau',
+                    'image' => null,
+                    'link' => '/listings?type=nautical',
+                ],
+                [
+                    'id' => 'accommodation',
+                    'display_order' => 2,
+                    'name_en' => 'Accommodations',
+                    'name_fr' => 'Hébergements',
+                    'description_en' => 'Hotels and guesthouses',
+                    'description_fr' => 'Hôtels et maisons d\'hôtes',
+                    'image' => null,
+                    'link' => '/listings?type=accommodation',
+                ],
+                [
+                    'id' => 'event',
+                    'display_order' => 3,
+                    'name_en' => 'Events',
+                    'name_fr' => 'Événements',
+                    'description_en' => 'Festivals, workshops and more',
+                    'description_fr' => 'Festivals, ateliers et plus',
+                    'image' => null,
+                    'link' => '/listings?type=event',
+                ],
             ],
 
             // Blog Section

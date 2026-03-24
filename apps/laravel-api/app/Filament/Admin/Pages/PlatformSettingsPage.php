@@ -1048,6 +1048,110 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ]),
                             ]),
                     ]),
+
+                Forms\Components\Section::make('Experience Categories')
+                    ->description('Configure the category cards displayed in the grid. Maximum 6 categories. Images support JPG, PNG, WebP, and GIF formats. If no image is uploaded, the default animated GIF will be used.')
+                    ->schema([
+                        Forms\Components\Repeater::make('experience_categories')
+                            ->label('Categories')
+                            ->schema([
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('name_en')
+                                            ->label('Name (English)')
+                                            ->required()
+                                            ->maxLength(50)
+                                            ->live(debounce: 500)
+                                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                                $currentId = $get('id');
+                                                // Only auto-generate slug if id is empty or was auto-generated
+                                                if (empty($currentId)) {
+                                                    $set('id', \Illuminate\Support\Str::slug($state ?? ''));
+                                                }
+                                            }),
+
+                                        Forms\Components\TextInput::make('name_fr')
+                                            ->label('Name (Français)')
+                                            ->required()
+                                            ->maxLength(50),
+                                    ]),
+
+                                Forms\Components\TextInput::make('id')
+                                    ->label('Slug/ID')
+                                    ->required()
+                                    ->helperText('Auto-generated from English name. Used for identification.')
+                                    ->rules(['regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/']),
+
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Textarea::make('description_en')
+                                            ->label('Description (English)')
+                                            ->rows(2)
+                                            ->maxLength(200),
+
+                                        Forms\Components\Textarea::make('description_fr')
+                                            ->label('Description (Français)')
+                                            ->rows(2)
+                                            ->maxLength(200),
+                                    ]),
+
+                                Forms\Components\FileUpload::make('image')
+                                    ->label('Category Image/GIF')
+                                    ->image()
+                                    ->directory('experiences')
+                                    ->disk('public')
+                                    ->maxSize(5120)
+                                    ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
+                                    ->imageEditor()
+                                    ->imageEditorAspectRatios([
+                                        '4:3',
+                                        '16:9',
+                                        '1:1',
+                                        null, // Free crop
+                                    ])
+                                    ->getUploadedFileUsing(static function (BaseFileUpload $component, string $file): ?array {
+                                        $storage = $component->getDisk();
+                                        if (! $storage->exists($file)) {
+                                            return null;
+                                        }
+
+                                        return [
+                                            'name' => basename($file),
+                                            'size' => $storage->size($file),
+                                            'type' => $storage->mimeType($file),
+                                            'url' => route('admin.storage.proxy', ['path' => $file]),
+                                        ];
+                                    })
+                                    ->helperText('Recommended: 400x300 or 4:3 aspect ratio. Supports JPG, PNG, WebP, GIF. Max 5MB. Use image editor to crop/zoom. Leave empty to use default GIF.'),
+
+                                Forms\Components\TextInput::make('link')
+                                    ->label('Link URL')
+                                    ->required()
+                                    ->placeholder('/listings?type=tour')
+                                    ->helperText('Relative URL (e.g., /listings?type=tour) or absolute URL')
+                                    ->maxLength(255),
+
+                                Forms\Components\Hidden::make('display_order')
+                                    ->default(0),
+                            ])
+                            ->columns(1)
+                            ->reorderable()
+                            ->reorderableWithDragAndDrop()
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string => ($state['name_en'] ?? 'New Category') . ' (' . ($state['id'] ?? 'no-id') . ')')
+                            ->defaultItems(0)
+                            ->maxItems(6)
+                            ->addActionLabel('Add Category')
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                // Update display_order based on position
+                                $categories = $get('experience_categories') ?? [];
+                                foreach ($categories as $index => $category) {
+                                    $categories[$index]['display_order'] = $index;
+                                }
+                                $set('experience_categories', $categories);
+                            }),
+                    ])
+                    ->collapsible(),
             ]);
     }
 
