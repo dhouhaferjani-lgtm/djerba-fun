@@ -84,8 +84,13 @@ class SeedExperienceCategoriesCommand extends Command
             ],
         ];
 
-        $settings->experience_categories = $defaultCategories;
-        $settings->save();
+        // Use update() to ensure the data is persisted
+        $settings->update(['experience_categories' => $defaultCategories]);
+
+        // Also try direct DB update as fallback
+        \Illuminate\Support\Facades\DB::table('platform_settings')
+            ->where('id', $settings->id)
+            ->update(['experience_categories' => json_encode($defaultCategories)]);
 
         $this->info('Experience categories seeded successfully!');
         $this->table(
