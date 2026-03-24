@@ -6,11 +6,11 @@ import { Link } from '@/i18n/navigation';
 
 // Type for dynamic CMS categories
 interface ExperienceCategory {
-  id: string;
-  name: string;
+  id: string | null;
+  name: string | null;
   description: string | null;
   image: string | null;
-  link: string;
+  link: string | null;
   displayOrder: number;
 }
 
@@ -44,7 +44,7 @@ interface CategoryCardProps {
     id: string;
     name: string;
     image: string | null;
-    link: string;
+    link: string | null;
   };
   locale: string;
 }
@@ -56,12 +56,13 @@ function CategoryCard({ category, locale }: CategoryCardProps) {
   // Determine if image is a GIF (should not be optimized)
   const isGif = image.toLowerCase().endsWith('.gif');
 
-  // Build the link - handle both relative and absolute URLs
-  const href = category.link.startsWith('http')
-    ? category.link
-    : category.link.startsWith('/')
-      ? `/${locale}${category.link}`
-      : `/${locale}/${category.link}`;
+  // Build the link - handle null, relative and absolute URLs
+  const link = category.link || `/listings?type=${category.id}`;
+  const href = link.startsWith('http')
+    ? link
+    : link.startsWith('/')
+      ? `/${locale}${link}`
+      : `/${locale}/${link}`;
 
   return (
     <Link
@@ -104,11 +105,11 @@ export function ExperienceCategoriesSection({ cmsData }: ExperienceCategoriesSec
   const locale = useLocale();
 
   // Use CMS categories if available, otherwise use fallback service types
-  const categories: Array<{ id: string; name: string; image: string | null; link: string }> =
+  const categories: Array<{ id: string; name: string; image: string | null; link: string | null }> =
     cmsData?.categories && cmsData.categories.length > 0
       ? cmsData.categories.map((cat) => ({
-          id: cat.id,
-          name: cat.name,
+          id: cat.id || 'unknown',
+          name: cat.name || '',
           image: cat.image,
           link: cat.link,
         }))
