@@ -12,3 +12,9 @@ export { ToursListingBlock } from './blocks/ToursListingBlock';
 export { PromoBannerBlock } from './blocks/PromoBannerBlock';
 export { CategoriesGridBlock } from './blocks/CategoriesGridBlock';
 export { CTAWithBlobsBlock } from './blocks/CTAWithBlobsBlock';
+
+// Export destination-style page sections
+export { HighlightsSection } from './sections/HighlightsSection';
+export { KeyFactsBar } from './sections/KeyFactsBar';
+export { GallerySection } from './sections/GallerySection';
+export { POISection } from './sections/POISection';

@@ -5,72 +5,50 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources\PageResource\Pages;
 
 use App\Filament\Admin\Resources\PageResource;
-use Filament\Actions;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Support\Str;
-use Statikbe\FilamentFlexibleContentBlocks\Filament\Actions\FlexibleLocaleSwitcher;
-use Statikbe\FilamentFlexibleContentBlocks\Filament\Pages\CreateRecord\Concerns\TranslatableWithMedia;
 
 class CreatePage extends CreateRecord
 {
-    use TranslatableWithMedia;
-
     protected static string $resource = PageResource::class;
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\Action::make('saveDraft')
-                ->label('Save as Draft')
-                ->icon('heroicon-o-bookmark')
-                ->color('gray')
-                ->action(function () {
-                    $this->saveDraft();
-                }),
-            FlexibleLocaleSwitcher::make(),
-        ];
-    }
-
-    protected function saveDraft(): void
-    {
-        $data = $this->form->getState();
-
-        // Generate a slug if missing
-        if (empty($data['slug']['en']) && ! empty($data['title']['en'])) {
-            $data['slug'] = ['en' => Str::slug($data['title']['en'])];
-        } elseif (empty($data['slug']['en'])) {
-            $data['slug'] = ['en' => 'draft-' . Str::random(8)];
-        }
-
-        // Set default title if missing
-        if (empty($data['title']['en'])) {
-            $data['title'] = ['en' => 'Untitled Draft'];
-        }
-
-        // Ensure it's NOT published (no publishing dates)
-        $data['publishing_begins_at'] = null;
-        $data['publishing_ends_at'] = null;
-
-        // Set author if available
-        $data['author_id'] = auth()->id();
-
-        // Create the record
-        $record = $this->getModel()::create($data);
-
-        Notification::make()
-            ->title('Draft Saved')
-            ->body('Your page has been saved as a draft. You can continue editing it later.')
-            ->success()
-            ->send();
-
-        $this->redirect(PageResource::getUrl('edit', ['record' => $record]));
-    }
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Set author
         $data['author_id'] = auth()->id();
+
+        // Combine title translations into Spatie translatable format
+        $data['title'] = [
+            'en' => $data['title_en'] ?? '',
+            'fr' => $data['title_fr'] ?? $data['title_en'] ?? '',
+        ];
+        unset($data['title_en'], $data['title_fr']);
+
+        // Combine slug translations into Spatie translatable format
+        $data['slug'] = [
+            'en' => $data['slug_en'] ?? '',
+            'fr' => $data['slug_fr'] ?? $data['slug_en'] ?? '',
+        ];
+        unset($data['slug_en'], $data['slug_fr']);
+
+        // Handle published toggle
+        $isPublished = $this->form->getState()['is_published'] ?? false;
+
+        if ($isPublished) {
+            $data['publishing_begins_at'] = now();
+            $data['publishing_ends_at'] = null;
+        } else {
+            $data['publishing_begins_at'] = null;
+            $data['publishing_ends_at'] = null;
+        }
+
+        // Ensure JSON fields are properly set (not empty strings)
+        $jsonFields = ['highlights', 'key_facts', 'gallery', 'points_of_interest'];
+
+        foreach ($jsonFields as $field) {
+            if (empty($data[$field])) {
+                $data[$field] = null;
+            }
+        }
 
         return $data;
     }

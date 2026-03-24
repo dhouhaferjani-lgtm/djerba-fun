@@ -1286,6 +1286,12 @@
     "photo_gallery": "Photo Gallery",
     "must_see_places": "Must-See Places"
   },
+  "pages": {
+    "whatAwaitsYou": "What Awaits You",
+    "gallery": "Photo Gallery",
+    "mustSeePlaces": "Must-See Places",
+    "exploreMore": "Explore More"
+  },
   "listings_page": {
     "title_tours": "Activities",
     "title_nautical": "Nautical Activities",

@@ -13,7 +13,14 @@ class PageResource extends BaseResource
      */
     public function toArray(Request $request): array
     {
-        $locale = $request->input('locale', 'en');
+        $locale = $request->input('locale', $request->header('Accept-Language', 'fr'));
+
+        // Map Accept-Language values to supported locales
+        if (str_starts_with($locale, 'en')) {
+            $locale = 'en';
+        } else {
+            $locale = 'fr'; // Default to French
+        }
 
         return [
             'id' => $this->id,
@@ -22,15 +29,20 @@ class PageResource extends BaseResource
             'title' => $this->getTranslation('title', $locale),
             'intro' => $this->getTranslation('intro', $locale),
 
+            // Destination-style description (per-locale column)
+            'description' => $this->getDescription($locale),
+            'link' => $this->link,
+
             // Hero image
             'heroImage' => $this->getFirstMediaUrl('hero_image'),
             'heroImageCopyright' => $this->getTranslation('hero_image_copyright', $locale),
             'heroImageTitle' => $this->getTranslation('hero_image_title', $locale),
-            'heroCallToActions' => is_array($this->hero_call_to_actions) ? $this->toCamelCase($this->hero_call_to_actions) : $this->hero_call_to_actions,
+            'heroCallToActions' => $this->transformHeroCallToActions($locale),
 
-            // SEO
-            'seoTitle' => $this->getTranslation('seo_title', $locale),
-            'seoDescription' => $this->getTranslation('seo_description', $locale),
+            // Destination-style SEO (per-locale columns)
+            'seoTitle' => $this->getSeoTitleForLocale($locale) ?? $this->getTranslation('seo_title', $locale),
+            'seoDescription' => $this->getSeoDescriptionForLocale($locale) ?? $this->getTranslation('seo_description', $locale),
+            'seoText' => $this->getSeoTextForLocale($locale),
             'seoKeywords' => $this->getTranslation('seo_keywords', $locale),
             'seoImage' => $this->getFirstMediaUrl('seo_image'),
 
@@ -39,7 +51,13 @@ class PageResource extends BaseResource
             'overviewDescription' => $this->getTranslation('overview_description', $locale),
             'overviewImage' => $this->getFirstMediaUrl('overview_image'),
 
-            // Content blocks
+            // Destination-style content sections
+            'highlights' => $this->getLocalizedHighlights($locale),
+            'keyFacts' => $this->getLocalizedKeyFacts($locale),
+            'gallery' => $this->getLocalizedGallery($locale),
+            'pointsOfInterest' => $this->getLocalizedPointsOfInterest($locale),
+
+            // Content blocks (legacy flexible blocks)
             'contentBlocks' => $this->transformContentBlocks($locale),
 
             // Publishing
@@ -56,6 +74,26 @@ class PageResource extends BaseResource
             'createdAt' => $this->created_at->toISOString(),
             'updatedAt' => $this->updated_at->toISOString(),
         ];
+    }
+
+    /**
+     * Transform hero call to actions with localized button labels.
+     */
+    protected function transformHeroCallToActions(string $locale): array
+    {
+        if (! is_array($this->hero_call_to_actions)) {
+            return [];
+        }
+
+        return array_map(function ($cta) use ($locale) {
+            return [
+                'ctaModel' => $cta['cta_model'] ?? 'url',
+                'url' => $cta['url'] ?? '',
+                'buttonStyle' => $cta['button_style'] ?? 'primary',
+                'buttonLabel' => $cta['button_label'][$locale] ?? $cta['button_label']['en'] ?? '',
+                'buttonOpenNewWindow' => $cta['button_open_new_window'] ?? false,
+            ];
+        }, $this->hero_call_to_actions);
     }
 
     /**

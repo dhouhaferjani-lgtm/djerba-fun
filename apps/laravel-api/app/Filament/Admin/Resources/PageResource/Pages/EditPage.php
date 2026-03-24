@@ -6,75 +6,56 @@ namespace App\Filament\Admin\Resources\PageResource\Pages;
 
 use App\Filament\Admin\Resources\PageResource;
 use Filament\Actions;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Statikbe\FilamentFlexibleContentBlocks\Filament\Actions\FlexibleLocaleSwitcher;
-use Statikbe\FilamentFlexibleContentBlocks\Filament\Pages\EditRecord\Concerns\TranslatableWithMedia;
 
 class EditPage extends EditRecord
 {
-    use TranslatableWithMedia;
-
     protected static string $resource = PageResource::class;
 
     protected function getHeaderActions(): array
     {
-        $actions = [];
+        return [
+            Actions\DeleteAction::make(),
+        ];
+    }
 
-        // Add "Publish Now" action if page is a draft
-        if (! $this->record->isPublished()) {
-            $actions[] = Actions\Action::make('publishNow')
-                ->label('Publish Now')
-                ->icon('heroicon-o-globe-alt')
-                ->color('success')
-                ->requiresConfirmation()
-                ->modalHeading('Publish Page')
-                ->modalDescription('This will make the page visible to the public immediately.')
-                ->action(function () {
-                    $this->record->update([
-                        'publishing_begins_at' => now(),
-                        'publishing_ends_at' => null,
-                    ]);
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Combine title translations into Spatie translatable format
+        $data['title'] = [
+            'en' => $data['title_en'] ?? '',
+            'fr' => $data['title_fr'] ?? $data['title_en'] ?? '',
+        ];
+        unset($data['title_en'], $data['title_fr']);
 
-                    Notification::make()
-                        ->title('Page Published')
-                        ->body('The page is now live and visible to the public.')
-                        ->success()
-                        ->send();
+        // Combine slug translations into Spatie translatable format
+        $data['slug'] = [
+            'en' => $data['slug_en'] ?? '',
+            'fr' => $data['slug_fr'] ?? $data['slug_en'] ?? '',
+        ];
+        unset($data['slug_en'], $data['slug_fr']);
 
-                    $this->refreshFormData(['publishing_begins_at', 'publishing_ends_at']);
-                });
+        // Handle published toggle
+        $isPublished = $this->form->getState()['is_published'] ?? false;
+
+        if ($isPublished) {
+            $data['publishing_begins_at'] = now();
+            $data['publishing_ends_at'] = null;
+        } else {
+            $data['publishing_begins_at'] = null;
+            $data['publishing_ends_at'] = null;
         }
 
-        // Add "Unpublish" action if page is published
-        if ($this->record->isPublished()) {
-            $actions[] = Actions\Action::make('unpublish')
-                ->label('Unpublish')
-                ->icon('heroicon-o-eye-slash')
-                ->color('warning')
-                ->requiresConfirmation()
-                ->modalHeading('Unpublish Page')
-                ->modalDescription('This will hide the page from the public.')
-                ->action(function () {
-                    $this->record->update([
-                        'publishing_begins_at' => null,
-                        'publishing_ends_at' => null,
-                    ]);
+        // Ensure JSON fields are properly set (not empty strings)
+        $jsonFields = ['highlights', 'key_facts', 'gallery', 'points_of_interest'];
 
-                    Notification::make()
-                        ->title('Page Unpublished')
-                        ->body('The page is now a draft and hidden from the public.')
-                        ->success()
-                        ->send();
-
-                    $this->refreshFormData(['publishing_begins_at', 'publishing_ends_at']);
-                });
+        foreach ($jsonFields as $field) {
+            if (empty($data[$field])) {
+                $data[$field] = null;
+            }
         }
 
-        $actions[] = FlexibleLocaleSwitcher::make();
-        $actions[] = Actions\DeleteAction::make();
-
-        return $actions;
+        return $data;
     }
 
     protected function getRedirectUrl(): string

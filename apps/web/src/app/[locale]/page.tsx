@@ -31,13 +31,15 @@ import {
   getFeaturedPackagesSectionData,
   getCustomExperienceData,
   getNewsletterData,
+  getHomepageSections,
+  type HomepageSection,
 } from '@/lib/api/server';
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // Fetch CMS section data and other content in parallel
+  // Fetch all data in parallel including section order
   const [
     branding,
     eventOfYear,
@@ -51,6 +53,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     featuredPackagesData,
     customExperienceData,
     newsletterData,
+    homepageSections,
   ] = await Promise.all([
     getBrandingUrls(locale),
     getEventOfYearData(locale),
@@ -64,59 +67,109 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     getFeaturedPackagesSectionData(locale),
     getCustomExperienceData(locale),
     getNewsletterData(locale),
+    getHomepageSections(locale),
   ]);
 
   // Fetch featured listings with the limit from CMS (must be separate due to dependency)
   const featuredListings = await getFeaturedListings(featuredPackagesData.limit);
 
+  // Check if CMS blocks are available (overrides some sections)
+  const hasCmsBlocks = cmsPage && cmsPage.contentBlocks && cmsPage.contentBlocks.length > 0;
+
+  // Filter to enabled sections and sort by order
+  const enabledSections = homepageSections.filter((s: HomepageSection) => s.enabled);
+
+  /**
+   * Render a section by its ID.
+   * Returns the appropriate component with props.
+   */
+  const renderSection = (sectionId: string) => {
+    switch (sectionId) {
+      case 'hero':
+        return (
+          <HeroSection
+            key="hero"
+            locale={locale}
+            heroBannerUrl={branding.heroBanner}
+            heroBannerIsVideo={branding.heroBannerIsVideo}
+            heroBannerThumbnail={branding.heroBannerThumbnail}
+            heroData={heroData}
+          />
+        );
+      case 'marketing_mosaic':
+        return (
+          <MarketingMosaicSection
+            key="marketing_mosaic"
+            brandPillar1Url={branding.brandPillar1}
+            brandPillar2Url={branding.brandPillar2}
+            brandPillar3Url={branding.brandPillar3}
+            brandPillarsData={brandPillarsData}
+          />
+        );
+      case 'featured_packages':
+        // Only render if CMS enabled (individual section control)
+        if (!featuredPackagesData.enabled) return null;
+        return (
+          <FeaturedPackagesSection
+            key="featured_packages"
+            listings={featuredListings}
+            locale={locale}
+            cmsData={featuredPackagesData}
+          />
+        );
+      case 'promo_banner':
+        // Skip if CMS blocks are used (they may contain custom promo content)
+        if (hasCmsBlocks) return null;
+        return <PromoBannerSection key="promo_banner" locale={locale} eventOfYear={eventOfYear} />;
+      case 'experience_categories':
+        // Skip if CMS blocks are used, or if disabled in CMS settings
+        if (hasCmsBlocks || !experienceCategoriesData.enabled) return null;
+        return (
+          <ExperienceCategoriesSection
+            key="experience_categories"
+            cmsData={experienceCategoriesData}
+          />
+        );
+      case 'testimonials':
+        // Skip if CMS blocks are used
+        if (hasCmsBlocks) return null;
+        return (
+          <TestimonialsSection key="testimonials" testimonials={testimonials} locale={locale} />
+        );
+      case 'destinations':
+        // Skip if CMS blocks are used
+        if (hasCmsBlocks) return null;
+        return (
+          <DestinationsBentoGrid
+            key="destinations"
+            locale={locale}
+            cmsDestinations={featuredDestinations}
+          />
+        );
+      case 'cta':
+        // Skip if CMS blocks are used, or if disabled in CMS settings
+        if (hasCmsBlocks || !customExperienceData.enabled) return null;
+        return <CTASectionWithBlobs key="cta" locale={locale} cmsData={customExperienceData} />;
+      case 'blog':
+        // Only render if CMS enabled
+        if (!blogSectionData.enabled) return null;
+        return <BlogSection key="blog" locale={locale} cmsData={blogSectionData} />;
+      case 'newsletter':
+        // Only render if CMS enabled
+        if (!newsletterData.enabled) return null;
+        return <NewsletterSection key="newsletter" cmsData={newsletterData} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <MainLayout locale={locale}>
-      {/* Always show Hero and Marketing Mosaic - CMS text with translation fallbacks */}
-      <HeroSection
-        locale={locale}
-        heroBannerUrl={branding.heroBanner}
-        heroBannerIsVideo={branding.heroBannerIsVideo}
-        heroBannerThumbnail={branding.heroBannerThumbnail}
-        heroData={heroData}
-      />
-      <MarketingMosaicSection
-        brandPillar1Url={branding.brandPillar1}
-        brandPillar2Url={branding.brandPillar2}
-        brandPillar3Url={branding.brandPillar3}
-        brandPillarsData={brandPillarsData}
-      />
+      {/* Render sections dynamically based on admin-configured order */}
+      {enabledSections.map((section: HomepageSection) => renderSection(section.id))}
 
-      {/* Featured Listings - À venir */}
-      {featuredPackagesData.enabled && (
-        <FeaturedPackagesSection
-          listings={featuredListings}
-          locale={locale}
-          cmsData={featuredPackagesData}
-        />
-      )}
-
-      {/* CMS-managed middle sections OR hardcoded fallback */}
-      {cmsPage && cmsPage.content_blocks && cmsPage.content_blocks.length > 0 ? (
-        <BlockRenderer blocks={cmsPage.content_blocks} />
-      ) : (
-        <>
-          <PromoBannerSection locale={locale} eventOfYear={eventOfYear} />
-          {experienceCategoriesData.enabled && (
-            <ExperienceCategoriesSection cmsData={experienceCategoriesData} />
-          )}
-          <TestimonialsSection testimonials={testimonials} locale={locale} />
-          <DestinationsBentoGrid locale={locale} cmsDestinations={featuredDestinations} />
-          {customExperienceData.enabled && (
-            <CTASectionWithBlobs locale={locale} cmsData={customExperienceData} />
-          )}
-        </>
-      )}
-
-      {/* Always show Blog section if enabled */}
-      {blogSectionData.enabled && <BlogSection locale={locale} cmsData={blogSectionData} />}
-
-      {/* Newsletter section - CMS controlled */}
-      {newsletterData.enabled && <NewsletterSection cmsData={newsletterData} />}
+      {/* CMS blocks are rendered after all sections if available */}
+      {hasCmsBlocks && <BlockRenderer blocks={cmsPage.contentBlocks} />}
     </MainLayout>
   );
 }

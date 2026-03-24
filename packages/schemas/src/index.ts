@@ -1202,6 +1202,49 @@ export const reviewSummarySchema = z.object({
 });
 
 // ============================================================================
+// TESTIMONIALS
+// ============================================================================
+
+export const testimonialSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(100),
+  photo: z.string().url().nullable(),
+  text: z.string().max(1000),
+  textFr: z.string().max(1000).optional(),
+  textEn: z.string().max(1000).optional(),
+  rating: z.number().int().min(1).max(5),
+  location: z.string().max(100).nullable(),
+  activity: z.string().max(200).nullable(),
+  createdAt: z.string().datetime().nullable(),
+});
+
+export const testimonialListResponseSchema = z.object({
+  data: z.array(testimonialSchema),
+});
+
+// ============================================================================
+// EXPERIENCE CATEGORIES (Homepage CMS)
+// ============================================================================
+
+/** Experience category item (displayed in homepage grid) */
+export const experienceCategorySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  image: z.string().url().nullable(),
+  link: z.string(),
+  displayOrder: z.number().int().nonnegative(),
+});
+
+/** Experience categories section data from CMS */
+export const experienceCategoriesDataSchema = z.object({
+  enabled: z.boolean(),
+  title: z.string().nullable(),
+  subtitle: z.string().nullable(),
+  categories: z.array(experienceCategorySchema).optional(),
+});
+
+// ============================================================================
 // COUPONS
 // ============================================================================
 
@@ -1398,6 +1441,13 @@ export type BookingSummary = z.infer<typeof bookingSummarySchema>;
 export type Review = z.infer<typeof reviewSchema>;
 export type CreateReviewRequest = z.infer<typeof createReviewRequestSchema>;
 export type ReviewSummary = z.infer<typeof reviewSummarySchema>;
+
+export type Testimonial = z.infer<typeof testimonialSchema>;
+export type TestimonialListResponse = z.infer<typeof testimonialListResponseSchema>;
+
+export type ExperienceCategory = z.infer<typeof experienceCategorySchema>;
+export type ExperienceCategoriesData = z.infer<typeof experienceCategoriesDataSchema>;
+
 export type Coupon = z.infer<typeof couponSchema>;
 export type CouponValidation = z.infer<typeof couponValidationSchema>;
 export type VendorPublicProfile = z.infer<typeof vendorPublicProfileSchema>;
@@ -1886,3 +1936,171 @@ export type CustomTripStatus = z.infer<typeof customTripStatusSchema>;
 export type CreateCustomTripRequest = z.infer<typeof createCustomTripRequestSchema>;
 export type CustomTripRequestResponse = z.infer<typeof customTripRequestResponseSchema>;
 export type CustomTripRequest = z.infer<typeof customTripRequestSchema>;
+
+// ============================================================================
+// CMS PAGES (Autonomous Page Creation)
+// ============================================================================
+
+/** Icon options for highlights and key facts */
+export const pageIconSchema = z.enum([
+  'waves',
+  'landmark',
+  'mountain',
+  'compass',
+  'users',
+  'eye',
+  'moon',
+  'tree-palm',
+  'sparkles',
+  'map',
+  'tent',
+  'palette',
+  'shopping-bag',
+  'bird',
+  'home',
+  'film',
+  'droplets',
+  'footprints',
+  'layers',
+  'map-pin',
+  'calendar',
+  'ruler',
+  'star',
+  'utensils-crossed',
+  'info',
+]);
+
+/** Page highlight item (displayed in "What awaits you" section) */
+export const pageHighlightSchema = z.object({
+  icon: pageIconSchema.nullable(),
+  title: z.string(),
+  description: z.string(),
+});
+
+/** Page key fact item (displayed in info bar) */
+export const pageKeyFactSchema = z.object({
+  icon: pageIconSchema.nullable(),
+  label: z.string(),
+  value: z.string(),
+});
+
+/** Page gallery item with localized alt/caption */
+export const pageGalleryItemSchema = z.object({
+  image: z.string().nullable(),
+  alt: z.string(),
+  caption: z.string(),
+});
+
+/** Page point of interest item */
+export const pagePOISchema = z.object({
+  name: z.string(),
+  description: z.string(),
+});
+
+/** Hero call-to-action button */
+export const heroCtaSchema = z.object({
+  ctaModel: z.string(),
+  url: z.string(),
+  buttonStyle: z.enum(['primary', 'secondary']),
+  buttonLabel: z.string(),
+  buttonOpenNewWindow: z.boolean(),
+});
+
+/** Content block (flexible content blocks) */
+export const contentBlockSchema = z.object({
+  type: z.string(),
+  data: z.record(z.unknown()),
+});
+
+/** Author reference */
+export const authorSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+
+/** Full CMS page response */
+export const pageSchema = z.object({
+  id: z.number(),
+  code: z.string().nullable(),
+  slug: z.string(),
+  title: z.string(),
+  intro: z.string().nullable(),
+
+  // Destination-style description
+  description: z.string().nullable(),
+  link: z.string().nullable(),
+
+  // Hero section
+  heroImage: z.string().nullable(),
+  heroImageCopyright: z.string().nullable(),
+  heroImageTitle: z.string().nullable(),
+  heroCallToActions: z.array(heroCtaSchema),
+
+  // SEO fields
+  seoTitle: z.string().nullable(),
+  seoDescription: z.string().nullable(),
+  seoText: z.string().nullable(),
+  seoKeywords: z.string().nullable(),
+  seoImage: z.string().nullable(),
+
+  // Overview fields
+  overviewTitle: z.string().nullable(),
+  overviewDescription: z.string().nullable(),
+  overviewImage: z.string().nullable(),
+
+  // Destination-style content sections
+  highlights: z.array(pageHighlightSchema),
+  keyFacts: z.array(pageKeyFactSchema),
+  gallery: z.array(pageGalleryItemSchema),
+  pointsOfInterest: z.array(pagePOISchema),
+
+  // Flexible content blocks (legacy)
+  contentBlocks: z.array(contentBlockSchema),
+
+  // Publishing
+  publishingBeginsAt: z.string().datetime().nullable(),
+  publishingEndsAt: z.string().datetime().nullable(),
+
+  // Metadata
+  author: authorSchema.nullable().optional(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+/** Page list item (minimal fields for listings) */
+export const pageListItemSchema = z.object({
+  id: z.number(),
+  code: z.string().nullable(),
+  slug: z.string(),
+  title: z.string(),
+  description: z.string().nullable(),
+  heroImage: z.string().nullable(),
+  publishingBeginsAt: z.string().datetime().nullable(),
+  publishingEndsAt: z.string().datetime().nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+/** Pages list response */
+export const pagesListResponseSchema = z.object({
+  data: z.array(pageListItemSchema),
+});
+
+/** Single page response */
+export const pageResponseSchema = z.object({
+  data: pageSchema,
+});
+
+// CMS Page Types
+export type PageIcon = z.infer<typeof pageIconSchema>;
+export type PageHighlight = z.infer<typeof pageHighlightSchema>;
+export type PageKeyFact = z.infer<typeof pageKeyFactSchema>;
+export type PageGalleryItem = z.infer<typeof pageGalleryItemSchema>;
+export type PagePOI = z.infer<typeof pagePOISchema>;
+export type HeroCta = z.infer<typeof heroCtaSchema>;
+export type ContentBlock = z.infer<typeof contentBlockSchema>;
+export type Author = z.infer<typeof authorSchema>;
+export type Page = z.infer<typeof pageSchema>;
+export type PageListItem = z.infer<typeof pageListItemSchema>;
+export type PagesListResponse = z.infer<typeof pagesListResponseSchema>;
+export type PageResponse = z.infer<typeof pageResponseSchema>;

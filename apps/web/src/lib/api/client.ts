@@ -22,6 +22,7 @@ import type {
   Tag,
   TagGroup,
   TagType,
+  Testimonial,
 } from '@djerba-fun/schemas';
 import { getGuestSessionId } from '@/lib/utils/session';
 
@@ -1277,6 +1278,45 @@ export const platformApi = {
 };
 
 // ============================================================================
+// CMS MENUS API
+// ============================================================================
+
+/**
+ * Menu item returned from the CMS API
+ */
+export interface MenuItem {
+  id: number;
+  label: string;
+  url: string;
+  target: string;
+  order: number;
+  parent_id: number;
+}
+
+/**
+ * Menu structure returned from the CMS API
+ */
+export interface Menu {
+  code: string;
+  name: string;
+  items: MenuItem[];
+}
+
+export const menusApi = {
+  /**
+   * Get a menu by its code with localized labels
+   * @param menuCode - The menu code (e.g., 'header', 'footer-company')
+   * @param locale - The locale for translated labels
+   */
+  getMenu: async (menuCode: string, locale?: string): Promise<Menu> => {
+    const params = new URLSearchParams();
+    if (locale) params.append('locale', locale);
+    const queryString = params.toString();
+    return fetchApi<Menu>(`/menus/${menuCode}${queryString ? `?${queryString}` : ''}`);
+  },
+};
+
+// ============================================================================
 // USER PROFILE API
 // ============================================================================
 
@@ -1435,6 +1475,38 @@ export const travelTipsApi = {
    */
   getAll: async (locale: string = 'en'): Promise<TravelTipsResponse> => {
     return fetchApi<TravelTipsResponse>('/travel-tips', {
+      headers: {
+        'Accept-Language': locale,
+      },
+    });
+  },
+};
+
+// ============================================================================
+// TESTIMONIALS API
+// ============================================================================
+
+export interface TestimonialsResponse {
+  data: Testimonial[];
+}
+
+export const testimonialsApi = {
+  /**
+   * Get all active testimonials for homepage display
+   */
+  getAll: async (locale: string = 'fr', limit: number = 10): Promise<TestimonialsResponse> => {
+    return fetchApi<TestimonialsResponse>(`/testimonials?limit=${limit}`, {
+      headers: {
+        'Accept-Language': locale,
+      },
+    });
+  },
+
+  /**
+   * Get a single testimonial by UUID
+   */
+  getById: async (uuid: string, locale: string = 'fr'): Promise<{ data: Testimonial }> => {
+    return fetchApi<{ data: Testimonial }>(`/testimonials/${uuid}`, {
       headers: {
         'Accept-Language': locale,
       },

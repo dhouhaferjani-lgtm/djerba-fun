@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PlatformSettingsController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\RouteProxyController;
+use App\Http\Controllers\Api\V1\TestimonialController;
 use App\Http\Controllers\Api\V1\TravelTipController;
 use App\Http\Controllers\Api\V1\CategoryStatsController;
 use App\Http\Controllers\Api\V1\ContactController;
@@ -144,6 +145,10 @@ Route::prefix('v1')->group(function () {
 
     // Travel tips routes (public - for hero section rotating tips)
     Route::get('/travel-tips', [TravelTipController::class, 'index']);
+
+    // Testimonials routes (public - for homepage testimonials section)
+    Route::get('/testimonials', [TestimonialController::class, 'index']);
+    Route::get('/testimonials/{testimonial:uuid}', [TestimonialController::class, 'show']);
 
     // Category stats routes (public - for homepage category cards)
     Route::get('/category-stats', [CategoryStatsController::class, 'index']);

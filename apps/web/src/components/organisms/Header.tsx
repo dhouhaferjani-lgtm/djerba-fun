@@ -7,12 +7,13 @@ import { Menu, User, LogOut } from 'lucide-react';
 import { CartIcon } from '../cart/CartIcon';
 import { LocaleSwitcher } from './LocaleSwitcher';
 import { AuthMascot, type MascotState } from '../molecules/AuthMascot';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Logo } from '../atoms/Logo';
 import { NavLink } from '../atoms/NavLink';
 import { useScroll } from '@/lib/hooks/useScroll';
 import { cn } from '@/lib/utils/cn';
 import { MobileMenu } from './MobileMenu';
+import { useMenu } from '@/lib/api/hooks';
 
 interface HeaderProps {
   locale: string;
@@ -27,6 +28,9 @@ export function Header({ locale }: HeaderProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [logoutMascotState, setLogoutMascotState] = useState<MascotState>('idle');
   const scrolled = useScroll(50);
+
+  // Fetch CMS-managed menu with locale
+  const { data: headerMenu } = useMenu('header', locale);
 
   const handleLogout = () => {
     setLogoutMascotState('error'); // sad — user is leaving
@@ -45,15 +49,30 @@ export function Header({ locale }: HeaderProps) {
     }, 800);
   };
 
-  const navLinks = [
-    { href: `/${locale}`, label: t('home') },
-    { href: `/${locale}/listings?type=tour`, label: t('tours') },
-    { href: `/${locale}/listings?type=nautical`, label: t('nautical') },
-    { href: `/${locale}/listings?type=accommodation`, label: t('accommodations') },
-    { href: `/${locale}/listings?type=event`, label: t('events') },
-    { href: `/${locale}/blog`, label: t('blog') },
-    { href: `/${locale}/custom-trip`, label: t('customTrip') },
-  ];
+  // Convert CMS menu items to navLinks format, or use fallback
+  const navLinks = useMemo(() => {
+    if (headerMenu?.items?.length) {
+      return headerMenu.items.map((item) => {
+        // CMS URLs are relative (e.g., '/blog'), add locale prefix
+        const url = item.url.startsWith('/') ? `/${locale}${item.url}` : item.url;
+        return {
+          href: url,
+          label: item.label,
+        };
+      });
+    }
+
+    // Fallback navigation links (used when CMS menu fails to load)
+    return [
+      { href: `/${locale}`, label: t('home') },
+      { href: `/${locale}/listings?type=tour`, label: t('tours') },
+      { href: `/${locale}/listings?type=nautical`, label: t('nautical') },
+      { href: `/${locale}/listings?type=accommodation`, label: t('accommodations') },
+      { href: `/${locale}/listings?type=event`, label: t('events') },
+      { href: `/${locale}/blog`, label: t('blog') },
+      { href: `/${locale}/custom-trip`, label: t('customTrip') },
+    ];
+  }, [headerMenu, locale, t]);
 
   return (
     <header

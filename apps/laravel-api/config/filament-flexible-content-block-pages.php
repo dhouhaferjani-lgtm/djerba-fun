@@ -33,7 +33,7 @@ return [
     | necessary interfaces and traits.
     */
     'models' => [
-        FilamentFlexibleContentBlockPagesConfig::TYPE_PAGE => \Statikbe\FilamentFlexibleContentBlockPages\Models\Page::class,
+        FilamentFlexibleContentBlockPagesConfig::TYPE_PAGE => \App\Models\Page::class,
         FilamentFlexibleContentBlockPagesConfig::TYPE_REDIRECT => \Statikbe\FilamentFlexibleContentBlockPages\Models\Redirect::class,
         FilamentFlexibleContentBlockPagesConfig::TYPE_SETTINGS => \Statikbe\FilamentFlexibleContentBlockPages\Models\Settings::class,
         FilamentFlexibleContentBlockPagesConfig::TYPE_TAG => \Statikbe\FilamentFlexibleContentBlockPages\Models\Tag::class,
@@ -93,7 +93,7 @@ return [
     |
     */
     'page_resource' => [
-        \Statikbe\FilamentFlexibleContentBlockPages\Models\Page::class => [
+        \App\Models\Page::class => [
             /*
             | Enable the feature to have call-to-action buttons in the hero of the page
             */
@@ -267,7 +267,7 @@ return [
         | the HasMenuLabel interface to provide a label for menu display, and the Linkable interface to get a url of the model.
         */
         'linkable_models' => [
-            \Statikbe\FilamentFlexibleContentBlockPages\Models\Page::class,
+            \App\Models\Page::class,
 
             // Add your own models here:
             // \App\Models\Category::class,
@@ -419,7 +419,7 @@ return [
             | These models must use the HasTags trait from spatie/laravel-tags.
             */
             'enabled' => [
-                \Statikbe\FilamentFlexibleContentBlockPages\Models\Page::class,
+                \App\Models\Page::class,
                 // Add your own taggable models here:
                 // \App\Models\Article::class,
                 // \App\Models\Product::class,

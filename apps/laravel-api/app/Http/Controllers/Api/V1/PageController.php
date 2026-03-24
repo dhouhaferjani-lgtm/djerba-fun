@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PageResource;
+use App\Models\Page;
 use Illuminate\Http\Request;
-use Statikbe\FilamentFlexibleContentBlockPages\Models\Page;
 
 class PageController extends Controller
 {
@@ -91,12 +91,12 @@ class PageController extends Controller
 
         return response()->json([
             'code' => $menu->code,
-            'name' => $menu->getTranslation('name', $locale),
+            'name' => $menu->name,
             'items' => $menu->menuItems->map(function ($item) use ($locale) {
                 return [
                     'id' => $item->id,
                     'label' => $item->getTranslation('label', $locale),
-                    'url' => $item->url,
+                    'url' => $item->getTranslation('url', $locale),
                     'target' => $item->target,
                     'order' => $item->order,
                     'parent_id' => $item->parent_id,

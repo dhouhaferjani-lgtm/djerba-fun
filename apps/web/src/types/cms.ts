@@ -1,35 +1,20 @@
-export interface CMSPage {
-  id: number;
-  code: string | null;
-  slug: string;
-  title: string;
-  intro: string | null;
-  hero_image: string | null;
-  hero_image_copyright: string | null;
-  hero_image_title: string | null;
-  hero_call_to_actions: Array<{
-    label: string;
-    url: string;
-    style?: string;
-  }> | null;
-  seo_title: string | null;
-  seo_description: string | null;
-  seo_keywords: string[] | null;
-  seo_image: string | null;
-  overview_title: string | null;
-  overview_description: string | null;
-  overview_image: string | null;
-  content_blocks: ContentBlock[];
-  publishing_begins_at: string | null;
-  publishing_ends_at: string | null;
-  author?: {
-    id: number;
-    name: string;
-  };
-  created_at: string;
-  updated_at: string;
-}
+import type {
+  Page,
+  PageHighlight,
+  PageKeyFact,
+  PageGalleryItem,
+  PagePOI,
+  HeroCta,
+  ContentBlock as SchemaContentBlock,
+} from '@djerba-fun/schemas';
 
+// Re-export types from schemas for convenience
+export type { Page, PageHighlight, PageKeyFact, PageGalleryItem, PagePOI, HeroCta };
+
+// Use the schema Page type as the main CMSPage type
+export type CMSPage = Page;
+
+// Legacy content block type (for backwards compatibility)
 export interface ContentBlock {
   type: string;
   data: Record<string, any>;
@@ -50,7 +35,7 @@ export interface MenuItem {
   parent_id: number | null;
 }
 
-// Specific block data types
+// Specific block data types (for legacy flexible content blocks)
 export interface VideoBlockData {
   video_url: string;
   title?: string;

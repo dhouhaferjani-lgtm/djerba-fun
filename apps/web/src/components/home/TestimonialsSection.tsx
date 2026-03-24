@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import type { Testimonial as ApiTestimonial } from '@djerba-fun/schemas';
 
 // --- Inline hooks ---
 
@@ -83,21 +84,14 @@ const childVariants: Variants = {
 
 // --- Interfaces ---
 
-interface Testimonial {
+interface DisplayTestimonial {
   id: string;
   name: string;
   avatar: string;
   text: string;
 }
 
-export interface CmsTestimonial {
-  name: string;
-  photo: string;
-  text_en: string;
-  text_fr: string;
-}
-
-const defaultTestimonials: Testimonial[] = [
+const defaultTestimonials: DisplayTestimonial[] = [
   {
     id: '1',
     name: 'Nathalie',
@@ -120,26 +114,28 @@ const defaultTestimonials: Testimonial[] = [
 
 const AUTOPLAY_INTERVAL = 5000;
 
+const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80';
+
 interface TestimonialsSectionProps {
-  testimonials?: CmsTestimonial[];
+  /** Testimonials from API (already locale-specific) */
+  testimonials?: ApiTestimonial[];
   locale?: string;
 }
 
 export function TestimonialsSection({
-  testimonials: cmsTestimonials,
+  testimonials: apiTestimonials,
   locale,
 }: TestimonialsSectionProps) {
   const t = useTranslations('home');
 
-  // Map CMS data to internal format, or fall back to hardcoded defaults
-  const testimonials: Testimonial[] =
-    cmsTestimonials && cmsTestimonials.length > 0
-      ? cmsTestimonials.map((item, index) => ({
-          id: String(index + 1),
+  // Map API data to internal format, or fall back to hardcoded defaults
+  const testimonials: DisplayTestimonial[] =
+    apiTestimonials && apiTestimonials.length > 0
+      ? apiTestimonials.map((item) => ({
+          id: item.id,
           name: item.name,
-          avatar:
-            item.photo || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80',
-          text: locale === 'en' ? item.text_en : item.text_fr,
+          avatar: item.photo || DEFAULT_AVATAR,
+          text: item.text,
         }))
       : defaultTestimonials;
 

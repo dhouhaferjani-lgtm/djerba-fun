@@ -16,6 +16,8 @@ import {
   categoryStatsApi,
   tagsApi,
   wishlistApi,
+  menusApi,
+  testimonialsApi,
   type ProcessPaymentRequest,
   type Cart,
   type UpdateParticipantData,
@@ -858,6 +860,27 @@ export function useFeatureEnabled(
 }
 
 // ============================================================================
+// CMS MENU HOOKS
+// ============================================================================
+
+/**
+ * Fetch a CMS-managed menu by its code
+ * Used for header and footer navigation that can be edited via Filament admin
+ *
+ * @param menuCode - The menu code (e.g., 'header', 'footer-company', 'footer-support', 'footer-legal')
+ * @param locale - The locale for translated labels (defaults to 'en')
+ */
+export function useMenu(menuCode: string, locale: string = 'en') {
+  return useQuery({
+    queryKey: ['menus', menuCode, locale],
+    queryFn: () => menusApi.getMenu(menuCode, locale),
+    staleTime: 5 * 60 * 1000, // 5 minutes - menus change rarely
+    gcTime: 60 * 60 * 1000, // Keep in cache for 1 hour
+    retry: 2,
+  });
+}
+
+// ============================================================================
 // PASSWORDLESS AUTHENTICATION HOOKS
 // ============================================================================
 
@@ -1172,4 +1195,45 @@ export function useIsInWishlist(listingId: string, enabled = true) {
     isInWishlist: wishlistIds?.includes(listingId) ?? false,
     isLoading,
   };
+}
+
+// ============================================================================
+// TESTIMONIALS HOOKS
+// ============================================================================
+
+/**
+ * Fetch testimonials for homepage display
+ * Returns active testimonials ordered by sort_order
+ *
+ * @param locale - Locale for translated content ('fr' or 'en')
+ * @param limit - Maximum number of testimonials to fetch (default: 10, max: 20)
+ */
+export function useTestimonials(locale: string = 'fr', limit: number = 10) {
+  return useQuery({
+    queryKey: ['testimonials', locale, limit],
+    queryFn: async () => {
+      const response = await testimonialsApi.getAll(locale, limit);
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes - testimonials change infrequently
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+  });
+}
+
+/**
+ * Fetch a single testimonial by UUID
+ *
+ * @param uuid - Testimonial UUID
+ * @param locale - Locale for translated content
+ */
+export function useTestimonial(uuid: string, locale: string = 'fr') {
+  return useQuery({
+    queryKey: ['testimonials', uuid, locale],
+    queryFn: async () => {
+      const response = await testimonialsApi.getById(uuid, locale);
+      return response.data;
+    },
+    enabled: !!uuid,
+    staleTime: 5 * 60 * 1000,
+  });
 }

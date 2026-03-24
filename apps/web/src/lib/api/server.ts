@@ -4,7 +4,7 @@
  */
 
 import { headers, cookies } from 'next/headers';
-import type { PlatformSettingsResponse, ListingSummary } from '@djerba-fun/schemas';
+import type { PlatformSettingsResponse, ListingSummary, Testimonial } from '@djerba-fun/schemas';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
@@ -267,20 +267,31 @@ export async function getCmsDestination(slug: string, locale?: string) {
 }
 
 /**
- * Get Testimonials from platform settings.
+ * Get Testimonials from the API (server-side).
  * Returns empty array if settings cannot be fetched (frontend will use hardcoded defaults).
  */
-export async function getTestimonials(locale?: string) {
-  const settings = await getPlatformSettings(locale);
-  const testimonials = (settings?.data as Record<string, unknown>)?.testimonials;
-  return (
-    (testimonials as Array<{
-      name: string;
-      photo: string;
-      text_en: string;
-      text_fr: string;
-    }>) ?? []
-  );
+export async function getTestimonials(locale?: string, limit: number = 10): Promise<Testimonial[]> {
+  try {
+    const response = await fetch(`${API_URL}/testimonials?limit=${limit}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'Accept-Language': locale ?? 'fr',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.warn(`getTestimonials: Failed with status ${response.status}`);
+      return [];
+    }
+
+    const data = (await response.json()) as { data: Testimonial[] };
+    return data.data ?? [];
+  } catch (error) {
+    console.warn('getTestimonials: Failed to fetch testimonials', error);
+    return [];
+  }
 }
 
 /**
@@ -346,10 +357,34 @@ export async function getFeaturedListings(limit: number = 3): Promise<ListingSum
 // =========================================================================
 
 /**
- * Get Experience Categories section data from CMS.
- * Returns title, subtitle, and enabled status.
+ * Experience category item from CMS.
  */
-export async function getExperienceCategoriesData(locale?: string) {
+export interface ExperienceCategory {
+  id: string;
+  name: string;
+  description: string | null;
+  image: string | null;
+  link: string;
+  displayOrder: number;
+}
+
+/**
+ * Experience categories section data from CMS.
+ */
+export interface ExperienceCategoriesData {
+  enabled: boolean;
+  title: string | null;
+  subtitle: string | null;
+  categories?: ExperienceCategory[];
+}
+
+/**
+ * Get Experience Categories section data from CMS.
+ * Returns title, subtitle, enabled status, and dynamic categories.
+ */
+export async function getExperienceCategoriesData(
+  locale?: string
+): Promise<ExperienceCategoriesData> {
   const settings = await getPlatformSettings(locale);
   const data = (settings?.data as any)?.experienceCategories;
 
@@ -357,6 +392,7 @@ export async function getExperienceCategoriesData(locale?: string) {
     enabled: data?.enabled ?? true,
     title: data?.title ?? null,
     subtitle: data?.subtitle ?? null,
+    categories: data?.categories ?? undefined,
   };
 }
 
@@ -423,6 +459,51 @@ export async function getNewsletterData(locale?: string) {
     subtitle: data?.subtitle ?? null,
     buttonText: data?.buttonText ?? null,
   };
+}
+
+// =========================================================================
+// Homepage Section Builder
+// =========================================================================
+
+/**
+ * Homepage section configuration from admin panel.
+ * Includes ID, enabled state, and display order.
+ */
+export interface HomepageSection {
+  id: string;
+  enabled: boolean;
+  order: number;
+}
+
+/**
+ * Get Homepage Sections order and visibility from platform settings.
+ * Returns sections sorted by order with enabled flag.
+ * Falls back to default order if not configured (backward compatible).
+ */
+export async function getHomepageSections(locale?: string): Promise<HomepageSection[]> {
+  const settings = await getPlatformSettings(locale);
+  const sections = (settings?.data as Record<string, unknown>)?.homepageSections;
+
+  // Default order (matches current hardcoded order for backward compatibility)
+  const defaultSections: HomepageSection[] = [
+    { id: 'hero', enabled: true, order: 0 },
+    { id: 'marketing_mosaic', enabled: true, order: 1 },
+    { id: 'featured_packages', enabled: true, order: 2 },
+    { id: 'promo_banner', enabled: true, order: 3 },
+    { id: 'experience_categories', enabled: true, order: 4 },
+    { id: 'testimonials', enabled: true, order: 5 },
+    { id: 'destinations', enabled: true, order: 6 },
+    { id: 'cta', enabled: true, order: 7 },
+    { id: 'blog', enabled: true, order: 8 },
+    { id: 'newsletter', enabled: true, order: 9 },
+  ];
+
+  if (!sections || !Array.isArray(sections)) {
+    return defaultSections;
+  }
+
+  // Sort by order and return
+  return [...(sections as HomepageSection[])].sort((a, b) => a.order - b.order);
 }
 
 /**

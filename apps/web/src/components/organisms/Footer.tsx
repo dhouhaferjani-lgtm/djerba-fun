@@ -4,7 +4,8 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { FooterPricingDisclosure } from '@/components/pricing/FooterPricingDisclosure';
 import { Logo } from '../atoms/Logo';
-import { usePlatformSettings } from '@/lib/api/hooks';
+import { usePlatformSettings, useMenu } from '@/lib/api/hooks';
+import { useMemo } from 'react';
 
 interface FooterProps {
   locale: string;
@@ -43,7 +44,58 @@ export function Footer({ locale }: FooterProps) {
   const t = useTranslations('footer');
   const { data: settings } = usePlatformSettings(locale);
 
+  // Fetch CMS-managed menus
+  const { data: companyMenu } = useMenu('footer-company', locale);
+  const { data: supportMenu } = useMenu('footer-support', locale);
+  const { data: legalMenu } = useMenu('footer-legal', locale);
+
   const tagline = settings?.platform?.tagline || t('tagline');
+
+  // Convert CMS menu items to link format with locale prefix
+  const companyLinks = useMemo(() => {
+    if (companyMenu?.items?.length) {
+      return companyMenu.items.map((item) => ({
+        href: item.url,
+        label: item.label,
+      }));
+    }
+    // Fallback
+    return [
+      { href: '/about', label: t('about') },
+      { href: '/blog', label: t('blog') },
+      { href: '/listings?type=tour', label: t('tours') },
+      { href: '/listings?type=event', label: t('events') },
+    ];
+  }, [companyMenu, t]);
+
+  const supportLinks = useMemo(() => {
+    if (supportMenu?.items?.length) {
+      return supportMenu.items.map((item) => ({
+        href: item.url,
+        label: item.label,
+      }));
+    }
+    // Fallback
+    return [
+      { href: '/dashboard', label: t('my_account') },
+      { href: '/terms', label: t('terms') },
+      { href: '/contact', label: t('contact_us') },
+    ];
+  }, [supportMenu, t]);
+
+  const legalLinks = useMemo(() => {
+    if (legalMenu?.items?.length) {
+      return legalMenu.items.map((item) => ({
+        href: item.url,
+        label: item.label,
+      }));
+    }
+    // Fallback
+    return [
+      { href: '/terms', label: t('terms') },
+      { href: '/privacy', label: t('privacy') },
+    ];
+  }, [legalMenu, t]);
 
   // Contact info: CMS values with translation fallbacks
   const contactInfo = {
@@ -129,32 +181,16 @@ export function Footer({ locale }: FooterProps) {
           <div>
             <h3 className="font-bold text-lg mb-6">{t('company')}</h3>
             <ul className="space-y-4">
-              <li>
-                <Link href="/about" className="text-white/80 hover:text-white transition-colors">
-                  {t('about')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="text-white/80 hover:text-white transition-colors">
-                  {t('blog')}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={{ pathname: '/listings', query: { type: 'tour' } }}
-                  className="text-white/80 hover:text-white transition-colors"
-                >
-                  {t('tours')}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={{ pathname: '/listings', query: { type: 'event' } }}
-                  className="text-white/80 hover:text-white transition-colors"
-                >
-                  {t('events')}
-                </Link>
-              </li>
+              {companyLinks.map((link, index) => (
+                <li key={index}>
+                  <Link
+                    href={link.href}
+                    className="text-white/80 hover:text-white transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -162,24 +198,16 @@ export function Footer({ locale }: FooterProps) {
           <div>
             <h3 className="font-bold text-lg mb-6">{t('support')}</h3>
             <ul className="space-y-4">
-              <li>
-                <Link
-                  href="/dashboard"
-                  className="text-white/80 hover:text-white transition-colors"
-                >
-                  {t('my_account')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="text-white/80 hover:text-white transition-colors">
-                  {t('terms')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-white/80 hover:text-white transition-colors">
-                  {t('contact_us')}
-                </Link>
-              </li>
+              {supportLinks.map((link, index) => (
+                <li key={index}>
+                  <Link
+                    href={link.href}
+                    className="text-white/80 hover:text-white transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -257,18 +285,15 @@ export function Footer({ locale }: FooterProps) {
               &copy; {new Date().getFullYear()} {t('copyright')}
             </p>
             <div className="flex gap-6">
-              <Link
-                href="/terms"
-                className="text-white/80 text-sm hover:text-white transition-colors"
-              >
-                {t('terms')}
-              </Link>
-              <Link
-                href="/privacy"
-                className="text-white/80 text-sm hover:text-white transition-colors"
-              >
-                {t('privacy')}
-              </Link>
+              {legalLinks.map((link, index) => (
+                <Link
+                  key={index}
+                  href={link.href}
+                  className="text-white/80 text-sm hover:text-white transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
           </div>
         </div>

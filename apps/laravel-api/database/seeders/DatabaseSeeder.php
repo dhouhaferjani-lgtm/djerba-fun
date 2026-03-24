@@ -32,6 +32,12 @@ class DatabaseSeeder extends Seeder
             ListingSeeder::class,
             HikingTourWithMapSeeder::class,
             TravelTipSeeder::class,
+
+            // Testimonials (independent from platform settings)
+            TestimonialSeeder::class,
+
+            // CMS Navigation
+            MenuSeeder::class,
         ]);
     }
 }
