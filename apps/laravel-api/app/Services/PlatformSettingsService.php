@@ -47,6 +47,44 @@ class PlatformSettingsService
     }
 
     /**
+     * Get homepage section configuration.
+     *
+     * Returns sections in order with enabled flag.
+     * Falls back to default order if not configured (backward compatible).
+     *
+     * @return array<array{id: string, enabled: bool, order: int}>
+     */
+    public function getHomepageSections(): array
+    {
+        $s = $this->settingsWithMedia();
+        $stored = $s->homepage_sections['sections'] ?? null;
+
+        // Default order (backward compatible with current hardcoded order in page.tsx)
+        $defaultSections = [
+            ['id' => 'hero', 'enabled' => true, 'order' => 0],
+            ['id' => 'marketing_mosaic', 'enabled' => true, 'order' => 1],
+            ['id' => 'featured_packages', 'enabled' => true, 'order' => 2],
+            ['id' => 'promo_banner', 'enabled' => true, 'order' => 3],
+            ['id' => 'experience_categories', 'enabled' => true, 'order' => 4],
+            ['id' => 'testimonials', 'enabled' => true, 'order' => 5],
+            ['id' => 'destinations', 'enabled' => true, 'order' => 6],
+            ['id' => 'cta', 'enabled' => true, 'order' => 7],
+            ['id' => 'blog', 'enabled' => true, 'order' => 8],
+            ['id' => 'newsletter', 'enabled' => true, 'order' => 9],
+        ];
+
+        if (! $stored) {
+            return $defaultSections;
+        }
+
+        // Sort by order and return
+        return collect($stored)
+            ->sortBy('order')
+            ->values()
+            ->toArray();
+    }
+
+    /**
      * Get a single setting value.
      */
     public function get(string $key, mixed $default = null): mixed
@@ -244,6 +282,30 @@ class PlatformSettingsService
                 'enabled' => $s->experience_categories_enabled ?? true,
                 'title' => $s->getTranslation('experience_categories_title', $locale),
                 'subtitle' => $s->getTranslation('experience_categories_subtitle', $locale),
+                'categories' => collect($s->experience_categories ?? [])->sortBy('display_order')->map(function ($category) use ($locale) {
+                    // Convert relative image path to full URL
+                    $imageUrl = null;
+                    if (! empty($category['image'])) {
+                        if (str_starts_with($category['image'], 'http')) {
+                            $imageUrl = $category['image'];
+                        } else {
+                            $imageUrl = asset('storage/' . $category['image']);
+                        }
+                    }
+
+                    return [
+                        'id' => $category['id'] ?? null,
+                        'name' => $locale === 'fr'
+                            ? ($category['name_fr'] ?? $category['name_en'] ?? '')
+                            : ($category['name_en'] ?? ''),
+                        'description' => $locale === 'fr'
+                            ? ($category['description_fr'] ?? $category['description_en'] ?? null)
+                            : ($category['description_en'] ?? null),
+                        'image' => $imageUrl,
+                        'link' => $category['link'] ?? null,
+                        'displayOrder' => $category['display_order'] ?? 0,
+                    ];
+                })->values()->toArray(),
             ],
 
             // CMS Section: Blog
@@ -278,6 +340,9 @@ class PlatformSettingsService
                 'subtitle' => $s->getTranslation('newsletter_subtitle', $locale),
                 'buttonText' => $s->getTranslation('newsletter_button_text', $locale),
             ],
+
+            // Homepage Sections (order and visibility for homepage builder)
+            'homepageSections' => $this->getHomepageSections(),
 
             // CMS Section: About Page
             'about' => [

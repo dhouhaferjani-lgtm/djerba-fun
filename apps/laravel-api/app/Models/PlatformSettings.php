@@ -265,10 +265,14 @@ class PlatformSettings extends Model implements HasMedia
         // Testimonials (Homepage)
         'testimonials',
 
+        // Homepage Sections (order and visibility)
+        'homepage_sections',
+
         // CMS Section: Experience Categories
         'experience_categories_enabled',
         'experience_categories_title',
         'experience_categories_subtitle',
+        'experience_categories',
 
         // CMS Section: Blog
         'blog_section_enabled',
@@ -331,6 +335,8 @@ class PlatformSettings extends Model implements HasMedia
             'vendor_kyc_document_types' => 'array',
             'featured_destinations' => 'array',
             'testimonials' => 'array',
+            'homepage_sections' => 'array',
+            'experience_categories' => 'array',
             // CMS Section: About Page (JSON arrays)
             'about_commitments' => 'array',
             'about_partners' => 'array',
