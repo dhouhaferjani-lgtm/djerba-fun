@@ -51,7 +51,6 @@ class PlatformSettings extends Model implements HasMedia
         // CMS Section: Experience Categories
         'experience_categories_title',
         'experience_categories_subtitle',
-        'experience_categories',
         // CMS Section: Blog
         'blog_section_title',
         'blog_section_subtitle',
