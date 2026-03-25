@@ -1,0 +1,180 @@
+# Production stack for djerbafun.com
+# Separate from dev environment (docker-compose.prod.yml uses ports 8002/3002)
+# This uses ports 8003/3003 and separate containers/databases
+
+services:
+  # PostgreSQL Database (PRODUCTION)
+  postgres:
+    image: postgres:16-alpine
+    container_name: djerba-fun-prod-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-djerba_fun_prod}
+      POSTGRES_USER: ${DB_USERNAME:-djerba_fun_prod}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-djerba_fun_prod}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - djerbafun-prod
+
+  # Redis (Cache + Queue) (PRODUCTION)
+  redis:
+    image: redis:7-alpine
+    container_name: djerba-fun-prod-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_prod_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - djerbafun-prod
+
+  # Laravel API (PRODUCTION)
+  api:
+    build:
+      context: .
+      dockerfile: apps/laravel-api/Dockerfile.prod
+      args:
+        - PHP_VERSION=8.4
+    container_name: djerba-fun-prod-api
+    restart: unless-stopped
+    working_dir: /var/www/html
+    environment:
+      - APP_KEY=${APP_KEY}
+      - APP_ENV=${APP_ENV:-production}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - APP_URL=${APP_URL:-https://djerbafun.com}
+      - FRONTEND_URL=${FRONTEND_URL:-https://djerbafun.com}
+      - SANCTUM_STATEFUL_DOMAINS=${SANCTUM_STATEFUL_DOMAINS:-djerbafun.com,www.djerbafun.com}
+      - SESSION_DOMAIN=${SESSION_DOMAIN:-.djerbafun.com}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-djerba_fun_prod}
+      - DB_USERNAME=${DB_USERNAME:-djerba_fun_prod}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - MAIL_MAILER=${MAIL_MAILER:-resend}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-bookings@djerba.fun}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Djerba Fun}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+    volumes:
+      - storage_prod_data:/var/www/html/storage
+      - api_prod_cache:/var/www/html/bootstrap/cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - '8003:80'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - djerbafun-prod
+
+  # Laravel Horizon (Queue Worker) (PRODUCTION)
+  horizon:
+    build:
+      context: .
+      dockerfile: apps/laravel-api/Dockerfile.prod
+      args:
+        - PHP_VERSION=8.4
+    container_name: djerba-fun-prod-horizon
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan horizon
+    environment:
+      - APP_KEY=${APP_KEY}
+      - APP_ENV=${APP_ENV:-production}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-djerba_fun_prod}
+      - DB_USERNAME=${DB_USERNAME:-djerba_fun_prod}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+      - MAIL_MAILER=${MAIL_MAILER:-resend}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-bookings@djerba.fun}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Djerba Fun}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+    volumes:
+      - storage_prod_data:/var/www/html/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - djerbafun-prod
+
+  # Next.js Frontend (PRODUCTION)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.prod
+      args:
+        - NODE_ENV=production
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://djerbafun.com/api/v1}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://djerbafun.com}
+        - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://djerbafun.com}
+        - NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+        - NEXT_PUBLIC_TURNSTILE_ENABLED=${NEXT_PUBLIC_TURNSTILE_ENABLED:-false}
+    container_name: djerba-fun-prod-web
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://djerbafun.com/api/v1}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://djerbafun.com}
+      - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://djerbafun.com}
+      - NEXT_PUBLIC_DEFAULT_LOCALE=fr
+    depends_on:
+      - api
+    ports:
+      - '3003:3000'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - djerbafun-prod
+
+volumes:
+  postgres_prod_data:
+    driver: local
+  redis_prod_data:
+    driver: local
+  storage_prod_data:
+    driver: local
+  api_prod_cache:
+    driver: local
+
+networks:
+  djerbafun-prod:
+    driver: bridge
