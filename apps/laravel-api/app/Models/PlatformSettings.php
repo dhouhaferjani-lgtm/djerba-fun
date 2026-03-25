@@ -65,6 +65,10 @@ class PlatformSettings extends Model implements HasMedia
         'newsletter_title',
         'newsletter_subtitle',
         'newsletter_button_text',
+        // CMS Section: Testimonials Stats
+        'testimonials_title',
+        'testimonials_subtitle',
+        'testimonials_feedback_label',
         // CMS Section: About Page
         'about_hero_title',
         'about_hero_subtitle',
@@ -298,6 +302,13 @@ class PlatformSettings extends Model implements HasMedia
         'newsletter_title',
         'newsletter_subtitle',
         'newsletter_button_text',
+
+        // CMS Section: Testimonials Stats
+        'testimonials_title',
+        'testimonials_subtitle',
+        'testimonials_feedback_count',
+        'testimonials_feedback_label',
+        'testimonials_rating',
 
         // CMS Section: About Page
         'about_hero_title',
