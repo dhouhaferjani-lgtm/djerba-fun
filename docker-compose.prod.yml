@@ -18,7 +18,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - goadventure
+      - djerbafun
 
   # Redis (Cache + Queue)
   redis:
@@ -34,7 +34,7 @@ services:
       timeout: 3s
       retries: 5
     networks:
-      - goadventure
+      - djerbafun
 
   # Laravel API
   api:
@@ -50,7 +50,10 @@ services:
       - APP_KEY=${APP_KEY}
       - APP_ENV=${APP_ENV:-production}
       - APP_DEBUG=${APP_DEBUG:-false}
-      - APP_URL=${APP_URL:-https://app.djerbafun.com}
+      - APP_URL=${APP_URL:-https://djerbafun.com}
+      - FRONTEND_URL=${FRONTEND_URL:-https://djerbafun.com}
+      - SANCTUM_STATEFUL_DOMAINS=${SANCTUM_STATEFUL_DOMAINS:-djerbafun.com,www.djerbafun.com}
+      - SESSION_DOMAIN=${SESSION_DOMAIN:-.djerbafun.com}
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -77,7 +80,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - '8001:80'
+      - '8002:80'
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost/api/health']
       interval: 30s
@@ -85,7 +88,7 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - goadventure
+      - djerbafun
 
   # Laravel Horizon (Queue Worker)
   horizon:
@@ -124,7 +127,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - goadventure
+      - djerbafun
 
   # Next.js Frontend
   web:
@@ -133,21 +136,23 @@ services:
       dockerfile: apps/web/Dockerfile.prod
       args:
         - NODE_ENV=production
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://dev.djerbafun.com/api/v1}
-        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://dev.djerbafun.com}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://djerbafun.com/api/v1}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://djerbafun.com}
+        - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://djerbafun.com}
         - NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
         - NEXT_PUBLIC_TURNSTILE_ENABLED=${NEXT_PUBLIC_TURNSTILE_ENABLED:-false}
     container_name: djerba-fun-web
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://dev.djerbafun.com/api/v1}
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://dev.djerbafun.com}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://djerbafun.com/api/v1}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://djerbafun.com}
+      - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://djerbafun.com}
       - NEXT_PUBLIC_DEFAULT_LOCALE=fr
     depends_on:
       - api
     ports:
-      - '3001:3000'
+      - '3002:3000'
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000']
       interval: 30s
@@ -155,7 +160,7 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - goadventure
+      - djerbafun
 
   # Nginx Reverse Proxy
   nginx:
@@ -173,7 +178,7 @@ services:
       - api
       - web
     networks:
-      - goadventure
+      - djerbafun
 
 volumes:
   postgres_data:
@@ -186,5 +191,5 @@ volumes:
     driver: local
 
 networks:
-  goadventure:
+  djerbafun:
     driver: bridge
