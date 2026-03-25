@@ -26,6 +26,7 @@ import {
   getBrandPillarsData,
   getFeaturedDestinations,
   getTestimonials,
+  getTestimonialsSectionData,
   getExperienceCategoriesData,
   getBlogSectionData,
   getFeaturedPackagesSectionData,
@@ -48,6 +49,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     cmsPage,
     featuredDestinations,
     testimonials,
+    testimonialsSectionData,
     experienceCategoriesData,
     blogSectionData,
     featuredPackagesData,
@@ -62,6 +64,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     getPageByCode({ code: 'HOME', locale }).catch(() => null),
     getFeaturedDestinations(locale),
     getTestimonials(locale),
+    getTestimonialsSectionData(locale),
     getExperienceCategoriesData(locale),
     getBlogSectionData(locale),
     getFeaturedPackagesSectionData(locale),
@@ -134,7 +137,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         // Skip if CMS blocks are used
         if (hasCmsBlocks) return null;
         return (
-          <TestimonialsSection key="testimonials" testimonials={testimonials} locale={locale} />
+          <TestimonialsSection
+            key="testimonials"
+            testimonials={testimonials}
+            locale={locale}
+            cmsData={testimonialsSectionData}
+          />
         );
       case 'destinations':
         // Skip if CMS blocks are used

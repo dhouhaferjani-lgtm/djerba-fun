@@ -287,6 +287,38 @@ export async function getTestimonials(locale?: string): Promise<CmsTestimonial[]
 }
 
 /**
+ * Testimonials section stats data from CMS.
+ */
+export interface TestimonialsSectionData {
+  title: string | null;
+  subtitle: string | null;
+  feedbackCount: string | null;
+  feedbackLabel: string | null;
+  rating: string | null;
+}
+
+/**
+ * Get Testimonials Section stats from Platform Settings (server-side).
+ * Returns null values if not configured (frontend will fall back to translations).
+ */
+export async function getTestimonialsSectionData(
+  locale?: string
+): Promise<TestimonialsSectionData> {
+  const settings = await getPlatformSettings(locale);
+  const data = (settings?.data as Record<string, unknown>)?.testimonialsSection as
+    | TestimonialsSectionData
+    | undefined;
+
+  return {
+    title: data?.title ?? null,
+    subtitle: data?.subtitle ?? null,
+    feedbackCount: data?.feedbackCount ?? null,
+    feedbackLabel: data?.feedbackLabel ?? null,
+    rating: data?.rating ?? null,
+  };
+}
+
+/**
  * Fetch featured listings from the API (server-side).
  * Returns listings marked as featured by admin for the home page.
  *

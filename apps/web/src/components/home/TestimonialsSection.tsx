@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import type { CmsTestimonial } from '@/lib/api/server';
+import type { CmsTestimonial, TestimonialsSectionData } from '@/lib/api/server';
 
 // --- Inline hooks ---
 
@@ -120,11 +120,14 @@ interface TestimonialsSectionProps {
   /** Testimonials from Platform Settings CMS */
   testimonials?: CmsTestimonial[];
   locale?: string;
+  /** Section stats from CMS (title, subtitle, feedback count, rating) */
+  cmsData?: TestimonialsSectionData;
 }
 
 export function TestimonialsSection({
   testimonials: cmsTestimonials,
   locale,
+  cmsData,
 }: TestimonialsSectionProps) {
   const t = useTranslations('home');
 
@@ -156,12 +159,17 @@ export function TestimonialsSection({
     return () => observer.disconnect();
   }, []);
 
+  // --- CMS data with fallback to translations ---
+  const title = cmsData?.title || t('testimonials_title');
+  const subtitle = cmsData?.subtitle || t('testimonials_subtitle');
+  const feedbackLabel = cmsData?.feedbackLabel || t('testimonials_feedback_label');
+
   // --- Count-up animations ---
-  const feedbackCountStr = t('testimonials_feedback_count'); // e.g. "500+"
+  const feedbackCountStr = cmsData?.feedbackCount || t('testimonials_feedback_count'); // e.g. "500+"
   const feedbackNum = parseFloat(feedbackCountStr.replace(/[^0-9.]/g, '')) || 500;
   const feedbackSuffix = feedbackCountStr.replace(/[0-9.]/g, ''); // e.g. "+"
 
-  const ratingStr = t('testimonials_rating'); // e.g. "4.88"
+  const ratingStr = cmsData?.rating || t('testimonials_rating'); // e.g. "4.88"
   const ratingNum = parseFloat(ratingStr) || 4.88;
   const ratingDecimals = (ratingStr.split('.')[1] || '').length || 2;
 
@@ -239,9 +247,9 @@ export function TestimonialsSection({
             {/* Left Side - Stats */}
             <div ref={statsRef}>
               <h2 className="text-2xl md:text-3xl font-display font-bold text-neutral-900 mb-3">
-                {t('testimonials_title')}
+                {title}
               </h2>
-              <p className="text-neutral-600 mb-8">{t('testimonials_subtitle')}</p>
+              <p className="text-neutral-600 mb-8">{subtitle}</p>
 
               <div className="flex gap-12">
                 {/* Feedback Count */}
@@ -255,9 +263,7 @@ export function TestimonialsSection({
                         : `${feedbackCounter.value}${feedbackSuffix}`
                       : `0${feedbackSuffix}`}
                   </p>
-                  <p className="text-sm text-neutral-600 mt-1">
-                    {t('testimonials_feedback_label')}
-                  </p>
+                  <p className="text-sm text-neutral-600 mt-1">{feedbackLabel}</p>
                 </div>
 
                 {/* Rating */}

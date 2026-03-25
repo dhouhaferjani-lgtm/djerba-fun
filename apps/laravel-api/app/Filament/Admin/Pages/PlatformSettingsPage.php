@@ -946,6 +946,51 @@ class PlatformSettingsPage extends Page implements HasForms
         return Forms\Components\Tabs\Tab::make('Testimonials')
             ->icon('heroicon-o-chat-bubble-left-right')
             ->schema([
+                // Section Stats (title, subtitle, feedback count, rating)
+                Forms\Components\Section::make('Section Stats')
+                    ->description('Configure the stats displayed on the left side of the testimonials section (title, subtitle, feedback count, rating).')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Section::make('Français')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('testimonials_title.fr')
+                                            ->label('Title')
+                                            ->placeholder('Ils ont vécu l\'aventure avec nous !'),
+                                        Forms\Components\TextInput::make('testimonials_subtitle.fr')
+                                            ->label('Subtitle')
+                                            ->placeholder('Vos avis, notre plus belle récompense'),
+                                        Forms\Components\TextInput::make('testimonials_feedback_label.fr')
+                                            ->label('Feedback Label')
+                                            ->placeholder('Les retours de nos aventuriers'),
+                                    ]),
+                                Forms\Components\Section::make('English')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('testimonials_title.en')
+                                            ->label('Title')
+                                            ->placeholder('They Experienced the Adventure with Us!'),
+                                        Forms\Components\TextInput::make('testimonials_subtitle.en')
+                                            ->label('Subtitle')
+                                            ->placeholder('Your reviews, our best reward'),
+                                        Forms\Components\TextInput::make('testimonials_feedback_label.en')
+                                            ->label('Feedback Label')
+                                            ->placeholder('Feedback from our adventurers'),
+                                    ]),
+                            ]),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\TextInput::make('testimonials_feedback_count')
+                                    ->label('Feedback Count')
+                                    ->placeholder('e.g., 500+')
+                                    ->helperText('The number displayed (e.g., "500+")'),
+                                Forms\Components\TextInput::make('testimonials_rating')
+                                    ->label('Rating')
+                                    ->placeholder('e.g., 4.88')
+                                    ->helperText('The rating displayed (e.g., "4.88")'),
+                            ]),
+                    ]),
+
+                // Customer Testimonials Repeater
                 Forms\Components\Section::make('Customer Testimonials')
                     ->description('Manage testimonials displayed in the "Ils ont vécu l\'aventure avec nous" section on the homepage. Maximum 10 testimonials.')
                     ->schema([

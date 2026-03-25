@@ -277,6 +277,15 @@ class PlatformSettingsService
                 return $testimonial;
             })->values()->toArray(),
 
+            // CMS Section: Testimonials Stats
+            'testimonialsSection' => [
+                'title' => $s->getTranslation('testimonials_title', $locale),
+                'subtitle' => $s->getTranslation('testimonials_subtitle', $locale),
+                'feedbackCount' => $s->testimonials_feedback_count,
+                'feedbackLabel' => $s->getTranslation('testimonials_feedback_label', $locale),
+                'rating' => $s->testimonials_rating,
+            ],
+
             // CMS Section: Experience Categories
             'experienceCategories' => [
                 'enabled' => $s->experience_categories_enabled ?? true,
