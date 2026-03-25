@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import type { Testimonial as ApiTestimonial } from '@djerba-fun/schemas';
+import type { CmsTestimonial } from '@/lib/api/server';
 
 // --- Inline hooks ---
 
@@ -117,25 +117,25 @@ const AUTOPLAY_INTERVAL = 5000;
 const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80';
 
 interface TestimonialsSectionProps {
-  /** Testimonials from API (already locale-specific) */
-  testimonials?: ApiTestimonial[];
+  /** Testimonials from Platform Settings CMS */
+  testimonials?: CmsTestimonial[];
   locale?: string;
 }
 
 export function TestimonialsSection({
-  testimonials: apiTestimonials,
+  testimonials: cmsTestimonials,
   locale,
 }: TestimonialsSectionProps) {
   const t = useTranslations('home');
 
-  // Map API data to internal format, or fall back to hardcoded defaults
+  // Map CMS data to internal format, or fall back to hardcoded defaults
   const testimonials: DisplayTestimonial[] =
-    apiTestimonials && apiTestimonials.length > 0
-      ? apiTestimonials.map((item) => ({
-          id: item.id,
+    cmsTestimonials && cmsTestimonials.length > 0
+      ? cmsTestimonials.map((item, index) => ({
+          id: String(index + 1),
           name: item.name,
           avatar: item.photo || DEFAULT_AVATAR,
-          text: item.text,
+          text: locale === 'en' ? item.text_en : item.text_fr,
         }))
       : defaultTestimonials;
 

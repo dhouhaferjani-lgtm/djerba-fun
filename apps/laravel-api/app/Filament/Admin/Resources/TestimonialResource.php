@@ -22,6 +22,11 @@ class TestimonialResource extends Resource
 
     protected static ?int $navigationSort = 5;
 
+    /**
+     * Hide from navigation - testimonials are managed via Platform Settings tab.
+     */
+    protected static bool $shouldRegisterNavigation = false;
+
     public static function getNavigationGroup(): ?string
     {
         return __('filament.nav.content');

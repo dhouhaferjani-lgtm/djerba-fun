@@ -4,7 +4,7 @@
  */
 
 import { headers, cookies } from 'next/headers';
-import type { PlatformSettingsResponse, ListingSummary, Testimonial } from '@djerba-fun/schemas';
+import type { PlatformSettingsResponse, ListingSummary } from '@djerba-fun/schemas';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
@@ -267,31 +267,23 @@ export async function getCmsDestination(slug: string, locale?: string) {
 }
 
 /**
- * Get Testimonials from the API (server-side).
+ * CMS Testimonial interface (from Platform Settings JSON).
+ */
+export interface CmsTestimonial {
+  name: string;
+  photo: string | null;
+  text_fr: string;
+  text_en: string;
+}
+
+/**
+ * Get Testimonials from Platform Settings (server-side).
  * Returns empty array if settings cannot be fetched (frontend will use hardcoded defaults).
  */
-export async function getTestimonials(locale?: string, limit: number = 10): Promise<Testimonial[]> {
-  try {
-    const response = await fetch(`${API_URL}/testimonials?limit=${limit}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'Accept-Language': locale ?? 'fr',
-      },
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      console.warn(`getTestimonials: Failed with status ${response.status}`);
-      return [];
-    }
-
-    const data = (await response.json()) as { data: Testimonial[] };
-    return data.data ?? [];
-  } catch (error) {
-    console.warn('getTestimonials: Failed to fetch testimonials', error);
-    return [];
-  }
+export async function getTestimonials(locale?: string): Promise<CmsTestimonial[]> {
+  const settings = await getPlatformSettings(locale);
+  const testimonials = (settings?.data as Record<string, unknown>)?.testimonials;
+  return (testimonials as CmsTestimonial[]) ?? [];
 }
 
 /**
