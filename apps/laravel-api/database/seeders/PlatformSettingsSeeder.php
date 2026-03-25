@@ -321,6 +321,22 @@ class PlatformSettingsSeeder extends Seeder
                 'fr' => 'S\'abonner',
             ],
 
+            // Testimonials Section Stats
+            'testimonials_title' => [
+                'en' => 'They Experienced the Adventure with Us!',
+                'fr' => 'Ils ont vécu l\'aventure avec nous !',
+            ],
+            'testimonials_subtitle' => [
+                'en' => 'Your reviews, our best reward',
+                'fr' => 'Vos avis, notre plus belle récompense',
+            ],
+            'testimonials_feedback_count' => '500+',
+            'testimonials_feedback_label' => [
+                'en' => 'Feedback from our adventurers',
+                'fr' => 'Les retours de nos aventuriers',
+            ],
+            'testimonials_rating' => '4.88',
+
             // About Page - Hero
             'about_hero_title' => [
                 'en' => 'About Djerba Fun',
