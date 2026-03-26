@@ -36,11 +36,11 @@ class AccommodationBookingServiceTest extends TestCase
         $this->service = app(AccommodationBookingService::class);
 
         // Create vendor
-        $this->vendor = User::factory()->create();
+        $this->vendor = User::factory()->create(['role' => 'vendor']);
 
         // Create accommodation listing with per-night pricing
         $this->listing = Listing::factory()->create([
-            'user_id' => $this->vendor->id,
+            'vendor_id' => $this->vendor->id,
             'service_type' => ServiceType::ACCOMMODATION,
             'pricing_model' => 'per_night',
             'nightly_price_eur' => 100.00,
@@ -269,12 +269,155 @@ class AccommodationBookingServiceTest extends TestCase
     public function test_is_per_night_pricing_returns_false_for_tour(): void
     {
         $tourListing = Listing::factory()->create([
-            'user_id' => $this->vendor->id,
+            'vendor_id' => $this->vendor->id,
             'service_type' => ServiceType::TOUR,
             'pricing_model' => 'per_person',
         ]);
 
         $this->assertFalse($this->service->isPerNightPricing($tourListing));
+    }
+
+    /**
+     * REGRESSION TEST: Slot with stale remaining_capacity=0 but no active holds
+     * should still be bookable via computed accessor.
+     *
+     * This tests the fix for the DUAL-TRUTH CAPACITY BUG where
+     * getBlockedDates() queried the stale database column instead of
+     * using the computed accessor.
+     */
+    public function test_get_blocked_dates_uses_computed_accessor_not_stale_db_column(): void
+    {
+        $checkIn = Carbon::today();
+        $checkOut = Carbon::today()->addDays(2);
+
+        // Create slots with STALE remaining_capacity=0 in database
+        // But NO actual holds or bookings exist
+        for ($i = 0; $i < 2; $i++) {
+            AvailabilitySlot::create([
+                'listing_id' => $this->listing->id,
+                'date' => Carbon::today()->addDays($i)->format('Y-m-d'),
+                'start_time' => Carbon::today()->addDays($i)->setHour(15)->format('Y-m-d H:i:s'),
+                'end_time' => Carbon::today()->addDays($i + 1)->setHour(11)->format('Y-m-d H:i:s'),
+                'capacity' => 1,
+                'remaining_capacity' => 0, // STALE VALUE - simulates expired hold scenario
+                'base_price' => 100.00,
+                'status' => 'available',
+            ]);
+        }
+
+        // The computed accessor should return capacity=1 (no holds/bookings)
+        // So getBlockedDates should return empty
+        $blockedDates = $this->service->getBlockedDates($this->listing, $checkIn, $checkOut);
+
+        $this->assertEmpty(
+            $blockedDates,
+            'Slots with stale remaining_capacity=0 but no actual holds should be available'
+        );
+    }
+
+    /**
+     * REGRESSION TEST: findSlotForCheckIn with stale remaining_capacity=0
+     * should still return the slot when computed accessor shows availability.
+     */
+    public function test_find_slot_for_check_in_uses_computed_accessor_not_stale_db_column(): void
+    {
+        $checkIn = Carbon::today();
+
+        // Create slot with STALE remaining_capacity=0 in database
+        $slot = AvailabilitySlot::create([
+            'listing_id' => $this->listing->id,
+            'date' => $checkIn->format('Y-m-d'),
+            'start_time' => $checkIn->setHour(15)->format('Y-m-d H:i:s'),
+            'end_time' => $checkIn->copy()->addDay()->setHour(11)->format('Y-m-d H:i:s'),
+            'capacity' => 1,
+            'remaining_capacity' => 0, // STALE VALUE
+            'base_price' => 100.00,
+            'status' => 'available',
+        ]);
+
+        // Computed accessor should return capacity=1 (no holds/bookings)
+        $foundSlot = $this->service->findSlotForCheckIn($this->listing, Carbon::today());
+
+        $this->assertNotNull(
+            $foundSlot,
+            'Slot with stale remaining_capacity=0 but no actual holds should be returned'
+        );
+        $this->assertEquals($slot->id, $foundSlot->id);
+    }
+
+    /**
+     * Test that slot with ACTUAL active hold is correctly blocked.
+     */
+    public function test_slot_with_active_hold_is_blocked(): void
+    {
+        $checkIn = Carbon::today();
+
+        // Create slot with capacity=1
+        $slot = AvailabilitySlot::create([
+            'listing_id' => $this->listing->id,
+            'date' => $checkIn->format('Y-m-d'),
+            'start_time' => $checkIn->setHour(15)->format('Y-m-d H:i:s'),
+            'end_time' => $checkIn->copy()->addDay()->setHour(11)->format('Y-m-d H:i:s'),
+            'capacity' => 1,
+            'remaining_capacity' => 1, // Accurate value
+            'base_price' => 100.00,
+            'status' => 'available',
+        ]);
+
+        // Create an ACTIVE hold that hasn't expired
+        \App\Models\BookingHold::create([
+            'slot_id' => $slot->id,
+            'listing_id' => $this->listing->id,
+            'quantity' => 1,
+            'status' => \App\Enums\HoldStatus::ACTIVE,
+            'expires_at' => now()->addMinutes(15), // Still valid
+        ]);
+
+        // Now the slot should be blocked
+        $foundSlot = $this->service->findSlotForCheckIn($this->listing, Carbon::today());
+
+        $this->assertNull(
+            $foundSlot,
+            'Slot with active hold should NOT be returned'
+        );
+    }
+
+    /**
+     * Test that slot with EXPIRED hold is available.
+     */
+    public function test_slot_with_expired_hold_is_available(): void
+    {
+        $checkIn = Carbon::today();
+
+        // Create slot with capacity=1
+        $slot = AvailabilitySlot::create([
+            'listing_id' => $this->listing->id,
+            'date' => $checkIn->format('Y-m-d'),
+            'start_time' => $checkIn->setHour(15)->format('Y-m-d H:i:s'),
+            'end_time' => $checkIn->copy()->addDay()->setHour(11)->format('Y-m-d H:i:s'),
+            'capacity' => 1,
+            'remaining_capacity' => 0, // Stale - was set when hold was created
+            'base_price' => 100.00,
+            'status' => 'available',
+        ]);
+
+        // Create an EXPIRED hold (expires_at is in the past)
+        \App\Models\BookingHold::create([
+            'slot_id' => $slot->id,
+            'listing_id' => $this->listing->id,
+            'quantity' => 1,
+            'status' => \App\Enums\HoldStatus::ACTIVE, // Still marked active in DB
+            'expires_at' => now()->subMinutes(5), // But already expired!
+        ]);
+
+        // The computed accessor should ignore the expired hold
+        $foundSlot = $this->service->findSlotForCheckIn($this->listing, Carbon::today());
+
+        $this->assertNotNull(
+            $foundSlot,
+            'Slot with expired hold should be available'
+        );
+        $this->assertEquals($slot->id, $foundSlot->id);
     }
 
     /**
@@ -284,10 +427,12 @@ class AccommodationBookingServiceTest extends TestCase
     {
         return AvailabilitySlot::create([
             'listing_id' => $listing->id,
-            'start' => $date->format('Y-m-d') . ' 15:00:00',
-            'end' => $date->copy()->addDay()->format('Y-m-d') . ' 11:00:00',
+            'date' => $date->format('Y-m-d'),
+            'start_time' => $date->format('Y-m-d') . ' 15:00:00',
+            'end_time' => $date->copy()->addDay()->format('Y-m-d') . ' 11:00:00',
             'capacity' => 1,
             'remaining_capacity' => 1,
+            'base_price' => 100.00,
             'status' => 'available',
         ]);
     }

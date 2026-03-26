@@ -102,6 +102,9 @@ class AccommodationBookingService
             $dateStr = $date->format('Y-m-d');
 
             // Check if there's an available slot for this date
+            // Note: We fetch the slot without filtering by remaining_capacity because
+            // the database column is not updated dynamically. Instead, we use the
+            // computed accessor isBookable() which calculates real-time availability.
             $slot = AvailabilitySlot::query()
                 ->where('listing_id', $listing->id)
                 ->whereDate('date', $dateStr)
@@ -109,10 +112,10 @@ class AccommodationBookingService
                     $query->where('status', 'available')
                         ->orWhere('status', 'limited');
                 })
-                ->where('remaining_capacity', '>', 0)
                 ->first();
 
-            if (! $slot) {
+            // Use computed accessor for capacity check (not the stale DB column)
+            if (! $slot || ! $slot->isBookable()) {
                 $blockedDates[] = $date->copy();
             }
         }
@@ -157,15 +160,18 @@ class AccommodationBookingService
     {
         $dateStr = $checkIn->format('Y-m-d');
 
-        return AvailabilitySlot::query()
+        // Fetch slot without remaining_capacity filter - use computed accessor instead
+        $slot = AvailabilitySlot::query()
             ->where('listing_id', $listing->id)
             ->whereDate('date', $dateStr)
             ->where(function ($query) {
                 $query->where('status', 'available')
                     ->orWhere('status', 'limited');
             })
-            ->where('remaining_capacity', '>', 0)
             ->first();
+
+        // Return only if slot is bookable (uses computed accessor for real-time capacity)
+        return $slot?->isBookable() ? $slot : null;
     }
 
     /**
