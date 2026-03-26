@@ -186,6 +186,24 @@ class HoldController extends Controller
             ], 422);
         }
 
+        // Check if slot is bookable (same check as standard flow)
+        if (! $slot->isBookable()) {
+            return response()->json([
+                'message' => 'This time slot is no longer available',
+                'slot_status' => $slot->status->value,
+            ], 422);
+        }
+
+        // Check if capacity is available (same check as standard flow)
+        // For accommodations, quantity is always 1 (one property/unit)
+        if ($slot->remainingCapacity < 1) {
+            return response()->json([
+                'message' => 'Insufficient capacity',
+                'requested' => 1,
+                'available' => $slot->remainingCapacity,
+            ], 422);
+        }
+
         // Calculate accommodation price
         $nights = $validation['nights'];
         $priceCalculation = $this->accommodationBookingService->calculatePrice(
