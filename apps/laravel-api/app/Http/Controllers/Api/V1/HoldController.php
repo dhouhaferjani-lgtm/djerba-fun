@@ -177,12 +177,14 @@ class HoldController extends Controller
             ], 422);
         }
 
-        // Find a slot for the check-in date
-        $slot = $this->accommodationBookingService->findSlotForCheckIn($listing, $checkIn);
+        // Use the slot from the request (already validated by FormRequest)
+        // This aligns accommodation flow with tour/nautical flow
+        $slot = AvailabilitySlot::findOrFail($request->validated()['slot_id']);
 
-        if (! $slot) {
+        // Verify the slot belongs to this listing (sanity check)
+        if ($slot->listing_id !== $listing->id) {
             return response()->json([
-                'message' => 'No availability on the check-in date',
+                'message' => 'Invalid slot for this listing',
             ], 422);
         }
 
