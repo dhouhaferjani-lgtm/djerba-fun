@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Api\V1;
 
 use App\Models\CustomTripRequest;
+use App\Rules\TurnstileToken;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -79,6 +80,9 @@ class StoreCustomTripRequestRequest extends FormRequest
             'special_requests' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'newsletter_consent' => ['sometimes', 'boolean'],
             'locale' => ['sometimes', 'string', 'in:en,fr'],
+
+            // Cloudflare Turnstile bot protection
+            'cf_turnstile_response' => ['nullable', new TurnstileToken($this->ip())],
         ];
     }
 

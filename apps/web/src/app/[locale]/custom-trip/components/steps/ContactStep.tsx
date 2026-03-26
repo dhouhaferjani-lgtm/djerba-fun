@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@djerba-fun/ui';
 import { ArrowLeft, Send, Mail, Phone, MessageCircle, AlertCircle, Loader2 } from 'lucide-react';
 import type { ContactData } from '../CustomTripWizard';
+import { TurnstileWidget } from '@/components/atoms/TurnstileWidget';
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(255),
@@ -28,6 +29,7 @@ interface ContactStepProps {
   onBack: () => void;
   isSubmitting: boolean;
   error: string | null;
+  onTurnstileVerify: (token: string) => void;
 }
 
 // Common countries for Tunisia tourism
@@ -56,6 +58,7 @@ export function ContactStep({
   onBack,
   isSubmitting,
   error,
+  onTurnstileVerify,
 }: ContactStepProps) {
   const t = useTranslations('customTrip.contact');
 
@@ -275,6 +278,9 @@ export function ContactStep({
           <span className="text-sm text-gray-700">{t('newsletter_consent')}</span>
         </label>
       </div>
+
+      {/* Bot Protection */}
+      <TurnstileWidget onVerify={onTurnstileVerify} className="flex justify-center" />
 
       {/* Navigation Buttons */}
       <div className="flex justify-between pt-4">

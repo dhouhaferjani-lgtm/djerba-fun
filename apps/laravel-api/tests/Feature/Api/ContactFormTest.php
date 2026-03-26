@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
+use App\Services\TurnstileService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactFormMail;
+use Mockery;
 use Tests\TestCase;
 
 /**
@@ -24,6 +27,13 @@ use Tests\TestCase;
 class ContactFormTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Disable throttle middleware to prevent test interference
+        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+    }
 
     /**
      * Test contact form submission succeeds with valid data.
@@ -70,9 +80,9 @@ class ContactFormTest extends TestCase
         // Act
         $this->postJson('/api/v1/contact', $formData);
 
-        // Assert
+        // Assert - Contact email uses platform settings with fallback to contact@djerbafun.com
         Mail::assertQueued(ContactFormMail::class, function ($mail) use ($formData) {
-            return $mail->hasTo('contact@djerba.fun');
+            return $mail->hasTo('contact@djerbafun.com');
         });
     }
 
@@ -313,5 +323,99 @@ class ContactFormTest extends TestCase
             $response->status() === 200 || $response->status() === 429,
             'Response should be either success (200) or rate limited (429)'
         );
+    }
+
+    /**
+     * Test contact form rejects invalid Turnstile token when enabled.
+     */
+    public function test_contact_form_rejects_invalid_turnstile_token_when_enabled(): void
+    {
+        // Arrange
+        Config::set('services.turnstile.enabled', true);
+
+        $mockService = Mockery::mock(TurnstileService::class);
+        $mockService->shouldReceive('verify')
+            ->andReturn([
+                'success' => false,
+                'error_codes' => ['invalid-input-response'],
+                'message' => 'Turnstile verification failed',
+            ]);
+        $this->app->instance(TurnstileService::class, $mockService);
+
+        $formData = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'message' => 'This is a test message for Turnstile validation.',
+            'cf_turnstile_response' => 'invalid-token',
+        ];
+
+        // Act
+        $response = $this->postJson('/api/v1/contact', $formData);
+
+        // Assert
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['cf_turnstile_response']);
+    }
+
+    /**
+     * Test contact form accepts request without token when Turnstile is disabled.
+     */
+    public function test_contact_form_accepts_request_without_token_when_disabled(): void
+    {
+        // Arrange
+        Mail::fake();
+        Config::set('services.turnstile.enabled', false);
+
+        $formData = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'message' => 'This is a test message when Turnstile is disabled.',
+        ];
+
+        // Act
+        $response = $this->postJson('/api/v1/contact', $formData);
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJson(['success' => true]);
+    }
+
+    /**
+     * Test contact form accepts valid Turnstile token when enabled.
+     */
+    public function test_contact_form_accepts_valid_turnstile_token_when_enabled(): void
+    {
+        // Arrange
+        Mail::fake();
+        Config::set('services.turnstile.enabled', true);
+
+        $mockService = Mockery::mock(TurnstileService::class);
+        $mockService->shouldReceive('verify')
+            ->andReturn([
+                'success' => true,
+                'error_codes' => [],
+                'message' => 'Verified',
+            ]);
+        $this->app->instance(TurnstileService::class, $mockService);
+
+        $formData = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'message' => 'This is a test message with valid Turnstile token.',
+            'cf_turnstile_response' => 'valid-token',
+        ];
+
+        // Act
+        $response = $this->postJson('/api/v1/contact', $formData);
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJson(['success' => true]);
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
     }
 }

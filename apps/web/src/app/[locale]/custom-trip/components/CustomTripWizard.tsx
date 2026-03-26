@@ -11,6 +11,7 @@ import { BudgetStyleStep } from './steps/BudgetStyleStep';
 import { ContactStep } from './steps/ContactStep';
 import { SuccessPage } from './SuccessPage';
 import { customTripApi, type CustomTripRequestData } from '@/lib/api/client';
+import { useTurnstile } from '@/components/atoms/TurnstileWidget';
 
 export type WizardStep = 'basics' | 'interests' | 'budget' | 'contact' | 'success';
 
@@ -80,6 +81,9 @@ export function CustomTripWizard({ contactInfo }: CustomTripWizardProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
+
+  // Turnstile integration for bot protection
+  const { handleVerify: handleTurnstileVerify, getToken: getTurnstileToken } = useTurnstile();
 
   const [wizardData, setWizardData] = useState<WizardData>({
     basics: null,
@@ -152,6 +156,7 @@ export function CustomTripWizard({ contactInfo }: CustomTripWizardProps) {
         special_requests: data.specialRequests || null,
         newsletter_consent: data.newsletterConsent,
         locale: locale as 'en' | 'fr',
+        cf_turnstile_response: getTurnstileToken() || undefined,
       };
 
       const response = await customTripApi.submit(requestData);
@@ -221,6 +226,7 @@ export function CustomTripWizard({ contactInfo }: CustomTripWizardProps) {
                 onBack={handleBack}
                 isSubmitting={isSubmitting}
                 error={submissionError}
+                onTurnstileVerify={handleTurnstileVerify}
               />
             )}
           </div>

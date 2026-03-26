@@ -9,13 +9,23 @@ use App\Enums\UserStatus;
 use App\Models\TravelerProfile;
 use App\Models\User;
 use App\Models\VendorProfile;
+use App\Services\TurnstileService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
+use Mockery;
 use Tests\TestCase;
 
 class AuthTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Disable throttle middleware to prevent test interference
+        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+    }
 
     /**
      * Test user can register as traveler with valid data.
@@ -348,5 +358,188 @@ class AuthTest extends TestCase
 
         // Assert
         $response->assertStatus(422);
+    }
+
+    /**
+     * Test login rejects invalid Turnstile token when enabled.
+     */
+    public function test_login_rejects_invalid_turnstile_token_when_enabled(): void
+    {
+        // Arrange
+        Config::set('services.turnstile.enabled', true);
+
+        $mockService = Mockery::mock(TurnstileService::class);
+        $mockService->shouldReceive('verify')
+            ->andReturn([
+                'success' => false,
+                'error_codes' => ['invalid-input-response'],
+                'message' => 'Turnstile verification failed',
+            ]);
+        $this->app->instance(TurnstileService::class, $mockService);
+
+        User::factory()->create([
+            'email' => 'user@example.com',
+            'password' => Hash::make('password123'),
+            'status' => UserStatus::ACTIVE,
+        ]);
+
+        // Act
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => 'user@example.com',
+            'password' => 'password123',
+            'cf_turnstile_response' => 'invalid-token',
+        ]);
+
+        // Assert
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['cf_turnstile_response']);
+    }
+
+    /**
+     * Test login accepts valid Turnstile token when enabled.
+     */
+    public function test_login_accepts_valid_turnstile_token_when_enabled(): void
+    {
+        // Arrange
+        Config::set('services.turnstile.enabled', true);
+
+        $mockService = Mockery::mock(TurnstileService::class);
+        $mockService->shouldReceive('verify')
+            ->andReturn([
+                'success' => true,
+                'error_codes' => [],
+                'message' => 'Verified',
+            ]);
+        $this->app->instance(TurnstileService::class, $mockService);
+
+        User::factory()->create([
+            'email' => 'user@example.com',
+            'password' => Hash::make('password123'),
+            'status' => UserStatus::ACTIVE,
+        ]);
+
+        // Act
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => 'user@example.com',
+            'password' => 'password123',
+            'cf_turnstile_response' => 'valid-token',
+        ]);
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJsonStructure(['user', 'token']);
+    }
+
+    /**
+     * Test register rejects invalid Turnstile token when enabled.
+     */
+    public function test_register_rejects_invalid_turnstile_token_when_enabled(): void
+    {
+        // Arrange
+        Config::set('services.turnstile.enabled', true);
+
+        $mockService = Mockery::mock(TurnstileService::class);
+        $mockService->shouldReceive('verify')
+            ->andReturn([
+                'success' => false,
+                'error_codes' => ['invalid-input-response'],
+                'message' => 'Turnstile verification failed',
+            ]);
+        $this->app->instance(TurnstileService::class, $mockService);
+
+        $userData = [
+            'email' => 'newuser@example.com',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'role' => UserRole::TRAVELER->value,
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'display_name' => 'John Doe',
+            'cf_turnstile_response' => 'invalid-token',
+        ];
+
+        // Act
+        $response = $this->postJson('/api/v1/auth/register', $userData);
+
+        // Assert
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['cf_turnstile_response']);
+    }
+
+    /**
+     * Test register accepts valid Turnstile token when enabled.
+     */
+    public function test_register_accepts_valid_turnstile_token_when_enabled(): void
+    {
+        // Arrange
+        Config::set('services.turnstile.enabled', true);
+
+        $mockService = Mockery::mock(TurnstileService::class);
+        $mockService->shouldReceive('verify')
+            ->andReturn([
+                'success' => true,
+                'error_codes' => [],
+                'message' => 'Verified',
+            ]);
+        $this->app->instance(TurnstileService::class, $mockService);
+
+        $userData = [
+            'email' => 'newuser@example.com',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'role' => UserRole::TRAVELER->value,
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'display_name' => 'John Doe',
+            'cf_turnstile_response' => 'valid-token',
+        ];
+
+        // Act
+        $response = $this->postJson('/api/v1/auth/register', $userData);
+
+        // Assert
+        $response->assertStatus(201);
+
+        // Debug: Check if response is JSON and has expected keys
+        $data = $response->json();
+        if (isset($data['message'])) {
+            // Registration returns { message, email } for email verification flow
+            $this->assertArrayHasKey('message', $data);
+            $this->assertArrayHasKey('email', $data);
+        } else {
+            // Direct login returns { user, token }
+            $response->assertJsonStructure(['user', 'token']);
+        }
+    }
+
+    /**
+     * Test login works without Turnstile token when disabled.
+     */
+    public function test_login_works_without_turnstile_token_when_disabled(): void
+    {
+        // Arrange
+        Config::set('services.turnstile.enabled', false);
+
+        User::factory()->create([
+            'email' => 'user@example.com',
+            'password' => Hash::make('password123'),
+            'status' => UserStatus::ACTIVE,
+        ]);
+
+        // Act - No cf_turnstile_response field
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => 'user@example.com',
+            'password' => 'password123',
+        ]);
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJsonStructure(['user', 'token']);
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
     }
 }

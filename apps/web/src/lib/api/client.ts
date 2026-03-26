@@ -1548,6 +1548,7 @@ export interface CustomTripRequestData {
   special_requests?: string | null;
   newsletter_consent: boolean;
   locale: 'en' | 'fr';
+  cf_turnstile_response?: string;
 }
 
 export interface CustomTripRequestResponse {
