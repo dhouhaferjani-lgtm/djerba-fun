@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import { Providers } from '@/lib/providers/Providers';
+import { BrandingProvider } from '@/lib/contexts/BrandingContext';
 import CookieConsentBanner from '@/components/consent/CookieConsentBanner';
 import { OrganizationJsonLd } from '@/components/seo/JsonLd';
 import { WebVitals } from '../web-vitals';
@@ -187,7 +188,15 @@ export default async function LocaleLayout({
         />
       )}
       <NextIntlClientProvider messages={messages}>
-        <Providers>{children}</Providers>
+        <BrandingProvider
+          branding={{
+            logoLight: branding.logoLight,
+            logoDark: branding.logoDark,
+            platformName: branding.platformName,
+          }}
+        >
+          <Providers>{children}</Providers>
+        </BrandingProvider>
         <CookieConsentBanner />
       </NextIntlClientProvider>
     </>

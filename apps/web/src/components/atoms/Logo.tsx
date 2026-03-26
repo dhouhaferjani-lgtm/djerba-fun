@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useLocale } from 'next-intl';
 import { usePlatformSettings } from '@/lib/api/hooks';
+import { useBranding } from '@/lib/contexts/BrandingContext';
 import { shouldUnoptimizeImage } from '@/lib/utils/image';
 
 interface LogoProps {
@@ -14,15 +15,23 @@ interface LogoProps {
 
 export function Logo({ variant = 'light', className = '', showText = false }: LogoProps) {
   const locale = useLocale();
+
+  // Try server-provided branding context first (prevents logo flash)
+  const brandingContext = useBranding();
+
+  // Fallback to client-side fetch if context not available
   const { data: settings, isLoading } = usePlatformSettings(locale);
 
   const defaultLogo = '/images/evasion-djerba-logo.png';
+
+  // Priority: context (server) -> settings (client cache) -> fallback
   const logoUrl =
     variant === 'dark'
-      ? settings?.branding?.logoDark || defaultLogo
-      : settings?.branding?.logoLight || defaultLogo;
+      ? (brandingContext?.logoDark ?? settings?.branding?.logoDark ?? defaultLogo)
+      : (brandingContext?.logoLight ?? settings?.branding?.logoLight ?? defaultLogo);
 
-  const platformName = settings?.platform?.name || 'Evasion Djerba';
+  const platformName =
+    brandingContext?.platformName ?? settings?.platform?.name ?? 'Evasion Djerba';
 
   return (
     <Link href={`/${locale}`} className={`flex items-center gap-2 ${className}`}>
