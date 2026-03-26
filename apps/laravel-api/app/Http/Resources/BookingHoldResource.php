@@ -35,6 +35,7 @@ class BookingHoldResource extends BaseResource
             'slot' => new AvailabilitySlotResource($this->whenLoaded('slot')),
             'listing' => new ListingResource($this->whenLoaded('listing')),
             'createdAt' => $this->created_at?->toIso8601String(),
+            'metadata' => $this->metadata,
         ];
     }
 }

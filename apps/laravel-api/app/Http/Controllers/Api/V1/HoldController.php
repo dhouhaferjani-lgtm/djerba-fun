@@ -195,10 +195,12 @@ class HoldController extends Controller
         );
 
         // Create the hold with accommodation-specific metadata
+        // Note: quantity=1 because we're booking one property/unit, not individual seats
+        // The guests count is stored in metadata for display purposes
         $hold = BookingHold::createForSlot(
             slot: $slot,
             user: $user,
-            quantity: $guests,
+            quantity: 1,
             sessionId: $sessionId,
             personTypeBreakdown: ['adult' => $guests], // For compatibility
             currency: $currency,

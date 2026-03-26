@@ -69,10 +69,12 @@ class AccommodationBookingTest extends TestCase
     {
         return AvailabilitySlot::create([
             'listing_id' => $listing->id,
-            'start' => $date->format('Y-m-d') . ' 15:00:00',
-            'end' => $date->copy()->addDay()->format('Y-m-d') . ' 11:00:00',
+            'date' => $date->format('Y-m-d'),
+            'start_time' => '15:00:00',
+            'end_time' => '11:00:00',
             'capacity' => 1,
             'remaining_capacity' => 1,
+            'base_price' => 100.00,
             'status' => 'available',
         ]);
     }
@@ -104,9 +106,9 @@ class AccommodationBookingTest extends TestCase
             ->assertJsonStructure([
                 'data' => [
                     'id',
-                    'expires_at',
+                    'expiresAt',
                     'status',
-                    'price_snapshot',
+                    'priceSnapshot',
                     'currency',
                     'metadata',
                 ],

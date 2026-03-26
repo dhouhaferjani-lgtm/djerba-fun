@@ -104,15 +104,12 @@ class AccommodationBookingService
             // Check if there's an available slot for this date
             $slot = AvailabilitySlot::query()
                 ->where('listing_id', $listing->id)
-                ->whereDate('start', $dateStr)
+                ->whereDate('date', $dateStr)
                 ->where(function ($query) {
                     $query->where('status', 'available')
                         ->orWhere('status', 'limited');
                 })
-                ->where(function ($query) {
-                    $query->whereRaw('remaining_capacity > 0')
-                        ->orWhereRaw('capacity - COALESCE(booked_count, 0) > 0');
-                })
+                ->where('remaining_capacity', '>', 0)
                 ->first();
 
             if (! $slot) {
@@ -162,7 +159,7 @@ class AccommodationBookingService
 
         return AvailabilitySlot::query()
             ->where('listing_id', $listing->id)
-            ->whereDate('start', $dateStr)
+            ->whereDate('date', $dateStr)
             ->where(function ($query) {
                 $query->where('status', 'available')
                     ->orWhere('status', 'limited');
