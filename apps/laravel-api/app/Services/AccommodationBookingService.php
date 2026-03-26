@@ -164,6 +164,7 @@ class AccommodationBookingService
                 $query->where('status', 'available')
                     ->orWhere('status', 'limited');
             })
+            ->where('remaining_capacity', '>', 0)
             ->first();
     }
 
