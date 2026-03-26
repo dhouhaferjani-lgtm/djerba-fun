@@ -13,6 +13,7 @@ use App\Models\BookingParticipant;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\CartPayment;
+use App\Models\Coupon;
 use App\Models\PaymentGateway as PaymentGatewayModel;
 use App\Models\User;
 use App\Services\Payment\PaymentGatewayManager;
@@ -29,7 +30,8 @@ class CartCheckoutService
         protected BookingService $bookingService,
         protected PaymentGatewayManager $gatewayManager,
         protected PriceCalculationService $priceService,
-        protected EmailLogService $emailLogService
+        protected EmailLogService $emailLogService,
+        protected CartCouponService $cartCouponService
     ) {}
 
     /**
@@ -39,12 +41,14 @@ class CartCheckoutService
      * @param  Cart  $cart  The cart to checkout
      * @param  PaymentMethod  $paymentMethod  The payment method to use
      * @param  array  $metadata  Additional metadata
-     * @return array{payment: CartPayment, valid: bool, errors: array}
+     * @param  string|null  $couponCode  Optional coupon code to apply
+     * @return array{payment: CartPayment, valid: bool, errors: array, coupon_applied?: bool, coupon_details?: array}
      */
     public function initiateCheckout(
         Cart $cart,
         PaymentMethod $paymentMethod,
-        array $metadata = []
+        array $metadata = [],
+        ?string $couponCode = null
     ): array {
         // Validate cart
         $validation = $this->cartService->validateForCheckout($cart);
@@ -59,14 +63,49 @@ class CartCheckoutService
 
         // Calculate totals
         $totals = $this->cartService->calculateTotals($cart);
+        $originalAmount = $totals['total'];
+        $discountAmount = 0.0;
+        $couponId = null;
+        $couponApplicationDetails = null;
+
+        // Apply coupon if provided
+        if ($couponCode) {
+            $couponResult = $this->cartCouponService->applyCoupon(
+                $cart,
+                $couponCode,
+                $cart->user_id
+            );
+
+            if ($couponResult['coupon_id']) {
+                $couponId = $couponResult['coupon_id'];
+                $discountAmount = $couponResult['discount_amount'];
+                $couponApplicationDetails = $couponResult['application_details'];
+
+                Log::info('Coupon applied to cart checkout', [
+                    'cart_id' => $cart->id,
+                    'coupon_id' => $couponId,
+                    'coupon_code' => $couponCode,
+                    'original_amount' => $originalAmount,
+                    'discount_amount' => $discountAmount,
+                ]);
+            }
+        }
+
+        // Calculate final amount after discount
+        $finalAmount = max(0, $originalAmount - $discountAmount);
 
         // Mark cart as checking out
         $this->cartService->startCheckout($cart);
 
-        // Create cart payment
+        // Create cart payment with coupon details
         $payment = CartPayment::create([
             'cart_id' => $cart->id,
-            'amount' => $totals['total'],
+            'coupon_id' => $couponId,
+            'coupon_code' => $couponCode ? strtoupper($couponCode) : null,
+            'discount_amount' => $discountAmount > 0 ? $discountAmount : null,
+            'original_amount' => $couponId ? $originalAmount : null,
+            'coupon_application_details' => $couponApplicationDetails,
+            'amount' => $finalAmount,
             'currency' => $totals['currency'],
             'status' => PaymentStatus::PENDING,
             'payment_method' => $paymentMethod->value,
@@ -74,11 +113,25 @@ class CartCheckoutService
             'metadata' => $metadata,
         ]);
 
-        return [
+        $result = [
             'payment' => $payment,
             'valid' => true,
             'errors' => [],
         ];
+
+        // Add coupon info to result
+        if ($couponId) {
+            $result['coupon_applied'] = true;
+            $result['coupon_details'] = [
+                'code' => strtoupper($couponCode),
+                'discount_amount' => $discountAmount,
+                'original_amount' => $originalAmount,
+                'final_amount' => $finalAmount,
+                'partial_application' => $couponApplicationDetails['partial_application'] ?? false,
+            ];
+        }
+
+        return $result;
     }
 
     /**
@@ -126,6 +179,9 @@ class CartCheckoutService
         return DB::transaction(function () use ($payment, $cart, $gatewayId) {
             // Mark payment as successful
             $payment->markAsSucceeded($gatewayId);
+
+            // Increment coupon usage after successful payment
+            $this->incrementCouponUsage($payment);
 
             // Create bookings for each cart item
             $bookings = $this->createBookingsFromCart($cart, $payment);
@@ -178,6 +234,9 @@ class CartCheckoutService
         return DB::transaction(function () use ($payment, $cart) {
             // Mark as succeeded (free)
             $payment->markAsSucceeded('free_' . Str::random(8));
+
+            // Increment coupon usage after successful payment
+            $this->incrementCouponUsage($payment);
 
             // Create confirmed bookings
             $bookings = $this->createBookingsFromCart($cart, $payment);
@@ -568,6 +627,9 @@ class CartCheckoutService
             // Mark payment as successful
             $payment->markAsSucceeded($reference);
 
+            // Increment coupon usage after successful payment
+            $this->incrementCouponUsage($payment);
+
             // Confirm all bookings
             foreach ($payment->bookings as $booking) {
                 if ($booking->status === BookingStatus::PENDING_PAYMENT) {
@@ -615,5 +677,21 @@ class CartCheckoutService
             // Abandon cart
             $cart->abandon();
         });
+    }
+
+    /**
+     * Increment coupon usage count after successful payment.
+     */
+    protected function incrementCouponUsage(CartPayment $payment): void
+    {
+        if ($payment->coupon_id) {
+            Coupon::where('id', $payment->coupon_id)->increment('usage_count');
+
+            Log::info('Cart coupon usage incremented after payment confirmation', [
+                'cart_payment_id' => $payment->id,
+                'coupon_id' => $payment->coupon_id,
+                'coupon_code' => $payment->coupon_code,
+            ]);
+        }
     }
 }

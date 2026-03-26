@@ -26,6 +26,8 @@ return [
     'guest_singular' => 'guest',
     'guest_plural' => 'guests',
     'total_amount' => 'Total Amount',
+    'subtotal' => 'Subtotal',
+    'discount' => 'Discount',
     'status' => 'Status',
     'add_ons' => 'Add-ons',
     'manage_booking' => 'Manage Your Booking',

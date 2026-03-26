@@ -14,9 +14,9 @@ class CouponService
      */
     public function validate(
         string $code,
-        string $listingId,
+        string|int $listingId,
         float $amount,
-        ?string $userId = null
+        string|int|null $userId = null
     ): array {
         $coupon = Coupon::byCode($code)->first();
 
@@ -52,9 +52,8 @@ class CouponService
             return [
                 'valid' => false,
                 'message' => sprintf(
-                    'Minimum order amount of %s %s required to use this coupon.',
-                    number_format($coupon->minimum_order, 2),
-                    'CAD'
+                    'Minimum order amount of %s required to use this coupon.',
+                    number_format((float) $coupon->minimum_order, 2)
                 ),
             ];
         }
@@ -77,7 +76,7 @@ class CouponService
      */
     public function apply(Coupon $coupon, Booking $booking): void
     {
-        $discountAmount = $coupon->calculateDiscount($booking->total_amount);
+        $discountAmount = $coupon->calculateDiscount((float) $booking->total_amount);
 
         $booking->update([
             'coupon_id' => $coupon->id,

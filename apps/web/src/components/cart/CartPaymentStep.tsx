@@ -20,7 +20,7 @@ interface CartPaymentStepProps {
   primaryContact: PrimaryContactData;
   locale: string;
   onBack: () => void;
-  onSubmit: (paymentMethod: PaymentMethod) => void;
+  onSubmit: (paymentMethod: PaymentMethod, couponCode?: string) => void;
   isProcessing: boolean;
   // Consent props
   termsAccepted: boolean;
@@ -109,9 +109,9 @@ export function CartPaymentStep({
       return;
     }
 
-    // Clear any previous error and submit
+    // Clear any previous error and submit with coupon code if applied
     setTermsError(undefined);
-    onSubmit(selectedMethod);
+    onSubmit(selectedMethod, couponCode || undefined);
   };
 
   return (
@@ -156,6 +156,7 @@ export function CartPaymentStep({
           <CouponInput
             listingId={firstListingId}
             amount={cart.subtotal}
+            currency={cart.currency}
             onApply={(code, discount) => {
               setCouponCode(code);
               setCouponDiscount(discount);

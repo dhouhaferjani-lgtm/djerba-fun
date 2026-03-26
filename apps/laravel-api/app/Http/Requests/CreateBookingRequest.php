@@ -24,6 +24,7 @@ class CreateBookingRequest extends BaseFormRequest
         return [
             'hold_id' => ['required', 'exists:booking_holds,id'],
             'session_id' => ['nullable', 'string', 'max:255'],
+            'coupon_code' => ['nullable', 'string', 'max:50'],
 
             // Support both legacy single traveler_info and new travelers array
             'traveler_info' => ['required_without:travelers', 'nullable', 'array'],

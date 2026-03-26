@@ -48,7 +48,7 @@ class StripePaymentGateway implements PaymentGateway
         try {
             $paymentIntent = PaymentIntent::create([
                 'booking_id' => $booking->id,
-                'amount' => $booking->total_amount,
+                'amount' => $booking->getPayableAmount(),
                 'currency' => $booking->currency ?? 'USD',
                 'payment_method' => $options['payment_method'] ?? 'card',
                 'status' => PaymentStatus::PENDING,
@@ -63,7 +63,7 @@ class StripePaymentGateway implements PaymentGateway
             // TODO: Call Stripe API to create payment intent
             // $stripe = new \Stripe\StripeClient($config['secret_key']);
             // $stripeIntent = $stripe->paymentIntents->create([
-            //     'amount' => (int) ($booking->total_amount * 100), // Amount in cents
+            //     'amount' => (int) ($booking->getPayableAmount() * 100), // Amount in cents
             //     'currency' => strtolower($booking->currency ?? 'usd'),
             //     'metadata' => [
             //         'booking_id' => $booking->id,

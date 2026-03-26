@@ -12,6 +12,7 @@ import type {
   ReviewSummary,
   CreateReviewRequest,
   CouponValidation,
+  CartCouponValidation,
   VendorPublicProfile,
   ListingSummary,
   ListingExtraForBooking,
@@ -416,7 +417,7 @@ export interface ProcessPaymentRequest {
 }
 
 export const bookingsApi = {
-  create: async (request: CreateBookingRequest & { sessionId?: string }) => {
+  create: async (request: CreateBookingRequest & { sessionId?: string; couponCode?: string }) => {
     // Convert all travelers to snake_case for Laravel backend
     const travelers = request.travelers?.map((traveler) => ({
       first_name: traveler.firstName,
@@ -434,6 +435,7 @@ export const bookingsApi = {
         session_id: request.sessionId,
         travelers: travelers,
         extras: request.extras || [],
+        coupon_code: request.couponCode,
       }),
     });
   },
@@ -869,6 +871,13 @@ export const couponsApi = {
       body: JSON.stringify({ code, listing_id: listingId, amount }),
     });
   },
+
+  validateForCart: async (code: string, sessionId?: string) => {
+    return fetchApi<CartCouponValidation>('/coupons/validate-cart', {
+      method: 'POST',
+      body: JSON.stringify({ code, session_id: sessionId }),
+    });
+  },
 };
 
 // ============================================================================
@@ -1188,7 +1197,7 @@ export const cartApi = {
   },
 
   // Checkout endpoints
-  initiateCheckout: async (paymentMethod: string, sessionId?: string) => {
+  initiateCheckout: async (paymentMethod: string, sessionId?: string, couponCode?: string) => {
     // Map frontend method names to backend enum values
     const backendMethod = paymentMethod === 'cash' ? 'cash_on_arrival' : paymentMethod;
     return fetchApi<{
@@ -1197,11 +1206,20 @@ export const cartApi = {
       amount: number;
       currency: string;
       tnd_amount?: number;
+      coupon_applied?: boolean;
+      coupon_details?: {
+        code: string;
+        discount_amount: number;
+        original_amount: number;
+        final_amount: number;
+        partial_application: boolean;
+      };
     }>('/cart/checkout', {
       method: 'POST',
       body: JSON.stringify({
         payment_method: backendMethod,
         session_id: sessionId,
+        coupon_code: couponCode,
       }),
     });
   },

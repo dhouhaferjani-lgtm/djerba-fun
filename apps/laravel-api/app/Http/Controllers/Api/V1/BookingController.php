@@ -130,7 +130,8 @@ class BookingController extends Controller
             hold: $hold,
             travelers: $request->getTravelers(),
             extras: $request->input('extras', []),
-            authenticatedUserId: $request->user()?->id
+            authenticatedUserId: $request->user()?->id,
+            couponCode: $request->input('coupon_code')
         );
 
         // Performance: Load relationships with specific columns

@@ -46,7 +46,7 @@ class ClickToPayPaymentGateway implements PaymentGateway
         $this->loadConfiguration();
 
         // Use cart_total if provided (for multi-booking cart payments), else use booking's payable amount
-        $amount = $options['cart_total'] ?? $booking->total_amount;
+        $amount = $options['cart_total'] ?? $booking->getPayableAmount();
 
         // Convert amount to millimes (1 TND = 1000 millimes)
         $amountInMillimes = (int) round($amount * 1000);

@@ -11,6 +11,7 @@ use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
 use App\Models\BookingHold;
 use App\Models\BookingParticipant;
+use App\Models\Coupon;
 use App\Models\PaymentIntent;
 use App\Models\User;
 use Filament\Notifications\Actions\Action as NotificationAction;
@@ -23,7 +24,8 @@ class BookingService
 {
     public function __construct(
         private readonly ExtrasService $extrasService,
-        private readonly EmailLogService $emailLogService
+        private readonly EmailLogService $emailLogService,
+        private readonly CouponService $couponService
     ) {}
 
     /**
@@ -35,14 +37,16 @@ class BookingService
      * @param  array  $travelers  Array with minimal contact info (email required, name/phone optional)
      * @param  array  $extras  Selected extras
      * @param  int|null  $authenticatedUserId  The authenticated user's ID (if logged in during checkout)
+     * @param  string|null  $couponCode  Optional coupon code to apply
      */
     public function createFromHold(
         BookingHold $hold,
         array $travelers,
         array $extras = [],
-        ?int $authenticatedUserId = null
+        ?int $authenticatedUserId = null,
+        ?string $couponCode = null
     ): Booking {
-        return DB::transaction(function () use ($hold, $travelers, $extras, $authenticatedUserId) {
+        return DB::transaction(function () use ($hold, $travelers, $extras, $authenticatedUserId, $couponCode) {
             // Use authenticated user's ID if available, otherwise use hold's user_id
             $userId = $authenticatedUserId ?? $hold->user_id;
 
@@ -102,6 +106,43 @@ class BookingService
 
             // Calculate final pricing with billing address context
             $pricing = $this->calculateTotalAmount($hold, $extras);
+            $subtotal = is_array($pricing) ? $pricing['total'] : $pricing;
+
+            // Validate and apply coupon if provided
+            $couponId = null;
+            $discountAmount = 0.0;
+
+            if ($couponCode) {
+                $couponResult = $this->couponService->validate(
+                    code: $couponCode,
+                    listingId: $hold->listing_id,
+                    amount: $subtotal,
+                    userId: $userId
+                );
+
+                if ($couponResult['valid']) {
+                    $couponId = $couponResult['coupon_id'];
+                    $discountAmount = (float) $couponResult['discount_amount'];
+
+                    Log::info('Coupon applied to booking', [
+                        'coupon_id' => $couponId,
+                        'coupon_code' => $couponCode,
+                        'subtotal' => $subtotal,
+                        'discount_amount' => $discountAmount,
+                        'listing_id' => $hold->listing_id,
+                    ]);
+                } else {
+                    // Log but don't fail the booking - coupon validation already happened on frontend
+                    Log::warning('Coupon validation failed during booking', [
+                        'coupon_code' => $couponCode,
+                        'message' => $couponResult['message'] ?? 'Unknown error',
+                        'listing_id' => $hold->listing_id,
+                    ]);
+                }
+            }
+
+            // Calculate final total after discount
+            $finalTotal = max(0, $subtotal - $discountAmount);
 
             // Create the booking (copy session_id from hold for guest checkout)
             $booking = Booking::create([
@@ -114,7 +155,9 @@ class BookingService
                 'availability_slot_id' => $hold->slot_id,
                 'quantity' => $hold->quantity,
                 'person_type_breakdown' => $hold->person_type_breakdown,
-                'total_amount' => is_array($pricing) ? $pricing['total'] : $pricing,
+                'total_amount' => $finalTotal,
+                'coupon_id' => $couponId,
+                'discount_amount' => $discountAmount,
                 'currency' => $hold->currency ?? request()->attributes->get('user_currency', 'TND'),
                 'locale' => app()->getLocale(),
                 'status' => BookingStatus::PENDING_PAYMENT,
@@ -240,6 +283,15 @@ class BookingService
             'status' => BookingStatus::CONFIRMED,
             'confirmed_at' => now(),
         ]);
+
+        // Increment coupon usage count now that payment is confirmed
+        if ($booking->coupon_id) {
+            Coupon::where('id', $booking->coupon_id)->increment('usage_count');
+            Log::info('Coupon usage incremented after payment confirmation', [
+                'coupon_id' => $booking->coupon_id,
+                'booking_id' => $booking->id,
+            ]);
+        }
 
         // Reserve inventory for extras now that payment is confirmed
         if ($this->extrasService) {

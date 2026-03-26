@@ -45,7 +45,7 @@ class BookingConfirmationMail extends Mailable implements ShouldQueue
     {
         // Load relationships when the job processes (after deserialization)
         // This is required because SerializesModels only stores model IDs
-        $this->booking->loadMissing(['listing', 'availabilitySlot', 'user']);
+        $this->booking->loadMissing(['listing', 'availabilitySlot', 'user', 'coupon']);
 
         $locale = $this->booking->locale ?? 'fr';
         $listingTitle = __('mail.activity_fallback');

@@ -415,6 +415,7 @@ export function BookingReview({
           <CouponInput
             listingId={listing.id}
             amount={calculateSubtotal() + calculateExtrasTotal()}
+            currency={currency}
             onApply={onCouponApply}
             onRemove={onCouponRemove}
             appliedCode={couponCode}

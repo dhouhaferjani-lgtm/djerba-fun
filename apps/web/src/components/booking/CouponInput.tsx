@@ -7,15 +7,30 @@ import { useValidateCoupon } from '@/lib/api/hooks';
 interface CouponInputProps {
   listingId: string;
   amount: number;
+  currency: string;
   onApply: (code: string, discountAmount: number) => void;
   onRemove: () => void;
   appliedCode?: string;
   appliedDiscount?: number;
 }
 
+function formatPrice(value: number, currency: string): string {
+  if (currency === 'EUR' || currency === '€') {
+    return `€${value.toFixed(2)}`;
+  }
+  if (currency === 'USD' || currency === '$') {
+    return `$${value.toFixed(2)}`;
+  }
+  if (currency === 'TND') {
+    return `${value.toFixed(2)} TND`;
+  }
+  return `${value.toFixed(2)} ${currency}`;
+}
+
 export default function CouponInput({
   listingId,
   amount,
+  currency,
   onApply,
   onRemove,
   appliedCode,
@@ -66,7 +81,10 @@ export default function CouponInput({
 
   if (appliedCode && appliedDiscount) {
     return (
-      <div className="border border-success/20 bg-success-light rounded-lg p-4">
+      <div
+        className="border border-success/20 bg-success-light rounded-lg p-4"
+        data-testid="coupon-applied"
+      >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <svg className="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20">
@@ -81,6 +99,7 @@ export default function CouponInput({
           <button
             onClick={handleRemove}
             className="text-success hover:text-success-dark text-sm font-medium"
+            data-testid="coupon-remove-button"
           >
             {t('remove')}
           </button>
@@ -94,7 +113,7 @@ export default function CouponInput({
           <div className="text-right">
             <p className="text-sm text-success">{t('discount')}</p>
             <p className="text-lg font-bold text-success-dark">
-              -{(appliedDiscount / 100).toFixed(2)} EUR
+              -{formatPrice(appliedDiscount, currency)}
             </p>
           </div>
         </div>
@@ -118,13 +137,19 @@ export default function CouponInput({
             placeholder="SUMMER2025"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent uppercase font-mono"
             disabled={validateCoupon.isPending}
+            data-testid="coupon-code-input"
           />
-          {error && <p className="text-sm text-error mt-1">{error}</p>}
+          {error && (
+            <p className="text-sm text-error mt-1" data-testid="coupon-error">
+              {error}
+            </p>
+          )}
         </div>
         <button
           onClick={handleApply}
           disabled={!code.trim() || validateCoupon.isPending}
           className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          data-testid="coupon-apply-button"
         >
           {validateCoupon.isPending ? (
             <svg

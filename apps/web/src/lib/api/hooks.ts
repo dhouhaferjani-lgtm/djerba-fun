@@ -543,6 +543,17 @@ export function useValidateCoupon() {
   });
 }
 
+/**
+ * Mutation hook for validating a coupon code for an entire cart.
+ * Supports partial application - returns which items the coupon applies to.
+ */
+export function useValidateCartCoupon() {
+  return useMutation({
+    mutationFn: ({ code, sessionId }: { code: string; sessionId?: string }) =>
+      couponsApi.validateForCart(code, sessionId),
+  });
+}
+
 // ============================================================================
 // VENDORS HOOKS
 // ============================================================================
@@ -745,9 +756,9 @@ export function useInitiateCheckout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (paymentMethod: string) => {
+    mutationFn: ({ paymentMethod, couponCode }: { paymentMethod: string; couponCode?: string }) => {
       const sessionId = getGuestSessionId();
-      return cartApi.initiateCheckout(paymentMethod, sessionId);
+      return cartApi.initiateCheckout(paymentMethod, sessionId, couponCode);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });

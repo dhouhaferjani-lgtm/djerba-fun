@@ -59,6 +59,9 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
   const [pendingTndAmount, setPendingTndAmount] = useState(0);
   const [pendingPaymentCurrency, setPendingPaymentCurrency] = useState('EUR');
 
+  // Coupon state (passed from CartPaymentStep)
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | undefined>();
+
   const initiateCheckout = useInitiateCheckout();
   const processPayment = useProcessCartPayment();
   const updateCartItem = useUpdateCartItem();
@@ -185,8 +188,11 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
     }
   };
 
-  const handlePaymentSubmit = async (paymentMethod: PaymentMethod) => {
+  const handlePaymentSubmit = async (paymentMethod: PaymentMethod, couponCode?: string) => {
     setError(null);
+
+    // Store coupon code for use in currency notice modal flow
+    setAppliedCouponCode(couponCode);
 
     // For ClikToPay, show confirmation modal BEFORE initiating checkout
     // This prevents cart from becoming null (initiateCheckout changes status to checking_out)
@@ -200,7 +206,10 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
 
     // For other payment methods, proceed directly
     try {
-      const checkoutResponse = await initiateCheckout.mutateAsync(paymentMethod);
+      const checkoutResponse = await initiateCheckout.mutateAsync({
+        paymentMethod,
+        couponCode,
+      });
       const newPaymentId = checkoutResponse.payment_id;
       setPaymentId(newPaymentId);
       await processPaymentAndRedirect(newPaymentId);
@@ -225,7 +234,10 @@ export function CartCheckoutWizard({ locale }: CartCheckoutWizardProps) {
 
     try {
       // NOW initiate checkout (after user confirmed in modal)
-      const checkoutResponse = await initiateCheckout.mutateAsync('click_to_pay');
+      const checkoutResponse = await initiateCheckout.mutateAsync({
+        paymentMethod: 'click_to_pay',
+        couponCode: appliedCouponCode,
+      });
       const newPaymentId = checkoutResponse.payment_id;
       setPaymentId(newPaymentId);
       await processPaymentAndRedirect(newPaymentId);

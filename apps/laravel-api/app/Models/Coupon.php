@@ -73,25 +73,33 @@ class Coupon extends Model
     /**
      * Check if the coupon is valid for a specific listing.
      */
-    public function isValidForListing(string $listingId): bool
+    public function isValidForListing(string|int $listingId): bool
     {
         if ($this->listing_ids === null) {
             return true; // Valid for all listings
         }
 
-        return in_array($listingId, $this->listing_ids, true);
+        // Cast to string for consistent comparison (handles both int and string IDs)
+        $listingIdStr = (string) $listingId;
+        $listingIds = array_map('strval', $this->listing_ids);
+
+        return in_array($listingIdStr, $listingIds, true);
     }
 
     /**
      * Check if the coupon is valid for a specific user.
      */
-    public function isValidForUser(string $userId): bool
+    public function isValidForUser(string|int $userId): bool
     {
         if ($this->user_ids === null) {
             return true; // Valid for all users
         }
 
-        return in_array($userId, $this->user_ids, true);
+        // Cast to string for consistent comparison (handles both int and string IDs)
+        $userIdStr = (string) $userId;
+        $userIds = array_map('strval', $this->user_ids);
+
+        return in_array($userIdStr, $userIds, true);
     }
 
     /**
@@ -112,9 +120,9 @@ class Coupon extends Model
     public function calculateDiscount(float $amount): float
     {
         return $this->discount_type->calculateDiscount(
-            $this->discount_value,
+            (float) $this->discount_value,
             $amount,
-            $this->maximum_discount
+            $this->maximum_discount !== null ? (float) $this->maximum_discount : null
         );
     }
 

@@ -18,6 +18,11 @@ class CartPayment extends Model
 
     protected $fillable = [
         'cart_id',
+        'coupon_id',
+        'coupon_code',
+        'discount_amount',
+        'original_amount',
+        'coupon_application_details',
         'amount',
         'currency',
         'status',
@@ -33,6 +38,9 @@ class CartPayment extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
+            'original_amount' => 'decimal:2',
+            'coupon_application_details' => 'array',
             'status' => PaymentStatus::class,
             'metadata' => 'array',
             'paid_at' => 'datetime',
@@ -46,6 +54,14 @@ class CartPayment extends Model
     public function cart(): BelongsTo
     {
         return $this->belongsTo(Cart::class);
+    }
+
+    /**
+     * Get the coupon applied to this payment.
+     */
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     /**

@@ -192,12 +192,20 @@ Route::prefix('v1')->group(function () {
         Route::post('/cart/checkout/{payment}/pay', [CartCheckoutController::class, 'processPayment']);
         Route::get('/cart/checkout/{payment}/status', [CartCheckoutController::class, 'status']);
         Route::post('/cart/checkout/cancel', [CartCheckoutController::class, 'cancelCheckout']);
+
+        // Cart coupon validation (partial application support)
+        Route::post('/coupons/validate-cart', [CouponController::class, 'validateForCart']);
     });
 
     // Checkout endpoints (public - for billing verification and pricing)
     Route::prefix('checkout')->group(function () {
         Route::post('/verify-billing', [CheckoutController::class, 'verifyBilling']);
     });
+
+    // Coupon validation (public - for checkout flow)
+    // Uses optional.auth to get user_id for user-specific coupons
+    Route::post('/coupons/validate', [CouponController::class, 'validate'])
+        ->middleware('optional.auth');
 
     // Payment methods (public)
     Route::get('/payment/methods', [PaymentController::class, 'availableMethods']);
@@ -269,9 +277,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/listings/{listing:slug}/can-review', [ReviewController::class, 'canReview']);
         Route::post('/bookings/{booking}/review', [ReviewController::class, 'store']);
         Route::post('/reviews/{review}/helpful', [ReviewController::class, 'markHelpful']);
-
-        // Coupon validation
-        Route::post('/coupons/validate', [CouponController::class, 'validate']);
 
         // Cart merge (merge guest cart into user cart after login)
         Route::post('/cart/merge', [CartController::class, 'merge']);

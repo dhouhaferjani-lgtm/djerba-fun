@@ -71,11 +71,18 @@ class CartCheckoutController extends Controller
 
         $paymentMethod = PaymentMethod::from($paymentMethodValue);
 
-        // Initiate checkout
-        $result = $this->checkoutService->initiateCheckout($cart, $paymentMethod, [
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
+        // Initiate checkout with optional coupon
+        $couponCode = $request->input('coupon_code');
+
+        $result = $this->checkoutService->initiateCheckout(
+            $cart,
+            $paymentMethod,
+            [
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ],
+            $couponCode
+        );
 
         if (! $result['valid']) {
             return response()->json([
@@ -89,13 +96,21 @@ class CartCheckoutController extends Controller
             ? $payment->amount
             : $this->getTndEquivalent($cart);
 
-        return response()->json([
+        $response = [
             'message' => 'Checkout initiated',
             'payment_id' => $payment->id,
             'amount' => $payment->amount,
             'currency' => $payment->currency,
             'tnd_amount' => $tndAmount,
-        ]);
+        ];
+
+        // Add coupon info to response if applied
+        if (! empty($result['coupon_applied'])) {
+            $response['coupon_applied'] = true;
+            $response['coupon_details'] = $result['coupon_details'];
+        }
+
+        return response()->json($response);
     }
 
     /**

@@ -1251,7 +1251,7 @@ export const experienceCategoriesDataSchema = z.object({
 export const couponSchema = z.object({
   id: z.string().uuid(),
   code: z.string().min(3).max(50).toUpperCase(),
-  discountType: z.enum(['percentage', 'fixed']),
+  discountType: z.enum(['percentage', 'fixed_amount']),
   discountValue: z.number().positive(),
   currency: z.string().length(3).nullable(), // For fixed discounts
   minOrderAmount: z.number().int().nonnegative().nullable(),
@@ -1265,15 +1265,56 @@ export const couponSchema = z.object({
 
 export const couponValidationSchema = z.object({
   valid: z.boolean(),
-  discountAmount: z.number().int().nonnegative().optional(),
+  discountAmount: z.number().nonnegative().optional(),
   message: z.string().optional(),
   coupon: z
     .object({
       code: z.string(),
-      discountType: z.enum(['percentage', 'fixed']),
+      discountType: z.enum(['percentage', 'fixed_amount']),
       discountValue: z.number(),
     })
     .optional(),
+});
+
+/** Cart coupon validation response with partial application support */
+export const cartCouponValidationSchema = z.object({
+  valid: z.boolean(),
+  message: z.string(),
+  couponId: z.string().uuid().optional(),
+  discountAmount: z.number().nonnegative().optional(),
+  eligibleItems: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        listingId: z.union([z.string(), z.number()]),
+        listingTitle: z.string(),
+        amount: z.number(),
+      })
+    )
+    .optional(),
+  excludedItems: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        listingId: z.union([z.string(), z.number()]),
+        listingTitle: z.string(),
+        amount: z.number(),
+        reason: z.string(),
+      })
+    )
+    .optional(),
+  breakdown: z
+    .array(
+      z.object({
+        itemId: z.string().uuid(),
+        listingId: z.union([z.string(), z.number()]),
+        originalAmount: z.number(),
+        discountAmount: z.number(),
+        finalAmount: z.number(),
+      })
+    )
+    .optional(),
+  partialApplication: z.boolean().optional(),
 });
 
 // ============================================================================
@@ -1450,6 +1491,7 @@ export type ExperienceCategoriesData = z.infer<typeof experienceCategoriesDataSc
 
 export type Coupon = z.infer<typeof couponSchema>;
 export type CouponValidation = z.infer<typeof couponValidationSchema>;
+export type CartCouponValidation = z.infer<typeof cartCouponValidationSchema>;
 export type VendorPublicProfile = z.infer<typeof vendorPublicProfileSchema>;
 
 export type ListingSearchParams = z.infer<typeof listingSearchParamsSchema>;

@@ -26,6 +26,8 @@ return [
     'guest_singular' => 'personne',
     'guest_plural' => 'personnes',
     'total_amount' => 'Montant total',
+    'subtotal' => 'Sous-total',
+    'discount' => 'Réduction',
     'status' => 'Statut',
     'add_ons' => 'Options supplémentaires',
     'manage_booking' => 'Gérer votre réservation',

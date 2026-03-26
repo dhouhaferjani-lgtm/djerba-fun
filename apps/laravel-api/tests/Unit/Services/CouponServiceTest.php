@@ -244,7 +244,7 @@ class CouponServiceTest extends TestCase
     {
         // Arrange
         $coupon = Coupon::factory()->percentage(20)->create([
-            'used_count' => 0,
+            'usage_count' => 0,
         ]);
         $booking = Booking::factory()->create([
             'total_amount' => 100.00,
@@ -260,7 +260,7 @@ class CouponServiceTest extends TestCase
         $this->assertEquals(20.00, $booking->discount_amount);
 
         $coupon->refresh();
-        $this->assertEquals(1, $coupon->used_count);
+        $this->assertEquals(1, $coupon->usage_count);
     }
 
     /**

@@ -19,7 +19,7 @@ class MockPaymentGateway implements PaymentGateway
     {
         return PaymentIntent::create([
             'booking_id' => $booking->id,
-            'amount' => $booking->total_amount,
+            'amount' => $booking->getPayableAmount(),
             'currency' => $booking->currency,
             'payment_method' => $options['payment_method'] ?? 'card',
             'status' => PaymentStatus::PENDING,

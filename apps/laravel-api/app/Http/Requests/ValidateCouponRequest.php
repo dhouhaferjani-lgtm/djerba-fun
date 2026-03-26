@@ -23,7 +23,7 @@ class ValidateCouponRequest extends BaseFormRequest
     {
         return [
             'code' => ['required', 'string'],
-            'listing_id' => ['required', 'uuid', 'exists:listings,id'],
+            'listing_id' => ['required', 'exists:listings,id'],
             'amount' => ['required', 'numeric', 'min:0'],
         ];
     }

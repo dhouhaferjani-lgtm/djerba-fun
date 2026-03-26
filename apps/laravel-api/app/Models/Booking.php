@@ -95,6 +95,17 @@ class Booking extends Model
     }
 
     /**
+     * Get the payable amount after applying any discount.
+     * This is the amount that should be charged to the customer.
+     */
+    public function getPayableAmount(): float
+    {
+        $discount = $this->discount_amount ?? 0;
+
+        return max(0, (float) $this->total_amount - (float) $discount);
+    }
+
+    /**
      * Generate a new magic token with expiration.
      */
     public function generateMagicToken(int $expirationDays = 30): void

@@ -88,6 +88,16 @@
                 <span class="label">{{ __('mail.quantity') }}:</span> {{ $booking->quantity }} {{ $booking->quantity > 1 ? __('mail.guest_plural') : __('mail.guest_singular') }}
             </div>
 
+            @if($booking->discount_amount > 0)
+            <div class="detail-row">
+                <span class="label">{{ __('mail.subtotal') }}:</span> {{ $booking->currency }} {{ number_format($booking->total_amount + $booking->discount_amount, 2) }}
+            </div>
+            <div class="detail-row">
+                <span class="label" style="color: #22c55e;">{{ __('mail.discount') }}@if($booking->coupon) ({{ $booking->coupon->code }})@endif:</span>
+                <span style="color: #22c55e;">-{{ $booking->currency }} {{ number_format($booking->discount_amount, 2) }}</span>
+            </div>
+            @endif
+
             <div class="detail-row">
                 <span class="label">{{ __('mail.total_amount') }}:</span> {{ $booking->currency }} {{ number_format($booking->total_amount, 2) }}
             </div>

@@ -76,6 +76,10 @@ export function BookingWizard({
   const [highlightConsents, setHighlightConsents] = useState(false);
   const consentsRef = useRef<HTMLDivElement>(null);
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState<string | undefined>();
+  const [couponDiscount, setCouponDiscount] = useState<number>(0);
+
   // Currency notice modal state (for Clictopay redirect)
   const [showCurrencyNotice, setShowCurrencyNotice] = useState(false);
   const [pendingRedirectUrl, setPendingRedirectUrl] = useState<string | null>(null);
@@ -301,6 +305,7 @@ export function BookingWizard({
         ],
         sessionId,
         extras: selectedExtras,
+        couponCode,
       });
 
       const booking = bookingResponse.data;
@@ -413,6 +418,16 @@ export function BookingWizard({
               currency={slot.currency}
               quantity={hold.quantity || 1}
               personTypeBreakdown={hold.personTypeBreakdown}
+              couponCode={couponCode}
+              couponDiscount={couponDiscount}
+              onCouponApply={(code, discount) => {
+                setCouponCode(code);
+                setCouponDiscount(discount);
+              }}
+              onCouponRemove={() => {
+                setCouponCode(undefined);
+                setCouponDiscount(0);
+              }}
               onEditTraveler={() => setCurrentStep('contact')}
               onEditExtras={() => setCurrentStep('extras')}
               onConfirm={handleConfirmBooking}
