@@ -1074,6 +1074,9 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
   // State for cart success message
   const [showCartSuccess, setShowCartSuccess] = useState(false);
 
+  // State for booking error message
+  const [bookingError, setBookingError] = useState<string | null>(null);
+
   // Get time slots for selected date
   const slotsForSelectedDate = useMemo(() => {
     if (!selectedDate || !availabilityData) return [];
@@ -1209,14 +1212,20 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
 
   // Accommodation-specific handlers
   const handleAccommodationCreateHold = async (checkIn: Date, checkOut: Date, guests: number) => {
-    if (!availabilityData || availabilityData.length === 0) return;
+    // Clear any previous error
+    setBookingError(null);
+
+    if (!availabilityData || availabilityData.length === 0) {
+      setBookingError(tBooking('no_availability'));
+      return;
+    }
 
     // For accommodations, we use the check-in date to find a slot
     const checkInDateStr = format(checkIn, 'yyyy-MM-dd');
     const slot = availabilityData.find((s) => s.start.startsWith(checkInDateStr));
 
     if (!slot) {
-      console.error('No slot found for check-in date');
+      setBookingError(tBooking('date_not_available'));
       return;
     }
 
@@ -1246,18 +1255,25 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       router.push(`/cart/checkout`);
     } catch (err) {
       console.error('Failed to create accommodation hold:', err);
+      setBookingError(tBooking('booking_error'));
     }
   };
 
   const handleAccommodationAddToCart = async (checkIn: Date, checkOut: Date, guests: number) => {
-    if (!availabilityData || availabilityData.length === 0) return;
+    // Clear any previous error
+    setBookingError(null);
+
+    if (!availabilityData || availabilityData.length === 0) {
+      setBookingError(tBooking('no_availability'));
+      return;
+    }
 
     // For accommodations, we use the check-in date to find a slot
     const checkInDateStr = format(checkIn, 'yyyy-MM-dd');
     const slot = availabilityData.find((s) => s.start.startsWith(checkInDateStr));
 
     if (!slot) {
-      console.error('No slot found for check-in date');
+      setBookingError(tBooking('date_not_available'));
       return;
     }
 
@@ -1290,6 +1306,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       setTimeout(() => setShowCartSuccess(false), 5000);
     } catch (err) {
       console.error('Failed to add accommodation to cart:', err);
+      setBookingError(tBooking('add_to_cart_failed'));
     }
   };
 
@@ -1321,6 +1338,24 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
                   {tCart('continue_shopping')}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Booking Error Toast */}
+      {bookingError && (
+        <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-right duration-300">
+          <div className="bg-red-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4">
+            <XCircle className="h-6 w-6 flex-shrink-0" />
+            <div>
+              <p className="font-semibold">{bookingError}</p>
+              <button
+                onClick={() => setBookingError(null)}
+                className="text-sm underline hover:no-underline opacity-90 hover:opacity-100 mt-2"
+              >
+                {tBooking('dismiss')}
+              </button>
             </div>
           </div>
         </div>
