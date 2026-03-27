@@ -438,6 +438,148 @@ class AccommodationBookingServiceTest extends TestCase
     }
 
     /**
+     * BDD TEST: Service finds slots created by CalculateAvailabilityJob.
+     *
+     * Given: A slot created by CalculateAvailabilityJob with listing's check-in time
+     * When: findSlotForCheckIn is called
+     * Then: It should find the job-created slot (not create a duplicate)
+     */
+    public function test_find_slot_for_check_in_finds_job_created_slots(): void
+    {
+        $checkIn = Carbon::today();
+
+        // Simulate job-created slot with listing's check_in_time (14:00)
+        $jobCreatedSlot = AvailabilitySlot::create([
+            'listing_id' => $this->listing->id,
+            'date' => $checkIn->format('Y-m-d'),
+            'start_time' => '14:00:00', // Same as listing's check_in_time
+            'end_time' => '12:00:00',   // Next day check-out
+            'capacity' => 1,
+            'remaining_capacity' => 1,
+            'base_price' => 100.00, // From nightly_price_eur
+            'status' => 'available',
+        ]);
+
+        $foundSlot = $this->service->findSlotForCheckIn($this->listing, $checkIn);
+
+        $this->assertNotNull($foundSlot, 'Should find the job-created slot');
+        $this->assertEquals($jobCreatedSlot->id, $foundSlot->id, 'Should return the SAME slot, not create a new one');
+
+        // Verify no duplicate slots were created
+        $slotCount = AvailabilitySlot::where('listing_id', $this->listing->id)
+            ->whereDate('date', $checkIn->format('Y-m-d'))
+            ->count();
+        $this->assertEquals(1, $slotCount, 'Should not create duplicate slots');
+    }
+
+    /**
+     * BDD TEST: getBlockedDates finds job-created slots correctly.
+     *
+     * Given: Slots created with listing's check-in time
+     * When: getBlockedDates is called for a date range
+     * Then: It should find those slots (not create new ones)
+     */
+    public function test_get_blocked_dates_finds_job_created_slots(): void
+    {
+        // Use fixed dates to avoid Carbon mutation issues
+        $baseDate = Carbon::today()->startOfDay();
+        $checkIn = $baseDate->copy();
+        $checkOut = $baseDate->copy()->addDays(3);
+
+        // Ensure listing has check_in_time set (defaults to 14:00:00 in service)
+        $checkInTime = $this->listing->check_in_time ?? '14:00:00';
+
+        // Create slots with listing's check_in_time
+        for ($i = 0; $i < 3; $i++) {
+            $date = $baseDate->copy()->addDays($i)->toDateString();
+            AvailabilitySlot::create([
+                'listing_id' => $this->listing->id,
+                'date' => $date,
+                'start_time' => $checkInTime,
+                'end_time' => '12:00:00',
+                'capacity' => 1,
+                'remaining_capacity' => 1,
+                'base_price' => 100.00,
+                'status' => 'available',
+            ]);
+        }
+
+        // Count slots BEFORE calling getBlockedDates
+        $countBefore = AvailabilitySlot::where('listing_id', $this->listing->id)->count();
+        $this->assertEquals(3, $countBefore, 'Should have 3 slots before getBlockedDates');
+
+        $blockedDates = $this->service->getBlockedDates($this->listing, $checkIn, $checkOut);
+
+        $this->assertEmpty($blockedDates, 'All dates should be available');
+
+        // Count slots AFTER - should still be 3 (no duplicates created)
+        $countAfter = AvailabilitySlot::where('listing_id', $this->listing->id)->count();
+        $this->assertEquals(3, $countAfter, 'Should still have 3 slots (no duplicates)');
+    }
+
+    /**
+     * BDD TEST: Job-created slots have correct base_price from nightly_price_eur.
+     *
+     * Given: An accommodation listing with nightly_price_eur = 100.00
+     * When: CalculateAvailabilityJob creates slots (triggered by AvailabilityRule observer)
+     * Then: Slots should have base_price = 100.00 (not 0)
+     */
+    public function test_job_slots_have_correct_base_price(): void
+    {
+        // Note: AvailabilityRule observer automatically runs CalculateAvailabilityJob
+        // when a rule is created, so we just need to verify the results
+
+        // Create an availability rule for the listing
+        // The observer will trigger slot creation automatically
+        $rule = \App\Models\AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => \App\Enums\AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [0, 1, 2, 3, 4, 5, 6],
+            'start_time' => Carbon::parse('14:00:00'),
+            'end_time' => Carbon::parse('12:00:00'),
+            'start_date' => Carbon::today(),
+            'end_date' => Carbon::today()->addDays(30),
+            'capacity' => 1,
+            'is_active' => true,
+        ]);
+
+        // Check that slots have correct base_price (created by observer-triggered job)
+        $slot = AvailabilitySlot::where('listing_id', $this->listing->id)
+            ->whereDate('date', Carbon::today()->format('Y-m-d'))
+            ->first();
+
+        $this->assertNotNull($slot, 'Slot should have been created by observer-triggered job');
+        $this->assertEquals(100.00, (float) $slot->base_price, 'Base price should be from nightly_price_eur');
+        $this->assertEquals('14:00:00', $slot->start_time->format('H:i:s'), 'Start time should be from rule');
+    }
+
+    /**
+     * BDD TEST: Consistent slot times between job and service.
+     *
+     * Given: CalculateAvailabilityJob and AccommodationBookingService
+     * When: Both create slots for the same accommodation listing
+     * Then: They should use the same start_time (from listing's check_in_time)
+     */
+    public function test_job_and_service_use_consistent_slot_times(): void
+    {
+        $checkIn = Carbon::today();
+
+        // Update listing with specific check-in/check-out times
+        $this->listing->update([
+            'check_in_time' => '15:00:00',
+            'check_out_time' => '10:00:00',
+        ]);
+        $this->listing->refresh();
+
+        // Create on-demand slot via service
+        $serviceSlot = $this->service->findSlotForCheckIn($this->listing, $checkIn);
+
+        $this->assertNotNull($serviceSlot);
+        $this->assertEquals('15:00:00', $serviceSlot->start_time->format('H:i:s'), 'Service should use listing check_in_time');
+        $this->assertEquals('10:00:00', $serviceSlot->end_time->format('H:i:s'), 'Service should use listing check_out_time');
+    }
+
+    /**
      * Helper to create an availability slot.
      */
     protected function createAvailabilitySlot(Listing $listing, Carbon $date): AvailabilitySlot

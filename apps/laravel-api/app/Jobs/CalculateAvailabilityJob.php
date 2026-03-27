@@ -78,11 +78,27 @@ class CalculateAvailabilityJob implements ShouldQueue
      */
     protected function createOrUpdateSlot(Carbon $date, AvailabilityRule $rule): void
     {
-        $startTime = $rule->start_time ?: now()->startOfDay();
-        $endTime = $rule->end_time ?: now()->endOfDay();
+        // For accommodations, use listing's check-in/check-out times
+        // This ensures consistency with AccommodationBookingService on-demand slot creation
+        if ($this->listing->isAccommodation()) {
+            $startTime = $rule->start_time
+                ?? ($this->listing->check_in_time
+                    ? Carbon::parse($this->listing->check_in_time)
+                    : Carbon::parse('14:00:00'));
+            $endTime = $rule->end_time
+                ?? ($this->listing->check_out_time
+                    ? Carbon::parse($this->listing->check_out_time)
+                    : Carbon::parse('11:00:00'));
+        } else {
+            $startTime = $rule->start_time ?: now()->startOfDay();
+            $endTime = $rule->end_time ?: now()->endOfDay();
+        }
 
-        // Always use listing base price (price_override feature removed)
-        $basePrice = $this->getListingBasePrice();
+        // Use accommodation pricing for accommodations (nightly_price_eur column)
+        // instead of the pricing JSON field which is used for tours/events
+        $basePrice = $this->listing->isAccommodation()
+            ? (float) ($this->listing->nightly_price_eur ?? 0)
+            : $this->getListingBasePrice();
 
         AvailabilitySlot::updateOrCreate(
             [
@@ -107,15 +123,30 @@ class CalculateAvailabilityJob implements ShouldQueue
      */
     protected function blockSlot(Carbon $date, AvailabilityRule $rule): void
     {
+        // For accommodations, use listing's check-in/check-out times for consistency
+        if ($this->listing->isAccommodation()) {
+            $startTime = $rule->start_time
+                ?? ($this->listing->check_in_time
+                    ? Carbon::parse($this->listing->check_in_time)
+                    : Carbon::parse('14:00:00'));
+            $endTime = $rule->end_time
+                ?? ($this->listing->check_out_time
+                    ? Carbon::parse($this->listing->check_out_time)
+                    : Carbon::parse('11:00:00'));
+        } else {
+            $startTime = $rule->start_time ?: now()->startOfDay();
+            $endTime = $rule->end_time ?: now()->endOfDay();
+        }
+
         AvailabilitySlot::updateOrCreate(
             [
                 'listing_id' => $this->listing->id,
                 'date' => $date->toDateString(),
-                'start_time' => ($rule->start_time ?: now()->startOfDay())->format('H:i:s'),
+                'start_time' => $startTime->format('H:i:s'),
             ],
             [
                 'availability_rule_id' => $rule->id,
-                'end_time' => ($rule->end_time ?: now()->endOfDay())->format('H:i:s'),
+                'end_time' => $endTime->format('H:i:s'),
                 'capacity' => 0,
                 'remaining_capacity' => 0, // Blocked slots have 0 capacity
                 'base_price' => 0,

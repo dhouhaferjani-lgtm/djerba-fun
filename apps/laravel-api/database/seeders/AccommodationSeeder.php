@@ -225,7 +225,7 @@ class AccommodationSeeder extends Seeder
                 'vendor_id' => $vendor->id,
                 'location_id' => $djerba->id,
                 'service_type' => ServiceType::ACCOMMODATION,
-                'status' => ListingStatus::DRAFT,
+                'status' => ListingStatus::PUBLISHED,
                 'title' => $data['title'],
                 'slug' => $data['slug'],
                 'summary' => $data['summary'],
@@ -277,10 +277,14 @@ class AccommodationSeeder extends Seeder
             }
 
             // Add availability rule: all week, for next 180 days
+            // Include start_time/end_time from listing's check-in/check-out times
+            // This ensures CalculateAvailabilityJob creates slots with correct times
             AvailabilityRule::create([
                 'listing_id' => $listing->id,
                 'rule_type' => AvailabilityRuleType::WEEKLY,
                 'days_of_week' => [0, 1, 2, 3, 4, 5, 6],
+                'start_time' => Carbon::parse($data['check_in_time']),
+                'end_time' => Carbon::parse($data['check_out_time']),
                 'start_date' => Carbon::today(),
                 'end_date' => Carbon::today()->addDays(180),
                 'capacity' => 1,
@@ -290,6 +294,6 @@ class AccommodationSeeder extends Seeder
             $this->command->info("Created: {$data['title']['fr']}");
         }
 
-        $this->command->info('3 accommodation listings created as DRAFT.');
+        $this->command->info('3 accommodation listings created as PUBLISHED with availability rules.');
     }
 }

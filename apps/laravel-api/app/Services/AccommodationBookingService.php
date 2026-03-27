@@ -99,6 +99,15 @@ class AccommodationBookingService
         $period = CarbonPeriod::create($start, $end->copy()->subDay());
         $blockedDates = [];
 
+        \Log::info('AccommodationBooking: getBlockedDates started', [
+            'listing_id' => $listing->id,
+            'listing_slug' => $listing->slug,
+            'start' => $start->format('Y-m-d'),
+            'end' => $end->format('Y-m-d'),
+            'check_in_time' => $listing->check_in_time,
+            'check_out_time' => $listing->check_out_time,
+        ]);
+
         foreach ($period as $date) {
             $dateStr = $date->format('Y-m-d');
 
@@ -107,15 +116,20 @@ class AccommodationBookingService
                 ->whereDate('date', $dateStr)
                 ->first();
 
+            $slotExisted = $slot !== null;
+
             // For accommodations: if no slot exists, create one with default availability.
             // Unlike tours/events which need explicit time slots, accommodations are
             // available every day by default unless explicitly blocked.
             if (! $slot) {
+                $checkInTime = $listing->check_in_time ?? '14:00:00';
+                $checkOutTime = $listing->check_out_time ?? '11:00:00';
+
                 $slot = AvailabilitySlot::create([
                     'listing_id' => $listing->id,
                     'date' => $date->toDateString(),
-                    'start_time' => '14:00:00', // Default check-in time
-                    'end_time' => '11:00:00',   // Default check-out time (next day)
+                    'start_time' => $checkInTime,
+                    'end_time' => $checkOutTime,
                     'capacity' => 1,             // 1 property unit
                     'remaining_capacity' => 1,
                     'base_price' => $listing->nightly_price_eur ?? 0,
@@ -124,11 +138,31 @@ class AccommodationBookingService
                 ]);
             }
 
+            $isBookable = $slot->isBookable();
+
+            \Log::info('AccommodationBooking: Checking date', [
+                'listing_id' => $listing->id,
+                'date' => $dateStr,
+                'slot_existed' => $slotExisted,
+                'slot_id' => $slot->id,
+                'slot_start_time' => $slot->start_time?->format('H:i:s'),
+                'slot_status' => $slot->status?->value ?? $slot->status,
+                'slot_capacity' => $slot->capacity,
+                'slot_remaining' => $slot->remainingCapacity,
+                'is_bookable' => $isBookable,
+            ]);
+
             // Use computed accessor for capacity check
-            if (! $slot->isBookable()) {
+            if (! $isBookable) {
                 $blockedDates[] = $date->copy();
             }
         }
+
+        \Log::info('AccommodationBooking: getBlockedDates completed', [
+            'listing_id' => $listing->id,
+            'blocked_dates_count' => count($blockedDates),
+            'blocked_dates' => array_map(fn ($d) => $d->format('Y-m-d'), $blockedDates),
+        ]);
 
         return $blockedDates;
     }
@@ -176,12 +210,16 @@ class AccommodationBookingService
             ->first();
 
         // For accommodations: if no slot exists, create one with default availability.
+        // Use listing's check_in_time/check_out_time for consistency with CalculateAvailabilityJob
         if (! $slot) {
+            $checkInTime = $listing->check_in_time ?? '14:00:00';
+            $checkOutTime = $listing->check_out_time ?? '11:00:00';
+
             $slot = AvailabilitySlot::create([
                 'listing_id' => $listing->id,
                 'date' => $checkIn->toDateString(),
-                'start_time' => '14:00:00',
-                'end_time' => '11:00:00',
+                'start_time' => $checkInTime,
+                'end_time' => $checkOutTime,
                 'capacity' => 1,
                 'remaining_capacity' => 1,
                 'base_price' => $listing->nightly_price_eur ?? 0,
