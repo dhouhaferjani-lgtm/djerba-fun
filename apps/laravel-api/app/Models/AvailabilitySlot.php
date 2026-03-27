@@ -151,10 +151,20 @@ class AvailabilitySlot extends Model
 
     /**
      * Check if slot is bookable.
+     * Uses computed remainingCapacity for real-time availability.
+     * Only respects BLOCKED status (vendor decision), ignores stale SOLD_OUT status.
      */
     public function isBookable(): bool
     {
-        return $this->status->isBookable() && $this->remainingCapacity > 0;
+        // Respect manually BLOCKED dates (vendor decision)
+        if ($this->status === SlotStatus::BLOCKED) {
+            return false;
+        }
+
+        // For all other statuses (AVAILABLE/LIMITED/SOLD_OUT), rely ONLY on
+        // computed remaining capacity. The status column can become stale
+        // when holds expire without updating the status.
+        return $this->remainingCapacity > 0;
     }
 
     /**
