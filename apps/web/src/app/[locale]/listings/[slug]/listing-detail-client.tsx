@@ -1139,11 +1139,14 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
     }
 
     // Log for debugging
-    console.log('Creating hold with breakdown:', {
+    console.log('[Booking] Creating hold with breakdown:', {
       filteredBreakdown,
       totalGuests,
       slotCapacity: selectedSlot.remainingCapacity,
     });
+
+    // Track if we should navigate after the operation
+    let shouldNavigate = false;
 
     try {
       const sessionId = getGuestSessionId();
@@ -1154,6 +1157,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
         extras: selectedExtras,
       });
       const holdId = response.data.id;
+      console.log('[Booking] Hold created:', holdId);
 
       // Persist extras to sessionStorage for checkout (skip extras step if pre-selected)
       if (selectedExtras.length > 0) {
@@ -1161,12 +1165,25 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       }
 
       // Add to cart (preserves existing cart items)
+      console.log('[Booking] Adding to cart...');
       await addToCartMutation.mutateAsync(holdId);
+      console.log('[Booking] Added to cart successfully');
 
-      // Redirect to unified cart checkout
-      router.push(`/cart/checkout`);
+      // Mark that we should navigate
+      shouldNavigate = true;
     } catch (err) {
-      console.error('Failed to create hold:', err);
+      console.error('[Booking] Error:', err);
+    }
+
+    // Navigate outside try-catch to ensure it runs
+    if (shouldNavigate) {
+      console.log('[Booking] Navigating to checkout...');
+      try {
+        router.push('/cart/checkout');
+      } catch (navErr) {
+        console.error('[Booking] Router.push failed, using fallback:', navErr);
+        window.location.href = '/cart/checkout';
+      }
     }
   };
 
@@ -1229,7 +1246,11 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       return;
     }
 
+    // Track if we should navigate after the operation
+    let shouldNavigate = false;
+
     try {
+      console.log('[AccommodationBooking] Creating hold...');
       const sessionId = getGuestSessionId();
       const response = await createHoldMutation.mutateAsync({
         slotId: String(slot.id),
@@ -1242,6 +1263,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
         extras: selectedExtras,
       });
       const holdId = response.data.id;
+      console.log('[AccommodationBooking] Hold created:', holdId);
 
       // Persist extras to sessionStorage for checkout
       if (selectedExtras.length > 0) {
@@ -1249,13 +1271,26 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       }
 
       // Add to cart
+      console.log('[AccommodationBooking] Adding to cart...');
       await addToCartMutation.mutateAsync(holdId);
+      console.log('[AccommodationBooking] Added to cart successfully');
 
-      // Redirect to checkout
-      router.push(`/cart/checkout`);
+      // Mark that we should navigate
+      shouldNavigate = true;
     } catch (err) {
-      console.error('Failed to create accommodation hold:', err);
+      console.error('[AccommodationBooking] Error:', err);
       setBookingError(tBooking('booking_error'));
+    }
+
+    // Navigate outside try-catch to ensure it runs even if minor errors occurred
+    if (shouldNavigate) {
+      console.log('[AccommodationBooking] Navigating to checkout...');
+      try {
+        router.push('/cart/checkout');
+      } catch (navErr) {
+        console.error('[AccommodationBooking] Router.push failed, using fallback:', navErr);
+        window.location.href = '/cart/checkout';
+      }
     }
   };
 
