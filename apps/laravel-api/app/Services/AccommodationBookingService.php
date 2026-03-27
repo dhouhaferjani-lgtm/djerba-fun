@@ -101,17 +101,14 @@ class AccommodationBookingService
         foreach ($period as $date) {
             $dateStr = $date->format('Y-m-d');
 
-            // Check if there's an available slot for this date
-            // Note: We fetch the slot without filtering by remaining_capacity because
-            // the database column is not updated dynamically. Instead, we use the
-            // computed accessor isBookable() which calculates real-time availability.
+            // Check if there's a slot for this date
+            // Note: We don't filter by status or remaining_capacity because these
+            // database columns can become stale (e.g., when holds expire). Instead,
+            // we rely entirely on isBookable() which uses computed accessors for
+            // real-time availability checking.
             $slot = AvailabilitySlot::query()
                 ->where('listing_id', $listing->id)
                 ->whereDate('date', $dateStr)
-                ->where(function ($query) {
-                    $query->where('status', 'available')
-                        ->orWhere('status', 'limited');
-                })
                 ->first();
 
             // Use computed accessor for capacity check (not the stale DB column)
@@ -160,14 +157,11 @@ class AccommodationBookingService
     {
         $dateStr = $checkIn->format('Y-m-d');
 
-        // Fetch slot without remaining_capacity filter - use computed accessor instead
+        // Fetch slot without status/remaining_capacity filters - these columns can be stale.
+        // We rely on isBookable() which uses computed accessors for real-time availability.
         $slot = AvailabilitySlot::query()
             ->where('listing_id', $listing->id)
             ->whereDate('date', $dateStr)
-            ->where(function ($query) {
-                $query->where('status', 'available')
-                    ->orWhere('status', 'limited');
-            })
             ->first();
 
         // Return only if slot is bookable (uses computed accessor for real-time capacity)

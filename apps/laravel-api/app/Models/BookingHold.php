@@ -159,6 +159,7 @@ class BookingHold extends Model
     /**
      * Expire the hold.
      * Capacity is automatically recalculated via the slot's computed accessor.
+     * We also update the slot's status column to keep it in sync.
      */
     public function expire(): void
     {
@@ -167,7 +168,10 @@ class BookingHold extends Model
         }
 
         $this->update(['status' => HoldStatus::EXPIRED]);
-        // No need to release capacity - it's computed automatically
+
+        // Update slot status to reflect freed capacity
+        // This keeps the status column in sync with computed availability
+        $this->slot?->updateStatus();
     }
 
     /**
