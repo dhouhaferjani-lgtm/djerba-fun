@@ -598,4 +598,216 @@ class AccommodationBookingTest extends TestCase
         $cart = Cart::find($cartId);
         $this->assertEquals(Cart::STATUS_COMPLETED, $cart->status);
     }
+
+    /**
+     * Test that accommodation hold creation is idempotent for same user and dates.
+     *
+     * BDD Scenario: User clicks "Add to Cart" then "Continue" button
+     * Given: User has already created a hold for specific dates
+     * When: User requests the same hold again (e.g., clicks "Continue" after "Add to Cart")
+     * Then: The same hold should be returned (not a 422 error)
+     */
+    public function test_accommodation_hold_creation_is_idempotent_for_same_user_and_dates(): void
+    {
+        // Arrange: Create availability slots
+        $checkIn = Carbon::today()->addDays(7);
+        $checkOut = Carbon::today()->addDays(9);
+        $sessionId = 'test-session-' . uniqid();
+
+        for ($i = 7; $i < 9; $i++) {
+            $this->createAccommodationSlot($this->accommodationListing, Carbon::today()->addDays($i));
+        }
+
+        $slotId = AvailabilitySlot::where('listing_id', $this->accommodationListing->id)->first()->id;
+
+        // Act 1: First hold creation
+        $response1 = $this->postJson("/api/v1/listings/{$this->accommodationListing->slug}/holds", [
+            'slot_id' => $slotId,
+            'check_in_date' => $checkIn->format('Y-m-d'),
+            'check_out_date' => $checkOut->format('Y-m-d'),
+            'guests' => 2,
+            'session_id' => $sessionId,
+        ]);
+
+        $response1->assertStatus(201);
+        $hold1Id = $response1->json('data.id');
+
+        // Act 2: Second hold creation with same parameters (simulating user clicking "Continue" after "Add to Cart")
+        $response2 = $this->postJson("/api/v1/listings/{$this->accommodationListing->slug}/holds", [
+            'slot_id' => $slotId,
+            'check_in_date' => $checkIn->format('Y-m-d'),
+            'check_out_date' => $checkOut->format('Y-m-d'),
+            'guests' => 2,
+            'session_id' => $sessionId,
+        ]);
+
+        // Assert: Same hold is returned (idempotent), not 422 error
+        $response2->assertStatus(200); // 200 because returning existing hold
+        $hold2Id = $response2->json('data.id');
+        $this->assertEquals($hold1Id, $hold2Id, 'Second request should return the same hold');
+
+        // Assert: Only one hold exists in database
+        $holdCount = BookingHold::where('listing_id', $this->accommodationListing->id)
+            ->where('session_id', $sessionId)
+            ->count();
+        $this->assertEquals(1, $holdCount, 'Only one hold should exist');
+    }
+
+    /**
+     * Test that different users get different holds for same dates.
+     *
+     * BDD Scenario: Two users try to book the same dates
+     * Given: User A has already created a hold for specific dates
+     * When: User B tries to create a hold for the same dates
+     * Then: User B should get a 422 error (capacity exhausted)
+     */
+    public function test_different_users_get_422_for_same_dates(): void
+    {
+        // Arrange: Create availability slots
+        $checkIn = Carbon::today()->addDays(7);
+        $checkOut = Carbon::today()->addDays(9);
+
+        for ($i = 7; $i < 9; $i++) {
+            $this->createAccommodationSlot($this->accommodationListing, Carbon::today()->addDays($i));
+        }
+
+        $slotId = AvailabilitySlot::where('listing_id', $this->accommodationListing->id)->first()->id;
+
+        // Act 1: User 1 creates hold
+        $response1 = $this->postJson("/api/v1/listings/{$this->accommodationListing->slug}/holds", [
+            'slot_id' => $slotId,
+            'check_in_date' => $checkIn->format('Y-m-d'),
+            'check_out_date' => $checkOut->format('Y-m-d'),
+            'guests' => 2,
+            'session_id' => 'user-1-session',
+        ]);
+
+        $response1->assertStatus(201);
+
+        // Act 2: User 2 tries to create hold for same dates
+        $response2 = $this->postJson("/api/v1/listings/{$this->accommodationListing->slug}/holds", [
+            'slot_id' => $slotId,
+            'check_in_date' => $checkIn->format('Y-m-d'),
+            'check_out_date' => $checkOut->format('Y-m-d'),
+            'guests' => 2,
+            'session_id' => 'user-2-session',
+        ]);
+
+        // Assert: User 2 gets 422 (capacity exhausted)
+        $response2->assertStatus(422);
+        $this->assertStringContainsString('not available', strtolower($response2->json('message')));
+    }
+
+    /**
+     * Test that same user with different dates creates new hold.
+     *
+     * BDD Scenario: User books multiple date ranges
+     * Given: User has already created a hold for dates A-B
+     * When: User creates a hold for different dates C-D
+     * Then: A new hold should be created (different hold ID)
+     */
+    public function test_same_user_different_dates_creates_new_hold(): void
+    {
+        // Arrange: Create availability slots for a wide range
+        $sessionId = 'test-session-' . uniqid();
+
+        for ($i = 5; $i < 15; $i++) {
+            $this->createAccommodationSlot($this->accommodationListing, Carbon::today()->addDays($i));
+        }
+
+        $slots = AvailabilitySlot::where('listing_id', $this->accommodationListing->id)
+            ->orderBy('date')
+            ->get();
+
+        // Act 1: Hold for days 7-9
+        $response1 = $this->postJson("/api/v1/listings/{$this->accommodationListing->slug}/holds", [
+            'slot_id' => $slots[2]->id, // Day 7
+            'check_in_date' => Carbon::today()->addDays(7)->format('Y-m-d'),
+            'check_out_date' => Carbon::today()->addDays(9)->format('Y-m-d'),
+            'guests' => 2,
+            'session_id' => $sessionId,
+        ]);
+
+        $response1->assertStatus(201);
+        $hold1Id = $response1->json('data.id');
+
+        // Act 2: Hold for different dates (10-12)
+        $response2 = $this->postJson("/api/v1/listings/{$this->accommodationListing->slug}/holds", [
+            'slot_id' => $slots[5]->id, // Day 10
+            'check_in_date' => Carbon::today()->addDays(10)->format('Y-m-d'),
+            'check_out_date' => Carbon::today()->addDays(12)->format('Y-m-d'),
+            'guests' => 2,
+            'session_id' => $sessionId,
+        ]);
+
+        // Assert: New hold created (different ID)
+        $response2->assertStatus(201);
+        $hold2Id = $response2->json('data.id');
+        $this->assertNotEquals($hold1Id, $hold2Id, 'Different dates should create different holds');
+
+        // Assert: Two holds exist
+        $holdCount = BookingHold::where('listing_id', $this->accommodationListing->id)
+            ->where('session_id', $sessionId)
+            ->count();
+        $this->assertEquals(2, $holdCount, 'Two holds should exist for different dates');
+    }
+
+    /**
+     * Test that idempotent hold request refreshes TTL.
+     *
+     * BDD Scenario: User re-requests hold to extend expiration
+     * Given: User has created a hold that will expire soon
+     * When: User re-requests the same hold
+     * Then: The hold expiration should be extended
+     */
+    public function test_idempotent_hold_request_refreshes_ttl(): void
+    {
+        // Arrange: Create availability slots
+        $checkIn = Carbon::today()->addDays(7);
+        $checkOut = Carbon::today()->addDays(9);
+        $sessionId = 'test-session-' . uniqid();
+
+        for ($i = 7; $i < 9; $i++) {
+            $this->createAccommodationSlot($this->accommodationListing, Carbon::today()->addDays($i));
+        }
+
+        $slotId = AvailabilitySlot::where('listing_id', $this->accommodationListing->id)->first()->id;
+
+        // Act 1: Create hold
+        $response1 = $this->postJson("/api/v1/listings/{$this->accommodationListing->slug}/holds", [
+            'slot_id' => $slotId,
+            'check_in_date' => $checkIn->format('Y-m-d'),
+            'check_out_date' => $checkOut->format('Y-m-d'),
+            'guests' => 2,
+            'session_id' => $sessionId,
+        ]);
+
+        $response1->assertStatus(201);
+        $holdId = $response1->json('data.id');
+        $originalExpiry = BookingHold::find($holdId)->expires_at;
+
+        // Simulate time passing (1 minute)
+        Carbon::setTestNow(Carbon::now()->addMinute());
+
+        // Act 2: Re-request same hold
+        $response2 = $this->postJson("/api/v1/listings/{$this->accommodationListing->slug}/holds", [
+            'slot_id' => $slotId,
+            'check_in_date' => $checkIn->format('Y-m-d'),
+            'check_out_date' => $checkOut->format('Y-m-d'),
+            'guests' => 2,
+            'session_id' => $sessionId,
+        ]);
+
+        $response2->assertStatus(200);
+
+        // Assert: TTL was refreshed
+        $newExpiry = BookingHold::find($holdId)->expires_at;
+        $this->assertTrue(
+            $newExpiry->gt($originalExpiry),
+            'Hold expiration should be extended after re-request'
+        );
+
+        // Clean up
+        Carbon::setTestNow();
+    }
 }

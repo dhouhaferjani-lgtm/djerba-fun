@@ -163,6 +163,34 @@ class HoldController extends Controller
         $checkOut = $request->getCheckOutDate();
         $guests = $request->getGuestCount();
 
+        // Check if user/session already has an active hold for this listing + dates
+        // This makes hold creation idempotent and prevents self-blocking when
+        // user clicks both "Add to Cart" and "Continue" buttons
+        $existingHoldQuery = BookingHold::where('listing_id', $listing->id)
+            ->active();  // scope: status=ACTIVE AND expires_at > now()
+
+        if ($user) {
+            $existingHoldQuery->where('user_id', $user->id);
+        } elseif ($sessionId) {
+            $existingHoldQuery->where('session_id', $sessionId);
+        } else {
+            // No user or session - can't check for existing hold, skip this optimization
+            $existingHoldQuery->whereRaw('1 = 0');
+        }
+
+        $existingHold = $existingHoldQuery
+            ->whereJsonContains('metadata->check_in_date', $checkIn->format('Y-m-d'))
+            ->first();
+
+        if ($existingHold) {
+            // Refresh TTL and return existing hold (idempotent behavior)
+            $existingHold->update([
+                'expires_at' => now()->addMinutes(BookingHold::HOLD_DURATION_MINUTES),
+            ]);
+
+            return new BookingHoldResource($existingHold->load('slot'));
+        }
+
         // Ensure slots exist for the entire date range (on-demand generation)
         // This is a safety net - if slots are somehow missing, generate them before validation
         CalculateAvailabilityJob::dispatchSync($listing, $checkIn, $checkOut);
