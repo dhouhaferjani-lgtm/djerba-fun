@@ -88,8 +88,30 @@ class CartController extends Controller
 
         // Check if hold is already in a cart
         if ($hold->cart_id) {
+            // Idempotent behavior: if hold is in user's OWN cart, return it
+            $existingCart = Cart::find($hold->cart_id);
+
+            if ($existingCart) {
+                // Check ownership: same user OR same session
+                $cartBelongsToRequester =
+                    ($user && $existingCart->user_id === $user->id) ||
+                    ($sessionId && $existingCart->session_id === $sessionId);
+
+                if ($cartBelongsToRequester) {
+                    // Idempotent: return existing cart with this hold
+                    $existingCart->load([
+                        'items.hold.slot',
+                        'items.listing.vendor',
+                        'items.listing.location'
+                    ]);
+
+                    return new CartResource($existingCart);
+                }
+            }
+
+            // Hold is in ANOTHER user's cart
             return response()->json([
-                'message' => 'This item is already in a cart',
+                'message' => 'This item is already in another cart',
             ], 422);
         }
 
