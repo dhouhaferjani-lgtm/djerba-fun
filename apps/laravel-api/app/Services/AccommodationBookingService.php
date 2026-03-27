@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\SlotStatus;
 use App\Models\AvailabilitySlot;
 use App\Models\Listing;
 use Carbon\Carbon;
@@ -101,18 +102,29 @@ class AccommodationBookingService
         foreach ($period as $date) {
             $dateStr = $date->format('Y-m-d');
 
-            // Check if there's a slot for this date
-            // Note: We don't filter by status or remaining_capacity because these
-            // database columns can become stale (e.g., when holds expire). Instead,
-            // we rely entirely on isBookable() which uses computed accessors for
-            // real-time availability checking.
             $slot = AvailabilitySlot::query()
                 ->where('listing_id', $listing->id)
                 ->whereDate('date', $dateStr)
                 ->first();
 
-            // Use computed accessor for capacity check (not the stale DB column)
-            if (! $slot || ! $slot->isBookable()) {
+            // For accommodations: if no slot exists, create one with default availability.
+            // Unlike tours/events which need explicit time slots, accommodations are
+            // available every day by default unless explicitly blocked.
+            if (! $slot) {
+                $slot = AvailabilitySlot::create([
+                    'listing_id' => $listing->id,
+                    'date' => $date->toDateString(),
+                    'start_time' => '14:00:00', // Default check-in time
+                    'end_time' => '11:00:00',   // Default check-out time (next day)
+                    'capacity' => 1,             // 1 property unit
+                    'remaining_capacity' => 1,
+                    'status' => SlotStatus::AVAILABLE,
+                    'currency' => 'EUR',
+                ]);
+            }
+
+            // Use computed accessor for capacity check
+            if (! $slot->isBookable()) {
                 $blockedDates[] = $date->copy();
             }
         }
@@ -157,15 +169,27 @@ class AccommodationBookingService
     {
         $dateStr = $checkIn->format('Y-m-d');
 
-        // Fetch slot without status/remaining_capacity filters - these columns can be stale.
-        // We rely on isBookable() which uses computed accessors for real-time availability.
         $slot = AvailabilitySlot::query()
             ->where('listing_id', $listing->id)
             ->whereDate('date', $dateStr)
             ->first();
 
+        // For accommodations: if no slot exists, create one with default availability.
+        if (! $slot) {
+            $slot = AvailabilitySlot::create([
+                'listing_id' => $listing->id,
+                'date' => $checkIn->toDateString(),
+                'start_time' => '14:00:00',
+                'end_time' => '11:00:00',
+                'capacity' => 1,
+                'remaining_capacity' => 1,
+                'status' => SlotStatus::AVAILABLE,
+                'currency' => 'EUR',
+            ]);
+        }
+
         // Return only if slot is bookable (uses computed accessor for real-time capacity)
-        return $slot?->isBookable() ? $slot : null;
+        return $slot->isBookable() ? $slot : null;
     }
 
     /**
