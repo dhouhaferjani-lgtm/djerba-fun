@@ -5,6 +5,7 @@ import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
+import { useQueryClient } from '@tanstack/react-query';
 import { format, addMonths } from 'date-fns';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { useAvailability, useCreateHold, useAddToCart } from '@/lib/api/hooks';
@@ -1027,6 +1028,7 @@ interface ListingDetailClientProps {
 
 export default function ListingDetailClient({ listing, locale, slug }: ListingDetailClientProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const t = useTranslations('listing');
   const tCommon = useTranslations('common');
   const tAvail = useTranslations('availability');
@@ -1167,23 +1169,18 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       // Add to cart (preserves existing cart items)
       console.log('[Booking] Adding to cart...');
       await addToCartMutation.mutateAsync(holdId);
-      console.log('[Booking] Added to cart successfully');
+      console.log('[Booking] Added to cart');
 
-      // Mark that we should navigate
-      shouldNavigate = true;
+      // CRITICAL: Wait for cart cache to fully update before navigating
+      // This prevents the page freeze caused by navigation during cache invalidation
+      console.log('[Booking] Waiting for cart cache to settle...');
+      await queryClient.refetchQueries({ queryKey: ['cart'] });
+      console.log('[Booking] Cart cache settled, navigating...');
+
+      // Now safe to navigate
+      router.push('/cart/checkout');
     } catch (err) {
       console.error('[Booking] Error:', err);
-    }
-
-    // Navigate outside try-catch to ensure it runs
-    if (shouldNavigate) {
-      console.log('[Booking] Navigating to checkout...');
-      try {
-        router.push('/cart/checkout');
-      } catch (navErr) {
-        console.error('[Booking] Router.push failed, using fallback:', navErr);
-        window.location.href = '/cart/checkout';
-      }
     }
   };
 
@@ -1273,24 +1270,19 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       // Add to cart
       console.log('[AccommodationBooking] Adding to cart...');
       await addToCartMutation.mutateAsync(holdId);
-      console.log('[AccommodationBooking] Added to cart successfully');
+      console.log('[AccommodationBooking] Added to cart');
 
-      // Mark that we should navigate
-      shouldNavigate = true;
+      // CRITICAL: Wait for cart cache to fully update before navigating
+      // This prevents the page freeze caused by navigation during cache invalidation
+      console.log('[AccommodationBooking] Waiting for cart cache to settle...');
+      await queryClient.refetchQueries({ queryKey: ['cart'] });
+      console.log('[AccommodationBooking] Cart cache settled, navigating...');
+
+      // Now safe to navigate
+      router.push('/cart/checkout');
     } catch (err) {
       console.error('[AccommodationBooking] Error:', err);
       setBookingError(tBooking('booking_error'));
-    }
-
-    // Navigate outside try-catch to ensure it runs even if minor errors occurred
-    if (shouldNavigate) {
-      console.log('[AccommodationBooking] Navigating to checkout...');
-      try {
-        router.push('/cart/checkout');
-      } catch (navErr) {
-        console.error('[AccommodationBooking] Router.push failed, using fallback:', navErr);
-        window.location.href = '/cart/checkout';
-      }
     }
   };
 
