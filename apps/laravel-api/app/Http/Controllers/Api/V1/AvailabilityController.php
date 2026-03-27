@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\ServiceType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GetAvailabilityRequest;
 use App\Http\Resources\AvailabilitySlotResource;
@@ -36,8 +37,13 @@ class AvailabilityController extends Controller
 
         $slots = cache()->remember($cacheKey, $cacheTtl, function () use ($listing, $startDate, $endDate) {
             // Dispatch job to calculate availability if needed
-            // This ensures slots are generated for the requested date range
-            CalculateAvailabilityJob::dispatch($listing, $startDate, $endDate);
+            // For accommodations, run synchronously to ensure ALL slots exist before returning
+            // (accommodations validate entire date range, not just single slot)
+            if ($listing->service_type === ServiceType::ACCOMMODATION) {
+                CalculateAvailabilityJob::dispatchSync($listing, $startDate, $endDate);
+            } else {
+                CalculateAvailabilityJob::dispatch($listing, $startDate, $endDate);
+            }
 
             // Performance: Fetch available slots with only needed columns
             $query = $listing->availabilitySlots()

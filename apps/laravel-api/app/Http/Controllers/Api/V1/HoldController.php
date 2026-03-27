@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateHoldRequest;
 use App\Http\Resources\BookingHoldResource;
+use App\Jobs\CalculateAvailabilityJob;
 use App\Models\AvailabilitySlot;
 use App\Models\BookingHold;
 use App\Models\Listing;
@@ -161,6 +162,10 @@ class HoldController extends Controller
         $checkIn = $request->getCheckInDate();
         $checkOut = $request->getCheckOutDate();
         $guests = $request->getGuestCount();
+
+        // Ensure slots exist for the entire date range (on-demand generation)
+        // This is a safety net - if slots are somehow missing, generate them before validation
+        CalculateAvailabilityJob::dispatchSync($listing, $checkIn, $checkOut);
 
         // Validate the date range
         $validation = $this->accommodationBookingService->validateDateRange(
