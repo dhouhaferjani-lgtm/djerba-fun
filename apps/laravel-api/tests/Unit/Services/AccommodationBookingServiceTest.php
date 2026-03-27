@@ -168,17 +168,28 @@ class AccommodationBookingServiceTest extends TestCase
     }
 
     /**
-     * Test that getBlockedDates returns blocked dates.
+     * Test that getBlockedDates returns explicitly blocked dates.
      */
     public function test_get_blocked_dates_returns_blocked_dates(): void
     {
         $checkIn = Carbon::today();
         $checkOut = Carbon::today()->addDays(3);
 
-        // Create first and last slot available, middle one missing (blocked)
+        // Create available slots for first and last day
         $this->createAvailabilitySlot($this->listing, $checkIn);
-        // Skip middle date - no slot = blocked
         $this->createAvailabilitySlot($this->listing, Carbon::today()->addDays(2));
+
+        // Create BLOCKED slot for middle day (vendor explicitly blocked this date)
+        AvailabilitySlot::create([
+            'listing_id' => $this->listing->id,
+            'date' => Carbon::today()->addDay()->format('Y-m-d'),
+            'start_time' => Carbon::today()->addDay()->format('Y-m-d') . ' 15:00:00',
+            'end_time' => Carbon::today()->addDays(2)->format('Y-m-d') . ' 11:00:00',
+            'capacity' => 1,
+            'remaining_capacity' => 0,
+            'base_price' => 100.00,
+            'status' => 'blocked',
+        ]);
 
         $blockedDates = $this->service->getBlockedDates($this->listing, $checkIn, $checkOut);
 
@@ -243,16 +254,22 @@ class AccommodationBookingServiceTest extends TestCase
     }
 
     /**
-     * Test findSlotForCheckIn returns null when no slot exists.
+     * Test findSlotForCheckIn creates slot on-the-fly when no slot exists.
+     * For accommodations, dates are available by default unless explicitly blocked.
      */
-    public function test_find_slot_for_check_in_returns_null_when_no_slot(): void
+    public function test_find_slot_for_check_in_creates_slot_when_none_exists(): void
     {
         $checkIn = Carbon::today();
-        // No slot created
+        // No slot created beforehand
 
         $foundSlot = $this->service->findSlotForCheckIn($this->listing, $checkIn);
 
-        $this->assertNull($foundSlot);
+        // Should create a slot on-the-fly for accommodations
+        $this->assertNotNull($foundSlot);
+        $this->assertEquals($this->listing->id, $foundSlot->listing_id);
+        $this->assertEquals($checkIn->toDateString(), $foundSlot->date->toDateString());
+        $this->assertEquals(1, $foundSlot->capacity);
+        $this->assertTrue($foundSlot->isBookable());
     }
 
     /**

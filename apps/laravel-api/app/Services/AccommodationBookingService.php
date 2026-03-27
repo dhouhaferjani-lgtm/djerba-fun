@@ -23,7 +23,7 @@ class AccommodationBookingService
      */
     public function validateDateRange(Listing $listing, Carbon $checkIn, Carbon $checkOut, int $guests = 1): array
     {
-        $nights = $checkIn->diffInDays($checkOut);
+        $nights = (int) $checkIn->diffInDays($checkOut);
 
         // Same-day selection = 1 night minimum (user selected same date for check-in/check-out)
         if ($nights === 0 && $checkIn->isSameDay($checkOut)) {
@@ -118,6 +118,7 @@ class AccommodationBookingService
                     'end_time' => '11:00:00',   // Default check-out time (next day)
                     'capacity' => 1,             // 1 property unit
                     'remaining_capacity' => 1,
+                    'base_price' => $listing->nightly_price_eur ?? 0,
                     'status' => SlotStatus::AVAILABLE,
                     'currency' => 'EUR',
                 ]);
@@ -183,6 +184,7 @@ class AccommodationBookingService
                 'end_time' => '11:00:00',
                 'capacity' => 1,
                 'remaining_capacity' => 1,
+                'base_price' => $listing->nightly_price_eur ?? 0,
                 'status' => SlotStatus::AVAILABLE,
                 'currency' => 'EUR',
             ]);

@@ -256,18 +256,29 @@ class AccommodationBookingTest extends TestCase
     }
 
     /**
-     * Test hold creation fails when dates are blocked.
+     * Test hold creation fails when dates are explicitly blocked.
      */
     public function test_hold_creation_fails_when_dates_are_blocked(): void
     {
-        // Arrange: Create slots with a gap (blocked date in middle)
+        // Arrange: Create slots with an explicitly BLOCKED date in middle
         $checkIn = Carbon::today();
         $checkOut = Carbon::today()->addDays(3);
 
-        // Create first and last slots, skip middle one
+        // Create available slots for first and last day
         $this->createAccommodationSlot($this->accommodationListing, Carbon::today());
-        // Skip day 1 - no slot = blocked
         $this->createAccommodationSlot($this->accommodationListing, Carbon::today()->addDays(2));
+
+        // Create BLOCKED slot for middle day (day 1)
+        AvailabilitySlot::create([
+            'listing_id' => $this->accommodationListing->id,
+            'date' => Carbon::today()->addDay()->format('Y-m-d'),
+            'start_time' => '15:00:00',
+            'end_time' => '11:00:00',
+            'capacity' => 1,
+            'remaining_capacity' => 0,
+            'base_price' => 100.00,
+            'status' => 'blocked', // Vendor explicitly blocked this date
+        ]);
 
         // Act
         $response = $this->actingAs($this->user)
@@ -280,7 +291,7 @@ class AccommodationBookingTest extends TestCase
 
         // Assert: Should fail due to blocked date
         $response->assertStatus(422);
-        $this->assertStringContainsString('blocked', strtolower($response->json('message')));
+        $this->assertStringContainsString('not available', strtolower($response->json('message')));
     }
 
     /**
