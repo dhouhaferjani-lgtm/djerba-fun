@@ -36,6 +36,12 @@ class CartItemResource extends BaseResource
             'total' => $this->getTotal(),
             'holdValid' => $this->isHoldValid(),
             'requiresTravelerNames' => $this->requiresTravelerNames(),
+            // Accommodation-specific fields for correct cart display
+            'pricingModel' => $this->pricing_model,
+            'nights' => $this->nights,
+            'nightlyRate' => $this->nightly_rate ? (float) $this->nightly_rate : null,
+            'checkInDate' => $this->check_in_date?->format('Y-m-d'),
+            'checkOutDate' => $this->check_out_date?->format('Y-m-d'),
             'hold' => new BookingHoldResource($this->whenLoaded('hold')),
             'listing' => new ListingResource($this->whenLoaded('listing')),
             'createdAt' => $this->created_at?->toIso8601String(),

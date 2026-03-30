@@ -938,6 +938,12 @@ export interface CartItem {
   total: number;
   holdValid: boolean;
   requiresTravelerNames: boolean;
+  // Accommodation-specific fields
+  pricingModel?: 'per_person' | 'per_night' | 'per_booking';
+  nights?: number;
+  nightlyRate?: number;
+  checkInDate?: string;
+  checkOutDate?: string;
   createdAt: string;
   updatedAt: string;
 }

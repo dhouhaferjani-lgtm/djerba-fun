@@ -43,8 +43,18 @@ export function CartItemCard({ item, locale }: CartItemCardProps) {
   const breakdownItems = useMemo((): PriceBreakdownItem[] => {
     const items: PriceBreakdownItem[] = [];
 
-    // Add person types with qty > 0
-    if (item.personTypeBreakdown) {
+    // For accommodation (per_night pricing), show nights breakdown instead of person types
+    if (item.pricingModel === 'per_night' && item.nights && item.nightlyRate) {
+      items.push({
+        type: 'person', // Using 'person' type for compatibility with PriceBreakdownTable
+        key: 'nights',
+        label: t('night'),
+        quantity: item.nights,
+        unitPrice: item.nightlyRate,
+        subtotal: item.nightlyRate * item.nights,
+      });
+    } else if (item.personTypeBreakdown) {
+      // For per_person pricing (tours, nautical, events)
       for (const [type, qty] of Object.entries(item.personTypeBreakdown)) {
         if (qty > 0) {
           const label = t(`person_type.${type}`, { defaultValue: type });
@@ -77,7 +87,7 @@ export function CartItemCard({ item, locale }: CartItemCardProps) {
     }
 
     return items;
-  }, [item.personTypeBreakdown, item.extras, item.unitPrice, t]);
+  }, [item, t]);
 
   return (
     <div
