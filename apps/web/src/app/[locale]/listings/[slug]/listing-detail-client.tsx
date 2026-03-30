@@ -724,8 +724,15 @@ function AccommodationBookingFlowContent({
   };
 
   const handleCreateHold = () => {
+    console.log('[AccommodationBooking] Local handleCreateHold called', {
+      hasDateRange: !!dateRange,
+      dateRange,
+      guestCount,
+    });
     if (dateRange) {
       onCreateHold(dateRange.checkIn, dateRange.checkOut, guestCount);
+    } else {
+      console.log('[AccommodationBooking] SKIPPED: dateRange is null/undefined');
     }
   };
 
@@ -885,7 +892,10 @@ function AccommodationBookingFlowContent({
             variant="primary"
             size="lg"
             className="w-full"
-            onClick={handleCreateHold}
+            onClick={() => {
+              console.log('[AccommodationBooking] Continue button clicked');
+              handleCreateHold();
+            }}
             disabled={createHoldMutation.isPending || isAddingToCart || !canProceed}
           >
             {createHoldMutation.isPending ? tCommon('loading') : tBooking('continue')}
@@ -1227,10 +1237,22 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
 
   // Accommodation-specific handlers
   const handleAccommodationCreateHold = async (checkIn: Date, checkOut: Date, guests: number) => {
+    console.log('[AccommodationBooking] handleAccommodationCreateHold called', {
+      checkIn,
+      checkOut,
+      guests,
+    });
+
     // Clear any previous error
     setBookingError(null);
 
+    console.log('[AccommodationBooking] Checking availability data:', {
+      hasData: !!availabilityData,
+      length: availabilityData?.length,
+    });
+
     if (!availabilityData || availabilityData.length === 0) {
+      console.log('[AccommodationBooking] EARLY RETURN: No availability data');
       setBookingError(tBooking('no_availability'));
       return;
     }
@@ -1239,7 +1261,14 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
     const checkInDateStr = format(checkIn, 'yyyy-MM-dd');
     const slot = availabilityData.find((s) => s.start.startsWith(checkInDateStr));
 
+    console.log('[AccommodationBooking] Slot search:', {
+      checkInDateStr,
+      foundSlot: !!slot,
+      slotId: slot?.id,
+    });
+
     if (!slot) {
+      console.log('[AccommodationBooking] EARLY RETURN: No slot found');
       setBookingError(tBooking('date_not_available'));
       return;
     }
@@ -1281,8 +1310,10 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
 
       // Navigate with defensive fallback
       // router.push can fail during React Query state transitions
+      console.log('[AccommodationBooking] Attempting navigation to /cart/checkout...');
       try {
-        router.push('/cart/checkout');
+        await router.push('/cart/checkout');
+        console.log('[AccommodationBooking] Navigation succeeded');
       } catch (navError) {
         console.error('[AccommodationBooking] Router navigation failed, using fallback:', navError);
         // Fallback: use window.location for hard navigation
