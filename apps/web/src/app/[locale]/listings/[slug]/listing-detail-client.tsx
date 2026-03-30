@@ -1182,14 +1182,9 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       await addToCartMutation.mutateAsync(holdId);
       console.log('[Booking] Added to cart');
 
-      // CRITICAL: Wait for cart cache to fully update before navigating
-      // This prevents the page freeze caused by navigation during cache invalidation
-      console.log('[Booking] Waiting for cart cache to settle...');
-      await queryClient.refetchQueries({ queryKey: queryKeys.cart });
-      console.log('[Booking] Cart cache settled, navigating...');
-
-      // Now safe to navigate
-      router.push('/cart/checkout');
+      // Navigate to checkout using window.location for guaranteed navigation
+      // Note: refetchQueries can hang indefinitely - the mutation's onSuccess already invalidates cart
+      window.location.href = locale === 'fr' ? '/cart/checkout' : `/${locale}/cart/checkout`;
     } catch (err) {
       console.error('[Booking] Error:', err);
     }
@@ -1302,15 +1297,9 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       await addToCartMutation.mutateAsync(holdId);
       console.log('[AccommodationBooking] Added to cart');
 
-      // CRITICAL: Wait for cart cache to fully update before navigating
-      // This prevents the page freeze caused by navigation during cache invalidation
-      console.log('[AccommodationBooking] Waiting for cart cache to settle...');
-      await queryClient.refetchQueries({ queryKey: queryKeys.cart });
-      console.log('[AccommodationBooking] Cart cache settled, navigating...');
-
-      // Navigate to checkout - fire and forget (matches non-accommodation flow at line 1192)
-      // NOTE: Do NOT await router.push - it can hang indefinitely in production
-      router.push('/cart/checkout');
+      // Navigate to checkout using window.location for guaranteed navigation
+      // Note: refetchQueries can hang indefinitely - the mutation's onSuccess already invalidates cart
+      window.location.href = locale === 'fr' ? '/cart/checkout' : `/${locale}/cart/checkout`;
     } catch (err) {
       console.error('[AccommodationBooking] Error:', err);
       setBookingError(tBooking('booking_error'));
