@@ -226,7 +226,7 @@ export function TestimonialsSection({
   const currentTestimonial = testimonials[currentIndex];
 
   return (
-    <section className="py-16 md:py-20 bg-cream">
+    <section className="py-16 md:py-20">
       {/* Pop animation keyframes */}
       <style
         dangerouslySetInnerHTML={{
