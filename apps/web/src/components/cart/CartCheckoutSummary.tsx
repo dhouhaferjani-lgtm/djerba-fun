@@ -91,18 +91,28 @@ export function CartCheckoutSummary({ cart, currency }: CartCheckoutSummaryProps
                   </div>
                 </div>
 
-                {/* Person Type Breakdown (for single item, show details) */}
-                {cart.itemCount === 1 &&
-                  item.personTypeBreakdown &&
-                  typeof item.personTypeBreakdown === 'object' && (
-                    <div className="mt-3 space-y-1 text-sm border-t border-neutral-100 pt-3">
-                      {Object.entries(item.personTypeBreakdown).map(([type, qty]) => {
+                {/* Price Breakdown (for single item, show details) */}
+                {cart.itemCount === 1 && (
+                  <div className="mt-3 space-y-1 text-sm border-t border-neutral-100 pt-3">
+                    {/* For accommodation: show nights breakdown */}
+                    {item.pricingModel === 'per_night' && item.nights && item.nightlyRate ? (
+                      <div className="flex justify-between text-neutral-600">
+                        <span>
+                          {t('night')} × {item.nights}
+                        </span>
+                        <span>
+                          {currency} {(item.nightlyRate * item.nights).toFixed(2)}
+                        </span>
+                      </div>
+                    ) : (
+                      /* For other service types: show person type breakdown */
+                      item.personTypeBreakdown &&
+                      typeof item.personTypeBreakdown === 'object' &&
+                      Object.entries(item.personTypeBreakdown).map(([type, qty]) => {
                         if (!qty || Number(qty) === 0) return null;
                         const typeLabel =
                           type === 'adult'
-                            ? tBooking('person_types.free') === 'Free'
-                              ? 'Adult'
-                              : t('person_type.adult')
+                            ? t('person_type.adult')
                             : type === 'child'
                               ? t('person_type.child')
                               : type === 'infant'
@@ -122,9 +132,10 @@ export function CartCheckoutSummary({ cart, currency }: CartCheckoutSummaryProps
                             </span>
                           </div>
                         );
-                      })}
-                    </div>
-                  )}
+                      })
+                    )}
+                  </div>
+                )}
 
                 {/* Extras (for single item, show details) */}
                 {cart.itemCount === 1 && item.extras && item.extras.length > 0 && (
