@@ -50,10 +50,10 @@ services:
       - APP_KEY=${APP_KEY}
       - APP_ENV=${APP_ENV:-production}
       - APP_DEBUG=${APP_DEBUG:-false}
-      - APP_URL=${APP_URL:-https://djerbafun.com}
-      - FRONTEND_URL=${FRONTEND_URL:-https://djerbafun.com}
-      - SANCTUM_STATEFUL_DOMAINS=${SANCTUM_STATEFUL_DOMAINS:-djerbafun.com,www.djerbafun.com}
-      - SESSION_DOMAIN=${SESSION_DOMAIN:-.djerbafun.com}
+      - APP_URL=${APP_URL:-https://dev.djerbafun.com}
+      - FRONTEND_URL=${FRONTEND_URL:-https://dev.djerbafun.com}
+      - SANCTUM_STATEFUL_DOMAINS=${SANCTUM_STATEFUL_DOMAINS:-dev.djerbafun.com}
+      - SESSION_DOMAIN=${SESSION_DOMAIN:-dev.djerbafun.com}
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -136,18 +136,18 @@ services:
       dockerfile: apps/web/Dockerfile.prod
       args:
         - NODE_ENV=production
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://djerbafun.com/api/v1}
-        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://djerbafun.com}
-        - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://djerbafun.com}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://dev.djerbafun.com/api/v1}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://dev.djerbafun.com}
+        - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://dev.djerbafun.com}
         - NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
         - NEXT_PUBLIC_TURNSTILE_ENABLED=${NEXT_PUBLIC_TURNSTILE_ENABLED:-false}
     container_name: djerba-fun-web
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://djerbafun.com/api/v1}
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://djerbafun.com}
-      - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://djerbafun.com}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://dev.djerbafun.com/api/v1}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://dev.djerbafun.com}
+      - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://dev.djerbafun.com}
       - NEXT_PUBLIC_DEFAULT_LOCALE=fr
     depends_on:
       - api
@@ -159,24 +159,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    networks:
-      - djerbafun
-
-  # Nginx Reverse Proxy
-  nginx:
-    image: nginx:alpine
-    container_name: djerba-fun-nginx
-    restart: unless-stopped
-    # Ports managed by Dokploy's reverse proxy (Traefik)
-    # Do not expose ports directly to avoid conflicts
-    volumes:
-      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
-      - storage_data:/var/www/html/storage:ro
-    depends_on:
-      - api
-      - web
     networks:
       - djerbafun
 
