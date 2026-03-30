@@ -26,6 +26,7 @@ import {
   type UpdatePreferencesData,
   type Location,
 } from './client';
+import { queryKeys } from './query-keys';
 import { getGuestSessionId } from '@/lib/utils/session';
 import type {
   ListingSearchParams,
@@ -42,10 +43,32 @@ import type {
 
 export function useCurrentUser() {
   return useQuery({
-    queryKey: ['user', 'me'],
+    queryKey: queryKeys.user.me,
     queryFn: async () => {
-      const response = await authApi.getCurrentUser();
-      return response.data;
+      // Skip API call if no auth token exists (guest user)
+      // This prevents unnecessary 401 errors for guest checkout flows
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+          return null;
+        }
+      }
+      try {
+        const response = await authApi.getCurrentUser();
+        return response.data;
+      } catch (error) {
+        // If token was cleared by 401 handler during this request,
+        // return null to enable guest flow instead of throwing
+        if (typeof window !== 'undefined') {
+          const token = localStorage.getItem('auth_token');
+          if (!token) {
+            // Token was cleared (likely by 401 handler), return null for guest state
+            return null;
+          }
+        }
+        // Re-throw other errors (network issues, etc.)
+        throw error;
+      }
     },
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -66,7 +89,7 @@ export function useLogin() {
       cfTurnstileResponse?: string;
     }) => authApi.login(email, password, cfTurnstileResponse),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user', 'me'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
     },
   });
 }
@@ -915,7 +938,7 @@ export function useVerifyMagicLink() {
     mutationFn: ({ token, deviceName }: { token: string; deviceName?: string }) =>
       authApi.verifyMagicLink(token, deviceName),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.all });
     },
   });
 }
@@ -993,7 +1016,7 @@ export function useClaimBooking() {
  */
 export function useProfile() {
   return useQuery({
-    queryKey: ['user', 'profile'],
+    queryKey: queryKeys.user.profile,
     queryFn: async () => {
       const response = await userApi.getProfile();
       return response.data;
@@ -1011,7 +1034,7 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: (data: UpdateProfileData) => userApi.updateProfile(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.all });
     },
   });
 }
@@ -1034,7 +1057,7 @@ export function useUploadAvatar() {
   return useMutation({
     mutationFn: (file: File) => userApi.uploadAvatar(file),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.all });
     },
   });
 }
@@ -1048,7 +1071,7 @@ export function useDeleteAvatar() {
   return useMutation({
     mutationFn: () => userApi.deleteAvatar(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.all });
     },
   });
 }
@@ -1058,7 +1081,7 @@ export function useDeleteAvatar() {
  */
 export function usePreferences() {
   return useQuery({
-    queryKey: ['user', 'preferences'],
+    queryKey: queryKeys.user.preferences,
     queryFn: async () => {
       const response = await userApi.getPreferences();
       return response.data;
@@ -1076,7 +1099,7 @@ export function useUpdatePreferences() {
   return useMutation({
     mutationFn: (data: UpdatePreferencesData) => userApi.updatePreferences(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.all });
     },
   });
 }

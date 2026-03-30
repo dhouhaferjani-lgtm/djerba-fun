@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { format, addMonths } from 'date-fns';
 import { MainLayout } from '@/components/templates/MainLayout';
 import { useAvailability, useCreateHold, useAddToCart } from '@/lib/api/hooks';
+import { queryKeys } from '@/lib/api/query-keys';
 import { Button } from '@djerba-fun/ui';
 import { PersonTypeSelector } from '@/components/booking/PersonTypeSelector';
 import { BookingStepIndicator, type BookingStep } from '@/components/booking/BookingStepIndicator';
@@ -1174,7 +1175,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       // CRITICAL: Wait for cart cache to fully update before navigating
       // This prevents the page freeze caused by navigation during cache invalidation
       console.log('[Booking] Waiting for cart cache to settle...');
-      await queryClient.refetchQueries({ queryKey: ['cart'] });
+      await queryClient.refetchQueries({ queryKey: queryKeys.cart });
       console.log('[Booking] Cart cache settled, navigating...');
 
       // Now safe to navigate
@@ -1275,11 +1276,19 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       // CRITICAL: Wait for cart cache to fully update before navigating
       // This prevents the page freeze caused by navigation during cache invalidation
       console.log('[AccommodationBooking] Waiting for cart cache to settle...');
-      await queryClient.refetchQueries({ queryKey: ['cart'] });
+      await queryClient.refetchQueries({ queryKey: queryKeys.cart });
       console.log('[AccommodationBooking] Cart cache settled, navigating...');
 
-      // Now safe to navigate
-      router.push('/cart/checkout');
+      // Navigate with defensive fallback
+      // router.push can fail during React Query state transitions
+      try {
+        router.push('/cart/checkout');
+      } catch (navError) {
+        console.error('[AccommodationBooking] Router navigation failed, using fallback:', navError);
+        // Fallback: use window.location for hard navigation
+        const checkoutPath = locale === 'fr' ? '/cart/checkout' : `/${locale}/cart/checkout`;
+        window.location.href = checkoutPath;
+      }
     } catch (err) {
       console.error('[AccommodationBooking] Error:', err);
       setBookingError(tBooking('booking_error'));

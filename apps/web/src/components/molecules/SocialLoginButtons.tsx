@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
 import { authApi } from '@/lib/api/client';
+import { queryKeys } from '@/lib/api/query-keys';
 
 interface SocialLoginButtonsProps {
   locale: string;
@@ -17,7 +18,7 @@ export function SocialLoginButtons({ locale }: SocialLoginButtonsProps) {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
   const handleOAuthSuccess = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['user', 'me'] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
     router.push(`/${locale}`);
   }, [queryClient, router, locale]);
 

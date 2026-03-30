@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser, useLogin, useLogout, useRegister } from '../api/hooks';
+import { queryKeys } from '../api/query-keys';
 import type { User } from '@djerba-fun/schemas';
 
 interface RegisterData {
@@ -37,10 +38,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Handle 401 unauthorized errors from API
   useEffect(() => {
     const handleUnauthorized = () => {
-      // Invalidate user query to trigger re-fetch (which will fail and clear user state)
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-      // Optionally redirect to login page
-      // window.location.href = '/auth/login';
+      // Reset query data to null to clear any error state
+      // This allows the user to continue as a guest
+      queryClient.setQueryData(queryKeys.user.me, null);
+      // Invalidate to notify observers of the change
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
     };
 
     window.addEventListener('auth:unauthorized', handleUnauthorized);
