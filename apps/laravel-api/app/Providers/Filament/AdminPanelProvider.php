@@ -31,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('Evasion Djerba - Admin')
+            ->brandName('Djerba Fun - Admin')
             ->colors([
                 'primary' => '#0077B6', // Ocean Blue - Mediterranean palette
             ])

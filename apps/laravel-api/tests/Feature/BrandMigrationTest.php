@@ -172,4 +172,26 @@ class BrandMigrationTest extends TestCase
         $this->assertStringNotContainsString('Go Adventure', $jsonContent);
         $this->assertStringNotContainsString('Evasion Djerba', $jsonContent);
     }
+
+    /** @test */
+    public function admin_panel_provider_uses_djerba_fun_brand(): void
+    {
+        $providerPath = app_path('Providers/Filament/AdminPanelProvider.php');
+        $content = file_get_contents($providerPath);
+
+        $this->assertStringContainsString("brandName('Djerba Fun", $content);
+        $this->assertStringNotContainsString('Evasion Djerba', $content);
+        $this->assertStringNotContainsString('Go Adventure', $content);
+    }
+
+    /** @test */
+    public function vendor_panel_provider_uses_djerba_fun_brand(): void
+    {
+        $providerPath = app_path('Providers/Filament/VendorPanelProvider.php');
+        $content = file_get_contents($providerPath);
+
+        $this->assertStringContainsString("brandName('Djerba Fun", $content);
+        $this->assertStringNotContainsString('Evasion Djerba', $content);
+        $this->assertStringNotContainsString('Go Adventure', $content);
+    }
 }

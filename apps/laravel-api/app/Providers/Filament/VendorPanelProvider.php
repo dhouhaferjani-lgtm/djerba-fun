@@ -29,7 +29,7 @@ class VendorPanelProvider extends PanelProvider
             ->id('vendor')
             ->path('vendor')
             ->login()
-            ->brandName('Evasion Djerba - Vendor Portal')
+            ->brandName('Djerba Fun - Vendor Portal')
             ->colors([
                 'primary' => '#0077B6', // Ocean Blue - Mediterranean palette
             ])
