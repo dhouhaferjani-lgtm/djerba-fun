@@ -1308,18 +1308,9 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       await queryClient.refetchQueries({ queryKey: queryKeys.cart });
       console.log('[AccommodationBooking] Cart cache settled, navigating...');
 
-      // Navigate with defensive fallback
-      // router.push can fail during React Query state transitions
-      console.log('[AccommodationBooking] Attempting navigation to /cart/checkout...');
-      try {
-        await router.push('/cart/checkout');
-        console.log('[AccommodationBooking] Navigation succeeded');
-      } catch (navError) {
-        console.error('[AccommodationBooking] Router navigation failed, using fallback:', navError);
-        // Fallback: use window.location for hard navigation
-        const checkoutPath = locale === 'fr' ? '/cart/checkout' : `/${locale}/cart/checkout`;
-        window.location.href = checkoutPath;
-      }
+      // Navigate to checkout - fire and forget (matches non-accommodation flow at line 1192)
+      // NOTE: Do NOT await router.push - it can hang indefinitely in production
+      router.push('/cart/checkout');
     } catch (err) {
       console.error('[AccommodationBooking] Error:', err);
       setBookingError(tBooking('booking_error'));
