@@ -111,25 +111,39 @@ class AvailabilityRuleResource extends Resource
                         Forms\Components\Repeater::make('time_slots')
                             ->label(__('filament.availability_rule.time_slots'))
                             ->schema([
-                                // Native <input type="time"> — single text field, no popover.
-                                // The original Safari "Invalid value" tooltip on these fields was
-                                // NOT a quirk of native time inputs; it was caused by the string
-                                // form of `->after('start_time')` below. Inside a Repeater item
-                                // the validator must use the Closure form so Filament resolves
-                                // the SIBLING `start_time` within the same row instead of looking
-                                // for an absolute-rooted field that doesn't exist (which causes
-                                // the rule to fall through and surface a generic client-side
-                                // error). With the Closure form, the after() rule produces a
-                                // proper Filament inline error and Safari leaves the input alone.
-                                Forms\Components\TimePicker::make('start_time')
+                                // Masked TextInput rather than TimePicker. Filament's TimePicker
+                                // (in either ->native(true) or ->native(false) mode) kept producing
+                                // the Safari "Invalid value" tooltip — most recently on freshly-
+                                // added Repeater rows even with valid HH:MM input. TextInput
+                                // renders <input type="text"> with no native time-input semantics,
+                                // so Safari has nothing to flag. The mask enforces digit positions
+                                // as the user types; the regex enforces the 24h HH:MM range
+                                // server-side. The closure-form after() rule (Track 11) still
+                                // works because it only needs the sibling field's string value.
+                                Forms\Components\TextInput::make('start_time')
                                     ->label(__('filament.availability_rule.start_time'))
-                                    ->seconds(false)
-                                    ->required(),
-                                Forms\Components\TimePicker::make('end_time')
-                                    ->label(__('filament.availability_rule.end_time'))
-                                    ->seconds(false)
+                                    ->mask('99:99')
+                                    ->placeholder('HH:MM')
                                     ->required()
-                                    ->after(fn (Forms\Get $get) => $get('start_time')),
+                                    ->rule('regex:/^([01]\d|2[0-3]):[0-5]\d$/')
+                                    ->afterStateHydrated(function (Forms\Components\TextInput $component, $state): void {
+                                        // Mixed-format legacy data — show H:i regardless of stored format.
+                                        if (is_string($state) && strlen($state) > 5) {
+                                            $component->state(substr($state, 0, 5));
+                                        }
+                                    }),
+                                Forms\Components\TextInput::make('end_time')
+                                    ->label(__('filament.availability_rule.end_time'))
+                                    ->mask('99:99')
+                                    ->placeholder('HH:MM')
+                                    ->required()
+                                    ->rule('regex:/^([01]\d|2[0-3]):[0-5]\d$/')
+                                    ->after(fn (Forms\Get $get) => $get('start_time'))
+                                    ->afterStateHydrated(function (Forms\Components\TextInput $component, $state): void {
+                                        if (is_string($state) && strlen($state) > 5) {
+                                            $component->state(substr($state, 0, 5));
+                                        }
+                                    }),
                                 Forms\Components\TextInput::make('capacity')
                                     ->label(__('filament.availability_rule.capacity'))
                                     ->numeric()

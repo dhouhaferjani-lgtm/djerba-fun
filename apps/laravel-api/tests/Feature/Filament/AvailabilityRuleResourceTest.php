@@ -86,6 +86,113 @@ class AvailabilityRuleResourceTest extends TestCase
     }
 
     /**
+     * GIVEN: the Filament edit form for an AvailabilityRule.
+     * WHEN:  the time fields inside the time_slots Repeater are inspected.
+     * THEN:  they are TextInputs (not TimePickers).
+     *
+     * Track 12 decision: after three rounds of tuning Filament TimePicker
+     * variants, Safari's native <input type="time"> kept producing
+     * "Invalid value" tooltips (most recently on freshly-added Repeater
+     * rows where the user typed a perfectly valid time). Switching to
+     * TextInput renders <input type="text"> which has none of the
+     * native time-input quirks. Server-side regex enforces HH:MM.
+     */
+    public function test_time_fields_are_textinputs_not_timepickers(): void
+    {
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1],
+            'time_slots' => [
+                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 5],
+            ],
+            'is_active' => true,
+        ]);
+
+        $component = Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
+            ->assertSuccessful();
+
+        $repeaterField = $component->instance()->getForm('form')->getFlatFields(withHidden: true)['time_slots'] ?? null;
+        $childForm = $repeaterField->getChildComponentContainers()[0] ?? null;
+        $this->assertNotNull($childForm);
+
+        $startTime = $childForm->getFlatFields(withHidden: true)['start_time'] ?? null;
+        $endTime = $childForm->getFlatFields(withHidden: true)['end_time'] ?? null;
+
+        $this->assertInstanceOf(\Filament\Forms\Components\TextInput::class, $startTime);
+        $this->assertInstanceOf(\Filament\Forms\Components\TextInput::class, $endTime);
+        $this->assertNotInstanceOf(\Filament\Forms\Components\TimePicker::class, $startTime);
+        $this->assertNotInstanceOf(\Filament\Forms\Components\TimePicker::class, $endTime);
+    }
+
+    /**
+     * GIVEN: the time fields are TextInputs.
+     * WHEN:  validation rules are inspected.
+     * THEN:  each carries a regex rule enforcing HH:MM (24h, 0-23 / 0-59).
+     */
+    public function test_time_fields_carry_hhmm_regex_rule(): void
+    {
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1],
+            'time_slots' => [
+                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 5],
+            ],
+            'is_active' => true,
+        ]);
+
+        $component = Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
+            ->assertSuccessful();
+
+        $repeaterField = $component->instance()->getForm('form')->getFlatFields(withHidden: true)['time_slots'] ?? null;
+        $childForm = $repeaterField->getChildComponentContainers()[0] ?? null;
+
+        foreach (['start_time', 'end_time'] as $name) {
+            $field = $childForm->getFlatFields(withHidden: true)[$name];
+            $rules = $field->getValidationRules();
+            $regexRule = collect($rules)->first(
+                fn ($r) => is_string($r) && str_starts_with($r, 'regex:')
+            );
+            $this->assertNotNull($regexRule, "{$name} must carry a regex validation rule.");
+            // The regex must reject malformed values like 'abc' but accept '09:30'.
+            $pattern = (string) preg_replace('/^regex:/', '', $regexRule);
+            $this->assertSame(1, preg_match($pattern, '09:30'), "{$name} regex should accept '09:30'.");
+            $this->assertSame(0, preg_match($pattern, 'abc'), "{$name} regex should reject 'abc'.");
+            $this->assertSame(0, preg_match($pattern, '25:00'), "{$name} regex should reject '25:00' (hour > 23).");
+            $this->assertSame(0, preg_match($pattern, '12:99'), "{$name} regex should reject '12:99' (minute > 59).");
+        }
+    }
+
+    /**
+     * GIVEN: a rule whose time fields receive a malformed string.
+     * WHEN:  the form is saved.
+     * THEN:  the server-side regex rule fails the field — Filament's inline
+     *        red error shown, no "Invalid value" client tooltip needed.
+     */
+    public function test_save_rejects_malformed_time_string(): void
+    {
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1],
+            'time_slots' => [
+                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 5],
+            ],
+            'is_active' => true,
+        ]);
+
+        Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
+            ->fillForm([
+                'time_slots' => [
+                    ['start_time' => 'abc', 'end_time' => '12:00', 'capacity' => 5],
+                ],
+            ])
+            ->call('save')
+            ->assertHasFormErrors(['time_slots.0.start_time']);
+    }
+
+    /**
      * GIVEN: an AvailabilityRule whose time_slots JSON column already contains
      *        H:i:s formatted strings (the format the seeder, the previous Claude
      *        session's writes, and CalculateAvailabilityJob's normaliseTime()
@@ -133,7 +240,9 @@ class AvailabilityRuleResourceTest extends TestCase
         $this->assertNotNull($childForm, 'Repeater must have at least one rendered row.');
 
         $endTimePicker = $childForm->getFlatFields(withHidden: true)['end_time'] ?? null;
-        $this->assertInstanceOf(\Filament\Forms\Components\TimePicker::class, $endTimePicker);
+        // After Track 12 the field is a TextInput, not a TimePicker — but the
+        // closure-form `->after()` rule still applies to it.
+        $this->assertInstanceOf(\Filament\Forms\Components\TextInput::class, $endTimePicker);
 
         // The validation rules array on the field must contain an `after:` rule.
         // For the Closure form, Filament evaluates the closure at validation
