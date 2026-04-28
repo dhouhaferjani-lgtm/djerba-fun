@@ -76,8 +76,11 @@ class AvailabilityRuleResourceTest extends TestCase
 
                 $entries = array_values($state['time_slots']);
                 $this->assertCount(1, $entries);
-                $this->assertStringStartsWith('10:00', (string) $entries[0]['start_time']);
-                $this->assertStringStartsWith('15:00', (string) $entries[0]['end_time']);
+                // Lock the H:i format. Hydrating with H:i:s ('10:00:00') causes
+                // Flatpickr (TimePicker w/ ->seconds(false)) to report "Invalid
+                // value" the moment the edit form renders for a legacy rule.
+                $this->assertSame('10:00', (string) $entries[0]['start_time']);
+                $this->assertSame('15:00', (string) $entries[0]['end_time']);
                 $this->assertSame(8, (int) $entries[0]['capacity']);
             });
     }

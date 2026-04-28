@@ -159,8 +159,10 @@ class AvailabilityRuleResource extends Resource
                                 if (! $record) {
                                     return;
                                 }
-                                $startTime = $record->start_time?->format('H:i:s');
-                                $endTime = $record->end_time?->format('H:i:s');
+                                // Match the Repeater's TimePicker config (->seconds(false), expects H:i).
+                                // Hydrating with H:i:s causes Flatpickr to report "Invalid value".
+                                $startTime = $record->start_time?->format('H:i');
+                                $endTime = $record->end_time?->format('H:i');
 
                                 if ($startTime && $endTime) {
                                     $component->state([[
