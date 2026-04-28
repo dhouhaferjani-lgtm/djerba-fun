@@ -20,6 +20,34 @@ class AvailabilityRuleResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    /**
+     * Normalise a vendor-typed time-of-day value to canonical H:i ("09:30").
+     *
+     * Vendors commonly type "9:30" without the leading zero. The downstream
+     * regex rule in this resource is strict about HH:MM and would reject the
+     * value, but UX-wise the typo is easy enough to forgive at dehydrate
+     * time. Anything that doesn't look like H?:MM is left alone so the
+     * regex still rejects garbage.
+     */
+    public static function padTimeOfDay(mixed $state): ?string
+    {
+        if (! is_string($state)) {
+            return null;
+        }
+
+        $state = trim($state);
+
+        if ($state === '') {
+            return null;
+        }
+
+        if (preg_match('/^(\d):([0-5]\d)$/', $state, $matches)) {
+            return '0' . $matches[1] . ':' . $matches[2];
+        }
+
+        return $state;
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return __('filament.nav.catalog');
@@ -120,12 +148,23 @@ class AvailabilityRuleResource extends Resource
                                 // as the user types; the regex enforces the 24h HH:MM range
                                 // server-side. The closure-form after() rule (Track 11) still
                                 // works because it only needs the sibling field's string value.
+                                // No `mask()` — Alpine's x-mask intercepts the events Livewire
+                                // needs to populate wire:model state for dynamically-inserted
+                                // Repeater rows. Without a sync, clicking Save flushes empty
+                                // strings for the new row's start/end_time and the regex below
+                                // rejects them, producing a "save did nothing" UX.
+                                // `live(onBlur: true)` flushes wire:model on blur (every blur
+                                // including the implicit one when the user clicks Save).
+                                // `dehydrateStateUsing` pads "9:30" → "09:30" so the canonical
+                                // H:i shape is what reaches the JSON column even when vendors
+                                // skip the leading zero.
                                 Forms\Components\TextInput::make('start_time')
                                     ->label(__('filament.availability_rule.start_time'))
-                                    ->mask('99:99')
                                     ->placeholder('HH:MM')
                                     ->required()
-                                    ->rule('regex:/^([01]\d|2[0-3]):[0-5]\d$/')
+                                    ->live(onBlur: true)
+                                    ->dehydrateStateUsing(fn ($state) => self::padTimeOfDay($state))
+                                    ->rule('regex:/^([01]?\d|2[0-3]):[0-5]\d$/')
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component, $state): void {
                                         // Mixed-format legacy data — show H:i regardless of stored format.
                                         if (is_string($state) && strlen($state) > 5) {
@@ -134,10 +173,11 @@ class AvailabilityRuleResource extends Resource
                                     }),
                                 Forms\Components\TextInput::make('end_time')
                                     ->label(__('filament.availability_rule.end_time'))
-                                    ->mask('99:99')
                                     ->placeholder('HH:MM')
                                     ->required()
-                                    ->rule('regex:/^([01]\d|2[0-3]):[0-5]\d$/')
+                                    ->live(onBlur: true)
+                                    ->dehydrateStateUsing(fn ($state) => self::padTimeOfDay($state))
+                                    ->rule('regex:/^([01]?\d|2[0-3]):[0-5]\d$/')
                                     ->after(fn (Forms\Get $get) => $get('start_time'))
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component, $state): void {
                                         if (is_string($state) && strlen($state) > 5) {

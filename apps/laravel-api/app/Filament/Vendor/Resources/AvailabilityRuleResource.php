@@ -120,15 +120,18 @@ class AvailabilityRuleResource extends Resource
                             ->label('Time Slots')
                             ->helperText('Add one row per time slot you offer on each applicable day. Each slot has its own capacity.')
                             ->schema([
-                                // Masked TextInput, not TimePicker — see the Admin resource twin for
-                                // the long-form rationale (Safari's <input type="time"> kept
-                                // producing "Invalid value" tooltips across every variant).
+                                // No `mask()`, `live(onBlur: true)`, and dehydrate padding —
+                                // see the Admin resource twin for the long-form rationale
+                                // (Alpine x-mask interferes with wire:model in dynamically-
+                                // inserted Repeater rows; Save fires with empty state without
+                                // ->live(); padding forgives "9:30" vs "09:30" typos).
                                 Forms\Components\TextInput::make('start_time')
                                     ->label('Start Time')
-                                    ->mask('99:99')
                                     ->placeholder('HH:MM')
                                     ->required()
-                                    ->rule('regex:/^([01]\d|2[0-3]):[0-5]\d$/')
+                                    ->live(onBlur: true)
+                                    ->dehydrateStateUsing(fn ($state) => \App\Filament\Admin\Resources\AvailabilityRuleResource::padTimeOfDay($state))
+                                    ->rule('regex:/^([01]?\d|2[0-3]):[0-5]\d$/')
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component, $state): void {
                                         if (is_string($state) && strlen($state) > 5) {
                                             $component->state(substr($state, 0, 5));
@@ -136,10 +139,11 @@ class AvailabilityRuleResource extends Resource
                                     }),
                                 Forms\Components\TextInput::make('end_time')
                                     ->label('End Time')
-                                    ->mask('99:99')
                                     ->placeholder('HH:MM')
                                     ->required()
-                                    ->rule('regex:/^([01]\d|2[0-3]):[0-5]\d$/')
+                                    ->live(onBlur: true)
+                                    ->dehydrateStateUsing(fn ($state) => \App\Filament\Admin\Resources\AvailabilityRuleResource::padTimeOfDay($state))
+                                    ->rule('regex:/^([01]?\d|2[0-3]):[0-5]\d$/')
                                     ->after(fn (Forms\Get $get) => $get('start_time'))
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component, $state): void {
                                         if (is_string($state) && strlen($state) > 5) {

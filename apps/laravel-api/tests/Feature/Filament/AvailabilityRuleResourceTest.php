@@ -155,9 +155,11 @@ class AvailabilityRuleResourceTest extends TestCase
                 fn ($r) => is_string($r) && str_starts_with($r, 'regex:')
             );
             $this->assertNotNull($regexRule, "{$name} must carry a regex validation rule.");
-            // The regex must reject malformed values like 'abc' but accept '09:30'.
             $pattern = (string) preg_replace('/^regex:/', '', $regexRule);
+            // Canonical HH:MM and forgiving H:MM both accepted (single-digit
+            // hours are padded later by dehydrateStateUsing).
             $this->assertSame(1, preg_match($pattern, '09:30'), "{$name} regex should accept '09:30'.");
+            $this->assertSame(1, preg_match($pattern, '9:30'), "{$name} regex should accept '9:30'.");
             $this->assertSame(0, preg_match($pattern, 'abc'), "{$name} regex should reject 'abc'.");
             $this->assertSame(0, preg_match($pattern, '25:00'), "{$name} regex should reject '25:00' (hour > 23).");
             $this->assertSame(0, preg_match($pattern, '12:99'), "{$name} regex should reject '12:99' (minute > 59).");
@@ -170,6 +172,156 @@ class AvailabilityRuleResourceTest extends TestCase
      * THEN:  the server-side regex rule fails the field — Filament's inline
      *        red error shown, no "Invalid value" client tooltip needed.
      */
+    /**
+     * GIVEN: the time fields are TextInputs.
+     * WHEN:  the field configuration is inspected.
+     * THEN:  each is configured as `->live(onBlur: true)` so that wire:model
+     *        flushes typed values to Livewire state on blur — without this,
+     *        the deferred default doesn't sync newly-typed Repeater rows
+     *        before the Save action fires, and the new slot silently fails
+     *        to persist.
+     *
+     * Track 13 regression guard.
+     */
+    public function test_time_fields_use_live_on_blur_for_repeater_safe_wire_model_sync(): void
+    {
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1],
+            'time_slots' => [
+                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 5],
+            ],
+            'is_active' => true,
+        ]);
+
+        $component = Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
+            ->assertSuccessful();
+
+        $repeaterField = $component->instance()->getForm('form')->getFlatFields(withHidden: true)['time_slots'] ?? null;
+        $childForm = $repeaterField->getChildComponentContainers()[0] ?? null;
+
+        foreach (['start_time', 'end_time'] as $name) {
+            $field = $childForm->getFlatFields(withHidden: true)[$name];
+            $this->assertTrue(
+                $field->isLive() || $field->isLiveOnBlur(),
+                "{$name} must be ->live() or ->live(onBlur: true) so Livewire wire:model flushes typed values; current default is deferred and Repeater rows don't sync on Save."
+            );
+        }
+    }
+
+    /**
+     * GIVEN: the time fields are TextInputs.
+     * WHEN:  the field configuration is inspected.
+     * THEN:  no `mask` directive is configured. Filament's `->mask('99:99')`
+     *        delegates to Alpine's `x-mask`, which intercepts input/change
+     *        events and (in dynamically-inserted Repeater rows) prevents
+     *        Livewire's wire:model from receiving the typed value.
+     *
+     * Track 13 regression guard. The placeholder + server-side regex are
+     * sufficient to communicate and enforce the HH:MM shape.
+     */
+    public function test_time_fields_have_no_input_mask_directive(): void
+    {
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1],
+            'time_slots' => [
+                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 5],
+            ],
+            'is_active' => true,
+        ]);
+
+        $component = Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
+            ->assertSuccessful();
+
+        $repeaterField = $component->instance()->getForm('form')->getFlatFields(withHidden: true)['time_slots'] ?? null;
+        $childForm = $repeaterField->getChildComponentContainers()[0] ?? null;
+
+        foreach (['start_time', 'end_time'] as $name) {
+            $field = $childForm->getFlatFields(withHidden: true)[$name];
+            // Filament's TextInput::getMask() returns null when no mask is set.
+            $this->assertNull(
+                $field->getMask(),
+                "{$name} must not have a mask directive — Alpine's x-mask interferes with wire:model in dynamically-inserted Repeater rows."
+            );
+        }
+    }
+
+    /**
+     * GIVEN: a vendor types a single-digit-hour value (e.g. "9:30") into a
+     *        time field — a common typo / shortcut.
+     * WHEN:  the form is saved.
+     * THEN:  the dehydrate step pads the hour to two digits before persistence,
+     *        so the DB row stores "09:30" (the canonical H:i shape every other
+     *        layer expects).
+     */
+    public function test_save_pads_single_digit_hour_to_two_digits(): void
+    {
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1],
+            'time_slots' => [
+                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 5],
+            ],
+            'is_active' => true,
+        ]);
+
+        Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
+            ->fillForm([
+                'time_slots' => [
+                    ['start_time' => '9:30', 'end_time' => '11:00', 'capacity' => 5],
+                ],
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $rule->refresh();
+        $this->assertSame('09:30', (string) $rule->time_slots[0]['start_time']);
+        $this->assertSame('11:00', (string) $rule->time_slots[0]['end_time']);
+    }
+
+    /**
+     * GIVEN: an existing rule with 2 saved time-slot rows.
+     * WHEN:  the vendor adds a 3rd row (Filament generates a UUID-like state key
+     *        for it), types valid HH:MM, and clicks Save.
+     * THEN:  the persisted JSON has 3 entries — the new row is not silently
+     *        dropped because of the non-numeric state key.
+     */
+    public function test_save_persists_newly_added_repeater_row(): void
+    {
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1],
+            'time_slots' => [
+                ['start_time' => '03:00', 'end_time' => '06:00', 'capacity' => 5],
+                ['start_time' => '08:00', 'end_time' => '11:00', 'capacity' => 14],
+            ],
+            'is_active' => true,
+        ]);
+
+        // Append a fully-disjoint 3rd row at 13:00 — the scenario from the
+        // staging report (vendor adds a new slot at a non-overlapping time).
+        Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
+            ->fillForm([
+                'time_slots' => [
+                    ['start_time' => '03:00', 'end_time' => '06:00', 'capacity' => 5],
+                    ['start_time' => '08:00', 'end_time' => '11:00', 'capacity' => 14],
+                    ['start_time' => '13:00', 'end_time' => '15:00', 'capacity' => 2],
+                ],
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $rule->refresh();
+        $this->assertCount(3, $rule->time_slots, 'Newly added 3rd row must persist.');
+        $this->assertSame('13:00', (string) $rule->time_slots[2]['start_time']);
+        $this->assertSame('15:00', (string) $rule->time_slots[2]['end_time']);
+    }
+
     public function test_save_rejects_malformed_time_string(): void
     {
         $rule = AvailabilityRule::create([
