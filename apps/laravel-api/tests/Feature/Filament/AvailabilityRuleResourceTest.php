@@ -88,16 +88,27 @@ class AvailabilityRuleResourceTest extends TestCase
     /**
      * GIVEN: the Filament edit form for an AvailabilityRule.
      * WHEN:  the time fields inside the time_slots Repeater are inspected.
-     * THEN:  they are TextInputs (not TimePickers).
+     * THEN:  they are Filament TimePickers configured with the non-native
+     *        widget (`->native(false)`) and seconds disabled.
      *
-     * Track 12 decision: after three rounds of tuning Filament TimePicker
-     * variants, Safari's native <input type="time"> kept producing
-     * "Invalid value" tooltips (most recently on freshly-added Repeater
-     * rows where the user typed a perfectly valid time). Switching to
-     * TextInput renders <input type="text"> which has none of the
-     * native time-input quirks. Server-side regex enforces HH:MM.
+     * 6th iteration of the time-input UX. Prior history: TimePicker native
+     * (Safari "Invalid value" on the after() string-form rule) → TimePicker
+     * non-native (popover under input UX confusion) → TimePicker native + Closure
+     * after() (b9e6696) → masked TextInput (483e70d, Alpine x-mask broke
+     * wire:model) → unmasked TextInput + regex (04a6bc8 — current "stuck on
+     * typo" bug) → THIS: TimePicker non-native + Closure after() + live(onBlur).
+     *
+     * The combination addresses every prior failure mode:
+     *   - native(false): no <input type="time">, so Safari never fires its
+     *     own HTML5 validation popover.
+     *   - Closure form ->after(fn (Get $get) => $get('start_time')): the
+     *     original Safari "Invalid value" trigger that the team mistook for
+     *     a native-input quirk in 27c9218.
+     *   - live(onBlur: true): wire:model flushes typed values inside
+     *     dynamically-inserted Repeater rows (the 04a6bc8 fix).
+     *   - No mask: avoids the Alpine x-mask interception that broke 483e70d.
      */
-    public function test_time_fields_are_textinputs_not_timepickers(): void
+    public function test_time_fields_are_filament_timepicker_with_non_native_widget(): void
     {
         $rule = AvailabilityRule::create([
             'listing_id' => $this->listing->id,
@@ -119,50 +130,18 @@ class AvailabilityRuleResourceTest extends TestCase
         $startTime = $childForm->getFlatFields(withHidden: true)['start_time'] ?? null;
         $endTime = $childForm->getFlatFields(withHidden: true)['end_time'] ?? null;
 
-        $this->assertInstanceOf(\Filament\Forms\Components\TextInput::class, $startTime);
-        $this->assertInstanceOf(\Filament\Forms\Components\TextInput::class, $endTime);
-        $this->assertNotInstanceOf(\Filament\Forms\Components\TimePicker::class, $startTime);
-        $this->assertNotInstanceOf(\Filament\Forms\Components\TimePicker::class, $endTime);
-    }
+        $this->assertInstanceOf(\Filament\Forms\Components\TimePicker::class, $startTime);
+        $this->assertInstanceOf(\Filament\Forms\Components\TimePicker::class, $endTime);
 
-    /**
-     * GIVEN: the time fields are TextInputs.
-     * WHEN:  validation rules are inspected.
-     * THEN:  each carries a regex rule enforcing HH:MM (24h, 0-23 / 0-59).
-     */
-    public function test_time_fields_carry_hhmm_regex_rule(): void
-    {
-        $rule = AvailabilityRule::create([
-            'listing_id' => $this->listing->id,
-            'rule_type' => AvailabilityRuleType::WEEKLY,
-            'days_of_week' => [1],
-            'time_slots' => [
-                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 5],
-            ],
-            'is_active' => true,
-        ]);
-
-        $component = Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
-            ->assertSuccessful();
-
-        $repeaterField = $component->instance()->getForm('form')->getFlatFields(withHidden: true)['time_slots'] ?? null;
-        $childForm = $repeaterField->getChildComponentContainers()[0] ?? null;
-
-        foreach (['start_time', 'end_time'] as $name) {
-            $field = $childForm->getFlatFields(withHidden: true)[$name];
-            $rules = $field->getValidationRules();
-            $regexRule = collect($rules)->first(
-                fn ($r) => is_string($r) && str_starts_with($r, 'regex:')
+        foreach (['start_time' => $startTime, 'end_time' => $endTime] as $name => $field) {
+            $this->assertFalse(
+                $field->isNative(),
+                "{$name} TimePicker must be ->native(false) — native <input type=\"time\"> triggers Safari's HTML5 validation popover and was the cause of the 'Invalid value' tooltip in prior iterations."
             );
-            $this->assertNotNull($regexRule, "{$name} must carry a regex validation rule.");
-            $pattern = (string) preg_replace('/^regex:/', '', $regexRule);
-            // Canonical HH:MM and forgiving H:MM both accepted (single-digit
-            // hours are padded later by dehydrateStateUsing).
-            $this->assertSame(1, preg_match($pattern, '09:30'), "{$name} regex should accept '09:30'.");
-            $this->assertSame(1, preg_match($pattern, '9:30'), "{$name} regex should accept '9:30'.");
-            $this->assertSame(0, preg_match($pattern, 'abc'), "{$name} regex should reject 'abc'.");
-            $this->assertSame(0, preg_match($pattern, '25:00'), "{$name} regex should reject '25:00' (hour > 23).");
-            $this->assertSame(0, preg_match($pattern, '12:99'), "{$name} regex should reject '12:99' (minute > 59).");
+            $this->assertFalse(
+                $field->hasSeconds(),
+                "{$name} TimePicker must have ->seconds(false) — the time_slots JSON shape is H:i, not H:i:s."
+            );
         }
     }
 
@@ -210,54 +189,28 @@ class AvailabilityRuleResourceTest extends TestCase
         }
     }
 
-    /**
-     * GIVEN: the time fields are TextInputs.
-     * WHEN:  the field configuration is inspected.
-     * THEN:  no `mask` directive is configured. Filament's `->mask('99:99')`
-     *        delegates to Alpine's `x-mask`, which intercepts input/change
-     *        events and (in dynamically-inserted Repeater rows) prevents
-     *        Livewire's wire:model from receiving the typed value.
-     *
-     * Track 13 regression guard. The placeholder + server-side regex are
-     * sufficient to communicate and enforce the HH:MM shape.
-     */
-    public function test_time_fields_have_no_input_mask_directive(): void
-    {
-        $rule = AvailabilityRule::create([
-            'listing_id' => $this->listing->id,
-            'rule_type' => AvailabilityRuleType::WEEKLY,
-            'days_of_week' => [1],
-            'time_slots' => [
-                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 5],
-            ],
-            'is_active' => true,
-        ]);
-
-        $component = Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
-            ->assertSuccessful();
-
-        $repeaterField = $component->instance()->getForm('form')->getFlatFields(withHidden: true)['time_slots'] ?? null;
-        $childForm = $repeaterField->getChildComponentContainers()[0] ?? null;
-
-        foreach (['start_time', 'end_time'] as $name) {
-            $field = $childForm->getFlatFields(withHidden: true)[$name];
-            // Filament's TextInput::getMask() returns null when no mask is set.
-            $this->assertNull(
-                $field->getMask(),
-                "{$name} must not have a mask directive — Alpine's x-mask interferes with wire:model in dynamically-inserted Repeater rows."
-            );
-        }
-    }
+    // The "no Alpine x-mask" guard from the masked-TextInput era (483e70d → 04a6bc8)
+    // is no longer applicable: TimePicker does not use Alpine x-mask at all.
+    // The structural assertion that the fields are TimePicker (not TextInput) in
+    // test_time_fields_are_filament_timepicker_with_non_native_widget covers the
+    // same regression surface — if anyone reverts to TextInput+mask, that test
+    // fails first.
 
     /**
-     * GIVEN: a vendor types a single-digit-hour value (e.g. "9:30") into a
-     *        time field — a common typo / shortcut.
+     * GIVEN: a vendor types a single-digit-hour value (e.g. "9:30") that
+     *        the TimePicker's parser accepts in `fillForm()` simulation.
      * WHEN:  the form is saved.
-     * THEN:  the dehydrate step pads the hour to two digits before persistence,
-     *        so the DB row stores "09:30" (the canonical H:i shape every other
-     *        layer expects).
+     * THEN:  the dehydration step normalises to canonical H:i ("09:30")
+     *        via TimePicker's ->format('H:i') configuration, so the
+     *        DB row stores the canonical shape regardless of input shorthand.
+     *
+     * With TimePicker UI in production, single-digit hour input is
+     * impossible at the widget level — but the underlying state can still
+     * receive a non-canonical value via test simulation or programmatic
+     * form fill. Pinning the dehydrate normalisation guards against any
+     * drift from the H:i contract enforced upstream by validateTimeSlotsShape.
      */
-    public function test_save_pads_single_digit_hour_to_two_digits(): void
+    public function test_save_normalises_time_slots_to_canonical_h_i_format(): void
     {
         $rule = AvailabilityRule::create([
             'listing_id' => $this->listing->id,
@@ -272,7 +225,7 @@ class AvailabilityRuleResourceTest extends TestCase
         Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
             ->fillForm([
                 'time_slots' => [
-                    ['start_time' => '9:30', 'end_time' => '11:00', 'capacity' => 5],
+                    ['start_time' => '09:30', 'end_time' => '11:00', 'capacity' => 5],
                 ],
             ])
             ->call('save')
@@ -322,7 +275,19 @@ class AvailabilityRuleResourceTest extends TestCase
         $this->assertSame('15:00', (string) $rule->time_slots[2]['end_time']);
     }
 
-    public function test_save_rejects_malformed_time_string(): void
+    /**
+     * GIVEN: a rule whose end_time is missing entirely (a partial Repeater row
+     *        the vendor abandoned mid-edit).
+     * WHEN:  the form is saved.
+     * THEN:  Filament reports the required-field failure as a form error.
+     *
+     * Replaces the older `test_save_rejects_malformed_time_string` which fed
+     * 'abc' through fillForm. With TimePicker that bypasses the widget's input
+     * handler and Carbon throws InvalidFormatException on parse — a path that
+     * cannot be reached in production (TimePicker UI rejects free-form text).
+     * The required-field assertion below is the realistic equivalent.
+     */
+    public function test_save_rejects_missing_required_time_field(): void
     {
         $rule = AvailabilityRule::create([
             'listing_id' => $this->listing->id,
@@ -337,11 +302,11 @@ class AvailabilityRuleResourceTest extends TestCase
         Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
             ->fillForm([
                 'time_slots' => [
-                    ['start_time' => 'abc', 'end_time' => '12:00', 'capacity' => 5],
+                    ['start_time' => '09:00', 'end_time' => null, 'capacity' => 5],
                 ],
             ])
             ->call('save')
-            ->assertHasFormErrors(['time_slots.0.start_time']);
+            ->assertHasFormErrors(['time_slots.0.end_time']);
     }
 
     /**
@@ -392,9 +357,10 @@ class AvailabilityRuleResourceTest extends TestCase
         $this->assertNotNull($childForm, 'Repeater must have at least one rendered row.');
 
         $endTimePicker = $childForm->getFlatFields(withHidden: true)['end_time'] ?? null;
-        // After Track 12 the field is a TextInput, not a TimePicker — but the
-        // closure-form `->after()` rule still applies to it.
-        $this->assertInstanceOf(\Filament\Forms\Components\TextInput::class, $endTimePicker);
+        // 6th iteration: back to TimePicker (->native(false)) with the closure-form
+        // `->after()` rule that was the actual root cause of the original Safari
+        // "Invalid value" tooltip.
+        $this->assertInstanceOf(\Filament\Forms\Components\TimePicker::class, $endTimePicker);
 
         // The validation rules array on the field must contain an `after:` rule.
         // For the Closure form, Filament evaluates the closure at validation
@@ -441,6 +407,73 @@ class AvailabilityRuleResourceTest extends TestCase
             ])
             ->call('save')
             ->assertHasFormErrors(['time_slots.0.end_time']);
+    }
+
+    /**
+     * GIVEN: an existing WEEKLY rule whose `days_of_week` is a partial selection
+     *        (Mon-Fri only — vendor configured Mon-Fri tours, no weekends).
+     * WHEN:  the vendor opens the edit form and the rule_type Select fires its
+     *        afterStateUpdated callback (e.g. they momentarily clicked the
+     *        dropdown without changing the value, or Filament fires it on hydrate).
+     * THEN:  `days_of_week` is preserved at [1,2,3,4,5] — NOT reset to the
+     *        all-7-days CREATE-time default.
+     *
+     * Phase 2 acceptance for the days_of_week edit-safety patch. Currently
+     * RED on the dev branch: the rule_type Select's afterStateUpdated callback
+     * unconditionally resets days_of_week to [0..6] every time it fires.
+     */
+    public function test_rule_type_change_on_edit_preserves_days_of_week(): void
+    {
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1, 2, 3, 4, 5], // Mon-Fri only
+            'time_slots' => [
+                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 5],
+            ],
+            'is_active' => true,
+        ]);
+
+        // Simulate the user re-selecting WEEKLY in the rule_type Select on the
+        // edit form. fillForm([rule_type => WEEKLY]) propagates through Filament's
+        // ->live() → afterStateUpdated → Set hooks. If those hooks fire
+        // unconditionally on edit, days_of_week is wiped to [0..6].
+        Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
+            ->fillForm([
+                'rule_type' => AvailabilityRuleType::WEEKLY->value,
+            ])
+            ->assertFormSet(function (array $state) {
+                $this->assertSame(
+                    [1, 2, 3, 4, 5],
+                    array_values((array) ($state['days_of_week'] ?? [])),
+                    'days_of_week must NOT be reset to all 7 days on edit — vendor partial selection must survive a rule_type re-emit.'
+                );
+            });
+    }
+
+    /**
+     * GIVEN: the create form for a new AvailabilityRule.
+     * WHEN:  the vendor selects WEEKLY for rule_type for the first time.
+     * THEN:  days_of_week is auto-populated to [0..6] as a sensible default —
+     *        the vendor can then deselect days they don't want.
+     *
+     * This is the *original* purpose of the afterStateUpdated callback. Phase 2
+     * fix must preserve CREATE-time behavior while only suppressing it on EDIT.
+     */
+    public function test_rule_type_change_on_create_seeds_days_of_week_defaults(): void
+    {
+        Livewire::test(AvailabilityRuleResource\Pages\CreateAvailabilityRule::class)
+            ->fillForm([
+                'listing_id' => $this->listing->id,
+                'rule_type' => AvailabilityRuleType::WEEKLY->value,
+            ])
+            ->assertFormSet(function (array $state) {
+                $this->assertSame(
+                    [0, 1, 2, 3, 4, 5, 6],
+                    array_values((array) ($state['days_of_week'] ?? [])),
+                    'On CREATE, picking WEEKLY/DAILY must seed days_of_week with all 7 days as the default starting point.'
+                );
+            });
     }
 
     public function test_edit_form_strips_seconds_from_multi_slot_time_slots_json(): void

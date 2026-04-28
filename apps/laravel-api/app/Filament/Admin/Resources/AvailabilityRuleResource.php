@@ -20,34 +20,6 @@ class AvailabilityRuleResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    /**
-     * Normalise a vendor-typed time-of-day value to canonical H:i ("09:30").
-     *
-     * Vendors commonly type "9:30" without the leading zero. The downstream
-     * regex rule in this resource is strict about HH:MM and would reject the
-     * value, but UX-wise the typo is easy enough to forgive at dehydrate
-     * time. Anything that doesn't look like H?:MM is left alone so the
-     * regex still rejects garbage.
-     */
-    public static function padTimeOfDay(mixed $state): ?string
-    {
-        if (! is_string($state)) {
-            return null;
-        }
-
-        $state = trim($state);
-
-        if ($state === '') {
-            return null;
-        }
-
-        if (preg_match('/^(\d):([0-5]\d)$/', $state, $matches)) {
-            return '0' . $matches[1] . ':' . $matches[2];
-        }
-
-        return $state;
-    }
-
     public static function getNavigationGroup(): ?string
     {
         return __('filament.nav.catalog');
@@ -89,7 +61,17 @@ class AvailabilityRuleResource extends Resource
                             ])
                             ->required()
                             ->live()
-                            ->afterStateUpdated(function (Forms\Set $set, $state) {
+                            ->afterStateUpdated(function (Forms\Set $set, $state, ?AvailabilityRule $record) {
+                                // Only seed defaults on CREATE. On EDIT, the vendor's existing
+                                // selections — partial days_of_week (e.g. Mon-Fri only), an
+                                // already-configured date range — must survive a rule_type
+                                // re-emit. Filament fires this callback on every state change,
+                                // including the initial hydrate-then-set sequence on edit, so
+                                // an unconditional reset silently wipes vendor data.
+                                if ($record !== null) {
+                                    return;
+                                }
+
                                 if (in_array($state, [AvailabilityRuleType::WEEKLY->value, AvailabilityRuleType::DAILY->value])) {
                                     $set('days_of_week', [0, 1, 2, 3, 4, 5, 6]);
                                     $set('enable_date_range', false);
@@ -139,51 +121,56 @@ class AvailabilityRuleResource extends Resource
                         Forms\Components\Repeater::make('time_slots')
                             ->label(__('filament.availability_rule.time_slots'))
                             ->schema([
-                                // Masked TextInput rather than TimePicker. Filament's TimePicker
-                                // (in either ->native(true) or ->native(false) mode) kept producing
-                                // the Safari "Invalid value" tooltip — most recently on freshly-
-                                // added Repeater rows even with valid HH:MM input. TextInput
-                                // renders <input type="text"> with no native time-input semantics,
-                                // so Safari has nothing to flag. The mask enforces digit positions
-                                // as the user types; the regex enforces the 24h HH:MM range
-                                // server-side. The closure-form after() rule (Track 11) still
-                                // works because it only needs the sibling field's string value.
-                                // No `mask()` — Alpine's x-mask intercepts the events Livewire
-                                // needs to populate wire:model state for dynamically-inserted
-                                // Repeater rows. Without a sync, clicking Save flushes empty
-                                // strings for the new row's start/end_time and the regex below
-                                // rejects them, producing a "save did nothing" UX.
-                                // `live(onBlur: true)` flushes wire:model on blur (every blur
-                                // including the implicit one when the user clicks Save).
-                                // `dehydrateStateUsing` pads "9:30" → "09:30" so the canonical
-                                // H:i shape is what reaches the JSON column even when vendors
-                                // skip the leading zero.
-                                Forms\Components\TextInput::make('start_time')
+                                // Filament TimePicker (non-native widget). The 6th iteration of
+                                // this field. Prior failure modes and how this config addresses each:
+                                //
+                                //   - Safari "Invalid value" tooltip with native <input type="time">:
+                                //     the actual cause was the string form of `->after('start_time')`,
+                                //     which Laravel's validator could not resolve as a sibling field
+                                //     inside a Repeater item. The Closure form below (`fn (Get $get)
+                                //     => $get('start_time')`) resolves the sibling correctly. Belt
+                                //     AND braces: ->native(false) avoids the native input entirely
+                                //     so even a regression in the after() rule cannot trigger
+                                //     Safari's HTML5 validation popover.
+                                //
+                                //   - Alpine x-mask interfering with Livewire wire:model in
+                                //     dynamically-inserted Repeater rows (which broke the masked
+                                //     TextInput attempt in 483e70d): TimePicker has no mask
+                                //     directive — input flows through Filament's own widget event
+                                //     plumbing.
+                                //
+                                //   - Vendor "stuck on typo" with the unmasked TextInput + regex
+                                //     (current state, the bug this fix addresses): TimePicker's UI
+                                //     prevents typing free-form text. The hour/minute spinners only
+                                //     accept valid values; there is no path for "9:5" or "0930" to
+                                //     enter state in the first place.
+                                //
+                                // ->live(onBlur: true) keeps the wire:model flush behaviour from
+                                // 04a6bc8 — newly-added Repeater rows still need this on Save.
+                                Forms\Components\TimePicker::make('start_time')
                                     ->label(__('filament.availability_rule.start_time'))
-                                    ->placeholder('HH:MM')
-                                    ->required()
+                                    ->seconds(false)
+                                    ->native(false)
+                                    ->displayFormat('H:i')
+                                    ->format('H:i')
+                                    ->minutesStep(5)
                                     ->live(onBlur: true)
-                                    ->dehydrateStateUsing(fn ($state) => self::padTimeOfDay($state))
-                                    ->rule('regex:/^([01]?\d|2[0-3]):[0-5]\d$/')
-                                    ->afterStateHydrated(function (Forms\Components\TextInput $component, $state): void {
-                                        // Mixed-format legacy data — show H:i regardless of stored format.
-                                        if (is_string($state) && strlen($state) > 5) {
-                                            $component->state(substr($state, 0, 5));
-                                        }
-                                    }),
-                                Forms\Components\TextInput::make('end_time')
+                                    ->required(),
+                                Forms\Components\TimePicker::make('end_time')
                                     ->label(__('filament.availability_rule.end_time'))
-                                    ->placeholder('HH:MM')
-                                    ->required()
+                                    ->seconds(false)
+                                    ->native(false)
+                                    ->displayFormat('H:i')
+                                    ->format('H:i')
+                                    ->minutesStep(5)
                                     ->live(onBlur: true)
-                                    ->dehydrateStateUsing(fn ($state) => self::padTimeOfDay($state))
-                                    ->rule('regex:/^([01]?\d|2[0-3]):[0-5]\d$/')
-                                    ->after(fn (Forms\Get $get) => $get('start_time'))
-                                    ->afterStateHydrated(function (Forms\Components\TextInput $component, $state): void {
-                                        if (is_string($state) && strlen($state) > 5) {
-                                            $component->state(substr($state, 0, 5));
-                                        }
-                                    }),
+                                    ->required()
+                                    // Closure form is load-bearing: inside a Repeater item it
+                                    // resolves to the SIBLING `start_time` value. The string form
+                                    // `->after('start_time')` would fail to resolve and surface a
+                                    // generic client-side error (the original Safari "Invalid
+                                    // value" symptom from 27c9218).
+                                    ->after(fn (Forms\Get $get) => $get('start_time')),
                                 Forms\Components\TextInput::make('capacity')
                                     ->label(__('filament.availability_rule.capacity'))
                                     ->numeric()

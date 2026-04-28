@@ -69,7 +69,12 @@ class AvailabilityRuleResource extends Resource
                             ->required()
                             ->default(AvailabilityRuleType::WEEKLY->value)
                             ->live()
-                            ->afterStateUpdated(function (Forms\Set $set, $state) {
+                            ->afterStateUpdated(function (Forms\Set $set, $state, ?AvailabilityRule $record) {
+                                // Only seed defaults on CREATE — see the Admin twin for rationale.
+                                if ($record !== null) {
+                                    return;
+                                }
+
                                 if (in_array($state, [AvailabilityRuleType::WEEKLY->value, AvailabilityRuleType::DAILY->value])) {
                                     $set('days_of_week', [0, 1, 2, 3, 4, 5, 6]);
                                     $set('enable_date_range', false);
@@ -120,36 +125,29 @@ class AvailabilityRuleResource extends Resource
                             ->label('Time Slots')
                             ->helperText('Add one row per time slot you offer on each applicable day. Each slot has its own capacity.')
                             ->schema([
-                                // No `mask()`, `live(onBlur: true)`, and dehydrate padding —
-                                // see the Admin resource twin for the long-form rationale
-                                // (Alpine x-mask interferes with wire:model in dynamically-
-                                // inserted Repeater rows; Save fires with empty state without
-                                // ->live(); padding forgives "9:30" vs "09:30" typos).
-                                Forms\Components\TextInput::make('start_time')
+                                // Filament TimePicker (non-native widget). See the Admin twin
+                                // for the long-form rationale tying each setting to a prior
+                                // failure mode (Safari native validation, Alpine x-mask vs
+                                // wire:model, vendor "stuck on typo" with TextInput+regex).
+                                Forms\Components\TimePicker::make('start_time')
                                     ->label('Start Time')
-                                    ->placeholder('HH:MM')
-                                    ->required()
+                                    ->seconds(false)
+                                    ->native(false)
+                                    ->displayFormat('H:i')
+                                    ->format('H:i')
+                                    ->minutesStep(5)
                                     ->live(onBlur: true)
-                                    ->dehydrateStateUsing(fn ($state) => \App\Filament\Admin\Resources\AvailabilityRuleResource::padTimeOfDay($state))
-                                    ->rule('regex:/^([01]?\d|2[0-3]):[0-5]\d$/')
-                                    ->afterStateHydrated(function (Forms\Components\TextInput $component, $state): void {
-                                        if (is_string($state) && strlen($state) > 5) {
-                                            $component->state(substr($state, 0, 5));
-                                        }
-                                    }),
-                                Forms\Components\TextInput::make('end_time')
+                                    ->required(),
+                                Forms\Components\TimePicker::make('end_time')
                                     ->label('End Time')
-                                    ->placeholder('HH:MM')
-                                    ->required()
+                                    ->seconds(false)
+                                    ->native(false)
+                                    ->displayFormat('H:i')
+                                    ->format('H:i')
+                                    ->minutesStep(5)
                                     ->live(onBlur: true)
-                                    ->dehydrateStateUsing(fn ($state) => \App\Filament\Admin\Resources\AvailabilityRuleResource::padTimeOfDay($state))
-                                    ->rule('regex:/^([01]?\d|2[0-3]):[0-5]\d$/')
-                                    ->after(fn (Forms\Get $get) => $get('start_time'))
-                                    ->afterStateHydrated(function (Forms\Components\TextInput $component, $state): void {
-                                        if (is_string($state) && strlen($state) > 5) {
-                                            $component->state(substr($state, 0, 5));
-                                        }
-                                    }),
+                                    ->required()
+                                    ->after(fn (Forms\Get $get) => $get('start_time')),
                                 Forms\Components\TextInput::make('capacity')
                                     ->label('Capacity')
                                     ->numeric()

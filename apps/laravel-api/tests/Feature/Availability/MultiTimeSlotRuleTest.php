@@ -784,4 +784,110 @@ class MultiTimeSlotRuleTest extends TestCase
             return $mail->hasTo($customer->email);
         });
     }
+
+    /**
+     * GIVEN: a tour listing with a WEEKLY rule whose time_slots = [09:00, 14:00]
+     *        and days_of_week = [Mon, Wed, Fri], no end_date set.
+     * WHEN:  CalculateAvailabilityJob runs over the full 180-day window the
+     *        observer triggers (matching production observer behavior).
+     * THEN:  every Mon/Wed/Fri date in the window has exactly TWO AvailabilitySlot
+     *        rows — one per time_slots entry. Tue/Thu/Sat/Sun dates have ZERO.
+     *        No duplicate (date, start_time) tuples slip through. No silent
+     *        early-exit drops slots after the first day.
+     *
+     * Reproduces the user-facing concern from the dev-branch ticket: "I think it
+     * is done for only some days not all them." This test asserts that *every*
+     * applicable day in the recurrence pattern is materialised, not just the
+     * first one. Currently passing (the production code is correct) — added as
+     * an exhaustive regression guard since the existing single-Monday test
+     * (test_rule_with_two_time_slots_generates_two_slots_per_applicable_day)
+     * could mask a future bug that drops slots beyond day 1.
+     */
+    public function test_weekly_rule_with_two_slots_generates_slots_on_every_applicable_weekday_in_180d_window(): void
+    {
+        $listing = Listing::factory()->create([
+            'service_type' => ServiceType::TOUR,
+        ]);
+
+        $today = Carbon::today();
+        $endOfWindow = $today->copy()->addDays(180);
+
+        // Mon=1, Wed=3, Fri=5 in Carbon's dayOfWeek convention.
+        AvailabilityRule::create([
+            'listing_id' => $listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [Carbon::MONDAY, Carbon::WEDNESDAY, Carbon::FRIDAY],
+            'time_slots' => [
+                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 10],
+                ['start_time' => '14:00:00', 'end_time' => '17:00:00', 'capacity' => 5],
+            ],
+            'is_active' => true,
+        ]);
+
+        // Count how many Mon/Wed/Fri dates fall in [today, today+180].
+        $expectedApplicableDates = 0;
+        $cursor = $today->copy();
+
+        while ($cursor <= $endOfWindow) {
+            if (in_array($cursor->dayOfWeek, [Carbon::MONDAY, Carbon::WEDNESDAY, Carbon::FRIDAY], true)) {
+                $expectedApplicableDates++;
+            }
+            $cursor->addDay();
+        }
+
+        $expectedSlotCount = $expectedApplicableDates * 2; // 2 time_slots entries per applicable date
+
+        $totalSlots = AvailabilitySlot::where('listing_id', $listing->id)
+            ->whereBetween('date', [$today->toDateString(), $endOfWindow->toDateString()])
+            ->count();
+
+        $this->assertSame(
+            $expectedSlotCount,
+            $totalSlots,
+            "Expected {$expectedSlotCount} slots ({$expectedApplicableDates} Mon/Wed/Fri dates × 2 time_slots) but got {$totalSlots}. Job either silently dropped some applicable dates or some time_slots entries."
+        );
+
+        // Verify no duplicate (date, start_time) tuples — would indicate the
+        // upsert lookup is wrong and the unique DB index would have tripped.
+        $duplicates = AvailabilitySlot::where('listing_id', $listing->id)
+            ->whereBetween('date', [$today->toDateString(), $endOfWindow->toDateString()])
+            ->selectRaw('date, start_time, COUNT(*) as cnt')
+            ->groupBy('date', 'start_time')
+            ->having('cnt', '>', 1)
+            ->get();
+
+        $this->assertCount(0, $duplicates, 'No (date, start_time) tuple should appear more than once.');
+
+        // Verify NO slots exist on Tue/Thu/Sat/Sun within the window.
+        $forbiddenDayCount = AvailabilitySlot::where('listing_id', $listing->id)
+            ->whereBetween('date', [$today->toDateString(), $endOfWindow->toDateString()])
+            ->get()
+            ->filter(function (AvailabilitySlot $slot) {
+                $dayOfWeek = Carbon::parse($slot->date)->dayOfWeek;
+
+                return ! in_array($dayOfWeek, [Carbon::MONDAY, Carbon::WEDNESDAY, Carbon::FRIDAY], true);
+            })
+            ->count();
+
+        $this->assertSame(
+            0,
+            $forbiddenDayCount,
+            'Slots leaked onto non-applicable weekdays — isValidForDate() day-of-week check is broken.'
+        );
+
+        // Verify each applicable date has exactly 2 distinct start_times.
+        $dailyCounts = AvailabilitySlot::where('listing_id', $listing->id)
+            ->whereBetween('date', [$today->toDateString(), $endOfWindow->toDateString()])
+            ->selectRaw('date, COUNT(*) as cnt')
+            ->groupBy('date')
+            ->get();
+
+        foreach ($dailyCounts as $row) {
+            $this->assertSame(
+                2,
+                (int) $row->cnt,
+                "Date {$row->date} has {$row->cnt} slots — expected exactly 2 (one per time_slots entry)."
+            );
+        }
+    }
 }
