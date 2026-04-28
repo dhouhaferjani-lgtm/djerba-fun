@@ -103,6 +103,7 @@ import { ImageLightbox } from '@/components/gallery/ImageLightbox';
 import { FAQSection } from '@/components/listing/FAQSection';
 import { SafetySection } from '@/components/listing/SafetySection';
 import { AccessibilitySection } from '@/components/listing/AccessibilitySection';
+import TimeSlotPicker from '@/components/availability/TimeSlotPicker';
 import { AccommodationDetailsSection } from '@/components/listing/AccommodationDetailsSection';
 import { NauticalDetailsSection } from '@/components/listing/NauticalDetailsSection';
 import { CancellationPolicyCard } from '@/components/listing/CancellationPolicyCard';
@@ -374,58 +375,13 @@ function BookingFlowContent({
         </div>
       )}
 
-      {/* STEP 2: Time Slots Only */}
+      {/* STEP 2: Time Slots Only — single source of truth via shared TimeSlotPicker */}
       {wizardStep === 2 && (
-        <div>
-          <h3 className="font-semibold text-heading mb-4">{tAvail('select_time')}</h3>
-          {slotsForSelectedDate.length > 0 ? (
-            <div className="space-y-2">
-              {slotsForSelectedDate.map((slot) => {
-                const remainingCapacity = slot.remainingCapacity ?? slot.capacity;
-                const isLowCapacity = remainingCapacity <= 3;
-                const isAlmostFull = remainingCapacity <= 5;
-
-                return (
-                  <button
-                    key={slot.id}
-                    onClick={() => handleSlotSelect(slot)}
-                    className={`w-full p-3 rounded-lg border text-left transition-colors cursor-pointer ${
-                      selectedSlot?.id === slot.id
-                        ? 'border-primary bg-primary/5'
-                        : 'border-neutral-200 hover:border-neutral-300'
-                    }`}
-                    data-testid="time-slot"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium">{format(new Date(slot.start), 'HH:mm')}</span>
-                      <span
-                        className={`text-sm font-semibold ${
-                          isLowCapacity
-                            ? 'text-error-dark'
-                            : isAlmostFull
-                              ? 'text-warning-dark'
-                              : 'text-success-dark'
-                        }`}
-                      >
-                        {remainingCapacity} {tAvail('available')}
-                      </span>
-                    </div>
-                    {isLowCapacity && (
-                      <div className="text-xs text-error-dark font-medium">
-                        ⚠️ Only {remainingCapacity} spot{remainingCapacity !== 1 ? 's' : ''} left!
-                      </div>
-                    )}
-                    {isAlmostFull && !isLowCapacity && (
-                      <div className="text-xs text-warning-dark">🔥 Filling up fast</div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-center text-neutral-500 py-4">{tAvail('no_slots_available')}</p>
-          )}
-        </div>
+        <TimeSlotPicker
+          slots={slotsForSelectedDate}
+          selectedSlot={selectedSlot}
+          onSlotSelect={handleSlotSelect}
+        />
       )}
 
       {/* STEP 3: Participants Only */}

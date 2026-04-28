@@ -712,6 +712,19 @@ export const dayOfWeekSchema = z.enum([
   'sunday',
 ]);
 
+/**
+ * One time window declared inside an availability rule.
+ *
+ * A rule may contain multiple entries — one AvailabilitySlot is materialised
+ * per entry per applicable date. This is what enables tours / nautical / events
+ * to declare e.g. "Mondays at 09:00 AND 14:00" in a single rule.
+ */
+export const availabilityRuleTimeSlotSchema = z.object({
+  startTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
+  endTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
+  capacity: z.number().int().positive(),
+});
+
 export const availabilityRuleSchema = z.object({
   id: z.string().uuid(),
   listingId: z.string().uuid(),
@@ -719,9 +732,20 @@ export const availabilityRuleSchema = z.object({
   recurrence: recurrenceTypeSchema,
   daysOfWeek: z.array(dayOfWeekSchema).nullable(),
   dateRange: dateRangeSchema.nullable(),
-  startTime: z.string().regex(/^\d{2}:\d{2}$/),
-  endTime: z.string().regex(/^\d{2}:\d{2}$/),
-  capacity: z.number().int().positive(),
+  // Multi-time-slot per day. When present, supersedes the legacy
+  // startTime / endTime / capacity fields below.
+  timeSlots: z.array(availabilityRuleTimeSlotSchema).min(1).optional(),
+  // Legacy single-time fields — retained for backwards compatibility while
+  // production rules are backfilled into the timeSlots shape.
+  startTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .optional(),
+  endTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .optional(),
+  capacity: z.number().int().positive().optional(),
   priceOverride: z.number().int().nonnegative().nullable(),
   isActive: z.boolean().default(true),
 });
@@ -1452,6 +1476,7 @@ export type ListingSummary = z.infer<typeof listingSummarySchema>;
 export type RecurrenceType = z.infer<typeof recurrenceTypeSchema>;
 export type DayOfWeek = z.infer<typeof dayOfWeekSchema>;
 export type AvailabilityRule = z.infer<typeof availabilityRuleSchema>;
+export type AvailabilityRuleTimeSlot = z.infer<typeof availabilityRuleTimeSlotSchema>;
 export type AvailabilitySlot = z.infer<typeof availabilitySlotSchema>;
 export type BookingHold = z.infer<typeof bookingHoldSchema>;
 export type AccommodationDateSelection = z.infer<typeof accommodationDateSelectionSchema>;

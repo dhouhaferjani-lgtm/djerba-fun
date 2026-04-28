@@ -24,39 +24,34 @@ class TravelerProfileFactory extends Factory
     {
         return [
             'user_id' => User::factory()->create(['role' => 'traveler'])->id,
-            'nationality' => $this->faker->countryCode(),
-            'date_of_birth' => $this->faker->date(),
+            'first_name' => $this->faker->firstName(),
+            'last_name' => $this->faker->lastName(),
             'phone' => $this->faker->phoneNumber(),
-            'emergency_contact' => [
-                'name' => $this->faker->name(),
-                'phone' => $this->faker->phoneNumber(),
-                'relationship' => $this->faker->randomElement(['spouse', 'parent', 'sibling', 'friend']),
-            ],
-            'preferences' => [],
+            'default_currency' => $this->faker->randomElement(['EUR', 'TND']),
+            'preferred_locale' => $this->faker->randomElement(['en', 'fr']),
+            'documents' => [],
         ];
     }
 
     /**
-     * Create a profile with Tunisia billing country.
+     * Create a profile with Tunisia billing country (TND currency).
      */
     public function tunisiaBilling(): static
     {
         return $this->state(fn (array $attributes) => [
-            'preferences' => [
-                'billing_country' => 'TN',
-            ],
+            'default_currency' => 'TND',
+            'preferred_locale' => 'fr',
         ]);
     }
 
     /**
-     * Create a profile with France billing country.
+     * Create a profile with France billing country (EUR currency).
      */
     public function franceBilling(): static
     {
         return $this->state(fn (array $attributes) => [
-            'preferences' => [
-                'billing_country' => 'FR',
-            ],
+            'default_currency' => 'EUR',
+            'preferred_locale' => 'fr',
         ]);
     }
 }

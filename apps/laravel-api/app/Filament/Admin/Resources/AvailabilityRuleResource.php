@@ -43,10 +43,10 @@ class AvailabilityRuleResource extends Resource
                                 modifyQueryUsing: fn (Builder $query) => $query->orderBy('slug'),
                             )
                             ->getOptionLabelFromRecordUsing(function ($record): string {
-                        $title = $record->getTranslation('title', app()->getLocale());
+                                $title = $record->getTranslation('title', app()->getLocale());
 
-                        return is_string($title) && ! empty($title) ? $title : $record->slug;
-                    })
+                                return is_string($title) && ! empty($title) ? $title : $record->slug;
+                            })
                             ->searchable(['slug'])
                             ->required()
                             ->preload(),
@@ -105,13 +105,62 @@ class AvailabilityRuleResource extends Resource
                             ->default([0, 1, 2, 3, 4, 5, 6])
                             ->helperText(__('filament.availability_rule.days_of_week_helper') ?? 'Select the days when this availability applies.'),
 
-                        Forms\Components\TimePicker::make('start_time')
-                            ->label(__('filament.availability_rule.start_time'))
-                            ->seconds(false),
+                        // One slot per row → CalculateAvailabilityJob materialises
+                        // one AvailabilitySlot per entry per applicable date.
+                        // Hidden for BLOCKED_DATES (whole-day blocking — single time window).
+                        Forms\Components\Repeater::make('time_slots')
+                            ->label(__('filament.availability_rule.time_slots'))
+                            ->schema([
+                                Forms\Components\TimePicker::make('start_time')
+                                    ->label(__('filament.availability_rule.start_time'))
+                                    ->seconds(false)
+                                    ->required(),
+                                Forms\Components\TimePicker::make('end_time')
+                                    ->label(__('filament.availability_rule.end_time'))
+                                    ->seconds(false)
+                                    ->required()
+                                    ->after('start_time'),
+                                Forms\Components\TextInput::make('capacity')
+                                    ->label(__('filament.availability_rule.capacity'))
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->default(1)
+                                    ->required(),
+                            ])
+                            ->columns(3)
+                            ->columnSpanFull()
+                            ->defaultItems(1)
+                            ->minItems(1)
+                            ->maxItems(10)
+                            ->addActionLabel(__('filament.availability_rule.add_time_slot'))
+                            ->reorderable(false)
+                            ->visible(fn (Forms\Get $get): bool => in_array($get('rule_type'), [
+                                AvailabilityRuleType::WEEKLY->value,
+                                AvailabilityRuleType::DAILY->value,
+                                AvailabilityRuleType::SPECIFIC_DATES->value,
+                            ]))
+                            // Hydrate from legacy start_time/end_time/capacity columns when
+                            // time_slots JSON is null (covers rules created before the
+                            // multi-slot rollout, until the data backfill migration runs).
+                            ->afterStateHydrated(function (Forms\Components\Repeater $component, $state, $record) {
+                                if (is_array($state) && count($state) > 0) {
+                                    return;
+                                }
 
-                        Forms\Components\TimePicker::make('end_time')
-                            ->label(__('filament.availability_rule.end_time'))
-                            ->seconds(false),
+                                if (! $record) {
+                                    return;
+                                }
+                                $startTime = $record->start_time?->format('H:i:s');
+                                $endTime = $record->end_time?->format('H:i:s');
+
+                                if ($startTime && $endTime) {
+                                    $component->state([[
+                                        'start_time' => $startTime,
+                                        'end_time' => $endTime,
+                                        'capacity' => (int) ($record->capacity ?? 1),
+                                    ]]);
+                                }
+                            }),
 
                         Forms\Components\Toggle::make('enable_date_range')
                             ->label('Limit to Date Range')
@@ -138,7 +187,8 @@ class AvailabilityRuleResource extends Resource
                         Forms\Components\DatePicker::make('start_date')
                             ->label(__('filament.availability_rule.start_date'))
                             ->native(false)
-                            ->visible(fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::BLOCKED_DATES->value
+                            ->visible(
+                                fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::BLOCKED_DATES->value
                                 || (in_array($get('rule_type'), [
                                     AvailabilityRuleType::WEEKLY->value,
                                     AvailabilityRuleType::DAILY->value,
@@ -149,7 +199,8 @@ class AvailabilityRuleResource extends Resource
                             ->label(__('filament.availability_rule.end_date'))
                             ->native(false)
                             ->after('start_date')
-                            ->visible(fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::BLOCKED_DATES->value
+                            ->visible(
+                                fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::BLOCKED_DATES->value
                                 || (in_array($get('rule_type'), [
                                     AvailabilityRuleType::WEEKLY->value,
                                     AvailabilityRuleType::DAILY->value,
@@ -172,8 +223,10 @@ class AvailabilityRuleResource extends Resource
                             ->afterStateHydrated(function (Forms\Components\Repeater $component, $state) {
                                 if (is_array($state) && ! empty($state)) {
                                     $first = reset($state);
+
                                     if (is_string($first)) {
                                         $transformed = [];
+
                                         foreach ($state as $dateStr) {
                                             $transformed[] = ['date' => $dateStr];
                                         }
@@ -196,15 +249,8 @@ class AvailabilityRuleResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make(__('filament.availability_rule.capacity_pricing'))
-                    ->schema([
-                        Forms\Components\TextInput::make('capacity')
-                            ->label(__('filament.availability_rule.capacity'))
-                            ->numeric()
-                            ->minValue(1)
-                            ->default(1)
-                            ->required(),
-                    ]),
+                // Capacity moved into the time_slots Repeater (per-entry).
+                // For BLOCKED_DATES rules, capacity is forced to 0 by the job — no UI needed.
             ]);
     }
 
@@ -216,6 +262,7 @@ class AvailabilityRuleResource extends Resource
                     ->label(__('filament.availability_rule.listing'))
                     ->getStateUsing(function ($record): string {
                         $title = $record->listing?->getTranslation('title', app()->getLocale());
+
                         if (is_string($title) && ! empty($title)) {
                             return $title;
                         }
@@ -240,13 +287,20 @@ class AvailabilityRuleResource extends Resource
                         AvailabilityRuleType::BLOCKED_DATES => 'danger',
                     }),
 
-                Tables\Columns\TextColumn::make('start_time')
+                Tables\Columns\TextColumn::make('time_slots_summary')
                     ->label(__('filament.availability_rule.time'))
-                    ->formatStateUsing(
-                        fn ($record) => $record->start_time && $record->end_time
-                            ? $record->start_time->format('H:i') . ' - ' . $record->end_time->format('H:i')
-                            : '-'
-                    ),
+                    ->getStateUsing(function ($record): string {
+                        $entries = $record->getEffectiveTimeSlots();
+
+                        if (empty($entries)) {
+                            return '-';
+                        }
+
+                        return collect($entries)
+                            ->map(fn (array $entry) => substr((string) $entry['start_time'], 0, 5) . '–' . substr((string) $entry['end_time'], 0, 5))
+                            ->implode(', ');
+                    })
+                    ->wrap(),
 
                 Tables\Columns\TextColumn::make('start_date')
                     ->label(__('filament.availability_rule.date_range'))
@@ -269,9 +323,17 @@ class AvailabilityRuleResource extends Resource
                     })
                     ->wrap(),
 
-                Tables\Columns\TextColumn::make('capacity')
+                Tables\Columns\TextColumn::make('total_capacity_display')
                     ->label(__('filament.availability_rule.capacity'))
-                    ->sortable(),
+                    ->getStateUsing(function ($record): int {
+                        $entries = $record->getEffectiveTimeSlots();
+
+                        if (empty($entries)) {
+                            return (int) ($record->capacity ?? 0);
+                        }
+
+                        return (int) collect($entries)->sum(fn (array $e) => (int) ($e['capacity'] ?? 0));
+                    }),
 
                 Tables\Columns\IconColumn::make('is_active')
                     ->label(__('filament.availability_rule.active'))

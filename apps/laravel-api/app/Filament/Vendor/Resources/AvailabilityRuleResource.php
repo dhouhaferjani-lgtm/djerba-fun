@@ -113,15 +113,63 @@ class AvailabilityRuleResource extends Resource
                             ->default([0, 1, 2, 3, 4, 5, 6])
                             ->helperText('Select the days when this tour/event is available. At least one day must be selected.'),
 
-                        Forms\Components\TimePicker::make('start_time')
-                            ->label('Start Time')
-                            ->seconds(false)
-                            ->required(),
+                        // Multiple time slots per day. CalculateAvailabilityJob materialises
+                        // one AvailabilitySlot per entry per applicable date.
+                        // Hidden for BLOCKED_DATES (whole-day blocking — single time window).
+                        Forms\Components\Repeater::make('time_slots')
+                            ->label('Time Slots')
+                            ->helperText('Add one row per time slot you offer on each applicable day. Each slot has its own capacity.')
+                            ->schema([
+                                Forms\Components\TimePicker::make('start_time')
+                                    ->label('Start Time')
+                                    ->seconds(false)
+                                    ->required(),
+                                Forms\Components\TimePicker::make('end_time')
+                                    ->label('End Time')
+                                    ->seconds(false)
+                                    ->required()
+                                    ->after('start_time'),
+                                Forms\Components\TextInput::make('capacity')
+                                    ->label('Capacity')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->default(10)
+                                    ->required(),
+                            ])
+                            ->columns(3)
+                            ->columnSpanFull()
+                            ->defaultItems(1)
+                            ->minItems(1)
+                            ->maxItems(10)
+                            ->addActionLabel('Add another time slot')
+                            ->reorderable(false)
+                            ->visible(fn (Forms\Get $get): bool => in_array($get('rule_type'), [
+                                AvailabilityRuleType::WEEKLY->value,
+                                AvailabilityRuleType::DAILY->value,
+                                AvailabilityRuleType::SPECIFIC_DATES->value,
+                            ]))
+                            // Hydrate from legacy start_time/end_time/capacity columns when
+                            // time_slots JSON is null (covers rules created before the
+                            // multi-slot rollout, until the data backfill migration runs).
+                            ->afterStateHydrated(function (Forms\Components\Repeater $component, $state, $record) {
+                                if (is_array($state) && count($state) > 0) {
+                                    return;
+                                }
 
-                        Forms\Components\TimePicker::make('end_time')
-                            ->label('End Time')
-                            ->seconds(false)
-                            ->required(),
+                                if (! $record) {
+                                    return;
+                                }
+                                $startTime = $record->start_time?->format('H:i:s');
+                                $endTime = $record->end_time?->format('H:i:s');
+
+                                if ($startTime && $endTime) {
+                                    $component->state([[
+                                        'start_time' => $startTime,
+                                        'end_time' => $endTime,
+                                        'capacity' => (int) ($record->capacity ?? 1),
+                                    ]]);
+                                }
+                            }),
 
                         Forms\Components\Toggle::make('enable_date_range')
                             ->label('Limit to Date Range')
@@ -149,7 +197,8 @@ class AvailabilityRuleResource extends Resource
                             ->label('Start Date')
                             ->native(false)
                             ->default(now())
-                            ->visible(fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::BLOCKED_DATES->value
+                            ->visible(
+                                fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::BLOCKED_DATES->value
                                 || (in_array($get('rule_type'), [
                                     AvailabilityRuleType::WEEKLY->value,
                                     AvailabilityRuleType::DAILY->value,
@@ -160,7 +209,8 @@ class AvailabilityRuleResource extends Resource
                             ->label('End Date')
                             ->native(false)
                             ->after('start_date')
-                            ->visible(fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::BLOCKED_DATES->value
+                            ->visible(
+                                fn (Forms\Get $get): bool => $get('rule_type') === AvailabilityRuleType::BLOCKED_DATES->value
                                 || (in_array($get('rule_type'), [
                                     AvailabilityRuleType::WEEKLY->value,
                                     AvailabilityRuleType::DAILY->value,
@@ -183,8 +233,10 @@ class AvailabilityRuleResource extends Resource
                             ->afterStateHydrated(function (Forms\Components\Repeater $component, $state) {
                                 if (is_array($state) && ! empty($state)) {
                                     $first = reset($state);
+
                                     if (is_string($first)) {
                                         $transformed = [];
+
                                         foreach ($state as $dateStr) {
                                             $transformed[] = ['date' => $dateStr];
                                         }
@@ -207,16 +259,7 @@ class AvailabilityRuleResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Capacity')
-                    ->schema([
-                        Forms\Components\TextInput::make('capacity')
-                            ->label('Maximum Participants')
-                            ->numeric()
-                            ->minValue(1)
-                            ->default(10)
-                            ->required()
-                            ->helperText('Maximum number of people that can book this time slot'),
-                    ]),
+                // Capacity is per-time-slot (lives in the time_slots Repeater above).
             ]);
     }
 
@@ -267,17 +310,32 @@ class AvailabilityRuleResource extends Resource
                         return collect($days)->map(fn ($d) => $dayNames[$d] ?? '?')->join(', ');
                     }),
 
-                Tables\Columns\TextColumn::make('start_time')
-                    ->label('Time')
-                    ->formatStateUsing(
-                        fn ($record) => $record->start_time && $record->end_time
-                            ? $record->start_time->format('H:i') . ' - ' . $record->end_time->format('H:i')
-                            : '-'
-                    ),
+                Tables\Columns\TextColumn::make('time_slots_summary')
+                    ->label('Time Slots')
+                    ->getStateUsing(function ($record): string {
+                        $entries = $record->getEffectiveTimeSlots();
 
-                Tables\Columns\TextColumn::make('capacity')
+                        if (empty($entries)) {
+                            return '-';
+                        }
+
+                        return collect($entries)
+                            ->map(fn (array $entry) => substr((string) $entry['start_time'], 0, 5) . '–' . substr((string) $entry['end_time'], 0, 5))
+                            ->implode(', ');
+                    })
+                    ->wrap(),
+
+                Tables\Columns\TextColumn::make('total_capacity_display')
                     ->label('Capacity')
-                    ->sortable(),
+                    ->getStateUsing(function ($record): int {
+                        $entries = $record->getEffectiveTimeSlots();
+
+                        if (empty($entries)) {
+                            return (int) ($record->capacity ?? 0);
+                        }
+
+                        return (int) collect($entries)->sum(fn (array $e) => (int) ($e['capacity'] ?? 0));
+                    }),
 
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Active')

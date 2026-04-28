@@ -60,3 +60,17 @@ secrets/
 # Production artifacts
 *.tar.gz
 *.zip
+
+# Local debug / scratch artefacts (do not commit)
+.playwright-mcp/
+/backups/
+/TEST-REPORT-*.md
+/INVESTIGATION-*.md
+/MIGRATION-STATUS.md
+/MIGRATION_STATUS.md
+/main-content.md
+/listing-page.png
+/multislot-*.png
+apps/web/TEST-REPORT-*.md
+apps/laravel-api/storage/email-preview-*.html
+apps/laravel-api/storage/phpstan/

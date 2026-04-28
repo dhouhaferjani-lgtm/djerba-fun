@@ -223,6 +223,7 @@ class CreateListing extends CreateRecord
             // If it's a TemporaryUploadedFile, store it permanently and get full URL
             if ($image instanceof TemporaryUploadedFile) {
                 $path = $image->store('listing-galleries', $disk);
+
                 if ($path) {
                     // Store full URL for consistent frontend access
                     $processed[$index] = Storage::disk($disk)->url($path);
@@ -340,9 +341,11 @@ class CreateListing extends CreateRecord
                     'listing_id' => $this->record->id,
                     'rule_type' => $ruleData['rule_type'],
                     'days_of_week' => $ruleData['days_of_week'] ?? null,
-                    'start_time' => $ruleData['start_time'],
-                    'end_time' => $ruleData['end_time'],
-                    'capacity' => $ruleData['capacity'],
+                    'time_slots' => [[
+                        'start_time' => $ruleData['start_time'],
+                        'end_time' => $ruleData['end_time'],
+                        'capacity' => (int) $ruleData['capacity'],
+                    ]],
                     'is_active' => true,
                 ]);
                 $createdCount++;
@@ -359,9 +362,11 @@ class CreateListing extends CreateRecord
                 'listing_id' => $this->record->id,
                 'rule_type' => 'daily',
                 'days_of_week' => [0, 1, 2, 3, 4, 5, 6],
-                'start_time' => now()->setTime(9, 0, 0),
-                'end_time' => now()->setTime(17, 0, 0),
-                'capacity' => $this->record->max_group_size ?? 10,
+                'time_slots' => [[
+                    'start_time' => '09:00:00',
+                    'end_time' => '17:00:00',
+                    'capacity' => (int) ($this->record->max_group_size ?? 10),
+                ]],
                 'is_active' => false,
             ]);
 
@@ -385,9 +390,11 @@ class CreateListing extends CreateRecord
                 'listing_id' => $this->record->id,
                 'rule_type' => 'daily',
                 'days_of_week' => [0, 1, 2, 3, 4, 5, 6], // all days of week
-                'start_time' => now()->setTime(9, 0, 0),
-                'end_time' => now()->setTime(17, 0, 0),
-                'capacity' => $this->record->max_group_size ?? 10,
+                'time_slots' => [[
+                    'start_time' => '09:00:00',
+                    'end_time' => '17:00:00',
+                    'capacity' => (int) ($this->record->max_group_size ?? 10),
+                ]],
                 'is_active' => true,
             ]);
 

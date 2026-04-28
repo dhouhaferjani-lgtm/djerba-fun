@@ -28,10 +28,6 @@ export default function TimeSlotPicker({
     return format(parseISO(dateTimeStr), 'HH:mm');
   };
 
-  const formatPrice = (amount: number, currency: string) => {
-    return `${(amount / 100).toFixed(0)} ${currency}`;
-  };
-
   const getSlotStatusColor = (status: string) => {
     switch (status) {
       case 'available':
@@ -63,7 +59,7 @@ export default function TimeSlotPicker({
     <div className={`space-y-4 ${className}`}>
       <h4 className="font-semibold text-neutral-900">{t('select_time')}</h4>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="space-y-2">
         {availableSlots.map((slot) => {
           const isSelected = selectedSlot?.id === slot.id;
           const remainingText = getRemainingText(slot);
@@ -75,49 +71,45 @@ export default function TimeSlotPicker({
               data-testid="time-slot"
               data-slot-time={formatTime(slot.start)}
               className={`
-                relative rounded-lg border-2 p-4 text-left transition-all cursor-pointer
+                w-full rounded-lg border-2 p-3 text-left transition-all cursor-pointer
                 ${isSelected ? 'border-primary ring-2 ring-primary ring-opacity-50' : getSlotStatusColor(slot.status)}
               `}
             >
-              {/* Time */}
-              <div className="mb-2 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-neutral-600" />
-                <span className="font-semibold text-neutral-900">
-                  {formatTime(slot.start)} - {formatTime(slot.end)}
-                </span>
+              <div className="flex items-center justify-between gap-3">
+                {/* Time */}
+                <div className="flex items-center gap-2 min-w-0">
+                  <Clock className="h-4 w-4 text-neutral-600 shrink-0" />
+                  <span className="font-semibold text-neutral-900 whitespace-nowrap">
+                    {formatTime(slot.start)} – {formatTime(slot.end)}
+                  </span>
+                </div>
+
+                {/* Capacity + selected indicator on the right */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <span
+                    data-testid="slot-capacity"
+                    className="flex items-center gap-1.5 text-sm font-medium text-neutral-700"
+                  >
+                    <Users className="h-4 w-4" />
+                    {slot.remainingCapacity ?? slot.capacity} / {slot.capacity} {t('available')}
+                  </span>
+                  {isSelected && (
+                    <span className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                      <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* Capacity */}
-              <div className="mb-2 flex items-center gap-2 text-sm text-neutral-600">
-                <Users className="h-4 w-4" />
-                <span data-testid="slot-capacity">
-                  {slot.remainingCapacity ?? slot.capacity} / {slot.capacity} {t('available')}
-                </span>
-              </div>
-
-              {/* Price */}
-              <div className="font-semibold text-primary">
-                {formatPrice(slot.basePrice, slot.currency)}
-              </div>
-
-              {/* Limited spots warning */}
+              {/* Limited spots warning sits as a second row inside the button */}
               {remainingText && (
                 <div className="mt-2 text-xs font-medium text-warning-dark">{remainingText}</div>
-              )}
-
-              {/* Selected indicator */}
-              {isSelected && (
-                <div className="absolute right-2 top-2">
-                  <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                    <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                </div>
               )}
             </button>
           );

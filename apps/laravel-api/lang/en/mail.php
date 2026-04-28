@@ -227,6 +227,7 @@ return [
     'subject_account_verification' => 'Verify Your Email - Djerba Fun',
     'subject_custom_trip' => 'Your Custom Trip Request - :reference',
     'subject_listing_failed' => 'Action Required: Your listing ":title" cannot be published',
+    'subject_slot_removed_by_vendor' => 'Update on your reservation for ":listing"',
 
     // Password Reset
     'subject_password_reset' => 'Reset Your Password - Djerba Fun',
