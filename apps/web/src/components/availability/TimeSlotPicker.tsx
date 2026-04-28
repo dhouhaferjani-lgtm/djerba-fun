@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { format, parseISO } from 'date-fns';
 import { Clock, Users } from 'lucide-react';
 import type { AvailabilitySlot } from '@djerba-fun/schemas';
 
@@ -24,8 +23,22 @@ export default function TimeSlotPicker({
     (slot) => slot.status === 'available' || slot.status === 'limited'
   );
 
-  const formatTime = (dateTimeStr: string) => {
-    return format(parseISO(dateTimeStr), 'HH:mm');
+  // Display the slot's time-of-day exactly as the vendor configured it. The
+  // API exposes both `start` (UTC ISO timestamp, e.g. 2026-05-02T09:00:00+00:00)
+  // and `startTime` (plain "HH:MM:SS" string). For an opening-hour label, only
+  // the latter is correct — parsing the timestamp and formatting in the
+  // browser's local timezone shifts every slot by the viewer's UTC offset
+  // (e.g. +1h in Tunisia), which is wrong for "tour starts at 09:00".
+  const formatTime = (slot: AvailabilitySlot, which: 'start' | 'end'): string => {
+    const direct = which === 'start' ? slot.startTime : slot.endTime;
+    if (typeof direct === 'string' && direct.length >= 5) {
+      return direct.slice(0, 5);
+    }
+    // Defensive fallback if `startTime`/`endTime` are absent: pull HH:mm out
+    // of the ISO string without applying any timezone math.
+    const iso = which === 'start' ? slot.start : slot.end;
+    const match = (iso ?? '').match(/T(\d{2}:\d{2})/);
+    return match ? match[1] : '';
   };
 
   const getSlotStatusColor = (status: string) => {
@@ -69,7 +82,7 @@ export default function TimeSlotPicker({
               key={slot.id}
               onClick={() => onSlotSelect(slot)}
               data-testid="time-slot"
-              data-slot-time={formatTime(slot.start)}
+              data-slot-time={formatTime(slot, 'start')}
               className={`
                 w-full rounded-lg border-2 p-3 text-left transition-all cursor-pointer
                 ${isSelected ? 'border-primary ring-2 ring-primary ring-opacity-50' : getSlotStatusColor(slot.status)}
@@ -80,7 +93,7 @@ export default function TimeSlotPicker({
                 <div className="flex items-center gap-2 min-w-0">
                   <Clock className="h-4 w-4 text-neutral-600 shrink-0" />
                   <span className="font-semibold text-neutral-900 whitespace-nowrap">
-                    {formatTime(slot.start)} – {formatTime(slot.end)}
+                    {formatTime(slot, 'start')} – {formatTime(slot, 'end')}
                   </span>
                 </div>
 

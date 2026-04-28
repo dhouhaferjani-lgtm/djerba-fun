@@ -102,20 +102,16 @@ class AvailabilityRuleResourceTest extends TestCase
      */
     /**
      * GIVEN: the Filament edit form for an AvailabilityRule.
-     * WHEN:  the rendered form is inspected.
-     * THEN:  every TimePicker inside the time_slots Repeater has `native(false)`.
-     *
-     * Why this matters: Safari (and some other browsers) attach an HTML5 validation
-     * popover ("Invalid value") to <input type="time"> the moment a value disagrees
-     * with the browser's locale-specific expected format. That short-circuits
-     * Filament's own (more useful, translatable) inline error rendering. Forcing the
-     * non-native widget gives every browser the same Filament-rendered red error
-     * message from server-side validation rules.
-     *
-     * Regression guard for the staging report: vendor saw "Invalid value" tooltip
-     * on Safari that did not match the actual server-side validation outcome.
+     * WHEN:  the End Time TimePicker is inspected.
+     * THEN:  its `->after()` validation rule is configured via Closure (not the
+     *        plain string form). Inside a Repeater item, the string form
+     *        `->after('start_time')` makes the Laravel validator look for an
+     *        absolute-rooted field, fail to resolve, and surface a generic
+     *        client-side error (the original Safari "Invalid value" tooltip).
+     *        The Closure form `->after(fn (Get $get) => $get('start_time'))`
+     *        resolves the SIBLING `start_time` within the same Repeater row.
      */
-    public function test_time_pickers_render_as_non_native_widget(): void
+    public function test_end_time_after_rule_uses_closure_for_repeater_sibling(): void
     {
         $rule = AvailabilityRule::create([
             'listing_id' => $this->listing->id,
@@ -133,24 +129,57 @@ class AvailabilityRuleResourceTest extends TestCase
         $repeaterField = $component->instance()->getForm('form')->getFlatFields(withHidden: true)['time_slots'] ?? null;
         $this->assertNotNull($repeaterField, 'time_slots Repeater field must exist on the form.');
 
-        // Walk into one Repeater container and grab a TimePicker child to confirm it
-        // is configured as non-native. The Repeater's child schema is identical
-        // across rows so checking row 0 is sufficient.
         $childForm = $repeaterField->getChildComponentContainers()[0] ?? null;
         $this->assertNotNull($childForm, 'Repeater must have at least one rendered row.');
 
-        $timePickers = array_filter(
-            $childForm->getFlatFields(withHidden: true),
-            fn ($field) => $field instanceof \Filament\Forms\Components\TimePicker,
-        );
-        $this->assertCount(2, $timePickers, 'Expected start_time and end_time TimePickers in each row.');
+        $endTimePicker = $childForm->getFlatFields(withHidden: true)['end_time'] ?? null;
+        $this->assertInstanceOf(\Filament\Forms\Components\TimePicker::class, $endTimePicker);
 
-        foreach ($timePickers as $picker) {
-            $this->assertFalse(
-                $picker->isNative(),
-                "TimePicker {$picker->getName()} must be ->native(false) to avoid Safari's HTML5 popover."
-            );
-        }
+        // The validation rules array on the field must contain an `after:` rule.
+        // For the Closure form, Filament evaluates the closure at validation
+        // time and the resulting rule string contains the resolved sibling
+        // value (a time, not a literal field name).
+        $rules = $endTimePicker->getValidationRules();
+        $afterRule = collect($rules)->first(
+            fn ($rule) => is_string($rule) && str_starts_with($rule, 'after:')
+        );
+        $this->assertNotNull($afterRule, 'End Time picker must carry an `after:` validation rule.');
+        $this->assertNotSame(
+            'after:start_time',
+            $afterRule,
+            'after: rule resolved to literal "start_time" — that means the Closure form is missing and Laravel will treat "start_time" as a date string, not as the sibling field value. This was the original Safari "Invalid value" cause.'
+        );
+    }
+
+    /**
+     * GIVEN: a rule whose end_time is BEFORE start_time inside one Repeater row.
+     * WHEN:  the form is saved.
+     * THEN:  Filament reports the after() rule failure as a Filament form error
+     *        (server-side, with the localized message). This proves the after()
+     *        Closure resolves the sibling correctly — if it didn't, the rule
+     *        would either silently pass (sibling not found) or fail with a
+     *        non-comparable date string error.
+     */
+    public function test_end_time_before_start_time_inside_repeater_row_fails_after_rule(): void
+    {
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1],
+            'time_slots' => [
+                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 5],
+            ],
+            'is_active' => true,
+        ]);
+
+        Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
+            ->fillForm([
+                'time_slots' => [
+                    ['start_time' => '14:00', 'end_time' => '09:00', 'capacity' => 5],
+                ],
+            ])
+            ->call('save')
+            ->assertHasFormErrors(['time_slots.0.end_time']);
     }
 
     public function test_edit_form_strips_seconds_from_multi_slot_time_slots_json(): void

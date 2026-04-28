@@ -111,23 +111,25 @@ class AvailabilityRuleResource extends Resource
                         Forms\Components\Repeater::make('time_slots')
                             ->label(__('filament.availability_rule.time_slots'))
                             ->schema([
-                                // ->native(false) renders Filament's custom widget instead of
-                                // <input type="time">. Native time inputs trigger Safari's HTML5
-                                // validation popover ("Invalid value") on macOS — even when the
-                                // value is well-formed and Filament's own server-side rules would
-                                // produce a clearer message. Custom widget = consistent inline
-                                // red error from Filament across all browsers.
+                                // Native <input type="time"> — single text field, no popover.
+                                // The original Safari "Invalid value" tooltip on these fields was
+                                // NOT a quirk of native time inputs; it was caused by the string
+                                // form of `->after('start_time')` below. Inside a Repeater item
+                                // the validator must use the Closure form so Filament resolves
+                                // the SIBLING `start_time` within the same row instead of looking
+                                // for an absolute-rooted field that doesn't exist (which causes
+                                // the rule to fall through and surface a generic client-side
+                                // error). With the Closure form, the after() rule produces a
+                                // proper Filament inline error and Safari leaves the input alone.
                                 Forms\Components\TimePicker::make('start_time')
                                     ->label(__('filament.availability_rule.start_time'))
                                     ->seconds(false)
-                                    ->native(false)
                                     ->required(),
                                 Forms\Components\TimePicker::make('end_time')
                                     ->label(__('filament.availability_rule.end_time'))
                                     ->seconds(false)
-                                    ->native(false)
                                     ->required()
-                                    ->after('start_time'),
+                                    ->after(fn (Forms\Get $get) => $get('start_time')),
                                 Forms\Components\TextInput::make('capacity')
                                     ->label(__('filament.availability_rule.capacity'))
                                     ->numeric()

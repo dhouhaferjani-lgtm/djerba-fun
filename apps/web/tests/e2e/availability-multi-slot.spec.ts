@@ -169,6 +169,27 @@ test.describe('Multi-time-slot availability — customer flow', () => {
       .first()
       .textContent();
     expect(firstLabel).toMatch(/\d{2}:\d{2}/);
+
+    // Time-of-day must match what the API returned in `startTime`. Anything
+    // that goes through `parseISO(slot.start) + format(_, 'HH:mm')` would shift
+    // by the browser's UTC offset (Tunisia = +1h on staging). The picker is
+    // displaying opening hours, not a timestamp — no TZ conversion is correct.
+    const apiSlots = await page.evaluate(async () => {
+      const url = `/api/v1/listings/kroumirie-mountains-summit-trek/availability?start_date=2026-04-29&end_date=2026-08-01`;
+      const res = await fetch(`http://localhost:8000${url}`);
+      const body = await res.json();
+      return (body.data ?? []).slice(0, 1).map((s: { startTime?: string; start: string }) => ({
+        startTime: s.startTime,
+        start: s.start,
+      }));
+    });
+
+    const expectedHHmm = (apiSlots[0]?.startTime ?? '').slice(0, 5);
+    expect(expectedHHmm).toMatch(/^\d{2}:\d{2}$/);
+    // The first time-slot button on the listing detail must show one of the
+    // hours the API surfaced for the selected date — ungated by the viewer's TZ.
+    const renderedTexts = await slotButtons.allInnerTexts();
+    expect(renderedTexts.some((t) => t.includes(expectedHHmm))).toBe(true);
   });
 
   // Capacity isolation is verified canonically by the backend BDD suite at
