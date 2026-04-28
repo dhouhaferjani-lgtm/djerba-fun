@@ -120,13 +120,21 @@ class AvailabilityRuleResource extends Resource
                             ->label('Time Slots')
                             ->helperText('Add one row per time slot you offer on each applicable day. Each slot has its own capacity.')
                             ->schema([
+                                // ->native(false) renders Filament's custom widget instead of
+                                // <input type="time">. Native time inputs trigger Safari's HTML5
+                                // validation popover ("Invalid value") on macOS — even when the
+                                // value is well-formed and Filament's own server-side rules would
+                                // produce a clearer message. Custom widget = consistent inline
+                                // red error from Filament across all browsers.
                                 Forms\Components\TimePicker::make('start_time')
                                     ->label('Start Time')
                                     ->seconds(false)
+                                    ->native(false)
                                     ->required(),
                                 Forms\Components\TimePicker::make('end_time')
                                     ->label('End Time')
                                     ->seconds(false)
+                                    ->native(false)
                                     ->required()
                                     ->after('start_time'),
                                 Forms\Components\TextInput::make('capacity')
