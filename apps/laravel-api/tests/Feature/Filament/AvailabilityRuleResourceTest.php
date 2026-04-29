@@ -510,4 +510,105 @@ class AvailabilityRuleResourceTest extends TestCase
         $this->assertSame('17:00', (string) $entries[1]['end_time']);
         $this->assertSame(8, (int) $entries[1]['capacity']);
     }
+
+    /**
+     * GIVEN: a vendor editing a rule whose listing defines adult + child person-types,
+     *        and a time_slots Repeater carrying one slot.
+     * WHEN:  the vendor adds an adult-only price override (TND 120 / EUR 40) on that slot
+     *        through the nested override Repeater and saves.
+     * THEN:  the AvailabilityRule's time_slots JSON persists the price_overrides shape;
+     *        the row in the array contains person_types[0].key == 'adult' with both
+     *        currency prices stored. Child is NOT listed (lenient — falls back at runtime).
+     *
+     * This locks the form-binding for the per-slot pricing feature: vendor changes the UI,
+     * the change reaches the JSON column, the runtime services downstream then merge.
+     */
+    public function test_save_persists_price_overrides_on_a_time_slot(): void
+    {
+        $this->listing->update([
+            'pricing' => [
+                'person_types' => [
+                    ['key' => 'adult', 'tnd_price' => 50, 'eur_price' => 15],
+                    ['key' => 'child', 'tnd_price' => 30, 'eur_price' => 10],
+                ],
+            ],
+        ]);
+
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1],
+            'time_slots' => [
+                ['start_time' => '09:00', 'end_time' => '12:00', 'capacity' => 5],
+            ],
+            'is_active' => true,
+        ]);
+
+        Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
+            ->fillForm([
+                'time_slots' => [
+                    [
+                        'start_time' => '09:00',
+                        'end_time' => '12:00',
+                        'capacity' => 5,
+                        'price_overrides' => [
+                            'person_types' => [
+                                ['key' => 'adult', 'tnd_price' => 120, 'eur_price' => 40],
+                            ],
+                        ],
+                    ],
+                ],
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $rule->refresh();
+        $slot = $rule->time_slots[0];
+
+        $this->assertNotNull($slot['price_overrides'] ?? null, 'price_overrides must persist on the time_slot.');
+        $this->assertCount(1, $slot['price_overrides']['person_types']);
+        $this->assertSame('adult', $slot['price_overrides']['person_types'][0]['key']);
+        $this->assertSame(120, (int) $slot['price_overrides']['person_types'][0]['tnd_price']);
+        $this->assertSame(40, (int) $slot['price_overrides']['person_types'][0]['eur_price']);
+    }
+
+    /**
+     * GIVEN: a vendor editing a rule with show_duration off (the default).
+     * WHEN:  the vendor flips the show_duration Toggle on and saves.
+     * THEN:  the rule persists with show_duration=true; reloading the form
+     *        re-hydrates the toggle as on.
+     *
+     * Locks the form binding for the iteration-3 toggle so a future change
+     * to the Filament schema can't silently drop the field.
+     */
+    public function test_save_persists_show_duration_toggle(): void
+    {
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1],
+            'time_slots' => [
+                ['start_time' => '09:00', 'end_time' => '12:00', 'capacity' => 5],
+            ],
+            'is_active' => true,
+        ]);
+
+        $this->assertFalse((bool) $rule->show_duration, 'Default must be false.');
+
+        Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
+            ->fillForm([
+                'show_duration' => true,
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $rule->refresh();
+        $this->assertTrue((bool) $rule->show_duration, 'Toggle must persist as true.');
+
+        // Re-open the edit form and verify the toggle re-hydrates as ON.
+        Livewire::test(AvailabilityRuleResource\Pages\EditAvailabilityRule::class, ['record' => $rule->getKey()])
+            ->assertFormSet(function (array $state) {
+                $this->assertTrue((bool) ($state['show_duration'] ?? false));
+            });
+    }
 }

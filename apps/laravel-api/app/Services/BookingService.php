@@ -447,14 +447,26 @@ class BookingService
             $basePrice = (float) $basePrice;
 
             if (! empty($personTypes) && is_array($personTypes)) {
+                // Slot-level price override (per_slot per_person_type) wins over
+                // listing pricing on a per-key basis. When the slot has no
+                // override, $effectivePrices is null and the original listing
+                // path is used — that's the regression guard.
+                $holdCurrency = $hold->currency ?? 'TND';
+                $effectivePrices = $hold->slot
+                    ? $hold->slot->getEffectivePersonTypePrices($holdCurrency, $personTypes)
+                    : null;
+
                 // Calculate using person type prices
                 foreach ($personTypeBreakdown as $personTypeKey => $quantity) {
+                    if ($effectivePrices !== null && array_key_exists($personTypeKey, $effectivePrices)) {
+                        $baseAmount += (float) $effectivePrices[$personTypeKey] * (int) $quantity;
+                        continue;
+                    }
+
                     // Find the person type definition
                     $personType = collect($personTypes)->firstWhere('key', $personTypeKey);
 
                     if ($personType) {
-                        // Get price for the specific currency (respect hold's currency)
-                        $holdCurrency = $hold->currency ?? 'TND';
                         if ($holdCurrency === 'TND') {
                             $price = $personType['tnd_price']
                                 ?? $personType['tndPrice']

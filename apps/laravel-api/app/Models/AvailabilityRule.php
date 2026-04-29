@@ -80,6 +80,7 @@ class AvailabilityRule extends Model
         'capacity',
         'price_override',
         'is_active',
+        'show_duration',
     ];
 
     /**
@@ -100,6 +101,7 @@ class AvailabilityRule extends Model
             'end_date' => 'date',
             'is_active' => 'boolean',
             'price_override' => 'decimal:2',
+            'show_duration' => 'boolean',
         ];
     }
 
@@ -111,11 +113,27 @@ class AvailabilityRule extends Model
      *  - Each entry has start_time, end_time, capacity >= 1.
      *  - end_time strictly after start_time (no zero-duration or inverted windows;
      *    overnight slots are not modelled here).
-     *  - start_times within the array are unique — duplicates would be silently
-     *    overwritten by AvailabilitySlot::updateOrCreate via the unique
-     *    (listing_id, date, start_time) DB constraint.
-     *  - Slot windows do not overlap within the same rule — partial overlap
-     *    would let two customers book the same physical resource at the same minute.
+     *  - The (start_time, end_time) TUPLE is unique within the rule. Two slots
+     *    sharing the exact same window would still be silently merged by the
+     *    unique (listing_id, date, start_time, end_time) DB constraint, but
+     *    the vendor-intent is ambiguous so we reject up front.
+     *  - Two slots with the SAME start_time but different end_time ARE allowed —
+     *    they represent alternative durations from a shared anchor (e.g. a
+     *    1-hour and 3-hour version of the same circuit), each with its own
+     *    independent inventory and (optionally) its own price override.
+     *  - Slot windows that overlap with DIFFERENT start_times are still rejected:
+     *    that's an overbooking risk on a single physical resource, not the
+     *    duration-stacking pattern the previous rule captures.
+     *
+     * Optional, only when an entry carries a `price_overrides` key:
+     *  - Must be an object with `person_types[]`.
+     *  - Each entry must have `key`, `tnd_price`, `eur_price` (lenient: not every
+     *    listing person-type needs to be listed, but the rows that ARE present
+     *    must be complete in both currencies).
+     *  - `key` must reference a person-type defined on the parent listing's
+     *    `pricing.person_types[]` (no orphans). Skipped when the listing has
+     *    no person-types defined yet.
+     *  - No duplicate `key` values within a single slot's overrides.
      *
      * All messages are routed through validation.availability_rule.time_slots.* so
      * French vendors do not see English literals.
@@ -129,8 +147,9 @@ class AvailabilityRule extends Model
         }
 
         $errors = [];
-        $startTimes = [];
-        $intervals = []; // confirmed-shape entries used for overlap detection
+        $tuples = [];     // (start_time, end_time) seen so far — new dedup key
+        $intervals = [];  // confirmed-shape entries used for overlap detection
+        $listingKeys = $this->resolveListingPersonTypeKeys();
 
         foreach ($slots as $index => $entry) {
             if (! is_array($entry)) {
@@ -155,15 +174,17 @@ class AvailabilityRule extends Model
 
             $startTime = (string) $entry['start_time'];
             $endTime = (string) $entry['end_time'];
+            $tupleKey = "{$startTime}|{$endTime}";
 
-            if (in_array($startTime, $startTimes, true)) {
+            if (in_array($tupleKey, $tuples, true)) {
                 $errors["time_slots.{$index}.start_time"] = [
-                    trans('validation.availability_rule.time_slots.duplicate_start_time', [
-                        'time' => $startTime,
+                    trans('validation.availability_rule.time_slots.duplicate_slot', [
+                        'start' => $startTime,
+                        'end' => $endTime,
                     ]),
                 ];
             }
-            $startTimes[] = $startTime;
+            $tuples[] = $tupleKey;
 
             if ($endTime <= $startTime) {
                 $errors["time_slots.{$index}.end_time"] = [
@@ -175,7 +196,15 @@ class AvailabilityRule extends Model
             }
 
             foreach ($intervals as $existing) {
-                // Half-open intervals: [start, end) — touching boundaries (e.g. 09–12 and 12–14) do NOT overlap.
+                // Same anchor → durations stacking: the vendor offers e.g. a 1h
+                // and a 3h version of the same circuit at 09:00. Independent
+                // inventory; allowed.
+                if ($startTime === $existing['start']) {
+                    continue;
+                }
+                // Half-open intervals [start, end). Different start_times that
+                // intersect would let two customers book the same physical
+                // resource for the same minute → reject.
                 if ($startTime < $existing['end'] && $endTime > $existing['start']) {
                     $errors["time_slots.{$index}.start_time"] = [
                         trans('validation.availability_rule.time_slots.overlapping', [
@@ -188,11 +217,127 @@ class AvailabilityRule extends Model
             }
 
             $intervals[] = ['start' => $startTime, 'end' => $endTime];
+
+            if (array_key_exists('price_overrides', $entry) && $entry['price_overrides'] !== null) {
+                $this->validatePriceOverrides($entry['price_overrides'], $index, $listingKeys, $errors);
+            }
         }
 
         if (! empty($errors)) {
             throw ValidationException::withMessages($errors);
         }
+    }
+
+    /**
+     * Validate the optional price_overrides object inside one time_slots entry.
+     *
+     * Lenient: any subset of the listing's person-type keys may be overridden.
+     * Strict where it matters: every row that IS present must reference a
+     * legitimate listing key, must have both TND and EUR prices, and there
+     * are no duplicate keys.
+     *
+     * @param  array<string>  $listingKeys  All defined keys on the listing's pricing.person_types[]
+     * @param  array<string, array<int, string>>  $errors  Mutated by reference (Laravel idiom)
+     */
+    protected function validatePriceOverrides(mixed $overrides, int $index, array $listingKeys, array &$errors): void
+    {
+        if (! is_array($overrides)) {
+            $errors["time_slots.{$index}.price_overrides"] = [
+                trans('validation.availability_rule.time_slots.price_overrides.invalid_shape'),
+            ];
+
+            return;
+        }
+
+        $personTypes = $overrides['person_types'] ?? null;
+
+        if ($personTypes === null) {
+            return; // entire override block omitted — same as no override
+        }
+
+        if (! is_array($personTypes)) {
+            $errors["time_slots.{$index}.price_overrides.person_types"] = [
+                trans('validation.availability_rule.time_slots.price_overrides.invalid_shape'),
+            ];
+
+            return;
+        }
+
+        if (count($personTypes) === 0) {
+            return; // empty array — caller normalises to null on save
+        }
+
+        $seenKeys = [];
+
+        foreach ($personTypes as $pIndex => $pt) {
+            if (! is_array($pt) || ! isset($pt['key']) || $pt['key'] === '') {
+                $errors["time_slots.{$index}.price_overrides.person_types.{$pIndex}"] = [
+                    trans('validation.availability_rule.time_slots.price_overrides.entry_invalid'),
+                ];
+                continue;
+            }
+
+            $key = (string) $pt['key'];
+
+            if (! empty($listingKeys) && ! in_array($key, $listingKeys, true)) {
+                $errors["time_slots.{$index}.price_overrides.person_types.{$pIndex}.key"] = [
+                    trans('validation.availability_rule.time_slots.price_overrides.orphan_key', [
+                        'key' => $key,
+                    ]),
+                ];
+            }
+
+            if (in_array($key, $seenKeys, true)) {
+                $errors["time_slots.{$index}.price_overrides.person_types.{$pIndex}.key"] = [
+                    trans('validation.availability_rule.time_slots.price_overrides.duplicate_key', [
+                        'key' => $key,
+                    ]),
+                ];
+            }
+            $seenKeys[] = $key;
+
+            $tnd = $pt['tnd_price'] ?? null;
+            if ($tnd === null || $tnd === '' || (float) $tnd < 0) {
+                $errors["time_slots.{$index}.price_overrides.person_types.{$pIndex}.tnd_price"] = [
+                    trans('validation.availability_rule.time_slots.price_overrides.tnd_required'),
+                ];
+            }
+
+            $eur = $pt['eur_price'] ?? null;
+            if ($eur === null || $eur === '' || (float) $eur < 0) {
+                $errors["time_slots.{$index}.price_overrides.person_types.{$pIndex}.eur_price"] = [
+                    trans('validation.availability_rule.time_slots.price_overrides.eur_required'),
+                ];
+            }
+        }
+    }
+
+    /**
+     * Read the listing's defined person-type keys (used for the orphan check
+     * inside override validation).
+     *
+     * @return array<int, string>
+     */
+    protected function resolveListingPersonTypeKeys(): array
+    {
+        $listing = $this->listing;
+        if (! $listing) {
+            return [];
+        }
+
+        $pricing = $listing->pricing;
+        if (! is_array($pricing) || ! isset($pricing['person_types']) || ! is_array($pricing['person_types'])) {
+            return [];
+        }
+
+        $keys = [];
+        foreach ($pricing['person_types'] as $pt) {
+            if (is_array($pt) && isset($pt['key']) && $pt['key'] !== '') {
+                $keys[] = (string) $pt['key'];
+            }
+        }
+
+        return $keys;
     }
 
     /**

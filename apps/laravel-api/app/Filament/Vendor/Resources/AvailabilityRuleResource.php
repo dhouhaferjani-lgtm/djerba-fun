@@ -90,6 +90,19 @@ class AvailabilityRuleResource extends Resource
                             ->label('Active')
                             ->default(true)
                             ->required(),
+
+                        // Per-rule display preference (mirrors Admin resource).
+                        // When ON, the customer slot picker renders each slot's
+                        // duration ("1h", "1h 30min", "3h") next to the time range.
+                        Forms\Components\Toggle::make('show_duration')
+                            ->label(__('filament.availability_rule.show_duration.label'))
+                            ->helperText(__('filament.availability_rule.show_duration.helper'))
+                            ->default(false)
+                            ->visible(fn (Forms\Get $get): bool => in_array($get('rule_type'), [
+                                AvailabilityRuleType::WEEKLY->value,
+                                AvailabilityRuleType::DAILY->value,
+                                AvailabilityRuleType::SPECIFIC_DATES->value,
+                            ])),
                     ])
                     ->columns(3),
 
@@ -154,6 +167,54 @@ class AvailabilityRuleResource extends Resource
                                     ->minValue(1)
                                     ->default(10)
                                     ->required(),
+
+                                // Optional per-time-slot price overrides. Empty by default;
+                                // vendor explicitly adds rows for the person-types they want
+                                // to price differently for THIS slot. Anything omitted falls
+                                // back to listing pricing (lenient merge — see
+                                // AvailabilitySlot::getEffectivePersonTypePrices()).
+                                Forms\Components\Repeater::make('price_overrides.person_types')
+                                    ->label(__('filament.availability_rule.price_overrides.label'))
+                                    ->columnSpanFull()
+                                    ->schema([
+                                        Forms\Components\Select::make('key')
+                                            ->label(__('filament.availability_rule.price_overrides.person_type'))
+                                            ->options(function (Forms\Get $get): array {
+                                                $listingId = $get('../../listing_id');
+                                                if (! $listingId) {
+                                                    return [];
+                                                }
+
+                                                $listing = \App\Models\Listing::where('vendor_id', auth()->id())
+                                                    ->find($listingId);
+                                                $personTypes = $listing?->pricing['person_types'] ?? [];
+
+                                                return collect($personTypes)
+                                                    ->filter(fn ($pt) => is_array($pt) && ! empty($pt['key']))
+                                                    ->mapWithKeys(fn ($pt) => [$pt['key'] => ucfirst((string) $pt['key'])])
+                                                    ->all();
+                                            })
+                                            ->required(),
+                                        Forms\Components\TextInput::make('tnd_price')
+                                            ->label(__('filament.availability_rule.price_overrides.tnd_price'))
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->step(0.01)
+                                            ->live(onBlur: true)
+                                            ->required(),
+                                        Forms\Components\TextInput::make('eur_price')
+                                            ->label(__('filament.availability_rule.price_overrides.eur_price'))
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->step(0.01)
+                                            ->live(onBlur: true)
+                                            ->required(),
+                                    ])
+                                    ->columns(3)
+                                    ->defaultItems(0)
+                                    ->addActionLabel(__('filament.availability_rule.price_overrides.add'))
+                                    ->helperText(__('filament.availability_rule.price_overrides.helper'))
+                                    ->reorderable(false),
                             ])
                             ->columns(3)
                             ->columnSpanFull()

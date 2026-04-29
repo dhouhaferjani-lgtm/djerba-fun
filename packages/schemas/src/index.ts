@@ -719,10 +719,32 @@ export const dayOfWeekSchema = z.enum([
  * per entry per applicable date. This is what enables tours / nautical / events
  * to declare e.g. "Mondays at 09:00 AND 14:00" in a single rule.
  */
+/**
+ * Per-time-slot, per-person-type price override (lenient — vendor lists only the
+ * keys they want to override; missing keys fall back to the listing's pricing).
+ *
+ * `tnd_price` / `eur_price` are snake_case to match the JSON column shape on
+ * the API; the wider TS code uses camelCase elsewhere — that's intentional, the
+ * DB JSON is authoritative for this nested shape.
+ */
+export const slotPriceOverrideEntrySchema = z.object({
+  key: z.string().min(1),
+  tnd_price: z.number().nonnegative().or(z.string()),
+  eur_price: z.number().nonnegative().or(z.string()),
+});
+
+export const slotPriceOverridesSchema = z.object({
+  person_types: z.array(slotPriceOverrideEntrySchema),
+});
+
 export const availabilityRuleTimeSlotSchema = z.object({
   startTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
   endTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
   capacity: z.number().int().positive(),
+  // Optional per-time-slot override. When present, downstream pricing services
+  // prefer these prices over the listing's pricing.person_types[] for the keys
+  // listed; missing keys fall back to the listing.
+  priceOverrides: slotPriceOverridesSchema.nullable().optional(),
 });
 
 export const availabilityRuleSchema = z.object({
@@ -765,6 +787,23 @@ export const availabilitySlotSchema = z.object({
   eurPrice: z.number().nonnegative().optional(),
   displayPrice: z.number().nonnegative().optional(),
   displayCurrency: z.enum(['TND', 'EUR']).optional(),
+  // Per-slot price override and the resolved per-currency, per-person-type
+  // effective view. The frontend renders `effectivePrices` directly — the
+  // lenient merge (slot wins per-key, listing fallback otherwise) lives
+  // server-side so client code doesn't have to recompute it.
+  priceOverrides: slotPriceOverridesSchema.nullable().optional(),
+  effectivePrices: z
+    .object({
+      TND: z.record(z.string(), z.number().nonnegative()),
+      EUR: z.record(z.string(), z.number().nonnegative()),
+    })
+    .optional(),
+  // Per-rule display preference (resolved server-side). When true the slot
+  // picker renders the duration label next to the time range. Always
+  // accompanied by `durationMinutes` so the frontend can format compact
+  // (chip) and verbose (aria-label) variants in the user's locale.
+  showDuration: z.boolean().optional(),
+  durationMinutes: z.number().int().nonnegative().optional(),
   // Legacy pricing fields
   basePrice: z.number().nonnegative(),
   currency: z.string().length(3),
@@ -1478,6 +1517,8 @@ export type DayOfWeek = z.infer<typeof dayOfWeekSchema>;
 export type AvailabilityRule = z.infer<typeof availabilityRuleSchema>;
 export type AvailabilityRuleTimeSlot = z.infer<typeof availabilityRuleTimeSlotSchema>;
 export type AvailabilitySlot = z.infer<typeof availabilitySlotSchema>;
+export type SlotPriceOverrides = z.infer<typeof slotPriceOverridesSchema>;
+export type SlotPriceOverrideEntry = z.infer<typeof slotPriceOverrideEntrySchema>;
 export type BookingHold = z.infer<typeof bookingHoldSchema>;
 export type AccommodationDateSelection = z.infer<typeof accommodationDateSelectionSchema>;
 export type CreateAccommodationHoldRequest = z.infer<typeof createAccommodationHoldRequestSchema>;

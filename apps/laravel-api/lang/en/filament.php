@@ -878,6 +878,22 @@ return [
         'capacity' => 'Capacity',
         'price_override' => 'Price Override',
 
+        // Per-rule toggle for showing slot duration on the customer-facing picker
+        'show_duration' => [
+            'label' => 'Show duration on the slot picker',
+            'helper' => 'When on, customers see the length of each slot (e.g. "1h", "1h 30min", "3h") next to its time range.',
+        ],
+
+        // Per-time-slot price overrides (per-person-type, dual-currency)
+        'price_overrides' => [
+            'label' => 'Price overrides for this slot (optional)',
+            'person_type' => 'Person type',
+            'tnd_price' => 'TND price',
+            'eur_price' => 'EUR price',
+            'add' => 'Add a person-type override',
+            'helper' => "Person-types you don't override will follow the listing's price changes.",
+        ],
+
         // Days
         'sunday' => 'Sunday',
         'monday' => 'Monday',

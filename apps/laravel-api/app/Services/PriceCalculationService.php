@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\AvailabilitySlot;
 use App\Models\Listing;
 
 class PriceCalculationService
@@ -11,13 +12,26 @@ class PriceCalculationService
     /**
      * Calculate the total price for a booking based on person type breakdown.
      *
+     * When a slot is supplied AND it carries `price_overrides`, each
+     * overridden person-type uses the slot's price; person-types NOT listed
+     * in the override fall back to the listing's pricing (lenient per-key
+     * merge — see AvailabilitySlot::getEffectivePersonTypePrices()).
+     *
+     * Passing $slot=null (or omitting it) reproduces the pre-feature
+     * listing-only behaviour bit-for-bit — the regression guard.
+     *
      * @param  Listing  $listing  The listing being booked
      * @param  array  $breakdown  Person type breakdown: ["adult" => 2, "child" => 1, "infant" => 0]
      * @param  string|null  $currency  Currency to use (TND or EUR). If null, defaults to EUR
+     * @param  AvailabilitySlot|null  $slot  Optional slot whose price_overrides take priority
      * @return array{breakdown: array, subtotal: int|float, discount: int|float, total: int|float, currency: string}
      */
-    public function calculateTotal(Listing $listing, array $breakdown, ?string $currency = null): array
-    {
+    public function calculateTotal(
+        Listing $listing,
+        array $breakdown,
+        ?string $currency = null,
+        ?AvailabilitySlot $slot = null,
+    ): array {
         $pricing = $listing->pricing;
 
         // Determine currency - prioritize parameter, then check for dual pricing
@@ -41,6 +55,14 @@ class PriceCalculationService
         $personTypes = $this->getPersonTypes($listing, $currency);
         $allowedKeys = collect($personTypes)->pluck('key')->toArray();
 
+        // Resolve the slot-effective per-person-type price map (or null when no
+        // slot / no override). Callers that don't pass a slot get today's
+        // listing-only behaviour — the regression guard.
+        $effectivePrices = $slot
+            ? $slot->getEffectivePersonTypePrices($currency, $personTypes)
+            : null;
+
+
         // Validate and calculate pricing for each person type in the breakdown
         foreach ($breakdown as $typeKey => $quantity) {
             if ($quantity <= 0) {
@@ -63,8 +85,11 @@ class PriceCalculationService
             $typeConfig = collect($personTypes)->firstWhere('key', $typeKey);
 
             if ($typeConfig) {
-                // Get price for the selected currency
-                $price = $this->getPersonTypePriceForCurrency($typeConfig, $currency);
+                // Slot override wins per-key when present; otherwise fall back
+                // to the listing's per-currency price helper (existing path).
+                $price = ($effectivePrices !== null && array_key_exists($typeKey, $effectivePrices))
+                    ? (float) $effectivePrices[$typeKey]
+                    : $this->getPersonTypePriceForCurrency($typeConfig, $currency);
                 $label = $typeConfig['label'] ?? ['en' => ucfirst($typeKey), 'fr' => ucfirst($typeKey)];
                 $lineTotal = $price * $quantity;
                 $subtotal += $lineTotal;
@@ -96,13 +121,21 @@ class PriceCalculationService
     /**
      * Calculate simple total without breakdown (backward compatible).
      *
+     * When a slot with overrides is supplied, the first listed person-type's
+     * effective slot price stands in for the base price (typically "adult").
+     *
      * @param  Listing  $listing  The listing being booked
      * @param  int  $quantity  Total number of guests
      * @param  string|null  $currency  Currency to use (TND or EUR). If null, defaults to EUR
+     * @param  AvailabilitySlot|null  $slot  Optional slot whose price_overrides take priority
      * @return array{subtotal: int|float, discount: int|float, total: int|float, currency: string}
      */
-    public function calculateSimpleTotal(Listing $listing, int $quantity, ?string $currency = null): array
-    {
+    public function calculateSimpleTotal(
+        Listing $listing,
+        int $quantity,
+        ?string $currency = null,
+        ?AvailabilitySlot $slot = null,
+    ): array {
         $pricing = $listing->pricing;
 
         // Determine currency
@@ -116,6 +149,18 @@ class PriceCalculationService
         // If numeric string, convert to number
         if (is_string($basePrice)) {
             $basePrice = (float) $basePrice;
+        }
+
+        // Slot-level override on the listing's first person-type (if any) wins.
+        if ($slot
+            && is_array($pricing['person_types'] ?? null)
+            && ! empty($pricing['person_types'])
+        ) {
+            $effective = $slot->getEffectivePersonTypePrices($currency, $pricing['person_types']);
+            $firstKey = $pricing['person_types'][0]['key'] ?? null;
+            if ($firstKey !== null && array_key_exists($firstKey, $effective)) {
+                $basePrice = (float) $effective[$firstKey];
+            }
         }
 
         $subtotal = $basePrice * $quantity;

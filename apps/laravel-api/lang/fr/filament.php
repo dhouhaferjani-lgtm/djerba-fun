@@ -878,6 +878,22 @@ return [
         'capacity' => 'Capacité',
         'price_override' => 'Prix Personnalisé',
 
+        // Per-rule toggle for showing slot duration on the customer-facing picker
+        'show_duration' => [
+            'label' => 'Afficher la durée sur le sélecteur de créneaux',
+            'helper' => 'Quand activé, les clients voient la durée de chaque créneau (par ex. « 1h », « 1h 30min », « 3h ») à côté de son horaire.',
+        ],
+
+        // Per-time-slot price overrides (per-person-type, dual-currency)
+        'price_overrides' => [
+            'label' => 'Prix personnalisés pour ce créneau (optionnel)',
+            'person_type' => 'Type de personne',
+            'tnd_price' => 'Prix TND',
+            'eur_price' => 'Prix EUR',
+            'add' => 'Ajouter un prix par type de personne',
+            'helper' => "Les types de personnes non personnalisés suivront les modifications de prix de l'annonce.",
+        ],
+
         // Days
         'sunday' => 'Dimanche',
         'monday' => 'Lundi',

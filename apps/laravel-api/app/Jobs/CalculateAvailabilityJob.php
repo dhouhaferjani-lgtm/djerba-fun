@@ -64,8 +64,8 @@ class CalculateAvailabilityJob implements ShouldQueue
             $this->generateSlotsForDate($date, $rules);
         }
 
-        // Now reconcile: any slot in the range whose (date, start_time) key
-        // was *not* upserted above is stale. Cancel its holds with a reason
+        // Now reconcile: any slot in the range whose (date, start_time, end_time)
+        // tuple was *not* upserted above is stale. Cancel its holds with a reason
         // and notification, then delete it.
         $this->reconcileStaleSlots();
     }
@@ -111,10 +111,15 @@ class CalculateAvailabilityJob implements ShouldQueue
      * apply those casts to bound values — so a string like '09:00:00' would
      * never match a stored value of '2026-04-27 09:00:00' written via the
      * cast on insert. updateOrCreate would then silently fall through to a
-     * fresh INSERT and trip the unique (listing_id, date, start_time) index
-     * the second time the job ran on the same listing+date.
+     * fresh INSERT and trip the unique (listing_id, date, start_time, end_time)
+     * index the second time the job ran on the same listing+date+window.
      *
-     * @param  array{start_time: string, end_time: string, capacity: int}  $entry
+     * The lookup is keyed on (date, start_time, end_time) — the new DB unique
+     * key — so two slots that share a start_time but differ in end_time stay
+     * distinct rows (e.g. a 1-hour and a 3-hour version of the same circuit
+     * starting at 09:00).
+     *
+     * @param  array{start_time: string, end_time: string, capacity: int, price_overrides?: array<string, mixed>|null}  $entry
      */
     protected function createOrUpdateSlot(Carbon $date, AvailabilityRule $rule, array $entry): void
     {
@@ -122,16 +127,51 @@ class CalculateAvailabilityJob implements ShouldQueue
         $endTime = $this->normaliseTime($entry['end_time']);
         $capacity = (int) ($entry['capacity'] ?? $rule->capacity ?? 1);
         $basePrice = $this->getListingBasePrice();
+        $priceOverrides = $this->normaliseOverrides($entry['price_overrides'] ?? null);
 
-        $this->upsertSlotByLookup($date, $startTime, [
+        $this->upsertSlotByLookup($date, $startTime, $endTime, [
             'availability_rule_id' => $rule->id,
-            'end_time' => $endTime,
             'capacity' => $capacity,
             'remaining_capacity' => $capacity,
             'base_price' => $basePrice,
             'status' => SlotStatus::AVAILABLE,
             'currency' => 'EUR',
+            'price_overrides' => $priceOverrides,
         ]);
+    }
+
+    /**
+     * Normalise a price_overrides payload before persisting it on the slot.
+     *
+     * An empty `person_types[]` array (or a missing key) collapses to NULL so
+     * downstream "has override?" checks can stay a single is-null test.
+     *
+     * @param  mixed  $raw
+     * @return array<string, mixed>|null
+     */
+    protected function normaliseOverrides(mixed $raw): ?array
+    {
+        if (! is_array($raw)) {
+            return null;
+        }
+
+        $personTypes = $raw['person_types'] ?? null;
+        if (! is_array($personTypes) || count($personTypes) === 0) {
+            return null;
+        }
+
+        $cleaned = [];
+        foreach ($personTypes as $row) {
+            if (is_array($row) && isset($row['key']) && $row['key'] !== '') {
+                $cleaned[] = $row;
+            }
+        }
+
+        if (count($cleaned) === 0) {
+            return null;
+        }
+
+        return ['person_types' => $cleaned];
     }
 
     /**
@@ -153,14 +193,14 @@ class CalculateAvailabilityJob implements ShouldQueue
 
         $basePrice = (float) ($this->listing->nightly_price_eur ?? 0);
 
-        $this->upsertSlotByLookup($date, $startTime->format('H:i:s'), [
+        $this->upsertSlotByLookup($date, $startTime->format('H:i:s'), $endTime->format('H:i:s'), [
             'availability_rule_id' => $rule->id,
-            'end_time' => $endTime->format('H:i:s'),
             'capacity' => $rule->capacity,
             'remaining_capacity' => $rule->capacity,
             'base_price' => $basePrice,
             'status' => SlotStatus::AVAILABLE,
             'currency' => 'EUR',
+            'price_overrides' => null,
         ]);
     }
 
@@ -184,44 +224,52 @@ class CalculateAvailabilityJob implements ShouldQueue
             $endTime = $rule->end_time ?: now()->endOfDay();
         }
 
-        $this->upsertSlotByLookup($date, $startTime->format('H:i:s'), [
+        $this->upsertSlotByLookup($date, $startTime->format('H:i:s'), $endTime->format('H:i:s'), [
             'availability_rule_id' => $rule->id,
-            'end_time' => $endTime->format('H:i:s'),
             'capacity' => 0,
             'remaining_capacity' => 0, // Blocked slots have 0 capacity
             'base_price' => 0,
             'status' => SlotStatus::BLOCKED,
             'currency' => 'EUR', // Default currency
+            'price_overrides' => null,
         ]);
     }
 
     /**
-     * Find an existing slot for ($listing, $date, $startTime) and update it,
-     * or insert a fresh row. Then record the (date, start_time) key in
-     * $upsertedKeys so reconcileStaleSlots() leaves it alone.
+     * Find an existing slot for ($listing, $date, $startTime, $endTime) and
+     * update it, or insert a fresh row. Then record the (date, start_time,
+     * end_time) tuple in $upsertedKeys so reconcileStaleSlots() leaves it
+     * alone.
+     *
+     * The lookup matches the new unique DB index (listing_id, date,
+     * start_time, end_time) — including end_time so two slots at the same
+     * start_time but different durations stay distinct rows rather than
+     * silently clobbering each other.
      *
      * @param  array<string, mixed>  $attributes
      */
-    protected function upsertSlotByLookup(Carbon $date, string $startTime, array $attributes): void
+    protected function upsertSlotByLookup(Carbon $date, string $startTime, string $endTime, array $attributes): void
     {
         $dateStr = $date->toDateString();
 
         $existing = AvailabilitySlot::where('listing_id', $this->listing->id)
             ->whereDate('date', $dateStr)
             ->whereTime('start_time', $startTime)
+            ->whereTime('end_time', $endTime)
             ->first();
 
         if ($existing) {
-            $existing->fill($attributes)->save();
+            $existing->fill(array_merge($attributes, ['end_time' => $endTime]))->save();
         } else {
             AvailabilitySlot::create(array_merge($attributes, [
                 'listing_id' => $this->listing->id,
                 'date' => $dateStr,
                 'start_time' => $startTime,
+                'end_time' => $endTime,
             ]));
         }
 
-        $this->markUpserted($dateStr, $startTime);
+        $this->markUpserted($dateStr, $startTime, $endTime);
     }
 
     /**
@@ -243,7 +291,7 @@ class CalculateAvailabilityJob implements ShouldQueue
         }
 
         foreach ($stale as $slot) {
-            $key = $this->keyFor($slot->date, $slot->start_time);
+            $key = $this->keyFor($slot->date, $slot->start_time, $slot->end_time);
 
             if (isset($this->upsertedKeys[$key])) {
                 continue; // slot still exists in the new schedule — leave it alone
@@ -330,23 +378,28 @@ class CalculateAvailabilityJob implements ShouldQueue
         return (string) ($title ?: 'Activity');
     }
 
-    protected function markUpserted(string $date, string $startTime): void
+    protected function markUpserted(string $date, string $startTime, string $endTime): void
     {
-        $this->upsertedKeys[$this->keyFor($date, $startTime)] = true;
+        $this->upsertedKeys[$this->keyFor($date, $startTime, $endTime)] = true;
     }
 
     /**
-     * Build a stable composite key for a (date, start_time) pair regardless of
-     * whether the inputs come in as Carbon, string, or short ("HH:MM") forms.
+     * Build a stable composite key for a (date, start_time, end_time) tuple,
+     * regardless of whether the inputs come in as Carbon, string, or short
+     * ("HH:MM") forms. The end_time component is what lets two slots at the
+     * same start_time but different durations live as distinct rows.
      */
-    protected function keyFor($date, $startTime): string
+    protected function keyFor($date, $startTime, $endTime): string
     {
         $dateStr = $date instanceof \DateTimeInterface ? $date->format('Y-m-d') : (string) $date;
-        $timeStr = $startTime instanceof \DateTimeInterface
+        $startStr = $startTime instanceof \DateTimeInterface
             ? $startTime->format('H:i:s')
             : $this->normaliseTime((string) $startTime);
+        $endStr = $endTime instanceof \DateTimeInterface
+            ? $endTime->format('H:i:s')
+            : $this->normaliseTime((string) $endTime);
 
-        return "{$dateStr}|{$timeStr}";
+        return "{$dateStr}|{$startStr}|{$endStr}";
     }
 
     /**

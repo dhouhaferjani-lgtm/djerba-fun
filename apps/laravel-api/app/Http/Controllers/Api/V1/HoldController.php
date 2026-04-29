@@ -106,20 +106,28 @@ class HoldController extends Controller
             ], 422);
         }
 
-        // Calculate price snapshot for the hold
+        // Calculate price snapshot for the hold.
+        //
+        // Pass the resolved AvailabilitySlot through to PriceCalculationService
+        // so any per-time-slot price_overrides on the slot win over the
+        // listing's pricing.person_types[]. When the slot has no override,
+        // the service falls back to today's listing-only behaviour — that's
+        // the regression guard validated by AvailabilityRuleSlotPricingTest.
         $priceSnapshot = null;
         if (! empty($personTypeBreakdown)) {
             $calculation = $this->priceCalculationService->calculateTotal(
                 $listing,
                 $personTypeBreakdown,
-                $currency
+                $currency,
+                $slot,
             );
             $priceSnapshot = $calculation['total'];
         } else {
             $calculation = $this->priceCalculationService->calculateSimpleTotal(
                 $listing,
                 $quantity,
-                $currency
+                $currency,
+                $slot,
             );
             $priceSnapshot = $calculation['total'];
         }

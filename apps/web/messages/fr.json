@@ -936,6 +936,11 @@
       "blocked": "Non disponible"
     }
   },
+  "duration": {
+    "verbose_minutes_only": "{count, plural, =1 {1 minute} other {# minutes}}",
+    "verbose_hours_only": "{count, plural, =1 {1 heure} other {# heures}}",
+    "verbose_hours_minutes": "{hours, plural, =1 {1 heure} other {# heures}} {minutes, plural, =1 {1 minute} other {# minutes}}"
+  },
   "map": {
     "loading": "Chargement de la carte...",
     "view_details": "Voir les Détails"

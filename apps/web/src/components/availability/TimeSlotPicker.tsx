@@ -3,6 +3,19 @@
 import { useTranslations } from 'next-intl';
 import { Clock, Users } from 'lucide-react';
 import type { AvailabilitySlot } from '@djerba-fun/schemas';
+import { formatDurationCompact, formatDurationVerbose } from '@/lib/utils/duration';
+
+/**
+ * Whether two slots in this picker would render the same headline price.
+ * When prices diverge (e.g. a 1-hour at 50 TND vs a 3-hour at 120 TND in the
+ * same day), the picker prints the per-slot price next to each option so the
+ * customer sees the duration → price relationship at a glance.
+ */
+function pricesAreUniform(slots: AvailabilitySlot[]): boolean {
+  if (slots.length < 2) return true;
+  const first = slots[0]?.displayPrice;
+  return slots.every((s) => (s.displayPrice ?? null) === (first ?? null));
+}
 
 interface TimeSlotPickerProps {
   slots: AvailabilitySlot[];
@@ -18,6 +31,9 @@ export default function TimeSlotPicker({
   className = '',
 }: TimeSlotPickerProps) {
   const t = useTranslations('availability');
+  // The duration formatter routes through ICU plurals at the message-tree root,
+  // so we use the global `t` (no namespace) to access "duration.*" keys.
+  const tDuration = useTranslations();
 
   const availableSlots = slots.filter(
     (slot) => slot.status === 'available' || slot.status === 'limited'
@@ -68,6 +84,12 @@ export default function TimeSlotPicker({
     );
   }
 
+  // Only show the per-slot price chip when slots actually diverge (e.g.
+  // 1-hour vs 3-hour duration with their own price overrides). When every
+  // slot inherits the same listing-level price, the existing booking-panel
+  // headline already displays it — repeating it here would be visual noise.
+  const showPerSlotPrice = !pricesAreUniform(availableSlots);
+
   return (
     <div className={`space-y-4 ${className}`}>
       <h4 className="font-semibold text-neutral-900">{t('select_time')}</h4>
@@ -76,6 +98,31 @@ export default function TimeSlotPicker({
         {availableSlots.map((slot) => {
           const isSelected = selectedSlot?.id === slot.id;
           const remainingText = getRemainingText(slot);
+          const priceForSlot =
+            slot.displayPrice !== undefined && slot.displayPrice !== null
+              ? Math.round(slot.displayPrice)
+              : null;
+          const currencySymbol = slot.displayCurrency === 'TND' ? 'TND' : '€';
+
+          // Iteration-3 duration display. Driven by the per-rule `showDuration`
+          // flag the API resolves from `availability_rules.show_duration`.
+          // Compact label sits inside the chip; verbose label is folded into
+          // the slot button's accessible name so screen readers announce
+          // "1 hour" rather than literally reading "one h".
+          const durationMinutes = slot.durationMinutes ?? 0;
+          const renderDuration = !!slot.showDuration && durationMinutes > 0;
+          const durationCompact = renderDuration ? formatDurationCompact(durationMinutes) : '';
+          const durationVerbose = renderDuration
+            ? formatDurationVerbose(durationMinutes, tDuration)
+            : '';
+
+          const ariaLabel = [
+            `${formatTime(slot, 'start')} – ${formatTime(slot, 'end')}`,
+            durationVerbose,
+            `${slot.remainingCapacity ?? slot.capacity} / ${slot.capacity} ${t('available')}`,
+          ]
+            .filter(Boolean)
+            .join(', ');
 
           return (
             <button
@@ -83,22 +130,44 @@ export default function TimeSlotPicker({
               onClick={() => onSlotSelect(slot)}
               data-testid="time-slot"
               data-slot-time={formatTime(slot, 'start')}
+              data-slot-price={priceForSlot ?? ''}
+              data-slot-duration={renderDuration ? durationMinutes : ''}
+              aria-label={ariaLabel}
               className={`
                 w-full rounded-lg border-2 p-3 text-left transition-all cursor-pointer
                 ${isSelected ? 'border-primary ring-2 ring-primary ring-opacity-50' : getSlotStatusColor(slot.status)}
               `}
             >
               <div className="flex items-center justify-between gap-3">
-                {/* Time */}
+                {/* Time + (optional) duration chip */}
                 <div className="flex items-center gap-2 min-w-0">
                   <Clock className="h-4 w-4 text-neutral-600 shrink-0" />
                   <span className="font-semibold text-neutral-900 whitespace-nowrap">
                     {formatTime(slot, 'start')} – {formatTime(slot, 'end')}
                   </span>
+                  {renderDuration && (
+                    <span
+                      data-testid="slot-duration"
+                      className="text-xs font-medium text-neutral-600 whitespace-nowrap"
+                      aria-hidden="true"
+                    >
+                      · {durationCompact}
+                    </span>
+                  )}
                 </div>
 
-                {/* Capacity + selected indicator on the right */}
+                {/* Capacity + price + selected indicator on the right */}
                 <div className="flex items-center gap-2 shrink-0">
+                  {showPerSlotPrice && priceForSlot !== null && (
+                    <span
+                      data-testid="slot-price"
+                      className="text-sm font-semibold text-primary whitespace-nowrap"
+                    >
+                      {currencySymbol === '€'
+                        ? `${currencySymbol}${priceForSlot}`
+                        : `${priceForSlot} ${currencySymbol}`}
+                    </span>
+                  )}
                   <span
                     data-testid="slot-capacity"
                     className="flex items-center gap-1.5 text-sm font-medium text-neutral-700"

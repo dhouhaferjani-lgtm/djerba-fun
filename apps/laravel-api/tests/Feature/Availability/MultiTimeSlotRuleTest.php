@@ -207,12 +207,18 @@ class MultiTimeSlotRuleTest extends TestCase
     }
 
     /**
-     * GIVEN: time_slots containing two entries with the same start_time
-     * WHEN:  the rule is saved
-     * THEN:  validation throws — silent updateOrCreate overwrite would otherwise
-     *        clobber one entry due to the unique (listing_id, date, start_time) index.
+     * GIVEN: time_slots containing two entries with EXACTLY the same window
+     *        (same start_time AND same end_time).
+     * WHEN:  the rule is saved.
+     * THEN:  validation throws — the (start_time, end_time) tuple must be unique
+     *        within a rule, otherwise the unique (listing_id, date, start_time,
+     *        end_time) DB index would silently merge them on upsert.
+     *
+     * Note: two entries that share a start_time but differ in end_time are
+     * legitimate (durations stacking from a shared anchor) and are covered by
+     * test_same_start_time_different_durations_pass_validation below.
      */
-    public function test_duplicate_start_times_in_time_slots_fail_validation(): void
+    public function test_duplicate_slot_tuples_fail_validation(): void
     {
         $listing = Listing::factory()->create([
             'service_type' => ServiceType::TOUR,
@@ -226,12 +232,52 @@ class MultiTimeSlotRuleTest extends TestCase
             'days_of_week' => [Carbon::MONDAY],
             'time_slots' => [
                 ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 5],
-                ['start_time' => '09:00:00', 'end_time' => '14:00:00', 'capacity' => 3],
+                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 3],
             ],
             'start_date' => Carbon::today(),
             'end_date' => Carbon::today()->addDays(7),
             'is_active' => true,
         ]);
+    }
+
+    /**
+     * GIVEN: time_slots with two entries sharing a start_time but differing in end_time
+     *        (e.g. 09:00–10:00 and 09:00–12:00 — a 1-hour and a 3-hour version of
+     *        the same circuit).
+     * WHEN:  the rule is saved.
+     * THEN:  validation passes; both rows persist as distinct AvailabilitySlot rows
+     *        with their own capacity and (optionally) their own price overrides.
+     *
+     * This is the headline behaviour-change of the per-slot-pricing feature.
+     */
+    public function test_same_start_time_different_durations_pass_validation(): void
+    {
+        $monday = Carbon::today()->next(Carbon::MONDAY);
+
+        $listing = Listing::factory()->create([
+            'service_type' => ServiceType::TOUR,
+        ]);
+
+        AvailabilityRule::create([
+            'listing_id' => $listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [Carbon::MONDAY],
+            'time_slots' => [
+                ['start_time' => '09:00:00', 'end_time' => '10:00:00', 'capacity' => 8],
+                ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 4],
+            ],
+            'start_date' => $monday->copy(),
+            'end_date' => $monday->copy(),
+            'is_active' => true,
+        ]);
+
+        $this->assertSame(
+            2,
+            AvailabilitySlot::where('listing_id', $listing->id)
+                ->whereDate('date', $monday->toDateString())
+                ->count(),
+            'Both durations must materialise at the same start_time.',
+        );
     }
 
     /**
@@ -382,7 +428,7 @@ class MultiTimeSlotRuleTest extends TestCase
                 'days_of_week' => [Carbon::MONDAY],
                 'time_slots' => [
                     ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 5],
-                    ['start_time' => '09:00:00', 'end_time' => '14:00:00', 'capacity' => 3],
+                    ['start_time' => '09:00:00', 'end_time' => '12:00:00', 'capacity' => 3],
                 ],
                 'start_date' => Carbon::today(),
                 'end_date' => Carbon::today()->addDays(7),
@@ -400,12 +446,12 @@ class MultiTimeSlotRuleTest extends TestCase
 
         // The message must come from the FR translation file, not a hardcoded English literal.
         $this->assertStringNotContainsString(
-            'Duplicate start_time',
+            'Duplicate',
             $message,
             'Validation message leaked an English literal — must be translated.'
         );
         $this->assertNotEquals(
-            'validation.availability_rule.time_slots.duplicate_start_time',
+            'validation.availability_rule.time_slots.duplicate_slot',
             $message,
             'Translation key was not resolved — fr/validation.php is missing the entry.'
         );
@@ -837,8 +883,14 @@ class MultiTimeSlotRuleTest extends TestCase
 
         $expectedSlotCount = $expectedApplicableDates * 2; // 2 time_slots entries per applicable date
 
+        // Use whereDate (not whereBetween on the raw column) for the bounds —
+        // SQLite stores the cast 'date' value as 'YYYY-MM-DD 00:00:00', and a
+        // BETWEEN against bare 'YYYY-MM-DD' bounds would lexicographically
+        // exclude every slot on the upper-bound date. whereDate compares by
+        // date components and is timezone- and storage-format-stable.
         $totalSlots = AvailabilitySlot::where('listing_id', $listing->id)
-            ->whereBetween('date', [$today->toDateString(), $endOfWindow->toDateString()])
+            ->whereDate('date', '>=', $today->toDateString())
+            ->whereDate('date', '<=', $endOfWindow->toDateString())
             ->count();
 
         $this->assertSame(

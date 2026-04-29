@@ -215,7 +215,7 @@ class CartService
      */
     public function calculateTotals(Cart $cart): array
     {
-        $cart->load(['items.listing', 'items.hold']);
+        $cart->load(['items.listing', 'items.hold.slot']);
 
         $items = [];
         $subtotal = 0;
@@ -227,6 +227,12 @@ class CartService
             if (! $listing) {
                 continue;
             }
+
+            // Resolve the booked slot (when present) so per-slot price overrides
+            // flow through PriceCalculationService. Accommodation items don't
+            // expose a slot here — they go through the per_night branch below
+            // where slot pricing isn't applicable.
+            $slot = $item->hold?->slot;
 
             $breakdown = null;
             $itemSubtotal = 0;
@@ -247,12 +253,12 @@ class CartService
                 ];
             } elseif (! empty($item->person_type_breakdown)) {
                 // Calculate item price using person type breakdown if available
-                $result = $this->priceService->calculateTotal($listing, $item->person_type_breakdown, $item->currency);
+                $result = $this->priceService->calculateTotal($listing, $item->person_type_breakdown, $item->currency, $slot);
                 $itemSubtotal = $result['total'];
                 $currency = $result['currency'];
                 $breakdown = $result['breakdown'];
             } else {
-                $result = $this->priceService->calculateSimpleTotal($listing, $item->quantity, $item->currency);
+                $result = $this->priceService->calculateSimpleTotal($listing, $item->quantity, $item->currency, $slot);
                 $itemSubtotal = $result['total'];
                 $currency = $result['currency'];
             }

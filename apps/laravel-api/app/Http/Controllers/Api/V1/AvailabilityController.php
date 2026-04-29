@@ -46,8 +46,16 @@ class AvailabilityController extends Controller
             }
 
             // Performance: Fetch available slots with only needed columns
+            // Eager-load the parent listing so AvailabilitySlotResource can compute
+            // the per-currency, per-person-type effective price merge using the
+            // listing's pricing.person_types[]. Without this the resource's
+            // `effectivePrices` field collapses to empty arrays.
+            //
+            // Eager-load the availabilityRule so the resource can read the
+            // per-rule show_duration flag without an N+1 lookup.
             $query = $listing->availabilitySlots()
                 ->selectApi() // Use model scope to prevent column mismatch issues
+                ->with(['listing', 'availabilityRule'])
                 ->betweenDates($startDate, $endDate);
 
             // Apply minimum advance booking time filter

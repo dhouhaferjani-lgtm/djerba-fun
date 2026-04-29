@@ -1003,6 +1003,11 @@
       "blocked": "Not available"
     }
   },
+  "duration": {
+    "verbose_minutes_only": "{count, plural, =1 {1 minute} other {# minutes}}",
+    "verbose_hours_only": "{count, plural, =1 {1 hour} other {# hours}}",
+    "verbose_hours_minutes": "{hours, plural, =1 {1 hour} other {# hours}} {minutes, plural, =1 {1 minute} other {# minutes}}"
+  },
   "map": {
     "loading": "Loading map...",
     "view_details": "View Details"

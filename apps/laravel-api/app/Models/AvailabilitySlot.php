@@ -37,6 +37,7 @@ class AvailabilitySlot extends Model
         'base_price',
         'status',
         'currency',
+        'price_overrides',
     ];
 
     /**
@@ -52,6 +53,7 @@ class AvailabilitySlot extends Model
             'end_time' => 'datetime',
             'status' => SlotStatus::class,
             'base_price' => 'decimal:2',
+            'price_overrides' => 'array',
         ];
     }
 
@@ -128,8 +130,58 @@ class AvailabilitySlot extends Model
         return $query->select([
             'id', 'listing_id', 'availability_rule_id', 'date', 'start_time', 'end_time',
             'capacity', 'remaining_capacity', 'base_price', 'status', 'currency',
+            'price_overrides',
             'created_at', 'updated_at',
         ]);
+    }
+
+    /**
+     * Resolve the effective per-person-type prices for this slot in the given currency.
+     *
+     * Lenient per-key merge: any person-type listed in this slot's
+     * price_overrides.person_types[] uses the slot's price; anything not
+     * overridden falls back to the listing's pricing.person_types[].
+     *
+     * This is the single source of truth for "what does this slot cost
+     * per person-type?" — every consumer (PriceCalculationService,
+     * AvailabilitySlotResource) calls through here rather than rebuilding
+     * the merge inline.
+     *
+     * @param  string  $currency  'TND' | 'EUR' (case-insensitive)
+     * @param  array<int, array{key?: string, tnd_price?: int|float|string, eur_price?: int|float|string}>  $listingPersonTypes
+     * @return array<string, float>  ['adult' => 120.0, 'child' => 30.0, ...]
+     */
+    public function getEffectivePersonTypePrices(string $currency, array $listingPersonTypes): array
+    {
+        $priceKey = strtoupper($currency) === 'TND' ? 'tnd_price' : 'eur_price';
+
+        $overridesByKey = [];
+        $overrides = $this->price_overrides;
+        if (is_array($overrides) && isset($overrides['person_types']) && is_array($overrides['person_types'])) {
+            foreach ($overrides['person_types'] as $entry) {
+                if (! is_array($entry) || ! isset($entry['key'])) {
+                    continue;
+                }
+                if (array_key_exists($priceKey, $entry) && $entry[$priceKey] !== null && $entry[$priceKey] !== '') {
+                    $overridesByKey[(string) $entry['key']] = (float) $entry[$priceKey];
+                }
+            }
+        }
+
+        $effective = [];
+        foreach ($listingPersonTypes as $listingPt) {
+            if (! is_array($listingPt) || ! isset($listingPt['key'])) {
+                continue;
+            }
+            $key = (string) $listingPt['key'];
+            if (array_key_exists($key, $overridesByKey)) {
+                $effective[$key] = $overridesByKey[$key];
+            } else {
+                $effective[$key] = (float) ($listingPt[$priceKey] ?? 0);
+            }
+        }
+
+        return $effective;
     }
 
     /**
