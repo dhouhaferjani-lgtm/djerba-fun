@@ -1,9 +1,18 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright configuration for Go Adventure E2E tests
+ * Playwright configuration for djerba-fun E2E tests.
+ *
+ * Honour `PORT` and `NEXT_PUBLIC_API_URL` from the shell so the same config
+ * works on a developer's machine that has another Next.js app on :3000
+ * (e.g. an unrelated project) without forcing them to free that port.
+ * Default is still :3000 — no change for everyone else.
+ *
  * @see https://playwright.dev/docs/test-configuration
  */
+const WEB_PORT = process.env.PORT ?? '3000';
+const WEB_BASE_URL = `http://localhost:${WEB_PORT}`;
+
 export default defineConfig({
   testDir: './tests/e2e',
 
@@ -25,7 +34,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:3000',
+    baseURL: WEB_BASE_URL,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -71,8 +80,10 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
+    // Honour PORT so a custom dev port (set by the developer's shell) flows
+    // through to Next.js. PORT is read by Next automatically.
     command: 'pnpm dev',
-    url: 'http://localhost:3000',
+    url: WEB_BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
