@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Enums\AvailabilityRuleType;
 use App\Filament\Admin\Resources\AvailabilityRuleResource\Pages;
+use App\Filament\Concerns\ResolvesListingPersonTypes;
 use App\Models\AvailabilityRule;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class AvailabilityRuleResource extends Resource
 {
+    use ResolvesListingPersonTypes;
+
     protected static ?string $model = AvailabilityRule::class;
 
     protected static ?string $navigationIcon = null;
@@ -205,21 +208,20 @@ class AvailabilityRuleResource extends Resource
                                     ->schema([
                                         Forms\Components\Select::make('key')
                                             ->label(__('filament.availability_rule.price_overrides.person_type'))
-                                            ->options(function (Forms\Get $get): array {
-                                                // ../../listing_id climbs out of this nested Repeater
-                                                // (override row → time_slots row → form root).
-                                                $listingId = $get('../../listing_id');
-                                                if (! $listingId) {
-                                                    return [];
-                                                }
+                                            // Read listing_id from live Livewire form state first (covers
+                                            // both Edit and Create, including the rare case where the user
+                                            // changes the listing on Edit before adding overrides), then
+                                            // fall back to $record. Bypasses the doubly-nested Repeater
+                                            // statePath climb that the prior Get('../../listing_id') tried
+                                            // to do — that path resolved 3 segments short of the form root
+                                            // because Repeater::make('price_overrides.person_types') uses
+                                            // a dotted name that expands to multiple statePath segments.
+                                            ->options(function (?AvailabilityRule $record, $livewire): array {
+                                                $listingId = data_get($livewire, 'data.listing_id') ?? $record?->listing_id;
 
-                                                $listing = \App\Models\Listing::find($listingId);
-                                                $personTypes = $listing?->pricing['person_types'] ?? [];
-
-                                                return collect($personTypes)
-                                                    ->filter(fn ($pt) => is_array($pt) && ! empty($pt['key']))
-                                                    ->mapWithKeys(fn ($pt) => [$pt['key'] => ucfirst((string) $pt['key'])])
-                                                    ->all();
+                                                return static::personTypeOptionsFromListing(
+                                                    $listingId !== null ? (int) $listingId : null,
+                                                );
                                             })
                                             ->required(),
                                         Forms\Components\TextInput::make('tnd_price')

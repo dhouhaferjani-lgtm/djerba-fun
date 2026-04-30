@@ -611,4 +611,271 @@ class AvailabilityRuleResourceTest extends TestCase
                 $this->assertTrue((bool) ($state['show_duration'] ?? false));
             });
     }
+
+    /**
+     * GIVEN: a listing whose pricing.person_types defines adult + child with translated labels,
+     *        and a rule with one time_slot that already carries one price-override row.
+     * WHEN:  the edit form mounts and we probe the price-override Select's resolved options
+     *        WITHOUT going through fillForm (which bypasses the options resolver).
+     * THEN:  the Select exposes both keys with locale-resolved labels.
+     *
+     * Regression guard for the live-only bug shipped in 6addc39: the prior closure used
+     * Get('../../listing_id') which could not climb out of the doubly-nested Repeater
+     * statePath, so the resolver returned [] and the dropdown rendered empty in the UI.
+     * The existing test_save_persists_price_overrides_on_a_time_slot covers persistence
+     * but uses fillForm, which sets state programmatically and never invokes ->options().
+     */
+    public function test_edit_form_options_resolve_listing_person_types(): void
+    {
+        $this->listing->update([
+            'pricing' => [
+                'person_types' => [
+                    ['key' => 'adult', 'label' => ['en' => 'Adult', 'fr' => 'Adulte'], 'tnd_price' => 50, 'eur_price' => 15],
+                    ['key' => 'child', 'label' => ['en' => 'Child', 'fr' => 'Enfant'], 'tnd_price' => 30, 'eur_price' => 10],
+                ],
+            ],
+        ]);
+
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1],
+            'time_slots' => [
+                [
+                    'start_time' => '09:00',
+                    'end_time' => '12:00',
+                    'capacity' => 5,
+                    'price_overrides' => [
+                        'person_types' => [
+                            ['key' => 'adult', 'tnd_price' => 60, 'eur_price' => 20],
+                        ],
+                    ],
+                ],
+            ],
+            'is_active' => true,
+        ]);
+
+        $component = Livewire::test(
+            AvailabilityRuleResource\Pages\EditAvailabilityRule::class,
+            ['record' => $rule->getKey()]
+        )->assertSuccessful();
+
+        app()->setLocale('en');
+        $select = $this->locateOverridePersonTypeSelect($component);
+        $this->assertNotNull($select, 'Override person-type Select must instantiate when an override row is hydrated.');
+
+        $options = $select->getOptions();
+        $this->assertSame(
+            ['adult' => 'Adult', 'child' => 'Child'],
+            $options,
+            'Edit form must expose ALL listing person_types as options (not just the already-picked key).'
+        );
+    }
+
+    /**
+     * GIVEN: app locale is French and the same listing definition.
+     * WHEN:  the edit form mounts and we probe the override Select.
+     * THEN:  options are resolved using French labels from pricing.person_types[].label.fr.
+     */
+    public function test_edit_form_options_resolve_in_french_locale(): void
+    {
+        $this->listing->update([
+            'pricing' => [
+                'person_types' => [
+                    ['key' => 'adult', 'label' => ['en' => 'Adult', 'fr' => 'Adulte'], 'tnd_price' => 50, 'eur_price' => 15],
+                    ['key' => 'child', 'label' => ['en' => 'Child', 'fr' => 'Enfant'], 'tnd_price' => 30, 'eur_price' => 10],
+                ],
+            ],
+        ]);
+
+        $rule = AvailabilityRule::create([
+            'listing_id' => $this->listing->id,
+            'rule_type' => AvailabilityRuleType::WEEKLY,
+            'days_of_week' => [1],
+            'time_slots' => [
+                [
+                    'start_time' => '09:00',
+                    'end_time' => '12:00',
+                    'capacity' => 5,
+                    'price_overrides' => [
+                        'person_types' => [
+                            ['key' => 'adult', 'tnd_price' => 60, 'eur_price' => 20],
+                        ],
+                    ],
+                ],
+            ],
+            'is_active' => true,
+        ]);
+
+        app()->setLocale('fr');
+
+        $component = Livewire::test(
+            AvailabilityRuleResource\Pages\EditAvailabilityRule::class,
+            ['record' => $rule->getKey()]
+        )->assertSuccessful();
+
+        $select = $this->locateOverridePersonTypeSelect($component);
+        $this->assertNotNull($select);
+
+        $options = $select->getOptions();
+        $this->assertSame(['adult' => 'Adulte', 'child' => 'Enfant'], $options);
+    }
+
+    /**
+     * GIVEN: a listing belonging to ANOTHER vendor.
+     * WHEN:  the static helper is called with the Vendor panel's vendor-scoped query
+     *        from the perspective of the current vendor (who does NOT own the listing).
+     * THEN:  no options are returned — confirms vendor scoping isolates pricing data.
+     *
+     * This is the security regression guard for cross-vendor data leak.
+     */
+    public function test_vendor_scoping_isolates_other_vendors_person_types(): void
+    {
+        $otherVendor = User::factory()->create(['role' => UserRole::VENDOR->value]);
+        $otherListing = Listing::factory()->create([
+            'vendor_id' => $otherVendor->id,
+            'service_type' => ServiceType::TOUR,
+            'pricing' => [
+                'person_types' => [
+                    ['key' => 'adult', 'label' => ['en' => 'Adult'], 'tnd_price' => 100, 'eur_price' => 30],
+                ],
+            ],
+        ]);
+
+        // Current vendor is $this->vendor (set in setUp). Probe with the same scoping
+        // closure the Vendor resource uses.
+        $options = AvailabilityRuleResource::personTypeOptionsFromListing(
+            $otherListing->id,
+            fn () => Listing::where('vendor_id', $this->vendor->id),
+        );
+
+        $this->assertSame([], $options, 'Vendor must NOT see person types of a listing they do not own.');
+    }
+
+    /**
+     * GIVEN: pricing.person_types[] entries with mixed label shapes:
+     *        translated array, plain string, missing label, and label missing the current locale.
+     * WHEN:  resolvePersonTypeLabel is called under different locales.
+     * THEN:  fallback chain is: current locale → en → fr → first non-empty → Str::ucfirst($key).
+     */
+    public function test_resolve_person_type_label_fallback_chain(): void
+    {
+        // 1. Translated array, current locale present.
+        app()->setLocale('en');
+        $this->assertSame(
+            'Adult',
+            AvailabilityRuleResource::resolvePersonTypeLabel([
+                'key' => 'adult',
+                'label' => ['en' => 'Adult', 'fr' => 'Adulte'],
+            ]),
+        );
+        app()->setLocale('fr');
+        $this->assertSame(
+            'Adulte',
+            AvailabilityRuleResource::resolvePersonTypeLabel([
+                'key' => 'adult',
+                'label' => ['en' => 'Adult', 'fr' => 'Adulte'],
+            ]),
+        );
+
+        // 2. Translated array, current locale missing → en fallback.
+        app()->setLocale('ar');
+        $this->assertSame(
+            'Adult',
+            AvailabilityRuleResource::resolvePersonTypeLabel([
+                'key' => 'adult',
+                'label' => ['en' => 'Adult', 'fr' => 'Adulte'],
+            ]),
+        );
+
+        // 3. Translated array, en missing too → fr fallback.
+        $this->assertSame(
+            'Adulte',
+            AvailabilityRuleResource::resolvePersonTypeLabel([
+                'key' => 'adult',
+                'label' => ['fr' => 'Adulte'],
+            ]),
+        );
+
+        // 4. Plain string label.
+        $this->assertSame(
+            'Plain Adult',
+            AvailabilityRuleResource::resolvePersonTypeLabel([
+                'key' => 'adult',
+                'label' => 'Plain Adult',
+            ]),
+        );
+
+        // 5. Missing label → Str::ucfirst($key) fallback (multibyte-safe).
+        app()->setLocale('en');
+        $this->assertSame(
+            'Adult',
+            AvailabilityRuleResource::resolvePersonTypeLabel(['key' => 'adult']),
+        );
+        $this->assertSame(
+            'Enfant',
+            AvailabilityRuleResource::resolvePersonTypeLabel(['key' => 'enfant']),
+        );
+
+        // 6. Empty label array with array-only non-empty value → returns it.
+        $this->assertSame(
+            'Solo',
+            AvailabilityRuleResource::resolvePersonTypeLabel([
+                'key' => 'adult',
+                'label' => ['de' => 'Solo'],
+            ]),
+        );
+    }
+
+    /**
+     * Walk the form schema down two Repeater levels (time_slots → price_overrides.person_types)
+     * and return the override-row 'key' Select component, or null if no override row exists.
+     */
+    private function locateOverridePersonTypeSelect($component): ?\Filament\Forms\Components\Select
+    {
+        $form = $component->instance()->getForm('form');
+
+        $timeSlots = $form->getFlatFields(withHidden: true)['time_slots'] ?? null;
+
+        if ($timeSlots === null) {
+            return null;
+        }
+
+        $timeSlotContainers = $timeSlots->getChildComponentContainers();
+        $timeSlotItem = reset($timeSlotContainers);
+
+        if ($timeSlotItem === false) {
+            return null;
+        }
+
+        $timeSlotFlat = $timeSlotItem->getFlatFields(withHidden: true);
+        // The inner Repeater is named with a dot ('price_overrides.person_types').
+        // getFlatFields may key it under that literal name OR under a normalised
+        // form. Probe by class to be robust to either convention.
+        $overrides = null;
+
+        foreach ($timeSlotFlat as $key => $field) {
+            if ($field instanceof \Filament\Forms\Components\Repeater) {
+                $overrides = $field;
+                break;
+            }
+        }
+
+        if ($overrides === null) {
+            // Diagnostic — surface the keys we DID find so the failure message is actionable.
+            $keys = array_keys($timeSlotFlat);
+            $this->fail('Inner override Repeater not found in time_slot child container. Keys present: ' . implode(', ', $keys));
+        }
+
+        $overrideContainers = $overrides->getChildComponentContainers();
+        $overrideItem = reset($overrideContainers);
+
+        if ($overrideItem === false) {
+            $this->fail('Override Repeater has no child containers — items did not hydrate. Item count: ' . count($overrideContainers));
+        }
+
+        $select = $overrideItem->getFlatFields(withHidden: true)['key'] ?? null;
+
+        return $select instanceof \Filament\Forms\Components\Select ? $select : null;
+    }
 }
