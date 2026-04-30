@@ -506,8 +506,21 @@ function BookingFlowContent({
                           parsePrice(selectedSlot?.displayPrice) ??
                           parsePrice(selectedSlot?.basePrice) ??
                           0;
+                        // Slot-effective per-person-type price (override-aware).
+                        // The API resolves listing.pricing[key] vs slot.priceOverrides[key]
+                        // server-side — the frontend just renders whichever one
+                        // effectivePrices[currency][key] holds. Falls back to the
+                        // listing's per-type price, then the slot's headline price,
+                        // for legacy slots that lack the effectivePrices field.
+                        const slotEffective =
+                          currency === 'TND' || currency === 'EUR'
+                            ? parsePrice(selectedSlot?.effectivePrices?.[currency]?.[key])
+                            : null;
                         const unitPrice =
-                          parsePrice(pt.price) ?? parsePrice(pt.displayPrice) ?? slotBasePrice;
+                          slotEffective ??
+                          parsePrice(pt.price) ??
+                          parsePrice(pt.displayPrice) ??
+                          slotBasePrice;
                         items.push({
                           type: 'person',
                           key,
