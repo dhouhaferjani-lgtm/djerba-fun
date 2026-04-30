@@ -1061,10 +1061,41 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
-  // Get person types from listing (memoized)
+  // Get person types from listing, then overlay the selected slot's
+  // effectivePrices when one is picked. The Voyageurs quantity-selector
+  // labels read pt.price directly, so without this overlay they kept showing
+  // listing defaults (€38 adult) while the breakdown below them showed the
+  // slot-overridden price (€48 adult). Centralising slot-awareness here
+  // means every consumer of personTypes (selector labels, breakdown items,
+  // grand-total helper) tells the customer the same number — what they're
+  // actually charged. Listing pricing remains the fallback when no slot is
+  // selected, the slot has no override for a given key, or the API hasn't
+  // surfaced effectivePrices yet (legacy slots).
   const personTypes = useMemo(() => {
-    return getPersonTypesFromListing(listing);
-  }, [listing]);
+    const fromListing = getPersonTypesFromListing(listing);
+
+    if (!selectedSlot) {
+      return fromListing;
+    }
+
+    const currency = selectedSlot.currency || listing.pricing?.displayCurrency;
+    if (currency !== 'TND' && currency !== 'EUR') {
+      return fromListing;
+    }
+
+    const effective = selectedSlot.effectivePrices?.[currency];
+    if (!effective) {
+      return fromListing;
+    }
+
+    return fromListing.map((pt) => {
+      const slotPrice = effective[pt.key];
+      if (typeof slotPrice !== 'number' || Number.isNaN(slotPrice)) {
+        return pt;
+      }
+      return { ...pt, price: slotPrice };
+    });
+  }, [listing, selectedSlot]);
 
   // Get availability for the next 6 months (always fetch since booking panel is visible from start)
   const startDate = format(new Date(), 'yyyy-MM-dd');
