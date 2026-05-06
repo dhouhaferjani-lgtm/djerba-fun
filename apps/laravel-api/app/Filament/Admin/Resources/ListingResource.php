@@ -103,15 +103,44 @@ class ListingResource extends Resource
 
                 Forms\Components\Section::make(__('filament.sections.description'))
                     ->schema([
-                        Forms\Components\Textarea::make('summary.en')
+                        // Server-rendered placeholders. Pre-fix: Textarea/RichEditor
+                        // bound to "summary.en" / "description.en" rendered as
+                        // "[object Object]" in the browser because Livewire
+                        // serialized the parent translatable map to the JS state
+                        // and the disabled-input layer toString'd it. Worse, with
+                        // some legacy listings Spatie's getTranslation() can
+                        // return a doubly-nested array ({"en": {"en": "value"}})
+                        // which the disabled input also rendered as gibberish.
+                        //
+                        // Fix: use Placeholder::content() with the SafeTranslation
+                        // helper that drills through nested arrays — bypasses both
+                        // the JS-side toString issue and the doubly-nested
+                        // Spatie quirk.
+                        Forms\Components\Placeholder::make('summary_en_display')
                             ->label(__('filament.labels.summary_english'))
-                            ->disabled()
-                            ->rows(3)
+                            ->content(function (?Listing $record): \Illuminate\Support\HtmlString {
+                                $raw = $record?->getTranslation('summary', 'en', false);
+                                $value = \App\Filament\Concerns\SafeTranslation::extractTranslation($raw, '');
+
+                                return new \Illuminate\Support\HtmlString(
+                                    $value !== '' ? nl2br(e($value)) : '<em class="text-gray-400">—</em>'
+                                );
+                            })
                             ->columnSpanFull(),
 
-                        Forms\Components\RichEditor::make('description.en')
+                        Forms\Components\Placeholder::make('description_en_display')
                             ->label(__('filament.labels.description_english'))
-                            ->disabled()
+                            ->content(function (?Listing $record): \Illuminate\Support\HtmlString {
+                                // description is RichText (HTML from TinyEditor) so
+                                // render as-is. Vendor input passes through TinyEditor's
+                                // sanitization upstream.
+                                $raw = $record?->getTranslation('description', 'en', false);
+                                $value = \App\Filament\Concerns\SafeTranslation::extractTranslation($raw, '');
+
+                                return new \Illuminate\Support\HtmlString(
+                                    $value !== '' ? $value : '<em class="text-gray-400">—</em>'
+                                );
+                            })
                             ->columnSpanFull(),
                     ]),
 
