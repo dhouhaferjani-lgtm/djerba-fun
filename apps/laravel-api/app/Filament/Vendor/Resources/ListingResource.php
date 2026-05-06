@@ -1277,6 +1277,32 @@ class ListingResource extends Resource
                                 ])
                                 ->visible(fn (Get $get): bool => $get('service_type') === ServiceType::ACCOMMODATION->value),
 
+                            // Optional unit label — overrides the public-site
+                            // "par personne / per person" suffix when the listing
+                            // is priced per machine / unit (e.g. "par jetski").
+                            // Empty = legacy behavior (per-person suffix).
+                            // Vendor-supplied, opt-in.
+                            Forms\Components\Section::make('Pricing Unit Label (optional)')
+                                ->description('Leave empty to display "per person". Set this when pricing is per machine, vehicle, or other unit. Examples: "par jetski", "per jetski", "par quad".')
+                                ->schema([
+                                    Forms\Components\Grid::make(2)->schema([
+                                        Forms\Components\TextInput::make('pricing.unit_label.fr')
+                                            ->label('Unit Label (French)')
+                                            ->placeholder('par jetski')
+                                            ->maxLength(60)
+                                            ->columnSpan(1),
+
+                                        Forms\Components\TextInput::make('pricing.unit_label.en')
+                                            ->label('Unit Label (English)')
+                                            ->placeholder('per jetski')
+                                            ->maxLength(60)
+                                            ->columnSpan(1),
+                                    ]),
+                                ])
+                                ->collapsed()
+                                // Hide for accommodations — they use per-night
+                                ->visible(fn (Get $get): bool => $get('service_type') !== ServiceType::ACCOMMODATION->value),
+
                             // Person Type Pricing - for Tours, Nautical, Events (NOT accommodations)
                             Forms\Components\Section::make('Person Type Pricing')
                                 ->description('Configure pricing for different person types. At least one person type is required. Both TND and EUR prices must be set.')
