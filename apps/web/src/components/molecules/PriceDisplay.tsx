@@ -11,7 +11,8 @@
  */
 
 import { memo, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { getPricingUnitLabel, type TranslatableMap } from '@/lib/utils/pricing-unit-label';
 
 interface PriceDisplayProps {
   amount: number;
@@ -20,6 +21,12 @@ interface PriceDisplayProps {
   showFrom?: boolean;
   perPerson?: boolean;
   perNight?: boolean;
+  /**
+   * Optional vendor-supplied translatable suffix (e.g. { fr: "par jetski" }).
+   * When set and non-empty for the active locale (or any fallback), it
+   * overrides the default "per_person" / "per_night" i18n suffix.
+   */
+  unitLabel?: TranslatableMap;
   className?: string;
 }
 
@@ -52,9 +59,11 @@ function PriceDisplayComponent({
   showFrom = false,
   perPerson = true,
   perNight = false,
+  unitLabel,
   className = '',
 }: PriceDisplayProps) {
   const t = useTranslations('common');
+  const locale = useLocale();
 
   // Memoize expensive calculations
   const symbol = useMemo(() => currencySymbols[currency] || currency, [currency]);
@@ -62,7 +71,12 @@ function PriceDisplayComponent({
 
   // Determine which label to show (perNight takes precedence)
   const showLabel = perNight || perPerson;
-  const labelKey = perNight ? 'per_night' : 'per_person';
+  // Resolve label: vendor override → built-in i18n key
+  const resolvedLabel = useMemo(() => {
+    const override = getPricingUnitLabel({ unitLabel: unitLabel ?? undefined }, locale);
+    if (override !== null) return override;
+    return t(perNight ? 'per_night' : 'per_person');
+  }, [unitLabel, locale, perNight, t]);
 
   return (
     <div className={`flex flex-col ${className}`}>
@@ -71,7 +85,11 @@ function PriceDisplayComponent({
         <span className={symbolSizeClasses[size]}>{symbol}</span>
         <span className={`font-bold text-primary ${sizeClasses[size]}`}>{formattedAmount}</span>
       </div>
-      {showLabel && <span className="text-xs text-neutral-500">{t(labelKey)}</span>}
+      {showLabel && (
+        <span className="text-xs text-neutral-500" data-testid="price-unit-label">
+          {resolvedLabel}
+        </span>
+      )}
     </div>
   );
 }

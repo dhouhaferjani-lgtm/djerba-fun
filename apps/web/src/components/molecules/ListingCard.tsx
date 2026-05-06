@@ -150,6 +150,7 @@ function ListingCardComponent({ listing, locale }: ListingCardProps) {
                 currency={listing.pricing.displayCurrency || 'EUR'}
                 size="sm"
                 showFrom
+                unitLabel={listing.pricing.unitLabel}
               />
             ) : (
               <span className="text-sm text-neutral-500">{tDict('price_on_request')}</span>

@@ -182,6 +182,7 @@ export function FixedBookingPanel({
               showFrom
               perPerson={!isNightlyPricing}
               perNight={isNightlyPricing}
+              unitLabel={listing.pricing?.unitLabel}
             />
             {isPriceNotSet && (
               <div className="mt-2 flex items-center gap-1.5 text-xs text-warning-dark">
