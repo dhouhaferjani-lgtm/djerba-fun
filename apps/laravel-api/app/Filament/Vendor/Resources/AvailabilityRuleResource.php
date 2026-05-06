@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Vendor\Resources;
 
 use App\Enums\AvailabilityRuleType;
+use App\Filament\Concerns\ResolvesListingPersonTypes;
 use App\Filament\Vendor\Resources\AvailabilityRuleResource\Pages;
 use App\Models\AvailabilityRule;
 use App\Models\Listing;
@@ -17,6 +18,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class AvailabilityRuleResource extends Resource
 {
+    use ResolvesListingPersonTypes;
+
     protected static ?string $model = AvailabilityRule::class;
 
     protected static ?string $navigationIcon = null;
@@ -179,20 +182,17 @@ class AvailabilityRuleResource extends Resource
                                     ->schema([
                                         Forms\Components\Select::make('key')
                                             ->label(__('filament.availability_rule.price_overrides.person_type'))
-                                            ->options(function (Forms\Get $get): array {
-                                                $listingId = $get('../../listing_id');
-                                                if (! $listingId) {
-                                                    return [];
-                                                }
+                                            // Read listing_id from live Livewire form state first, then
+                                            // fall back to $record. Vendor-scoped query closure ensures
+                                            // a vendor cannot probe another vendor's pricing structure
+                                            // (security regression: keep this scoping).
+                                            ->options(function (?AvailabilityRule $record, $livewire): array {
+                                                $listingId = data_get($livewire, 'data.listing_id') ?? $record?->listing_id;
 
-                                                $listing = \App\Models\Listing::where('vendor_id', auth()->id())
-                                                    ->find($listingId);
-                                                $personTypes = $listing?->pricing['person_types'] ?? [];
-
-                                                return collect($personTypes)
-                                                    ->filter(fn ($pt) => is_array($pt) && ! empty($pt['key']))
-                                                    ->mapWithKeys(fn ($pt) => [$pt['key'] => ucfirst((string) $pt['key'])])
-                                                    ->all();
+                                                return static::personTypeOptionsFromListing(
+                                                    $listingId !== null ? (int) $listingId : null,
+                                                    fn () => Listing::where('vendor_id', auth()->id()),
+                                                );
                                             })
                                             ->required(),
                                         Forms\Components\TextInput::make('tnd_price')

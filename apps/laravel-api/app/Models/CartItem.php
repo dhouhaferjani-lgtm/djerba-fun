@@ -89,10 +89,14 @@ class CartItem extends Model
             return (float) $this->nightly_rate * $this->nights;
         }
 
-        // Use PriceCalculationService when listing is available for accurate per-type pricing
+        // Use PriceCalculationService when listing is available for accurate per-type pricing.
+        // Pass the slot when the cart item is tied to one so per-slot price overrides apply
+        // — without it, calculateTotal silently falls back to listing.pricing and the user
+        // sees the listing default at checkout for an overridden slot.
         if (! empty($this->person_type_breakdown) && $this->relationLoaded('listing') && $this->listing) {
             $priceService = app(\App\Services\PriceCalculationService::class);
-            $result = $priceService->calculateTotal($this->listing, $this->person_type_breakdown, $this->currency);
+            $slot = $this->hold?->slot;
+            $result = $priceService->calculateTotal($this->listing, $this->person_type_breakdown, $this->currency, $slot);
 
             return $result['total'];
         }
@@ -139,6 +143,12 @@ class CartItem extends Model
     /**
      * Get per-person-type pricing map for the item's currency.
      * Returns e.g. ['adult' => 50.0, 'child' => 20.0] or null if listing not loaded.
+     *
+     * Prefers slot-effective prices when this cart item is tied to a slot — the
+     * AvailabilitySlot::getEffectivePersonTypePrices() merge applies per-key
+     * overrides on top of listing.pricing. Falls back to listing-only pricing
+     * for cart items without a slot (e.g. accommodations) or when the slot has
+     * no override defined.
      */
     public function getPersonTypePricing(): ?array
     {
@@ -148,6 +158,23 @@ class CartItem extends Model
 
         $pricing = $this->listing->pricing;
         $personTypes = $pricing['person_types'] ?? $pricing['personTypes'] ?? [];
+
+        // Slot-aware path: when the cart item carries a hold tied to a slot,
+        // use the slot's effective price map so per-slot overrides reach the
+        // checkout summary. Without this, vendors who configure an override
+        // see customers charged the listing's base price (the bug the screen-
+        // shotted tickets demonstrate).
+        $slot = $this->hold?->slot;
+
+        if ($slot && is_array($personTypes) && ! empty($personTypes)) {
+            $effective = $slot->getEffectivePersonTypePrices($this->currency, $personTypes);
+
+            if (! empty($effective)) {
+                return $effective;
+            }
+        }
+
+        // Listing-only fallback (preserves prior behaviour for non-slot items).
         $priceKey = $this->currency === 'TND' ? 'tnd_price' : 'eur_price';
 
         $map = [];

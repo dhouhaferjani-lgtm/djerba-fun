@@ -77,6 +77,7 @@ export function BookingPanel({
               showFrom
               perPerson={!isNightlyPricing}
               perNight={isNightlyPricing}
+              unitLabel={pricing.unitLabel}
             />
           </div>
           {/* Full-width button for better mobile UX - Service-type colored */}

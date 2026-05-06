@@ -130,6 +130,19 @@ class ListingResource extends Resource
 
                         Forms\Components\TextInput::make('max_group_size')
                             ->disabled(),
+
+                        // Read-only display of the optional vendor-supplied
+                        // unit label (e.g. "par jetski"). Vendors edit it from
+                        // the Vendor panel; admins inspect here for moderation.
+                        Forms\Components\TextInput::make('pricing.unit_label.fr')
+                            ->label('Unit Label (FR)')
+                            ->placeholder('par personne (default)')
+                            ->disabled(),
+
+                        Forms\Components\TextInput::make('pricing.unit_label.en')
+                            ->label('Unit Label (EN)')
+                            ->placeholder('per person (default)')
+                            ->disabled(),
                     ])
                     ->columns(4),
 

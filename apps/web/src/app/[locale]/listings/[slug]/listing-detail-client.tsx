@@ -220,18 +220,35 @@ function getPersonTypesFromListing(listing: Listing): PersonType[] {
   ];
 }
 
-// Calculate total from person type breakdown
+// Calculate total from person type breakdown.
+// When `slot` is provided and carries effectivePrices for the active currency,
+// prefer the slot-effective per-type price over the listing default — same
+// override-aware precedence as the PriceBreakdownTable line items below, so
+// the booking-panel grand total matches the per-line subtotals when a slot
+// has price_overrides configured.
 function calculateTotalFromBreakdown(
   personTypes: PersonType[],
-  breakdown: Record<string, number>
+  breakdown: Record<string, number>,
+  slot?: AvailabilitySlot,
+  currency?: string
 ): { totalGuests: number; totalPrice: number } {
   let totalGuests = 0;
   let totalPrice = 0;
 
+  const effectiveForCurrency =
+    slot && (currency === 'TND' || currency === 'EUR')
+      ? slot.effectivePrices?.[currency]
+      : undefined;
+
   for (const type of personTypes) {
     const quantity = breakdown[type.key] || 0;
     totalGuests += quantity;
-    totalPrice += (type.price ?? 0) * quantity;
+    const slotEffective = effectiveForCurrency?.[type.key];
+    const unitPrice =
+      typeof slotEffective === 'number' && !Number.isNaN(slotEffective)
+        ? slotEffective
+        : (type.price ?? 0);
+    totalPrice += unitPrice * quantity;
   }
 
   return { totalGuests, totalPrice };
@@ -304,8 +321,17 @@ function BookingFlowContent({
 }: BookingFlowContentProps) {
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
 
-  // Calculate totals from breakdown
-  const { totalGuests, totalPrice } = calculateTotalFromBreakdown(personTypes, personTypeBreakdown);
+  // Calculate totals from breakdown — pass the selected slot + currency so
+  // per-slot price_overrides are applied to the grand total. Without this,
+  // the per-line items (which DO read selectedSlot.effectivePrices) would
+  // diverge from the displayed grand total.
+  const bookingPanelCurrency = selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
+  const { totalGuests, totalPrice } = calculateTotalFromBreakdown(
+    personTypes,
+    personTypeBreakdown,
+    selectedSlot,
+    bookingPanelCurrency
+  );
   const canProceed = totalGuests > 0;
 
   // Determine current step and completed steps for indicator
@@ -506,8 +532,21 @@ function BookingFlowContent({
                           parsePrice(selectedSlot?.displayPrice) ??
                           parsePrice(selectedSlot?.basePrice) ??
                           0;
+                        // Slot-effective per-person-type price (override-aware).
+                        // The API resolves listing.pricing[key] vs slot.priceOverrides[key]
+                        // server-side — the frontend just renders whichever one
+                        // effectivePrices[currency][key] holds. Falls back to the
+                        // listing's per-type price, then the slot's headline price,
+                        // for legacy slots that lack the effectivePrices field.
+                        const slotEffective =
+                          currency === 'TND' || currency === 'EUR'
+                            ? parsePrice(selectedSlot?.effectivePrices?.[currency]?.[key])
+                            : null;
                         const unitPrice =
-                          parsePrice(pt.price) ?? parsePrice(pt.displayPrice) ?? slotBasePrice;
+                          slotEffective ??
+                          parsePrice(pt.price) ??
+                          parsePrice(pt.displayPrice) ??
+                          slotBasePrice;
                         items.push({
                           type: 'person',
                           key,
@@ -1022,10 +1061,41 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
-  // Get person types from listing (memoized)
+  // Get person types from listing, then overlay the selected slot's
+  // effectivePrices when one is picked. The Voyageurs quantity-selector
+  // labels read pt.price directly, so without this overlay they kept showing
+  // listing defaults (€38 adult) while the breakdown below them showed the
+  // slot-overridden price (€48 adult). Centralising slot-awareness here
+  // means every consumer of personTypes (selector labels, breakdown items,
+  // grand-total helper) tells the customer the same number — what they're
+  // actually charged. Listing pricing remains the fallback when no slot is
+  // selected, the slot has no override for a given key, or the API hasn't
+  // surfaced effectivePrices yet (legacy slots).
   const personTypes = useMemo(() => {
-    return getPersonTypesFromListing(listing);
-  }, [listing]);
+    const fromListing = getPersonTypesFromListing(listing);
+
+    if (!selectedSlot) {
+      return fromListing;
+    }
+
+    const currency = selectedSlot.currency || listing.pricing?.displayCurrency;
+    if (currency !== 'TND' && currency !== 'EUR') {
+      return fromListing;
+    }
+
+    const effective = selectedSlot.effectivePrices?.[currency];
+    if (!effective) {
+      return fromListing;
+    }
+
+    return fromListing.map((pt) => {
+      const slotPrice = effective[pt.key];
+      if (typeof slotPrice !== 'number' || Number.isNaN(slotPrice)) {
+        return pt;
+      }
+      return { ...pt, price: slotPrice };
+    });
+  }, [listing, selectedSlot]);
 
   // Get availability for the next 6 months (always fetch since booking panel is visible from start)
   const startDate = format(new Date(), 'yyyy-MM-dd');

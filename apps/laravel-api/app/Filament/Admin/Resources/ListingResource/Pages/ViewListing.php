@@ -316,6 +316,12 @@ class ViewListing extends ViewRecord
      */
     protected function validateForPublish(): array
     {
+        // See EditListing::mutateFormDataBeforeSave: $this->record is a
+        // Livewire-held snapshot from mount time and won't reflect a
+        // vendor wizard save made in another tab. Refresh from DB before
+        // validating so we never reject a publish on stale pricing.
+        $this->record->refresh();
+
         $errors = [];
 
         // Check title - must have at least one translation (English OR French)
