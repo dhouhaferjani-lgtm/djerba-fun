@@ -159,10 +159,11 @@ class OldSiteListingsSeeder extends Seeder
                     ],
                 ],
                 'pricing' => [
+                    'unit_label' => ['fr' => 'par jetski', 'en' => 'per jetski'],
                     'person_types' => [
                         [
                             'key' => 'adult',
-                            'label' => ['fr' => 'Par jetski', 'en' => 'Per jetski'],
+                            'label' => ['fr' => 'Adulte', 'en' => 'Adult'],
                             'tnd_price' => 105,
                             'eur_price' => 35,
                         ],
