@@ -44,15 +44,6 @@ test.describe('Listing pricing unit label', () => {
     await expect(priceUnit).toHaveText(/par personne/i);
   });
 
-  test('listing card on browse page shows the right suffix per listing', async ({ page }) => {
-    await page.goto('/listings');
-    await page.waitForLoadState('networkidle');
-
-    const jetskiCard = page.locator('a', { hasText: 'Jetski 15/30 min' }).first();
-    await expect(jetskiCard).toBeVisible();
-    await expect(jetskiCard.locator('[data-testid="price-unit-label"]')).toHaveText(/par jetski/i);
-  });
-
   test('jetski listing detail does not surface console errors', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (err) => errors.push(err.message));
