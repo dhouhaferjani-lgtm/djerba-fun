@@ -34,6 +34,24 @@ class EditListing extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        // Re-read from DB before validating: the vendor wizard is a separate
+        // Livewire component, so a vendor save in another tab is invisible
+        // to this admin page's hydrated $this->record until we explicitly
+        // refresh. Without this, the publish validator below reads a stale
+        // empty pricing snapshot from mount time and rejects with
+        // "Pricing information is required" even though the DB row is fine.
+        $this->record->refresh();
+
+        // Pricing is fully read-only in the admin form (every pricing.*
+        // input is ->disabled()), so any value Filament echoes back is just
+        // the stale snapshot from mount time. The existing $disabledFields
+        // guard below only unsets values that are flat-empty, which misses
+        // the case where Filament sends pricing as ['base' => '', 'currency'
+        // => '', ...] — a non-empty array of empty strings. Drop pricing
+        // explicitly so the subsequent fill()+save() can't downgrade the
+        // freshly-refreshed $this->record->pricing.
+        unset($data['pricing']);
+
         // Capture old status before save for notification logic in afterSave()
         $this->previousStatus = $this->record->status->value;
 
