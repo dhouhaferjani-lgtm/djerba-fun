@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Support\PricingUnitLabel;
 use Illuminate\Http\Request;
 
 class ListingResource extends BaseResource
@@ -194,8 +195,13 @@ class ListingResource extends BaseResource
             $eurPrice = $nightlyPriceEur;
         }
 
+        // Optional vendor-supplied suffix (e.g. "par jetski") that overrides
+        // the default per-person/per-night label on the public site.
+        $unitLabel = PricingUnitLabel::toArray($pricing);
+
         return $this->toCamelCase([
             'pricing_model' => $pricingModel,
+            'unit_label' => $unitLabel,
             'tnd_price' => $tndPrice,
             'eur_price' => $eurPrice,
             'display_currency' => $detectedCurrency,
