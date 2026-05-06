@@ -351,6 +351,15 @@ export const pricingSchema = z.object({
   // Pricing model - determines calculation method
   pricingModel: pricingModelSchema.optional().default('per_person'),
 
+  /**
+   * Optional vendor-supplied suffix for the headline price (e.g. "par jetski").
+   * When set, replaces the default "per person" / "per night" suffix on the
+   * public site (listing cards, booking panels). Falls back per-locale:
+   * requested locale → other locale → default i18n key. Empty/whitespace = no
+   * override. Example: { fr: "par jetski", en: "per jetski" }
+   */
+  unitLabel: translatableSchema.partial().optional().nullable(),
+
   // Dual pricing fields (used for per-person pricing)
   tndPrice: z.number().nonnegative().optional(),
   eurPrice: z.number().nonnegative().optional(),
