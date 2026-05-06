@@ -152,7 +152,63 @@ test.describe('Pricing unit label — locale fallback', () => {
 });
 
 /* ========================================================================
- * Group 5: Filament round-trip — vendor edits unit_label, public site updates
+ * Group 5: Multiple machine variants on a single listing
+ *
+ * Edge case: a vendor sets one listing-level unit_label ("par jetski") but
+ * defines two person_types with different prices/labels (e.g.
+ * "Jetski 1 place" / "Jetski 2 places"). The headline must use the
+ * listing-level unit_label; the per-row breakdown must continue to render
+ * each person_types[].label correctly.
+ *
+ * Pre-requisite: a published listing at /djerba/jetski-multi-variant with
+ * pricing.unit_label set and two person_types. Created via the dev
+ * seeder/tinker helper.
+ * ====================================================================== */
+
+const MULTI_VARIANT_URL = '/djerba/jetski-multi-variant';
+
+test.describe('Pricing unit label — multiple machine variants', () => {
+  test('headline uses listing-level unit_label even when listing has multiple person_types', async ({
+    page,
+  }) => {
+    await page.goto(MULTI_VARIANT_URL);
+    await page.waitForLoadState('networkidle');
+
+    // Critical: the listing has TWO person_types ("Jetski 1 place",
+    // "Jetski 2 places"), each with its own label. The headline must still
+    // use the LISTING-level unit_label ("par jetski"), not blend or fall
+    // back to "par personne".
+    const priceUnit = page.locator('[data-testid="price-unit-label"]').first();
+    await expect(priceUnit).toBeVisible();
+    await expect(priceUnit).toHaveText(/par jetski/i);
+    await expect(priceUnit).not.toHaveText(/par personne/i);
+
+    // Confirm the rendered page contains BOTH variant labels somewhere,
+    // proving the API + next.js serialization carry through both
+    // person_types when the listing has multiple. (The per-row breakdown
+    // is gated behind slot pick; the labels are still in the page state
+    // for the booking-flow component to consume.)
+    const html = await page.content();
+    expect(html).toContain('Jetski 1 place');
+    expect(html).toContain('Jetski 2 places');
+  });
+
+  test('English visitor sees "per jetski" headline on multi-variant listing', async ({ page }) => {
+    await page.goto(`/en${MULTI_VARIANT_URL}`);
+    await page.waitForLoadState('networkidle');
+
+    const priceUnit = page.locator('[data-testid="price-unit-label"]').first();
+    await expect(priceUnit).toHaveText(/per jetski/i);
+    await expect(priceUnit).not.toHaveText(/per person/i);
+
+    const html = await page.content();
+    expect(html).toContain('Jetski 1 seat');
+    expect(html).toContain('Jetski 2 seats');
+  });
+});
+
+/* ========================================================================
+ * Group 6: Filament round-trip — vendor edits unit_label, public site updates
  *
  * This is the load-bearing E2E that exercises the whole stack:
  * Filament form → DB JSON → cache invalidation → ListingResource → frontend.
