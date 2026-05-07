@@ -88,6 +88,7 @@ class LocationResource extends Resource
 
                         Forms\Components\TextInput::make('city')
                             ->label(__('filament.labels.city'))
+                            ->required()
                             ->maxLength(100)
                             ->columnSpan(1),
 
@@ -96,11 +97,25 @@ class LocationResource extends Resource
                             ->maxLength(100)
                             ->columnSpan(1),
 
-                        Forms\Components\TextInput::make('country')
+                        Forms\Components\Select::make('country')
                             ->label(__('filament.labels.country'))
                             ->required()
-                            ->default('Tunisia')
-                            ->maxLength(100)
+                            ->default('TN')
+                            ->options([
+                                'TN' => 'Tunisia',
+                                'FR' => 'France',
+                                'MA' => 'Morocco',
+                                'DZ' => 'Algeria',
+                                'LY' => 'Libya',
+                                'EG' => 'Egypt',
+                                'IT' => 'Italy',
+                                'ES' => 'Spain',
+                                'DE' => 'Germany',
+                                'GB' => 'United Kingdom',
+                                'BE' => 'Belgium',
+                                'NL' => 'Netherlands',
+                            ])
+                            ->searchable()
                             ->columnSpan(1),
 
                         Forms\Components\Select::make('timezone')
@@ -118,6 +133,7 @@ class LocationResource extends Resource
                 Forms\Components\Section::make(__('filament.sections.map_coordinates'))
                     ->schema([
                         \Cheesegrits\FilamentGoogleMaps\Fields\Map::make('location')
+                            ->visible(fn () => filled(config('filament-google-maps.key')))
                             ->mapControls([
                                 'mapTypeControl' => true,
                                 'scaleControl' => true,
@@ -139,14 +155,14 @@ class LocationResource extends Resource
                             Forms\Components\TextInput::make('latitude')
                                 ->label(__('filament.labels.latitude'))
                                 ->numeric()
-                                ->readOnly()
+                                ->readOnly(fn () => filled(config('filament-google-maps.key')))
                                 ->dehydrated()
                                 ->columnSpan(1),
 
                             Forms\Components\TextInput::make('longitude')
                                 ->label(__('filament.labels.longitude'))
                                 ->numeric()
-                                ->readOnly()
+                                ->readOnly(fn () => filled(config('filament-google-maps.key')))
                                 ->dehydrated()
                                 ->columnSpan(1),
                         ]),
@@ -243,9 +259,18 @@ class LocationResource extends Resource
                 Tables\Filters\SelectFilter::make('country')
                     ->label(__('filament.labels.country'))
                     ->options([
-                        'Tunisia' => 'Tunisia',
-                        'Morocco' => 'Morocco',
-                        'Algeria' => 'Algeria',
+                        'TN' => 'Tunisia',
+                        'FR' => 'France',
+                        'MA' => 'Morocco',
+                        'DZ' => 'Algeria',
+                        'LY' => 'Libya',
+                        'EG' => 'Egypt',
+                        'IT' => 'Italy',
+                        'ES' => 'Spain',
+                        'DE' => 'Germany',
+                        'GB' => 'United Kingdom',
+                        'BE' => 'Belgium',
+                        'NL' => 'Netherlands',
                     ]),
 
                 Tables\Filters\Filter::make('has_listings')
