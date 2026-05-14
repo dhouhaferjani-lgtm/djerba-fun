@@ -180,8 +180,10 @@ services:
   # Next.js Frontend
   web:
     build:
-      context: ../apps/web
-      dockerfile: ../../docker/services/web/Dockerfile
+      # Context is the monorepo root so pnpm can resolve workspace:* deps
+      # (@djerba-fun/schemas, @djerba-fun/ui).
+      context: ..
+      dockerfile: docker/services/web/Dockerfile
       target: development
     container_name: df-web
     depends_on:
@@ -192,9 +194,16 @@ services:
       NEXT_PUBLIC_API_URL: http://localhost:8100/api/v1
       NEXT_PUBLIC_DEFAULT_LOCALE: en
     volumes:
-      - ../apps/web:/app
+      # Mount the whole monorepo so live edits in packages/* propagate.
+      - ..:/app
+      # Named volumes mask the host-mount at every node_modules path so the
+      # container's pnpm-installed deps survive (host doesn't have them).
       - /app/node_modules
-      - /app/.next
+      - /app/apps/web/node_modules
+      - /app/packages/schemas/node_modules
+      - /app/packages/ui/node_modules
+      - /app/apps/web/.next
+    working_dir: /app/apps/web
     ports:
       # Host port shifted +100 to coexist with goadventurenew (uses 3000).
       - '3100:3000'
