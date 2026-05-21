@@ -441,6 +441,19 @@ class Listing extends Model
     }
 
     /**
+     * Get the cart items referencing this listing.
+     *
+     * cart_items.listing_id is a RESTRICT foreign key — the only child of a
+     * listing that blocks a cascade delete (every other listing-child FK is
+     * cascadeOnDelete or nullOnDelete). Delete guards use this relation to
+     * decide whether a listing (or its parent location) can be removed.
+     */
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class);
+    }
+
+    /**
      * Get the extras available for this listing.
      */
     public function extras(): BelongsToMany

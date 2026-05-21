@@ -448,6 +448,16 @@ return [
         'no_translation_needed_body' => 'Tous les champs ont déjà du contenu dans la langue cible, ou il n\'y a pas de contenu source à traduire.',
         'translation_not_configured' => 'Traduction Non Configurée',
         'translation_not_configured_body' => 'Le service de traduction automatique n\'est pas configuré. Veuillez contacter l\'administrateur.',
+        'cannot_delete_location_title' => 'Impossible de supprimer la destination',
+        'cannot_delete_location_active_body' => 'Cette destination compte :count annonce(s) active(s). Réaffectez-les ou archivez-les d\'abord.',
+        'cannot_delete_location_cart_items_body' => 'Les annonces archivées de cette destination sont encore référencées par :count élément(s) de panier. Videz ces paniers d\'abord, puis réessayez.',
+        'cannot_delete_locations_bulk_active_body' => 'Impossible de supprimer ces destinations (annonces actives) : :names.',
+        'cannot_delete_locations_bulk_cart_items_body' => 'Impossible de supprimer ces destinations (annonces archivées encore dans des paniers) : :names.',
+        'delete_location_cascade_warning' => 'Cette action supprimera définitivement :count annonce(s) archivée(s) sous cette destination, ainsi que leurs réservations et avis. Cette action est irréversible.',
+        'delete_locations_bulk_cascade_warning' => 'Cette action supprimera définitivement :count annonce(s) archivée(s) à travers les destinations sélectionnées, ainsi que leurs réservations et avis. Cette action est irréversible.',
+        'cannot_force_delete_listing_title' => 'Impossible de supprimer définitivement l\'annonce',
+        'cannot_force_delete_listing_body' => 'Cette annonce est encore référencée par :count élément(s) de panier. Videz ces paniers d\'abord.',
+        'cannot_force_delete_listings_bulk_body' => 'Ces annonces sont encore référencées par des éléments de panier : :names. Elles n\'ont pas été supprimées définitivement.',
     ],
 
     /*

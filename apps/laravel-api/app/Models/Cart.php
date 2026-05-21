@@ -209,4 +209,21 @@ class Cart extends Model
             }
         });
     }
+
+    /**
+     * Scope to "live" carts — those that still hold inventory and whose
+     * cart_items a delete guard must respect: checking out, or active and
+     * not yet expired. Dead carts (abandoned/completed/expired-active) hold
+     * no live claim and their cart_items may be pre-cleaned.
+     */
+    public function scopeLive($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('status', self::STATUS_CHECKING_OUT)
+                ->orWhere(function ($q) {
+                    $q->where('status', self::STATUS_ACTIVE)
+                        ->where('expires_at', '>', now());
+                });
+        });
+    }
 }

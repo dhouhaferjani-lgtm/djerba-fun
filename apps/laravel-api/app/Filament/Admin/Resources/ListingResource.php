@@ -689,14 +689,75 @@ class ListingResource extends Resource
                         ->visible(fn (Listing $record) => $record->status === ListingStatus::ARCHIVED),
 
                     Tables\Actions\DeleteAction::make(),
-                    Tables\Actions\ForceDeleteAction::make(),
+                    Tables\Actions\ForceDeleteAction::make()
+                        ->before(function (Tables\Actions\ForceDeleteAction $action, Listing $record) {
+                            // Smart-allow guard: cart_items.listing_id is FK RESTRICT
+                            // (see 2025_12_17_124539_create_carts_table.php). Force-deleting
+                            // a listing that still has LIVE cart_items would trip 23503 → 500.
+                            // Only LIVE cart_items (Cart::scopeLive) block. Dead cart_items
+                            // (expired/abandoned/completed) get pre-cleaned before the
+                            // force-delete fires.
+                            $liveCartItemCount = $record->cartItems()
+                                ->whereHas('cart', fn ($q) => $q->live())
+                                ->count();
+
+                            if ($liveCartItemCount > 0) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title(__('filament.notifications.cannot_force_delete_listing_title'))
+                                    ->body(__('filament.notifications.cannot_force_delete_listing_body', ['count' => $liveCartItemCount]))
+                                    ->send();
+
+                                $action->cancel();
+
+                                return;
+                            }
+
+                            // Pre-clean dead cart_items so the force-delete can proceed.
+                            $record->cartItems()->delete();
+                        }),
                     Tables\Actions\RestoreAction::make(),
                 ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->before(function (Tables\Actions\ForceDeleteBulkAction $action, \Illuminate\Support\Collection $records) {
+                            // Bulk mirror of the row guard. LIVE cart_items block;
+                            // dead ones get pre-cleaned. Partition into
+                            // (cart-blocked, eligible); emit a danger notification
+                            // naming the blocked listings; let eligible ones proceed.
+                            $blocked = $records->filter(
+                                fn (Listing $record) => $record->cartItems()
+                                    ->whereHas('cart', fn ($q) => $q->live())
+                                    ->exists(),
+                            );
+
+                            // Pre-clean dead cart_items pointing at eligible listings.
+                            $eligible = $records->reject(fn (Listing $record) => $blocked->contains($record));
+
+                            if ($eligible->isNotEmpty()) {
+                                \App\Models\CartItem::whereIn('listing_id', $eligible->pluck('id'))->delete();
+                            }
+
+                            if ($blocked->isEmpty()) {
+                                return;
+                            }
+
+                            $names = $blocked
+                                ->map(fn (Listing $record) => $record->getTranslation('title', app()->getLocale()) ?: ('#' . $record->id))
+                                ->filter()
+                                ->join(', ');
+
+                            Notification::make()
+                                ->danger()
+                                ->title(__('filament.notifications.cannot_force_delete_listing_title'))
+                                ->body(__('filament.notifications.cannot_force_delete_listings_bulk_body', ['names' => $names]))
+                                ->send();
+
+                            $action->records($eligible);
+                        }),
                     Tables\Actions\RestoreBulkAction::make(),
 
                     Tables\Actions\BulkAction::make('bulk_approve')
