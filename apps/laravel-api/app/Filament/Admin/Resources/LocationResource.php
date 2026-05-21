@@ -6,10 +6,12 @@ use App\Filament\Admin\Resources\LocationResource\Pages;
 use App\Models\Location;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class LocationResource extends Resource
@@ -285,25 +287,185 @@ class LocationResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
-                    ->before(function (Location $record) {
-                        // Prevent deletion if location has listings
-                        if ($record->listings_count > 0) {
-                            throw new \Exception("Cannot delete location with {$record->listings_count} existing listing(s). Please reassign or delete them first.");
+                    ->modalDescription(function (Location $record): ?string {
+                        // Surface the cascade impact in the standard "Are you sure?"
+                        // modal: when the smart-allow path will hard-delete soft-deleted
+                        // listings (and cascade through their bookings + reviews via FK
+                        // cascadeOnDelete), admins must see what's about to be destroyed.
+                        $trashedCount = $record->listings()->onlyTrashed()->count();
+
+                        return $trashedCount > 0
+                            ? __('filament.notifications.delete_location_cascade_warning', ['count' => $trashedCount])
+                            : null;
+                    })
+                    ->before(function (Tables\Actions\DeleteAction $action, Location $record) {
+                        // Smart-allow guard. Cascade chain on Location delete:
+                        //   locations → listings (cascadeOnDelete) → cart_items (RESTRICT)
+                        // cart_items.listing_id (and .hold_id via the holds cascade)
+                        // is the ONLY FK that can break the cascade (23503 → 500).
+                        //
+                        // Policy:
+                        //   - active listings exist                    → block
+                        //   - LIVE cart_items reference trashed        → block
+                        //     (live = Cart::scopeLive — status checking_out
+                        //      OR (active AND expires_at > now()))
+                        //   - else (only dead cart_items, or none)     → pre-clean dead
+                        //     cart_items then allow cascade. Dead = expired/abandoned/
+                        //     completed/checking_out-but-expired carts; deleting their
+                        //     items just drops session state nobody depends on.
+                        $activeCount = $record->listings()->count();
+
+                        if ($activeCount > 0) {
+                            Notification::make()
+                                ->danger()
+                                ->title(__('filament.notifications.cannot_delete_location_title'))
+                                ->body(__('filament.notifications.cannot_delete_location_active_body', ['count' => $activeCount]))
+                                ->send();
+
+                            $action->cancel();
+
+                            return;
                         }
+
+                        $trashedListingIds = $record->listings()->onlyTrashed()->pluck('id');
+
+                        if ($trashedListingIds->isEmpty()) {
+                            return;
+                        }
+
+                        $liveCartItemCount = \App\Models\CartItem::query()
+                            ->whereIn('listing_id', $trashedListingIds)
+                            ->whereHas('cart', fn ($q) => $q->live())
+                            ->count();
+
+                        if ($liveCartItemCount > 0) {
+                            Notification::make()
+                                ->danger()
+                                ->title(__('filament.notifications.cannot_delete_location_title'))
+                                ->body(__('filament.notifications.cannot_delete_location_cart_items_body', ['count' => $liveCartItemCount]))
+                                ->send();
+
+                            $action->cancel();
+
+                            return;
+                        }
+
+                        // Pre-clean any DEAD cart_items pointing at these trashed
+                        // listings so the cascadeOnDelete path doesn't trip the
+                        // cart_items.listing_id RESTRICT FK (or cart_items.hold_id
+                        // via the booking_holds cascade).
+                        \App\Models\CartItem::whereIn('listing_id', $trashedListingIds)->delete();
                     }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->before(function ($records) {
-                            // Prevent bulk deletion if any location has listings
-                            $hasListings = $records->filter(fn ($record) => $record->listings_count > 0);
+                        ->modalDescription(function (Collection $records): ?string {
+                            // Surface aggregate cascade impact across the selected records
+                            // that smart-allow would actually delete (i.e. zero active +
+                            // no LIVE cart_items referencing trashed listings). Dead
+                            // cart_items will be pre-cleaned, so they don't disqualify.
+                            $cascadeCount = $records
+                                ->filter(function (Location $record) {
+                                    if ($record->listings()->count() > 0) {
+                                        return false;
+                                    }
+                                    $trashedIds = $record->listings()->onlyTrashed()->pluck('id');
 
-                            if ($hasListings->isNotEmpty()) {
-                                $names = $hasListings->pluck('name')->join(', ');
+                                    if ($trashedIds->isEmpty()) {
+                                        return false;
+                                    }
 
-                                throw new \Exception("Cannot delete locations with existing listings: {$names}");
+                                    return ! \App\Models\CartItem::query()
+                                        ->whereIn('listing_id', $trashedIds)
+                                        ->whereHas('cart', fn ($q) => $q->live())
+                                        ->exists();
+                                })
+                                ->sum(fn (Location $record) => $record->listings()->onlyTrashed()->count());
+
+                            return $cascadeCount > 0
+                                ? __('filament.notifications.delete_locations_bulk_cascade_warning', ['count' => $cascadeCount])
+                                : null;
+                        })
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, Collection $records) {
+                            // Bulk smart-allow: partition into (active-blocked,
+                            // cart-blocked, eligible). LIVE cart_items block;
+                            // dead ones get pre-cleaned before the cascade fires.
+                            // Emit one danger notification per non-empty block
+                            // group (matches existing per-reason UX).
+                            $activeBlocked = collect();
+                            $cartBlocked = collect();
+                            $eligibleTrashedListingIds = collect();
+
+                            foreach ($records as $record) {
+                                if ($record->listings()->count() > 0) {
+                                    $activeBlocked->push($record);
+
+                                    continue;
+                                }
+
+                                $trashedIds = $record->listings()->onlyTrashed()->pluck('id');
+
+                                if ($trashedIds->isEmpty()) {
+                                    continue;
+                                }
+
+                                $hasLive = \App\Models\CartItem::query()
+                                    ->whereIn('listing_id', $trashedIds)
+                                    ->whereHas('cart', fn ($q) => $q->live())
+                                    ->exists();
+
+                                if ($hasLive) {
+                                    $cartBlocked->push($record);
+                                } else {
+                                    $eligibleTrashedListingIds = $eligibleTrashedListingIds->merge($trashedIds);
+                                }
                             }
+
+                            if ($activeBlocked->isNotEmpty()) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title(__('filament.notifications.cannot_delete_location_title'))
+                                    ->body(__('filament.notifications.cannot_delete_locations_bulk_active_body', [
+                                        'names' => $activeBlocked
+                                            ->map(fn (Location $record) => $record->getTranslation('name', app()->getLocale()))
+                                            ->filter()
+                                            ->join(', '),
+                                    ]))
+                                    ->send();
+                            }
+
+                            if ($cartBlocked->isNotEmpty()) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title(__('filament.notifications.cannot_delete_location_title'))
+                                    ->body(__('filament.notifications.cannot_delete_locations_bulk_cart_items_body', [
+                                        'names' => $cartBlocked
+                                            ->map(fn (Location $record) => $record->getTranslation('name', app()->getLocale()))
+                                            ->filter()
+                                            ->join(', '),
+                                    ]))
+                                    ->send();
+                            }
+
+                            // Pre-clean dead cart_items pointing at eligible trashed
+                            // listings so the cascadeOnDelete chain doesn't trip the
+                            // cart_items.listing_id/.hold_id RESTRICT FKs.
+                            if ($eligibleTrashedListingIds->isNotEmpty()) {
+                                \App\Models\CartItem::whereIn('listing_id', $eligibleTrashedListingIds->unique())->delete();
+                            }
+
+                            $blocked = $activeBlocked->merge($cartBlocked);
+
+                            if ($blocked->isEmpty()) {
+                                return;
+                            }
+
+                            // Drop blocked records — eligible ones still get deleted.
+                            // cancel() would halt the entire bulk action.
+                            $action->records($records->reject(
+                                fn (Location $record) => $blocked->contains($record),
+                            ));
                         }),
                 ]),
             ])
