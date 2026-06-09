@@ -11,6 +11,7 @@ use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
@@ -150,8 +151,43 @@ class EditListing extends EditRecord
         ];
     }
 
+    /**
+     * Persist EVERY locale from the form, not just the active one.
+     *
+     * This vendor form edits all locales at once via explicit per-locale
+     * fields (title.en, title.fr, summary.en, ...) and exposes no locale
+     * switcher. The default Spatie Translatable concern's handleRecordUpdate
+     * only writes $this->activeLocale and sources the other locales from
+     * $this->otherLocaleData — so an edit to a NON-active locale (e.g. the
+     * French title while the active locale is English) is silently dropped
+     * and the stale value is kept. Every translatable field is already
+     * present in $data keyed by locale (and normalised by
+     * mutateFormDataBeforeSave), so fill the record natively: Spatie's
+     * HasTranslations::fill() writes all locales it finds in the array.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    protected function handleRecordUpdate(Model $record, array $data): Model
+    {
+        $record->fill($data);
+        $record->save();
+
+        return $record;
+    }
+
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        // The Spatie Translatable plugin hydrates each translatable attribute
+        // with only the ACTIVE locale's STRING value. This form renders explicit
+        // per-locale fields (title.en, title.fr, summary.en, ...), which need the
+        // full {en, fr} array — otherwise the fields render EMPTY, the vendor
+        // cannot see or edit existing translations, and a save can drop the
+        // untouched locale. Repopulate every translatable attribute from the
+        // record so both locales are present in the form state.
+        foreach ($this->record->getTranslatableAttributes() as $field) {
+            $data[$field] = $this->record->getTranslations($field);
+        }
+
         // Fix any double-nested translations that might exist in the database
         // This cleans up malformed data before it goes into the form
         foreach (['title', 'summary', 'description'] as $field) {

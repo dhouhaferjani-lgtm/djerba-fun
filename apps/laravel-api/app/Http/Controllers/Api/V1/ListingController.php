@@ -29,7 +29,7 @@ class ListingController extends Controller
         $cacheTtl = 300; // 5 minutes
 
         // For non-filtered requests (home page), use caching
-        $useCache = !$request->has('q') && !$request->has('price_min') && !$request->has('price_max');
+        $useCache = ! $request->has('q') && ! $request->has('price_min') && ! $request->has('price_max');
 
         if ($useCache && cache()->has($cacheKey)) {
             return cache()->get($cacheKey);
@@ -51,7 +51,7 @@ class ListingController extends Controller
                 // Tour-specific
                 'duration', 'difficulty', 'distance', 'itinerary', 'has_elevation_profile',
                 // Event-specific
-                'event_type', 'start_date', 'end_date', 'venue', 'agenda'
+                'event_type', 'start_date', 'end_date', 'venue', 'agenda',
             ])
             // Performance: Eager load relationships to prevent N+1 queries
             ->with([
@@ -157,6 +157,7 @@ class ListingController extends Controller
         // Examples: ?tags=wifi,pool or ?tags=adventure
         if ($request->filled('tags')) {
             $tagSlugs = array_filter(array_map('trim', explode(',', $request->tags)));
+
             if (! empty($tagSlugs)) {
                 $query->withAnyTags($tagSlugs);
             }
@@ -167,6 +168,7 @@ class ListingController extends Controller
         foreach (['tour_type', 'boat_type', 'space_type', 'event_feature', 'amenity'] as $tagTypeParam) {
             if ($request->filled($tagTypeParam)) {
                 $tagSlugs = array_filter(array_map('trim', explode(',', $request->get($tagTypeParam))));
+
                 if (! empty($tagSlugs)) {
                     $query->withAnyTags($tagSlugs);
                 }
@@ -231,7 +233,7 @@ class ListingController extends Controller
 
         // Cache individual listing for 5 minutes (per-currency to avoid serving wrong prices)
         $userCurrency = request()->attributes->get('user_currency', 'EUR');
-        $cacheKey = 'listing:show:' . $userCurrency . ':' . $listing->id;
+        $cacheKey = $listing->showCacheKey($userCurrency);
         $cacheTtl = 300; // 5 minutes
 
         $cachedListing = cache()->remember($cacheKey, $cacheTtl, function () use ($listing) {
@@ -271,7 +273,7 @@ class ListingController extends Controller
                 ->select([
                     'id', 'uuid', 'vendor_id', 'location_id', 'activity_type_id', 'service_type', 'status',
                     'title', 'slug', 'summary', 'pricing', 'rating', 'reviews_count', 'bookings_count',
-                    'gallery_images', 'duration', 'difficulty', 'published_at', 'is_featured'
+                    'gallery_images', 'duration', 'difficulty', 'published_at', 'is_featured',
                 ])
                 ->with([
                     'vendor:id,uuid',
