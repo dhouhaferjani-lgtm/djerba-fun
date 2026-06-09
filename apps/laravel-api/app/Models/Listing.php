@@ -53,6 +53,7 @@ class Listing extends Model
                 $titleFr = $listing->getTranslation('title', 'fr');
                 $hasEnglishTitle = ! empty($titleEn) && ! (is_array($titleEn) && empty(array_filter($titleEn)));
                 $hasFrenchTitle = ! empty($titleFr) && ! (is_array($titleFr) && empty(array_filter($titleFr)));
+
                 if (! $hasEnglishTitle && ! $hasFrenchTitle) {
                     $errors[] = 'Title is required (English or French)';
                 }
@@ -62,6 +63,7 @@ class Listing extends Model
                 $summaryFr = $listing->getTranslation('summary', 'fr');
                 $hasEnglishSummary = ! empty($summaryEn) && ! (is_array($summaryEn) && empty(array_filter($summaryEn)));
                 $hasFrenchSummary = ! empty($summaryFr) && ! (is_array($summaryFr) && empty(array_filter($summaryFr)));
+
                 if (! $hasEnglishSummary && ! $hasFrenchSummary) {
                     $errors[] = 'Summary is required (English or French)';
                 }
@@ -70,6 +72,7 @@ class Listing extends Model
                 if ($listing->service_type === ServiceType::ACCOMMODATION) {
                     // Accommodations use nightly pricing (direct columns, not JSON)
                     $hasNightlyPricing = ! empty($listing->nightly_price_tnd) || ! empty($listing->nightly_price_eur);
+
                     if (! $hasNightlyPricing) {
                         $errors[] = 'Nightly pricing (TND or EUR) is required for accommodations';
                     }
@@ -78,6 +81,7 @@ class Listing extends Model
                     $pricing = $listing->pricing;
                     $hasNewFormatPricing = ! empty($pricing['person_types']) || ! empty($pricing['personTypes']);
                     $hasOldFormatPricing = ! empty($pricing['base_price']) || ! empty($pricing['tnd_price']) || ! empty($pricing['eur_price']);
+
                     if (! $hasNewFormatPricing && ! $hasOldFormatPricing) {
                         $errors[] = 'Pricing information is required';
                     }
@@ -88,7 +92,7 @@ class Listing extends Model
                     $errors[] = 'Location is required';
                 }
 
-                if (!empty($errors)) {
+                if (! empty($errors)) {
                     // Try to show Filament notification if in admin context
                     try {
                         Notification::make()
@@ -125,9 +129,11 @@ class Listing extends Model
 
                 // Safely get title - try English first, fallback to French
                 $titleValue = $listing->getTranslation('title', 'en');
+
                 if (empty($titleValue) || (is_array($titleValue) && empty(array_filter($titleValue)))) {
                     $titleValue = $listing->getTranslation('title', 'fr');
                 }
+
                 if (is_array($titleValue)) {
                     $listingTitle = $titleValue['en'] ?? $titleValue['fr'] ?? reset($titleValue) ?: 'Untitled';
                 } else {
@@ -158,11 +164,44 @@ class Listing extends Model
             if ($listing->isDirty('status') || $listing->wasRecentlyCreated) {
                 Cache::forget('category_stats');
             }
+
+            // Bust the per-listing public payload cache so edits (title,
+            // pricing, status, …) surface immediately instead of being held
+            // for up to the 5-minute TTL of ListingController::show().
+            $listing->forgetShowCache();
         });
 
         static::deleted(function (Listing $listing) {
             Cache::forget('category_stats');
+            $listing->forgetShowCache();
         });
+    }
+
+    /**
+     * Currencies the public show endpoint caches per-listing payloads under
+     * (see ListingController::show). Kept here so the cache key cannot drift
+     * between the writer (this model) and the reader (the controller).
+     *
+     * @var array<int, string>
+     */
+    public const SHOW_CACHE_CURRENCIES = ['EUR', 'TND'];
+
+    /**
+     * Cache key used by ListingController::show() for this listing+currency.
+     */
+    public function showCacheKey(string $currency): string
+    {
+        return 'listing:show:' . $currency . ':' . $this->id;
+    }
+
+    /**
+     * Forget every per-currency public payload cache entry for this listing.
+     */
+    public function forgetShowCache(): void
+    {
+        foreach (self::SHOW_CACHE_CURRENCIES as $currency) {
+            Cache::forget($this->showCacheKey($currency));
+        }
     }
 
     /**
@@ -438,6 +477,19 @@ class Listing extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get the cart items referencing this listing.
+     *
+     * cart_items.listing_id is a RESTRICT foreign key — the only child of a
+     * listing that blocks a cascade delete (every other listing-child FK is
+     * cascadeOnDelete or nullOnDelete). Delete guards use this relation to
+     * decide whether a listing (or its parent location) can be removed.
+     */
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class);
     }
 
     /**
@@ -788,7 +840,7 @@ class Listing extends Model
      *
      * @param  int  $nights  Number of nights to stay
      * @param  string  $currency  Currency code ('TND' or 'EUR')
-     * @return float|null  Total price for the stay
+     * @return float|null Total price for the stay
      */
     public function calculateAccommodationPrice(int $nights, string $currency = 'EUR'): ?float
     {
@@ -811,7 +863,7 @@ class Listing extends Model
      * Get the nightly price in the specified currency.
      *
      * @param  string  $currency  Currency code ('TND' or 'EUR')
-     * @return float|null  Nightly price
+     * @return float|null Nightly price
      */
     public function getNightlyPrice(string $currency = 'EUR'): ?float
     {
@@ -828,7 +880,7 @@ class Listing extends Model
      * Check if the requested stay duration is valid.
      *
      * @param  int  $nights  Number of nights requested
-     * @return bool  True if duration is within min/max constraints
+     * @return bool True if duration is within min/max constraints
      */
     public function isValidStayDuration(int $nights): bool
     {

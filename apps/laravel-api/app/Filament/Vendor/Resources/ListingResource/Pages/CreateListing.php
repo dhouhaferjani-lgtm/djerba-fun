@@ -14,6 +14,7 @@ use Filament\Notifications\Actions\Action as NotificationAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -101,6 +102,24 @@ class CreateListing extends CreateRecord
             ->send();
 
         $this->redirect($this->getResource()::getUrl('edit', ['record' => $record]));
+    }
+
+    /**
+     * Persist EVERY locale from the form, not just the active one.
+     *
+     * Mirrors saveDraft() (which already uses Model::create($data)). The
+     * default Spatie Translatable concern's handleRecordCreation only writes
+     * $this->activeLocale and sources other locales from $this->otherLocaleData,
+     * which drops edits to a non-active locale because this wizard edits all
+     * locales at once via explicit per-locale fields (title.en, title.fr, ...).
+     * mutateFormDataBeforeCreate already normalises $data['title'] etc. into a
+     * locale-keyed array, so a native create writes both locales correctly.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    protected function handleRecordCreation(array $data): Model
+    {
+        return $this->getModel()::create($data);
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array

@@ -9,6 +9,7 @@ use App\Models\Listing;
 use App\Models\Payout;
 use App\Models\Review;
 use App\Models\User;
+use App\Observers\ListingObserver;
 use App\Policies\BookingPolicy;
 use App\Policies\CouponPolicy;
 use App\Policies\ListingPolicy;
@@ -90,5 +91,9 @@ class AppServiceProvider extends ServiceProvider
         foreach ($this->policies as $model => $policy) {
             Gate::policy($model, $policy);
         }
+
+        // Keep denormalized listings_count columns (locations + activity_types)
+        // in sync as listings are created/moved/deleted/restored.
+        Listing::observe(ListingObserver::class);
     }
 }

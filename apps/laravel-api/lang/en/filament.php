@@ -448,6 +448,16 @@ return [
         'no_translation_needed_body' => 'All fields already have content in the target language, or there is no source content to translate.',
         'translation_not_configured' => 'Translation Not Configured',
         'translation_not_configured_body' => 'The auto-translation service is not configured. Please contact the administrator.',
+        'cannot_delete_location_title' => 'Cannot delete location',
+        'cannot_delete_location_active_body' => 'This location has :count active listing(s). Reassign or archive them first.',
+        'cannot_delete_location_cart_items_body' => 'This location\'s archived listings are still referenced by :count cart item(s). Clear those carts first, then retry.',
+        'cannot_delete_locations_bulk_active_body' => 'Cannot delete these locations (active listings): :names.',
+        'cannot_delete_locations_bulk_cart_items_body' => 'Cannot delete these locations (archived listings still in carts): :names.',
+        'delete_location_cascade_warning' => 'This will permanently delete :count archived listing(s) under this location, along with their bookings and reviews. This cannot be undone.',
+        'delete_locations_bulk_cascade_warning' => 'This will permanently delete :count archived listing(s) across the selected locations, along with their bookings and reviews. This cannot be undone.',
+        'cannot_force_delete_listing_title' => 'Cannot permanently delete listing',
+        'cannot_force_delete_listing_body' => 'This listing is still referenced by :count cart item(s). Clear those carts first.',
+        'cannot_force_delete_listings_bulk_body' => 'These listings are still referenced by cart items: :names. They were not permanently deleted.',
     ],
 
     /*
