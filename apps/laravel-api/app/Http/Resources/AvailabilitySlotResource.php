@@ -60,8 +60,8 @@ class AvailabilitySlotResource extends JsonResource
             'durationMinutes' => $durationMinutes,
             'capacity' => $this->capacity,
             'remainingCapacity' => $this->remainingCapacity, // Uses computed accessor
-            'tndPrice' => (float) ($listing?->pricing['tnd_price'] ?? 0),
-            'eurPrice' => (float) ($listing?->pricing['eur_price'] ?? 0),
+            'tndPrice' => $this->tieredFromPrice($listing, 'TND') ?? (float) ($listing?->pricing['tnd_price'] ?? 0),
+            'eurPrice' => $this->tieredFromPrice($listing, 'EUR') ?? (float) ($listing?->pricing['eur_price'] ?? 0),
             'displayCurrency' => $currency,
             'currency' => $currency, // Legacy field for frontend compatibility
             'displayPrice' => $this->getDisplayPrice($request, $listing, $effectivePrices),
@@ -91,10 +91,20 @@ class AvailabilitySlotResource extends JsonResource
     protected function getDisplayPrice(Request $request, $listing, array $effectivePrices): float
     {
         $currency = $request->attributes->get('user_currency', 'EUR');
+
+        // Tiered listings have no per-person-type slot prices; the headline is
+        // the single-traveller cumulative total T[1].
+        $tieredFrom = $this->tieredFromPrice($listing, $currency);
+
+        if ($tieredFrom !== null) {
+            return $tieredFrom;
+        }
+
         $effectiveForCurrency = $effectivePrices[$currency] ?? [];
 
         if (! empty($effectiveForCurrency)) {
             $firstKey = array_key_first($effectiveForCurrency);
+
             if ($firstKey !== null) {
                 return (float) $effectiveForCurrency[$firstKey];
             }
@@ -105,5 +115,43 @@ class AvailabilitySlotResource extends JsonResource
         }
 
         return (float) ($listing?->pricing['eur_price'] ?? 0);
+    }
+
+    /**
+     * "From" price (cumulative tier T[1]) for a tiered listing, or null when
+     * the listing is not tiered. Keeps flat listings on their existing path.
+     */
+    private function tieredFromPrice($listing, string $currency): ?float
+    {
+        // Guard against MissingValue (relation not loaded) — never touch
+        // ->pricing on anything but a real, loaded Listing.
+        if (! $listing instanceof \App\Models\Listing) {
+            return null;
+        }
+
+        $pricing = is_array($listing->pricing) ? $listing->pricing : [];
+        $strategy = $pricing['pricing_strategy'] ?? $pricing['pricingStrategy'] ?? 'flat';
+
+        if ($strategy !== 'tiered') {
+            return null;
+        }
+
+        $tiers = $pricing['tiers'] ?? [];
+
+        if (! is_array($tiers) || $tiers === []) {
+            return null;
+        }
+
+        $rows = array_values(array_filter($tiers, 'is_array'));
+        usort($rows, fn ($a, $b) => ((int) ($a['position'] ?? 0)) <=> ((int) ($b['position'] ?? 0)));
+        $first = $rows[0] ?? null;
+
+        if ($first === null) {
+            return null;
+        }
+
+        return strtoupper($currency) === 'TND'
+            ? (float) ($first['tnd_total'] ?? $first['tndTotal'] ?? 0)
+            : (float) ($first['eur_total'] ?? $first['eurTotal'] ?? 0);
     }
 }

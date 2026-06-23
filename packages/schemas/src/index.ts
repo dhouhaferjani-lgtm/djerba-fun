@@ -347,6 +347,30 @@ export const personTypeSchema = z.object({
 // Pricing model determines how prices are calculated
 export const pricingModelSchema = z.enum(['per_person', 'per_night', 'per_booking']);
 
+/**
+ * Pricing strategy. 'flat' (default) = the classic per-person-type pricing
+ * (each traveler of a type costs the same). 'tiered' = positional group
+ * pricing: the vendor sets the CUMULATIVE total for a group of 1, 2, 3 … up to
+ * 10 ("positions"); larger groups repeat the pattern. Tiered mode ignores
+ * person types (single traveler headcount) and is offered only for
+ * tour/nautical/event listings. Absent === 'flat' (zero-regression default).
+ */
+export const pricingStrategySchema = z.enum(['flat', 'tiered']);
+
+/**
+ * One row of a tiered price table: the cumulative group total for `position`
+ * travelers, entered independently per currency. Total for a group of N is
+ * `floor(N / K) * T[K] + T[N mod K]` where K = number of tiers and T[k] = the
+ * cumulative total for k travelers (T[0] = 0). `displayTotal` is the
+ * server-computed value in the user's detected currency.
+ */
+export const pricingTierSchema = z.object({
+  position: z.number().int().positive(), // 1..K, contiguous
+  tndTotal: z.number().nonnegative(),
+  eurTotal: z.number().nonnegative(),
+  displayTotal: z.number().nonnegative().optional(),
+});
+
 export const pricingSchema = z.object({
   // Pricing model - determines calculation method
   pricingModel: pricingModelSchema.optional().default('per_person'),
@@ -385,6 +409,10 @@ export const pricingSchema = z.object({
     })
     .nullable()
     .optional(),
+
+  // Tiered / positional pricing (optional; absent === 'flat' for zero regression).
+  pricingStrategy: pricingStrategySchema.optional().default('flat'),
+  tiers: z.array(pricingTierSchema).min(1).max(10).optional(),
 });
 
 export const cancellationPolicySchema = z.object({
@@ -1532,6 +1560,8 @@ export type BookingHold = z.infer<typeof bookingHoldSchema>;
 export type AccommodationDateSelection = z.infer<typeof accommodationDateSelectionSchema>;
 export type CreateAccommodationHoldRequest = z.infer<typeof createAccommodationHoldRequestSchema>;
 export type PricingModel = z.infer<typeof pricingModelSchema>;
+export type PricingStrategy = z.infer<typeof pricingStrategySchema>;
+export type PricingTier = z.infer<typeof pricingTierSchema>;
 
 export type BookingStatus = z.infer<typeof bookingStatusSchema>;
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;

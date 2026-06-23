@@ -179,6 +179,7 @@ class ListingResource extends BaseResource
         // Auto-detect accommodation service type and force per_night pricing model
         // This safeguards against listings where pricing_model wasn't set correctly
         $pricingModel = $this->pricing_model;
+
         if (! $pricingModel || ($this->isAccommodation() && $pricingModel !== 'per_night')) {
             $pricingModel = $this->isAccommodation() ? 'per_night' : 'per_person';
         }
@@ -195,12 +196,45 @@ class ListingResource extends BaseResource
             $eurPrice = $nightlyPriceEur;
         }
 
+        // Tiered (positional) pricing: expose the tier table and use T[1] (the
+        // single-traveller cumulative total) as the "from" headline price.
+        // Tiered listings have no person types. Absent === flat (unchanged).
+        $pricingStrategy = $pricing['pricing_strategy'] ?? $pricing['pricingStrategy'] ?? 'flat';
+        $tiers = null;
+
+        if ($pricingStrategy === 'tiered' && ! empty($pricing['tiers']) && is_array($pricing['tiers'])) {
+            $rows = array_values(array_filter($pricing['tiers'], 'is_array'));
+            usort($rows, fn ($a, $b) => ((int) ($a['position'] ?? 0)) <=> ((int) ($b['position'] ?? 0)));
+
+            $tiers = array_map(function ($row, $index) use ($detectedCurrency) {
+                $tndTotal = (float) ($row['tnd_total'] ?? $row['tndTotal'] ?? 0);
+                $eurTotal = (float) ($row['eur_total'] ?? $row['eurTotal'] ?? 0);
+
+                return $this->toCamelCase([
+                    'position' => $index + 1,
+                    'tnd_total' => $tndTotal,
+                    'eur_total' => $eurTotal,
+                    'display_total' => $detectedCurrency === 'TND' ? $tndTotal : $eurTotal,
+                ]);
+            }, $rows, array_keys($rows));
+
+            $firstTier = $tiers[0] ?? null;
+
+            if ($firstTier) {
+                $tndPrice = $firstTier['tndTotal'];
+                $eurPrice = $firstTier['eurTotal'];
+                $displayPrice = $detectedCurrency === 'TND' ? $tndPrice : $eurPrice;
+            }
+        }
+
         // Optional vendor-supplied suffix (e.g. "par jetski") that overrides
         // the default per-person/per-night label on the public site.
         $unitLabel = PricingUnitLabel::toArray($pricing);
 
         return $this->toCamelCase([
             'pricing_model' => $pricingModel,
+            'pricing_strategy' => $pricingStrategy,
+            'tiers' => $tiers,
             'unit_label' => $unitLabel,
             'tnd_price' => $tndPrice,
             'eur_price' => $eurPrice,

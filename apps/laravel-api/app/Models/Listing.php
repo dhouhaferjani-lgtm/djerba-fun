@@ -76,6 +76,23 @@ class Listing extends Model
                     if (! $hasNightlyPricing) {
                         $errors[] = 'Nightly pricing (TND or EUR) is required for accommodations';
                     }
+                } elseif (($listing->pricing['pricing_strategy'] ?? 'flat') === 'tiered') {
+                    // Tiered listings need >=1 tier row, each with both TND and EUR totals.
+                    $tiers = $listing->pricing['tiers'] ?? [];
+                    $hasValidTiers = is_array($tiers) && count($tiers) >= 1
+                        && collect($tiers)->every(function ($tier): bool {
+                            if (! is_array($tier)) {
+                                return false;
+                            }
+                            $tnd = $tier['tnd_total'] ?? null;
+                            $eur = $tier['eur_total'] ?? null;
+
+                            return $tnd !== null && $tnd !== '' && $eur !== null && $eur !== '';
+                        });
+
+                    if (! $hasValidTiers) {
+                        $errors[] = 'At least one pricing tier with both TND and EUR totals is required';
+                    }
                 } else {
                     // Tours/Events/Nautical use person type pricing (JSON field)
                     $pricing = $listing->pricing;
@@ -606,6 +623,17 @@ class Listing extends Model
     public function isAccommodation(): bool
     {
         return $this->service_type === ServiceType::ACCOMMODATION;
+    }
+
+    /**
+     * Whether this listing uses the optional tiered (positional) pricing
+     * strategy. Absent / any non-'tiered' value === flat (zero-regression default).
+     */
+    public function isTieredPricing(): bool
+    {
+        $pricing = $this->pricing ?? [];
+
+        return ($pricing['pricing_strategy'] ?? $pricing['pricingStrategy'] ?? 'flat') === 'tiered';
     }
 
     /**

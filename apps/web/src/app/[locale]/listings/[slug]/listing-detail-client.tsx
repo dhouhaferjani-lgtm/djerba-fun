@@ -12,6 +12,8 @@ import { useAvailability, useCreateHold, useAddToCart } from '@/lib/api/hooks';
 import { queryKeys } from '@/lib/api/query-keys';
 import { Button } from '@djerba-fun/ui';
 import { PersonTypeSelector } from '@/components/booking/PersonTypeSelector';
+import { TravelerCountSelector } from '@/components/booking/TravelerCountSelector';
+import { computeTieredTotal } from '@/lib/utils/tiered-pricing';
 import { BookingStepIndicator, type BookingStep } from '@/components/booking/BookingStepIndicator';
 import {
   PriceBreakdownTable,
@@ -326,12 +328,28 @@ function BookingFlowContent({
   // the per-line items (which DO read selectedSlot.effectivePrices) would
   // diverge from the displayed grand total.
   const bookingPanelCurrency = selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
-  const { totalGuests, totalPrice } = calculateTotalFromBreakdown(
-    personTypes,
-    personTypeBreakdown,
-    selectedSlot,
-    bookingPanelCurrency
+  // Tiered listings price by headcount (single traveller count, no person types).
+  // The displayed total mirrors the PHP engine; the server snapshot remains authoritative.
+  const isTiered = listing.pricing?.pricingStrategy === 'tiered';
+  const tieredTravelerCount = Math.max(
+    1,
+    Object.values(personTypeBreakdown).reduce((sum, qty) => sum + qty, 0)
   );
+  const { totalGuests, totalPrice } = isTiered
+    ? {
+        totalGuests: tieredTravelerCount,
+        totalPrice: computeTieredTotal(
+          listing.pricing?.tiers,
+          tieredTravelerCount,
+          bookingPanelCurrency
+        ),
+      }
+    : calculateTotalFromBreakdown(
+        personTypes,
+        personTypeBreakdown,
+        selectedSlot,
+        bookingPanelCurrency
+      );
   const canProceed = totalGuests > 0;
 
   // Determine current step and completed steps for indicator
@@ -429,14 +447,22 @@ function BookingFlowContent({
             </div>
           </div>
 
-          <PersonTypeSelector
-            personTypes={personTypes}
-            value={personTypeBreakdown}
-            onChange={onPersonTypeChange}
-            currency={listing.pricing?.displayCurrency || 'EUR'}
-            maxCapacity={maxCapacity}
-            locale={locale}
-          />
+          {isTiered ? (
+            <TravelerCountSelector
+              value={tieredTravelerCount}
+              onChange={(count) => onPersonTypeChange({ traveler: count })}
+              maxCapacity={maxCapacity}
+            />
+          ) : (
+            <PersonTypeSelector
+              personTypes={personTypes}
+              value={personTypeBreakdown}
+              onChange={onPersonTypeChange}
+              currency={listing.pricing?.displayCurrency || 'EUR'}
+              maxCapacity={maxCapacity}
+              locale={locale}
+            />
+          )}
 
           {/* Collapsible Extras Section */}
           {listing.extras && listing.extras.length > 0 && (
@@ -518,43 +544,57 @@ function BookingFlowContent({
                   const currency =
                     selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
 
-                  // Add person types with qty > 0
-                  for (const [key, qty] of Object.entries(personTypeBreakdown)) {
-                    if (qty > 0) {
-                      const pt = personTypes.find((p) => p.key === key);
-                      if (pt) {
-                        const label =
-                          typeof pt.label === 'object'
-                            ? (pt.label as any)[locale] || (pt.label as any).en || key
-                            : pt.label || key;
-                        // Use parsePrice for safety - handles string values from API
-                        const slotBasePrice =
-                          parsePrice(selectedSlot?.displayPrice) ??
-                          parsePrice(selectedSlot?.basePrice) ??
-                          0;
-                        // Slot-effective per-person-type price (override-aware).
-                        // The API resolves listing.pricing[key] vs slot.priceOverrides[key]
-                        // server-side — the frontend just renders whichever one
-                        // effectivePrices[currency][key] holds. Falls back to the
-                        // listing's per-type price, then the slot's headline price,
-                        // for legacy slots that lack the effectivePrices field.
-                        const slotEffective =
-                          currency === 'TND' || currency === 'EUR'
-                            ? parsePrice(selectedSlot?.effectivePrices?.[currency]?.[key])
-                            : null;
-                        const unitPrice =
-                          slotEffective ??
-                          parsePrice(pt.price) ??
-                          parsePrice(pt.displayPrice) ??
-                          slotBasePrice;
-                        items.push({
-                          type: 'person',
-                          key,
-                          label,
-                          quantity: qty,
-                          unitPrice,
-                          subtotal: unitPrice * qty,
-                        });
+                  // Tiered: render a single group-priced line (no person types).
+                  if (isTiered) {
+                    if (tieredTravelerCount > 0) {
+                      items.push({
+                        type: 'person',
+                        key: 'group',
+                        label: tBooking('group_of', { count: tieredTravelerCount }),
+                        quantity: 1,
+                        unitPrice: totalPrice,
+                        subtotal: totalPrice,
+                      });
+                    }
+                  } else {
+                    // Add person types with qty > 0
+                    for (const [key, qty] of Object.entries(personTypeBreakdown)) {
+                      if (qty > 0) {
+                        const pt = personTypes.find((p) => p.key === key);
+                        if (pt) {
+                          const label =
+                            typeof pt.label === 'object'
+                              ? (pt.label as any)[locale] || (pt.label as any).en || key
+                              : pt.label || key;
+                          // Use parsePrice for safety - handles string values from API
+                          const slotBasePrice =
+                            parsePrice(selectedSlot?.displayPrice) ??
+                            parsePrice(selectedSlot?.basePrice) ??
+                            0;
+                          // Slot-effective per-person-type price (override-aware).
+                          // The API resolves listing.pricing[key] vs slot.priceOverrides[key]
+                          // server-side — the frontend just renders whichever one
+                          // effectivePrices[currency][key] holds. Falls back to the
+                          // listing's per-type price, then the slot's headline price,
+                          // for legacy slots that lack the effectivePrices field.
+                          const slotEffective =
+                            currency === 'TND' || currency === 'EUR'
+                              ? parsePrice(selectedSlot?.effectivePrices?.[currency]?.[key])
+                              : null;
+                          const unitPrice =
+                            slotEffective ??
+                            parsePrice(pt.price) ??
+                            parsePrice(pt.displayPrice) ??
+                            slotBasePrice;
+                          items.push({
+                            type: 'person',
+                            key,
+                            label,
+                            quantity: qty,
+                            unitPrice,
+                            subtotal: unitPrice * qty,
+                          });
+                        }
                       }
                     }
                   }
@@ -1044,14 +1084,16 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
 
   // Check if this is an accommodation listing
   const isAccommodationListing = listing.serviceType === 'accommodation';
+  // Tiered (positional/group) pricing — single traveller headcount, no person types.
+  const isTieredListing = listing.pricing?.pricingStrategy === 'tiered';
 
   // Booking flow state
   const [showBookingFlow, setShowBookingFlow] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | undefined>();
-  const [personTypeBreakdown, setPersonTypeBreakdown] = useState<Record<string, number>>({
-    adult: 1,
-  });
+  const [personTypeBreakdown, setPersonTypeBreakdown] = useState<Record<string, number>>(
+    isTieredListing ? { traveler: 1 } : { adult: 1 }
+  );
 
   // Extras selection state
   const [selectedExtras, setSelectedExtras] = useState<{ id: string; quantity: number }[]>([]);
@@ -1191,7 +1233,9 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       const sessionId = getGuestSessionId();
       const response = await createHoldMutation.mutateAsync({
         slotId: String(selectedSlot.id),
-        person_types: filteredBreakdown,
+        ...(isTieredListing
+          ? { guests: Object.values(filteredBreakdown).reduce((sum, qty) => sum + qty, 0) }
+          : { person_types: filteredBreakdown }),
         session_id: sessionId,
         extras: selectedExtras,
       });
@@ -1229,7 +1273,9 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       // First create a hold with selected extras
       const holdResponse = await createHoldMutation.mutateAsync({
         slotId: String(selectedSlot.id),
-        person_types: filteredBreakdown,
+        ...(isTieredListing
+          ? { guests: Object.values(filteredBreakdown).reduce((sum, qty) => sum + qty, 0) }
+          : { person_types: filteredBreakdown }),
         session_id: sessionId,
         extras: selectedExtras,
       });

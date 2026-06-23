@@ -89,6 +89,21 @@ class CartItem extends Model
             return (float) $this->nightly_rate * $this->nights;
         }
 
+        // Tiered listings price by headcount (non-linear). Resolve via the
+        // canonical engine; NEVER fall through to unit_price * quantity, which
+        // would be wrong for a tiered group price.
+        if ($this->relationLoaded('listing') && $this->listing) {
+            $priceService = app(\App\Services\PriceCalculationService::class);
+
+            if ($priceService->isTieredPricing($this->listing)) {
+                return $priceService->calculateTieredTotal(
+                    $this->listing,
+                    (int) $this->quantity,
+                    $this->currency,
+                )['total'];
+            }
+        }
+
         // Use PriceCalculationService when listing is available for accurate per-type pricing.
         // Pass the slot when the cart item is tied to one so per-slot price overrides apply
         // — without it, calculateTotal silently falls back to listing.pricing and the user

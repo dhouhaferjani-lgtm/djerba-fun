@@ -25,7 +25,8 @@ class BookingService
     public function __construct(
         private readonly ExtrasService $extrasService,
         private readonly EmailLogService $emailLogService,
-        private readonly CouponService $couponService
+        private readonly CouponService $couponService,
+        private readonly PriceCalculationService $priceCalculationService
     ) {}
 
     /**
@@ -319,8 +320,10 @@ class BookingService
         // Notify vendor of new confirmed booking
         try {
             $vendor = $booking->listing?->vendor;
+
             if ($vendor) {
                 $listingTitle = $booking->listing->getTranslation('title', 'en') ?: $booking->listing->getTranslation('title', 'fr') ?: 'Untitled';
+
                 if (is_array($listingTitle)) {
                     $listingTitle = reset($listingTitle) ?: 'Untitled';
                 }
@@ -377,8 +380,10 @@ class BookingService
         // Notify vendor of booking cancellation
         try {
             $vendor = $booking->listing?->vendor;
+
             if ($vendor) {
                 $listingTitle = $booking->listing->getTranslation('title', 'en') ?: $booking->listing->getTranslation('title', 'fr') ?: 'Untitled';
+
                 if (is_array($listingTitle)) {
                     $listingTitle = reset($listingTitle) ?: 'Untitled';
                 }
@@ -431,8 +436,18 @@ class BookingService
         $listing = $hold->slot?->listing;
         $personTypeBreakdown = $hold->person_type_breakdown ?? [];
 
+        // Tiered listings price purely by headcount via the canonical engine.
+        // The slot base price and any person-type breakdown are intentionally
+        // ignored here (tiered is single-traveller-count). Extras still apply.
+        if ($listing && $this->priceCalculationService->isTieredPricing($listing)) {
+            $baseAmount = $this->priceCalculationService->calculateTieredTotal(
+                $listing,
+                (int) $hold->quantity,
+                $hold->currency,
+            )['total'];
+        }
         // Try to calculate using person_type_breakdown (most accurate)
-        if (! empty($personTypeBreakdown) && $listing) {
+        elseif (! empty($personTypeBreakdown) && $listing) {
             $pricing = $listing->pricing ?? [];
             // Support both camelCase and snake_case (database uses snake_case)
             $personTypes = $pricing['person_types'] ?? $pricing['personTypes'] ?? [];
@@ -691,6 +706,11 @@ class BookingService
         $currencyChanged = $browseCurrency !== $finalCurrency;
         $priceChanged = $currencyChanged;
 
+        // Capture the pricing strategy (and tier table for tiered listings) so a
+        // later vendor edit cannot retroactively change what this customer paid.
+        $listing = $hold->slot?->listing;
+        $isTiered = $listing && $this->priceCalculationService->isTieredPricing($listing);
+
         return [
             'browse_currency' => $browseCurrency,
             'browse_price' => $hold->price_snapshot,
@@ -700,6 +720,8 @@ class BookingService
             'final_price' => $finalPricing['total'],
             'final_country' => $billingCountry ?? $browseCountry,
             'price_changed' => $priceChanged,
+            'pricing_strategy' => $isTiered ? 'tiered' : 'flat',
+            'tiers' => $isTiered ? ($listing->pricing['tiers'] ?? null) : null,
             'timestamp' => now()->toIso8601String(),
         ];
     }

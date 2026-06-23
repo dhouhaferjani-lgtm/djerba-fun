@@ -1303,6 +1303,70 @@ class ListingResource extends Resource
                                 // Hide for accommodations — they use per-night
                                 ->visible(fn (Get $get): bool => $get('service_type') !== ServiceType::ACCOMMODATION->value),
 
+                            // Pricing strategy: flat (classic per-person-type) vs tiered (group/positional).
+                            // Absent / 'flat' === today's behaviour (zero regression).
+                            Forms\Components\Section::make('Pricing Strategy')
+                                ->description('Choose how travellers are priced. Flat = each person of a type costs the same (classic). Tiered = you set the TOTAL price for a group of 1, 2, 3 … travellers (e.g. cheaper per head as the group grows).')
+                                ->schema([
+                                    Forms\Components\Radio::make('pricing.pricing_strategy')
+                                        ->label('How do you want to price this listing?')
+                                        ->options([
+                                            'flat' => 'Flat rate — same price per person type (classic)',
+                                            'tiered' => 'Tiered / group pricing — total price per group size',
+                                        ])
+                                        ->default('flat')
+                                        ->live()
+                                        ->afterStateHydrated(function (Forms\Components\Radio $component, $state, $record): void {
+                                            // Existing listings that already carry tiers default to 'tiered'
+                                            // even if the explicit strategy key predates this feature.
+                                            if ($state === null || $state === '') {
+                                                $hasTiers = is_array($record?->pricing['tiers'] ?? null) && ! empty($record->pricing['tiers']);
+                                                $component->state($hasTiers ? 'tiered' : 'flat');
+                                            }
+                                        })
+                                        ->dehydrated()
+                                        ->columnSpanFull(),
+                                ])
+                                ->visible(fn (Get $get): bool => $get('service_type') !== ServiceType::ACCOMMODATION->value),
+
+                            // Group / tiered pricing table — cumulative totals per group size.
+                            Forms\Components\Section::make('Group Pricing Tiers')
+                                ->description('Enter the FULL price for a group of that size (cumulative). The 1st row is the total for 1 traveller, the 2nd row the total for 2 travellers, and so on. For groups larger than your biggest tier the pattern repeats. Example: 100 / 180 / 180 → a group of 6 costs 360, a group of 7 costs 460.')
+                                ->schema([
+                                    Forms\Components\Repeater::make('pricing.tiers')
+                                        ->label('Group size tiers (row 1 = 1 traveller, row 2 = 2 travellers, …)')
+                                        ->schema([
+                                            Forms\Components\Grid::make(2)->schema([
+                                                Forms\Components\TextInput::make('tnd_total')
+                                                    ->label('Group total (TND)')
+                                                    ->prefix('TND')
+                                                    ->numeric()
+                                                    ->step(0.01)
+                                                    ->minValue(0)
+                                                    ->required()
+                                                    ->columnSpan(1),
+
+                                                Forms\Components\TextInput::make('eur_total')
+                                                    ->label('Group total (EUR)')
+                                                    ->prefix('€')
+                                                    ->numeric()
+                                                    ->step(0.01)
+                                                    ->minValue(0)
+                                                    ->required()
+                                                    ->columnSpan(1),
+                                            ]),
+                                        ])
+                                        ->defaultItems(1)
+                                        ->minItems(1)
+                                        ->maxItems(10)
+                                        // Row order IS the group size — locked so position stays meaningful.
+                                        ->reorderable(false)
+                                        ->addActionLabel('Add next group size')
+                                        ->columnSpanFull(),
+                                ])
+                                ->visible(fn (Get $get): bool => ($get('pricing.pricing_strategy') ?? 'flat') === 'tiered'
+                                    && $get('service_type') !== ServiceType::ACCOMMODATION->value),
+
                             // Person Type Pricing - for Tours, Nautical, Events (NOT accommodations)
                             Forms\Components\Section::make('Person Type Pricing')
                                 ->description('Configure pricing for different person types. At least one person type is required. Both TND and EUR prices must be set.')
@@ -1421,8 +1485,10 @@ class ListingResource extends Resource
                                         ))
                                         ->dehydrated(false),
                                 ])
-                                // Hide Person Type Pricing for accommodations (they use per-night pricing instead)
-                                ->visible(fn (Get $get): bool => $get('service_type') !== ServiceType::ACCOMMODATION->value),
+                                // Hide Person Type Pricing for accommodations (per-night) and for
+                                // tiered listings (they use the Group Pricing Tiers table instead).
+                                ->visible(fn (Get $get): bool => $get('service_type') !== ServiceType::ACCOMMODATION->value
+                                    && ($get('pricing.pricing_strategy') ?? 'flat') !== 'tiered'),
 
                             Forms\Components\Section::make('Booking Settings')
                                 ->schema([
@@ -1841,6 +1907,23 @@ class ListingResource extends Resource
 
                             if (! $hasNightlyPricing) {
                                 $errors[] = 'Nightly pricing (TND or EUR) is required for accommodations';
+                            }
+                        } elseif (($record->pricing['pricing_strategy'] ?? 'flat') === 'tiered') {
+                            // Tiered (group) pricing: >=1 tier, each with both TND and EUR totals.
+                            $tiers = $record->pricing['tiers'] ?? [];
+
+                            if (empty($tiers) || ! is_array($tiers)) {
+                                $errors[] = 'At least one group pricing tier is required';
+                            } else {
+                                foreach ($tiers as $tier) {
+                                    $tnd = $tier['tnd_total'] ?? null;
+                                    $eur = $tier['eur_total'] ?? null;
+
+                                    if ($tnd === null || $tnd === '' || $eur === null || $eur === '') {
+                                        $errors[] = 'Each group pricing tier must have both TND and EUR totals';
+                                        break;
+                                    }
+                                }
                             }
                         } else {
                             // Tours/Events/Nautical use person type pricing

@@ -32,6 +32,29 @@ class PriceCalculationService
         ?string $currency = null,
         ?AvailabilitySlot $slot = null,
     ): array {
+        // Tiered listings price purely by headcount — collapse the per-type
+        // breakdown to a single traveller count and delegate. Returns the same
+        // shape callers expect (breakdown/subtotal/discount/total/currency/totalGuests).
+        if ($this->isTieredPricing($listing)) {
+            $headcount = (int) array_sum(array_map('intval', $breakdown));
+            $tiered = $this->calculateTieredTotal($listing, $headcount, $currency, $slot);
+
+            return [
+                'breakdown' => $headcount > 0 ? [[
+                    'type' => 'traveler',
+                    'label' => ['en' => 'Travelers', 'fr' => 'Voyageurs'],
+                    'unitPrice' => round($tiered['total'] / $headcount, 2),
+                    'quantity' => $headcount,
+                    'total' => $tiered['total'],
+                ]] : [],
+                'subtotal' => $tiered['subtotal'],
+                'discount' => $tiered['discount'],
+                'total' => $tiered['total'],
+                'currency' => $tiered['currency'],
+                'totalGuests' => $headcount,
+            ];
+        }
+
         $pricing = $listing->pricing;
 
         // Determine currency - prioritize parameter, then check for dual pricing
@@ -61,7 +84,6 @@ class PriceCalculationService
         $effectivePrices = $slot
             ? $slot->getEffectivePersonTypePrices($currency, $personTypes)
             : null;
-
 
         // Validate and calculate pricing for each person type in the breakdown
         foreach ($breakdown as $typeKey => $quantity) {
@@ -136,6 +158,12 @@ class PriceCalculationService
         ?string $currency = null,
         ?AvailabilitySlot $slot = null,
     ): array {
+        // Tiered listings use the headcount path — this is the primary tiered
+        // route (the booking flow posts `guests`/quantity, not person types).
+        if ($this->isTieredPricing($listing)) {
+            return $this->calculateTieredTotal($listing, $quantity, $currency, $slot);
+        }
+
         $pricing = $listing->pricing;
 
         // Determine currency
@@ -158,6 +186,7 @@ class PriceCalculationService
         ) {
             $effective = $slot->getEffectivePersonTypePrices($currency, $pricing['person_types']);
             $firstKey = $pricing['person_types'][0]['key'] ?? null;
+
             if ($firstKey !== null && array_key_exists($firstKey, $effective)) {
                 $basePrice = (float) $effective[$firstKey];
             }
@@ -172,6 +201,106 @@ class PriceCalculationService
             'total' => max(0, $subtotal - $discount),
             'currency' => $currency,
         ];
+    }
+
+    /**
+     * Calculate the total for a TIERED (positional) listing by headcount.
+     *
+     * The vendor supplies cumulative group totals T[1..K] (the full price for
+     * a group of 1, 2, … K travellers). For a group of N:
+     *
+     *     total(N) = floor(N / K) * T[K] + T[N mod K]      (T[0] = 0)
+     *
+     * Larger groups repeat the pattern. There is NO separate group discount —
+     * the tier table IS the discount mechanism (e.g. a flat T[3]==T[2] makes
+     * the 3rd traveller free). $slot is accepted for signature parity with the
+     * flat methods but is intentionally ignored: per-slot price overrides are
+     * not supported for tiered listings in v1.
+     *
+     * @return array{subtotal: float, discount: float, total: float, currency: string}
+     */
+    public function calculateTieredTotal(
+        Listing $listing,
+        int $quantity,
+        ?string $currency = null,
+        ?AvailabilitySlot $slot = null,
+    ): array {
+        $pricing = $listing->pricing ?? [];
+
+        if (! $currency) {
+            $currency = $pricing['currency'] ?? 'EUR';
+        }
+
+        $tiers = $this->getTierTotals($pricing, $currency); // [1 => T1, 2 => T2, ...]
+        $k = count($tiers);
+
+        if ($k === 0 || $quantity <= 0) {
+            return [
+                'subtotal' => 0.0,
+                'discount' => 0.0,
+                'total' => 0.0,
+                'currency' => $currency,
+            ];
+        }
+
+        $largest = $tiers[$k];                      // T[K]
+        $fullCycles = intdiv($quantity, $k);
+        $remainder = $quantity % $k;
+        $remainderTotal = $remainder === 0 ? 0.0 : ($tiers[$remainder] ?? 0.0);
+
+        $subtotal = round($fullCycles * $largest + $remainderTotal, 2);
+
+        return [
+            'subtotal' => $subtotal,
+            'discount' => 0.0,
+            'total' => max(0, $subtotal),
+            'currency' => $currency,
+        ];
+    }
+
+    /**
+     * Whether the listing uses the optional tiered pricing strategy.
+     * Absent / any non-'tiered' value === flat (the zero-regression default).
+     */
+    public function isTieredPricing(Listing $listing): bool
+    {
+        $pricing = $listing->pricing ?? [];
+        $strategy = $pricing['pricing_strategy'] ?? $pricing['pricingStrategy'] ?? 'flat';
+
+        return $strategy === 'tiered';
+    }
+
+    /**
+     * Resolve the cumulative tier totals for a currency as a 1-indexed map
+     * [1 => T1, 2 => T2, …]. Tiers are sorted by `position` and re-indexed by
+     * order, so malformed/non-contiguous positions degrade gracefully.
+     * Supports snake_case (DB) and camelCase (API) keys.
+     */
+    private function getTierTotals(array $pricing, string $currency): array
+    {
+        $tiers = $pricing['tiers'] ?? [];
+
+        if (! is_array($tiers) || $tiers === []) {
+            return [];
+        }
+
+        $tiers = array_values(array_filter($tiers, 'is_array'));
+        usort($tiers, fn ($a, $b) => ((int) ($a['position'] ?? 0)) <=> ((int) ($b['position'] ?? 0)));
+
+        $isTnd = strtoupper($currency) === 'TND';
+        $snakeKey = $isTnd ? 'tnd_total' : 'eur_total';
+        $camelKey = $isTnd ? 'tndTotal' : 'eurTotal';
+
+        $totals = [];
+        $index = 1;
+
+        foreach ($tiers as $tier) {
+            $value = $tier[$snakeKey] ?? $tier[$camelKey] ?? 0;
+            $totals[$index] = (float) $value;
+            $index++;
+        }
+
+        return $totals;
     }
 
     /**
@@ -257,9 +386,11 @@ class PriceCalculationService
         // Handle person_types pricing structure (new format)
         if (isset($pricing['person_types']) && ! empty($pricing['person_types'])) {
             $firstType = $pricing['person_types'][0] ?? [];
+
             if ($currency === 'TND' && isset($firstType['tnd_price'])) {
                 return (float) $firstType['tnd_price'];
             }
+
             if ($currency === 'EUR' && isset($firstType['eur_price'])) {
                 return (float) $firstType['eur_price'];
             }
