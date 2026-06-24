@@ -11,19 +11,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Test suite for the OPTIONAL "tiered" (positional) pricing strategy.
+ * Tiered = OPTIONAL group-discount totals for group sizes 2..5, layered on top
+ * of the listing's NORMAL per-person-type pricing.
  *
- * In tiered mode the vendor supplies CUMULATIVE group totals T[1..K]
- * (the full price for a group of 1, 2, 3 … up to K positions), entered
- * independently per currency. The total for a group of N travellers is:
+ * Rules:
+ *  - size 1, any size with no discount set, and groups of 6+ -> NORMAL pricing
+ *  - a size 2..5 with a tier total set -> that flat total (overrides the per-type sum)
  *
- *     total(N) = floor(N / K) * T[K] + T[N mod K]      (T[0] = 0)
- *
- * Canonical client fixture: TND tiers = [100, 180, 180] (K = 3, 3rd free).
- *   N=1 -> 100, N=2 -> 180, N=3 -> 180, N=6 -> 360, N=7 -> 460.
- *
- * These tests are the money guard for a LIVE payments system: flat listings
- * (no pricing_strategy key) MUST be unaffected.
+ * Fixture: adult=50, child=30 (TND & EUR equal). Group discounts: size 2 -> 90, size 5 -> 200.
  */
 class PriceCalculationTieredTest extends TestCase
 {
@@ -37,158 +32,99 @@ class PriceCalculationTieredTest extends TestCase
         $this->service = app(PriceCalculationService::class);
     }
 
-    /**
-     * Build a tour with tiered pricing. TND tiers = [100,180,180],
-     * EUR tiers = [30,54,54] (deliberately different to prove the engine
-     * reads the per-currency column, not a shared value).
-     */
-    private function createTieredListing(?array $tiers = null): Listing
+    private function tiered(): Listing
     {
-        $tiers ??= [
-            ['position' => 1, 'tnd_total' => 100, 'eur_total' => 30],
-            ['position' => 2, 'tnd_total' => 180, 'eur_total' => 54],
-            ['position' => 3, 'tnd_total' => 180, 'eur_total' => 54],
-        ];
-
         return Listing::factory()->create([
             'service_type' => ServiceType::TOUR,
             'pricing' => [
                 'currency' => 'TND',
                 'pricing_strategy' => 'tiered',
-                'tiers' => $tiers,
+                'person_types' => [
+                    ['key' => 'adult', 'label' => ['en' => 'Adult', 'fr' => 'Adulte'], 'tnd_price' => 50, 'eur_price' => 50, 'minAge' => 18],
+                    ['key' => 'child', 'label' => ['en' => 'Child', 'fr' => 'Enfant'], 'tnd_price' => 30, 'eur_price' => 30, 'minAge' => 2, 'maxAge' => 17],
+                ],
+                'tiers' => [
+                    ['group_size' => 2, 'tnd_total' => 90, 'eur_total' => 90],
+                    ['group_size' => 5, 'tnd_total' => 200, 'eur_total' => 200],
+                ],
             ],
         ]);
     }
 
-    public function test_tiered_group_of_1_returns_first_tier(): void
+    public function test_size_1_uses_normal_pricing(): void
     {
-        $result = $this->service->calculateTieredTotal($this->createTieredListing(), 1, 'TND');
-
-        $this->assertSame('TND', $result['currency']);
-        $this->assertEqualsWithDelta(100, $result['total'], 0.001);
-        $this->assertEqualsWithDelta(100, $result['subtotal'], 0.001);
-        $this->assertEqualsWithDelta(0, $result['discount'], 0.001, 'Tiered mode has no separate discount');
+        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 1], 'TND');
+        $this->assertEqualsWithDelta(50, $r['total'], 0.001);
     }
 
-    public function test_tiered_group_of_2_returns_second_tier(): void
+    public function test_size_2_uses_group_discount(): void
     {
-        $result = $this->service->calculateTieredTotal($this->createTieredListing(), 2, 'TND');
-
-        $this->assertEqualsWithDelta(180, $result['total'], 0.001);
+        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 2], 'TND');
+        $this->assertEqualsWithDelta(90, $r['total'], 0.001, '2 travellers -> group-of-2 total 90 (not 100)');
     }
 
-    public function test_tiered_group_of_3_returns_third_tier_with_free_traveller(): void
+    public function test_size_2_group_total_applies_regardless_of_mix(): void
     {
-        // T[3] == T[2] == 180 -> the 3rd traveller is effectively free.
-        $result = $this->service->calculateTieredTotal($this->createTieredListing(), 3, 'TND');
-
-        $this->assertEqualsWithDelta(180, $result['total'], 0.001);
+        // 1 adult + 1 child = 2 travellers -> the group-of-2 total applies.
+        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 1, 'child' => 1], 'TND');
+        $this->assertEqualsWithDelta(90, $r['total'], 0.001);
     }
 
-    public function test_tiered_group_of_6_repeats_the_pattern(): void
+    public function test_size_3_unset_uses_normal_pricing(): void
     {
-        // floor(6/3)*T[3] + T[0] = 2*180 + 0 = 360
-        $result = $this->service->calculateTieredTotal($this->createTieredListing(), 6, 'TND');
-
-        $this->assertEqualsWithDelta(360, $result['total'], 0.001);
+        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 3], 'TND');
+        $this->assertEqualsWithDelta(150, $r['total'], 0.001, '3 x 50 normal (no size-3 discount)');
     }
 
-    public function test_tiered_group_of_7_is_cycle_plus_remainder(): void
+    public function test_size_4_unset_uses_normal_pricing(): void
     {
-        // floor(7/3)*T[3] + T[1] = 2*180 + 100 = 460
-        $result = $this->service->calculateTieredTotal($this->createTieredListing(), 7, 'TND');
-
-        $this->assertEqualsWithDelta(460, $result['total'], 0.001);
+        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 4], 'TND');
+        $this->assertEqualsWithDelta(200, $r['total'], 0.001, '4 x 50 normal (no size-4 discount)');
     }
 
-    public function test_tiered_eur_uses_independent_totals(): void
+    public function test_size_5_uses_group_discount(): void
     {
-        // EUR tiers [30,54,54]: floor(7/3)*54 + 30 = 138
-        $result = $this->service->calculateTieredTotal($this->createTieredListing(), 7, 'EUR');
-
-        $this->assertSame('EUR', $result['currency']);
-        $this->assertEqualsWithDelta(138, $result['total'], 0.001);
+        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 5], 'TND');
+        $this->assertEqualsWithDelta(200, $r['total'], 0.001, 'group-of-5 total 200 (not 250)');
     }
 
-    public function test_tiered_single_tier_is_pure_linear(): void
+    public function test_size_6_uses_normal_pricing(): void
     {
-        // K=1 -> total(N) = N * T[1]
-        $listing = $this->createTieredListing([
-            ['position' => 1, 'tnd_total' => 50, 'eur_total' => 20],
-        ]);
-
-        $result = $this->service->calculateTieredTotal($listing, 4, 'TND');
-
-        $this->assertEqualsWithDelta(200, $result['total'], 0.001);
+        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 6], 'TND');
+        $this->assertEqualsWithDelta(300, $r['total'], 0.001, '6 x 50 normal (groups > 5 never discounted)');
     }
 
-    public function test_tiered_zero_quantity_returns_zero(): void
+    public function test_eur_uses_independent_group_totals(): void
     {
-        $result = $this->service->calculateTieredTotal($this->createTieredListing(), 0, 'TND');
-
-        $this->assertEqualsWithDelta(0, $result['total'], 0.001);
+        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 2], 'EUR');
+        $this->assertSame('EUR', $r['currency']);
+        $this->assertEqualsWithDelta(90, $r['total'], 0.001);
     }
 
-    public function test_tiered_empty_tiers_returns_zero_gracefully(): void
+    public function test_simple_total_applies_group_discount(): void
+    {
+        $this->assertEqualsWithDelta(90, $this->service->calculateSimpleTotal($this->tiered(), 2, 'TND')['total'], 0.001);
+        $this->assertEqualsWithDelta(150, $this->service->calculateSimpleTotal($this->tiered(), 3, 'TND')['total'], 0.001);
+    }
+
+    public function test_tiered_listing_with_no_group_discounts_is_pure_normal(): void
     {
         $listing = Listing::factory()->create([
             'service_type' => ServiceType::TOUR,
-            'pricing' => ['currency' => 'TND', 'pricing_strategy' => 'tiered', 'tiers' => []],
+            'pricing' => [
+                'currency' => 'TND',
+                'pricing_strategy' => 'tiered',
+                'person_types' => [['key' => 'adult', 'label' => ['en' => 'Adult'], 'tnd_price' => 50, 'eur_price' => 50]],
+                'tiers' => [],
+            ],
         ]);
-
-        $result = $this->service->calculateTieredTotal($listing, 3, 'TND');
-
-        $this->assertEqualsWithDelta(0, $result['total'], 0.001);
+        $this->assertEqualsWithDelta(100, $this->service->calculateTotal($listing, ['adult' => 2], 'TND')['total'], 0.001);
     }
 
-    public function test_tiered_rounds_to_two_decimals(): void
-    {
-        $listing = $this->createTieredListing([
-            ['position' => 1, 'tnd_total' => 33.333, 'eur_total' => 10.005],
-        ]);
-
-        $result = $this->service->calculateTieredTotal($listing, 3, 'EUR');
-
-        // 3 * 10.005 = 30.015 -> rounded to 30.02 (round half up)
-        $this->assertEqualsWithDelta(30.02, $result['total'], 0.001);
-    }
-
-    public function test_calculate_simple_total_routes_tiered_listing_to_tiered_engine(): void
-    {
-        // The booking flow uses the guests/quantity path -> calculateSimpleTotal.
-        $result = $this->service->calculateSimpleTotal($this->createTieredListing(), 6, 'TND');
-
-        $this->assertEqualsWithDelta(360, $result['total'], 0.001);
-    }
-
-    public function test_calculate_total_collapses_breakdown_to_headcount_for_tiered(): void
-    {
-        // Even if a person-type breakdown is passed, tiered listings price by headcount.
-        $result = $this->service->calculateTotal(
-            $this->createTieredListing(),
-            ['adult' => 4, 'child' => 2], // 6 travellers total
-            'TND',
-        );
-
-        $this->assertEqualsWithDelta(360, $result['total'], 0.001);
-        $this->assertSame(6, $result['totalGuests']);
-        $this->assertArrayHasKey('breakdown', $result);
-    }
-
-    /**
-     * REGRESSION GUARD: a flat listing (no pricing_strategy key) must be
-     * completely unaffected by the tiered code path.
-     */
     public function test_flat_listing_is_unaffected(): void
     {
         $flat = Listing::factory()->dualPriced()->create();
-
-        $result = $this->service->calculateTotal($flat, ['adult' => 2], 'TND');
-
-        $this->assertEqualsWithDelta(300, $result['total'], 0.001, '2 adults x 150 TND = 300 (unchanged)');
-        $this->assertSame(2, $result['totalGuests']);
-
-        $simple = $this->service->calculateSimpleTotal($flat, 3, 'TND');
-        $this->assertEqualsWithDelta(450, $simple['total'], 0.001, '3 x 150 TND = 450 (unchanged)');
+        $this->assertEqualsWithDelta(300, $this->service->calculateTotal($flat, ['adult' => 2], 'TND')['total'], 0.001);
+        $this->assertEqualsWithDelta(450, $this->service->calculateSimpleTotal($flat, 3, 'TND')['total'], 0.001);
     }
 }

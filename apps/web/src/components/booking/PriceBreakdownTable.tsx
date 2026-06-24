@@ -85,7 +85,9 @@ export function PriceBreakdownTable({
         {/* Total */}
         <div className="flex justify-between items-center pt-2 border-t border-neutral-200">
           <span className="font-semibold text-neutral-900">{t('total')}</span>
-          <span className="font-bold text-lg text-primary">{formatPrice(total)}</span>
+          <span data-testid="price-breakdown-total" className="font-bold text-lg text-primary">
+            {formatPrice(total)}
+          </span>
         </div>
       </div>
     );
@@ -139,7 +141,10 @@ export function PriceBreakdownTable({
             <td colSpan={3} className="py-3 pr-2 text-right font-semibold text-neutral-900">
               {t('total')}
             </td>
-            <td className="py-3 pl-2 text-right font-bold text-lg text-primary">
+            <td
+              data-testid="price-breakdown-total"
+              className="py-3 pl-2 text-right font-bold text-lg text-primary"
+            >
               {formatPrice(total)}
             </td>
           </tr>

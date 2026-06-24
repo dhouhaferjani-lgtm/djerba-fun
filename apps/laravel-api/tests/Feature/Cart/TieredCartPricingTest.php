@@ -14,24 +14,30 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * A tiered cart item must price by headcount (non-linear). It must NEVER
- * fall back to `unit_price * quantity`, which would be wrong for tiered.
+ * A tiered cart item prices by its normal per-person-type total, with the
+ * optional group-discount total overriding it when the headcount is 2..5 and a
+ * discount is configured for that exact size.
+ *
+ * Canonical fixture: adult=50, child=30. Group discounts: size 2 -> 90, size 5 -> 200.
  */
 class TieredCartPricingTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function createTieredCartItem(int $quantity, string $currency = 'TND'): CartItem
+    private function createTieredCartItem(array $breakdown, string $currency = 'TND'): CartItem
     {
         $listing = Listing::factory()->create([
             'service_type' => ServiceType::TOUR,
             'pricing' => [
                 'currency' => 'TND',
                 'pricing_strategy' => 'tiered',
+                'person_types' => [
+                    ['key' => 'adult', 'label' => ['en' => 'Adult', 'fr' => 'Adulte'], 'tnd_price' => 50, 'eur_price' => 50, 'minAge' => 18],
+                    ['key' => 'child', 'label' => ['en' => 'Child', 'fr' => 'Enfant'], 'tnd_price' => 30, 'eur_price' => 30, 'minAge' => 2, 'maxAge' => 17],
+                ],
                 'tiers' => [
-                    ['position' => 1, 'tnd_total' => 100, 'eur_total' => 30],
-                    ['position' => 2, 'tnd_total' => 180, 'eur_total' => 54],
-                    ['position' => 3, 'tnd_total' => 180, 'eur_total' => 54],
+                    ['group_size' => 2, 'tnd_total' => 90, 'eur_total' => 90],
+                    ['group_size' => 5, 'tnd_total' => 200, 'eur_total' => 200],
                 ],
             ],
         ]);
@@ -49,13 +55,15 @@ class TieredCartPricingTest extends TestCase
             'expires_at' => now()->addHour(),
         ]);
 
+        $quantity = array_sum($breakdown);
+
         $hold = BookingHold::create([
             'listing_id' => $listing->id,
             'slot_id' => $slot->id,
             'session_id' => 'tiered-hold-' . uniqid(),
             'cart_id' => $cart->id,
             'quantity' => $quantity,
-            'person_type_breakdown' => null,
+            'person_type_breakdown' => $breakdown,
             'currency' => $currency,
             'price_snapshot' => 0,
             'expires_at' => now()->addMinutes(15),
@@ -70,8 +78,8 @@ class TieredCartPricingTest extends TestCase
             'slot_start' => $slot->start_time,
             'slot_end' => $slot->end_time,
             'quantity' => $quantity,
-            'person_type_breakdown' => null,
-            'unit_price' => 0, // deliberately 0 — a linear path would yield 0
+            'person_type_breakdown' => $breakdown,
+            'unit_price' => 0, // deliberately 0 — a linear fallback would yield 0
             'currency' => $currency,
         ]);
 
@@ -80,14 +88,28 @@ class TieredCartPricingTest extends TestCase
         return $item;
     }
 
-    public function test_tiered_cart_item_subtotal_for_group_of_6(): void
+    public function test_group_of_2_applies_group_discount(): void
     {
-        $this->assertEqualsWithDelta(360, $this->createTieredCartItem(6)->getSubtotal(), 0.001);
+        $this->assertEqualsWithDelta(90, $this->createTieredCartItem(['adult' => 2])->getSubtotal(), 0.001);
     }
 
-    public function test_tiered_cart_item_does_not_multiply_unit_price_linearly(): void
+    public function test_group_of_2_total_applies_regardless_of_mix(): void
     {
-        // unit_price = 0; linear path -> 0. Tiered engine must yield T[2] = 180.
-        $this->assertEqualsWithDelta(180, $this->createTieredCartItem(2)->getSubtotal(), 0.001);
+        $this->assertEqualsWithDelta(90, $this->createTieredCartItem(['adult' => 1, 'child' => 1])->getSubtotal(), 0.001);
+    }
+
+    public function test_group_of_3_unset_uses_normal_per_person_total(): void
+    {
+        $this->assertEqualsWithDelta(150, $this->createTieredCartItem(['adult' => 3])->getSubtotal(), 0.001);
+    }
+
+    public function test_group_of_5_applies_group_discount(): void
+    {
+        $this->assertEqualsWithDelta(200, $this->createTieredCartItem(['adult' => 5])->getSubtotal(), 0.001);
+    }
+
+    public function test_single_traveller_uses_normal_pricing(): void
+    {
+        $this->assertEqualsWithDelta(50, $this->createTieredCartItem(['adult' => 1])->getSubtotal(), 0.001);
     }
 }

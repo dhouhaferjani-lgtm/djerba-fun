@@ -196,34 +196,35 @@ class ListingResource extends BaseResource
             $eurPrice = $nightlyPriceEur;
         }
 
-        // Tiered (positional) pricing: expose the tier table and use T[1] (the
-        // single-traveller cumulative total) as the "from" headline price.
-        // Tiered listings have no person types. Absent === flat (unchanged).
+        // Tiered = normal per-person-type pricing PLUS optional group-discount
+        // totals for sizes 2-5. The headline "from" price stays the normal
+        // person-type price computed above; we just expose the group tiers.
         $pricingStrategy = $pricing['pricing_strategy'] ?? $pricing['pricingStrategy'] ?? 'flat';
         $tiers = null;
 
         if ($pricingStrategy === 'tiered' && ! empty($pricing['tiers']) && is_array($pricing['tiers'])) {
-            $rows = array_values(array_filter($pricing['tiers'], 'is_array'));
-            usort($rows, fn ($a, $b) => ((int) ($a['position'] ?? 0)) <=> ((int) ($b['position'] ?? 0)));
+            $tiers = [];
 
-            $tiers = array_map(function ($row, $index) use ($detectedCurrency) {
+            foreach (array_filter($pricing['tiers'], 'is_array') as $row) {
+                $size = (int) ($row['group_size'] ?? $row['groupSize'] ?? 0);
+
+                if ($size < 2 || $size > 5) {
+                    continue;
+                }
+
                 $tndTotal = (float) ($row['tnd_total'] ?? $row['tndTotal'] ?? 0);
                 $eurTotal = (float) ($row['eur_total'] ?? $row['eurTotal'] ?? 0);
 
-                return $this->toCamelCase([
-                    'position' => $index + 1,
+                $tiers[] = $this->toCamelCase([
+                    'group_size' => $size,
                     'tnd_total' => $tndTotal,
                     'eur_total' => $eurTotal,
                     'display_total' => $detectedCurrency === 'TND' ? $tndTotal : $eurTotal,
                 ]);
-            }, $rows, array_keys($rows));
+            }
 
-            $firstTier = $tiers[0] ?? null;
-
-            if ($firstTier) {
-                $tndPrice = $firstTier['tndTotal'];
-                $eurPrice = $firstTier['eurTotal'];
-                $displayPrice = $detectedCurrency === 'TND' ? $tndPrice : $eurPrice;
+            if ($tiers === []) {
+                $tiers = null;
             }
         }
 

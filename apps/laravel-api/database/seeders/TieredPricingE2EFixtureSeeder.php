@@ -16,12 +16,14 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 
 /**
- * Opt-in fixture for the tiered (group/positional) pricing Playwright spec
+ * Opt-in fixture for the tiered group-discount pricing Playwright spec
  * (apps/web/tests/e2e/tiered-pricing/*).
  *
- * Seeds one published TOUR listing using the canonical tier table
- * T = [100, 180, 180] in BOTH currencies, so:
- *   group of 1 -> 100, of 2 -> 180, of 3 -> 180, of 6 -> 360, of 7 -> 460.
+ * Seeds one published TOUR listing with NORMAL per-person-type pricing
+ * (adult 50, child 30 in both currencies) PLUS optional group discounts for
+ * sizes 2 -> 90 and 5 -> 200 (both currencies), so:
+ *   group of 1 -> 50, of 2 -> 90, of 3 -> 150, of 5 -> 200, of 6 -> 300.
+ * (Sizes 3/4 and groups of 6+ have no discount -> normal per-person pricing.)
  *
  * Idempotent: re-running updates the same rows in place.
  *
@@ -81,10 +83,13 @@ class TieredPricingE2EFixtureSeeder extends Seeder
                 'pricing' => [
                     'currency' => 'TND',
                     'pricing_strategy' => 'tiered',
+                    'person_types' => [
+                        ['key' => 'adult', 'label' => ['en' => 'Adult', 'fr' => 'Adulte'], 'tnd_price' => 50, 'eur_price' => 50, 'minAge' => 18, 'minQuantity' => 1],
+                        ['key' => 'child', 'label' => ['en' => 'Child', 'fr' => 'Enfant'], 'tnd_price' => 30, 'eur_price' => 30, 'minAge' => 2, 'maxAge' => 17, 'minQuantity' => 0],
+                    ],
                     'tiers' => [
-                        ['position' => 1, 'tnd_total' => 100, 'eur_total' => 100],
-                        ['position' => 2, 'tnd_total' => 180, 'eur_total' => 180],
-                        ['position' => 3, 'tnd_total' => 180, 'eur_total' => 180],
+                        ['group_size' => 2, 'tnd_total' => 90, 'eur_total' => 90],
+                        ['group_size' => 5, 'tnd_total' => 200, 'eur_total' => 200],
                     ],
                 ],
                 'min_group_size' => 1,

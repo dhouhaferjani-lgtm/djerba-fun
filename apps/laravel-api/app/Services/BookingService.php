@@ -436,18 +436,8 @@ class BookingService
         $listing = $hold->slot?->listing;
         $personTypeBreakdown = $hold->person_type_breakdown ?? [];
 
-        // Tiered listings price purely by headcount via the canonical engine.
-        // The slot base price and any person-type breakdown are intentionally
-        // ignored here (tiered is single-traveller-count). Extras still apply.
-        if ($listing && $this->priceCalculationService->isTieredPricing($listing)) {
-            $baseAmount = $this->priceCalculationService->calculateTieredTotal(
-                $listing,
-                (int) $hold->quantity,
-                $hold->currency,
-            )['total'];
-        }
         // Try to calculate using person_type_breakdown (most accurate)
-        elseif (! empty($personTypeBreakdown) && $listing) {
+        if (! empty($personTypeBreakdown) && $listing) {
             $pricing = $listing->pricing ?? [];
             // Support both camelCase and snake_case (database uses snake_case)
             $personTypes = $pricing['person_types'] ?? $pricing['personTypes'] ?? [];
@@ -515,6 +505,19 @@ class BookingService
                 ?? $listing?->pricing['eur_price']
                 ?? 0);
             $baseAmount = $pricePerUnit * $hold->quantity;
+        }
+
+        // Tiered overlay: an optional group-discount total for an exact headcount
+        // (sizes 2-5) replaces the normal per-type base computed above.
+        if ($listing && $this->priceCalculationService->isTieredPricing($listing)) {
+            $headcount = ! empty($personTypeBreakdown)
+                ? (int) array_sum(array_map('intval', $personTypeBreakdown))
+                : (int) $hold->quantity;
+            $groupTotal = $this->priceCalculationService->groupDiscountTotal($listing, $headcount, $hold->currency);
+
+            if ($groupTotal !== null) {
+                $baseAmount = $groupTotal;
+            }
         }
 
         $extrasAmount = 0;

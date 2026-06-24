@@ -32,29 +32,6 @@ class PriceCalculationService
         ?string $currency = null,
         ?AvailabilitySlot $slot = null,
     ): array {
-        // Tiered listings price purely by headcount — collapse the per-type
-        // breakdown to a single traveller count and delegate. Returns the same
-        // shape callers expect (breakdown/subtotal/discount/total/currency/totalGuests).
-        if ($this->isTieredPricing($listing)) {
-            $headcount = (int) array_sum(array_map('intval', $breakdown));
-            $tiered = $this->calculateTieredTotal($listing, $headcount, $currency, $slot);
-
-            return [
-                'breakdown' => $headcount > 0 ? [[
-                    'type' => 'traveler',
-                    'label' => ['en' => 'Travelers', 'fr' => 'Voyageurs'],
-                    'unitPrice' => round($tiered['total'] / $headcount, 2),
-                    'quantity' => $headcount,
-                    'total' => $tiered['total'],
-                ]] : [],
-                'subtotal' => $tiered['subtotal'],
-                'discount' => $tiered['discount'],
-                'total' => $tiered['total'],
-                'currency' => $tiered['currency'],
-                'totalGuests' => $headcount,
-            ];
-        }
-
         $pricing = $listing->pricing;
 
         // Determine currency - prioritize parameter, then check for dual pricing
@@ -129,12 +106,24 @@ class PriceCalculationService
 
         // Apply group discount if applicable
         $discount = $this->calculateGroupDiscount($listing, $totalGuests, $subtotal);
+        $total = max(0, $subtotal - $discount);
+
+        // Tiered overlay: an optional group-discount total for an exact headcount
+        // (sizes 2-5) replaces the per-type total. Size 1, unset sizes, and groups
+        // of 6+ keep the normal per-type pricing computed above.
+        $groupTotal = $this->groupDiscountTotal($listing, $totalGuests, $currency);
+
+        if ($groupTotal !== null) {
+            $subtotal = $groupTotal;
+            $discount = 0.0;
+            $total = $groupTotal;
+        }
 
         return [
             'breakdown' => $details,
             'subtotal' => $subtotal,
             'discount' => $discount,
-            'total' => max(0, $subtotal - $discount),
+            'total' => $total,
             'currency' => $currency,
             'totalGuests' => $totalGuests,
         ];
@@ -158,12 +147,6 @@ class PriceCalculationService
         ?string $currency = null,
         ?AvailabilitySlot $slot = null,
     ): array {
-        // Tiered listings use the headcount path — this is the primary tiered
-        // route (the booking flow posts `guests`/quantity, not person types).
-        if ($this->isTieredPricing($listing)) {
-            return $this->calculateTieredTotal($listing, $quantity, $currency, $slot);
-        }
-
         $pricing = $listing->pricing;
 
         // Determine currency
@@ -194,68 +177,46 @@ class PriceCalculationService
 
         $subtotal = $basePrice * $quantity;
         $discount = $this->calculateGroupDiscount($listing, $quantity, $subtotal);
+        $total = max(0, $subtotal - $discount);
+
+        // Tiered overlay (see calculateTotal): group-discount total for sizes 2-5.
+        $groupTotal = $this->groupDiscountTotal($listing, $quantity, $currency);
+
+        if ($groupTotal !== null) {
+            $subtotal = $groupTotal;
+            $discount = 0.0;
+            $total = $groupTotal;
+        }
 
         return [
             'subtotal' => $subtotal,
             'discount' => $discount,
-            'total' => max(0, $subtotal - $discount),
+            'total' => $total,
             'currency' => $currency,
         ];
     }
 
     /**
-     * Calculate the total for a TIERED (positional) listing by headcount.
+     * Resolve the optional group-discount total for an exact headcount.
      *
-     * The vendor supplies cumulative group totals T[1..K] (the full price for
-     * a group of 1, 2, … K travellers). For a group of N:
-     *
-     *     total(N) = floor(N / K) * T[K] + T[N mod K]      (T[0] = 0)
-     *
-     * Larger groups repeat the pattern. There is NO separate group discount —
-     * the tier table IS the discount mechanism (e.g. a flat T[3]==T[2] makes
-     * the 3rd traveller free). $slot is accepted for signature parity with the
-     * flat methods but is intentionally ignored: per-slot price overrides are
-     * not supported for tiered listings in v1.
-     *
-     * @return array{subtotal: float, discount: float, total: float, currency: string}
+     * Tiered listings may set a flat total for group sizes 2-5. Returns that
+     * total when the listing is tiered, the headcount is 2-5, and a tier is set
+     * for that size; otherwise null (caller keeps normal per-type pricing).
+     * Size 1 and groups of 6+ are never discounted.
      */
-    public function calculateTieredTotal(
-        Listing $listing,
-        int $quantity,
-        ?string $currency = null,
-        ?AvailabilitySlot $slot = null,
-    ): array {
+    public function groupDiscountTotal(Listing $listing, int $headcount, ?string $currency = null): ?float
+    {
+        if (! $this->isTieredPricing($listing) || $headcount < 2 || $headcount > 5) {
+            return null;
+        }
+
         $pricing = $listing->pricing ?? [];
 
         if (! $currency) {
             $currency = $pricing['currency'] ?? 'EUR';
         }
 
-        $tiers = $this->getTierTotals($pricing, $currency); // [1 => T1, 2 => T2, ...]
-        $k = count($tiers);
-
-        if ($k === 0 || $quantity <= 0) {
-            return [
-                'subtotal' => 0.0,
-                'discount' => 0.0,
-                'total' => 0.0,
-                'currency' => $currency,
-            ];
-        }
-
-        $largest = $tiers[$k];                      // T[K]
-        $fullCycles = intdiv($quantity, $k);
-        $remainder = $quantity % $k;
-        $remainderTotal = $remainder === 0 ? 0.0 : ($tiers[$remainder] ?? 0.0);
-
-        $subtotal = round($fullCycles * $largest + $remainderTotal, 2);
-
-        return [
-            'subtotal' => $subtotal,
-            'discount' => 0.0,
-            'total' => max(0, $subtotal),
-            'currency' => $currency,
-        ];
+        return $this->getGroupTierTotals($pricing, $currency)[$headcount] ?? null;
     }
 
     /**
@@ -271,33 +232,43 @@ class PriceCalculationService
     }
 
     /**
-     * Resolve the cumulative tier totals for a currency as a 1-indexed map
-     * [1 => T1, 2 => T2, …]. Tiers are sorted by `position` and re-indexed by
-     * order, so malformed/non-contiguous positions degrade gracefully.
+     * Resolve group-discount totals keyed by group size (2-5) for a currency.
+     * Reads each tier's `group_size` (snake) / `groupSize` (camel) and the
+     * matching `*_total` value. Sizes outside 2-5 or with no value are skipped.
      * Supports snake_case (DB) and camelCase (API) keys.
      */
-    private function getTierTotals(array $pricing, string $currency): array
+    private function getGroupTierTotals(array $pricing, string $currency): array
     {
         $tiers = $pricing['tiers'] ?? [];
 
-        if (! is_array($tiers) || $tiers === []) {
+        if (! is_array($tiers)) {
             return [];
         }
-
-        $tiers = array_values(array_filter($tiers, 'is_array'));
-        usort($tiers, fn ($a, $b) => ((int) ($a['position'] ?? 0)) <=> ((int) ($b['position'] ?? 0)));
 
         $isTnd = strtoupper($currency) === 'TND';
         $snakeKey = $isTnd ? 'tnd_total' : 'eur_total';
         $camelKey = $isTnd ? 'tndTotal' : 'eurTotal';
 
         $totals = [];
-        $index = 1;
 
         foreach ($tiers as $tier) {
-            $value = $tier[$snakeKey] ?? $tier[$camelKey] ?? 0;
-            $totals[$index] = (float) $value;
-            $index++;
+            if (! is_array($tier)) {
+                continue;
+            }
+
+            $size = (int) ($tier['group_size'] ?? $tier['groupSize'] ?? 0);
+
+            if ($size < 2 || $size > 5) {
+                continue;
+            }
+
+            $value = $tier[$snakeKey] ?? $tier[$camelKey] ?? null;
+
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $totals[$size] = (float) $value;
         }
 
         return $totals;

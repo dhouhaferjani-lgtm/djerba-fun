@@ -12,9 +12,10 @@ use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 /**
- * The listing API must expose pricingStrategy + the tier table, and present
- * a "from" headline price of T[1] for tiered listings — without changing flat
- * listings.
+ * The listing API must expose pricingStrategy + the optional group-discount tier
+ * table (sizes 2-5). A tiered listing keeps its NORMAL per-person-type "from"
+ * headline price — group discounts are an overlay, not a replacement. Flat
+ * listings are unaffected.
  */
 final class TieredListingResourceTest extends TestCase
 {
@@ -34,16 +35,19 @@ final class TieredListingResourceTest extends TestCase
             'pricing' => [
                 'currency' => 'TND',
                 'pricing_strategy' => 'tiered',
+                'person_types' => [
+                    ['key' => 'adult', 'label' => ['en' => 'Adult', 'fr' => 'Adulte'], 'tnd_price' => 50, 'eur_price' => 40, 'minAge' => 18],
+                    ['key' => 'child', 'label' => ['en' => 'Child', 'fr' => 'Enfant'], 'tnd_price' => 30, 'eur_price' => 24, 'minAge' => 2, 'maxAge' => 17],
+                ],
                 'tiers' => [
-                    ['position' => 1, 'tnd_total' => 100, 'eur_total' => 30],
-                    ['position' => 2, 'tnd_total' => 180, 'eur_total' => 54],
-                    ['position' => 3, 'tnd_total' => 180, 'eur_total' => 54],
+                    ['group_size' => 2, 'tnd_total' => 90, 'eur_total' => 72],
+                    ['group_size' => 5, 'tnd_total' => 200, 'eur_total' => 160],
                 ],
             ],
         ]);
     }
 
-    public function test_tiered_listing_exposes_strategy_and_tiers_with_eur_from_price(): void
+    public function test_tiered_listing_exposes_strategy_and_group_tiers(): void
     {
         $listing = $this->tieredListing();
 
@@ -53,14 +57,20 @@ final class TieredListingResourceTest extends TestCase
         $pricing = $response->json('data.pricing');
 
         $this->assertSame('tiered', $pricing['pricingStrategy']);
-        $this->assertCount(3, $pricing['tiers']);
-        $this->assertEqualsWithDelta(1, $pricing['tiers'][0]['position'], 0.001);
-        $this->assertEqualsWithDelta(100, $pricing['tiers'][0]['tndTotal'], 0.001);
-        $this->assertEqualsWithDelta(30, $pricing['tiers'][0]['eurTotal'], 0.001);
+        $this->assertCount(2, $pricing['tiers']);
 
-        // "From" headline price = T[1] in the detected currency (EUR -> 30).
+        $this->assertEqualsWithDelta(2, $pricing['tiers'][0]['groupSize'], 0.001);
+        $this->assertEqualsWithDelta(90, $pricing['tiers'][0]['tndTotal'], 0.001);
+        $this->assertEqualsWithDelta(72, $pricing['tiers'][0]['eurTotal'], 0.001);
+        // displayTotal follows the detected currency (EUR).
+        $this->assertEqualsWithDelta(72, $pricing['tiers'][0]['displayTotal'], 0.001);
+
+        $this->assertEqualsWithDelta(5, $pricing['tiers'][1]['groupSize'], 0.001);
+
+        // "From" headline price stays the NORMAL adult price in the detected
+        // currency (EUR -> 40) — group discounts do not change it.
         $this->assertSame('EUR', $pricing['displayCurrency']);
-        $this->assertEqualsWithDelta(30, $pricing['displayPrice'], 0.001);
+        $this->assertEqualsWithDelta(40, $pricing['displayPrice'], 0.001);
     }
 
     public function test_tiered_from_price_follows_tnd_currency(): void
@@ -71,7 +81,33 @@ final class TieredListingResourceTest extends TestCase
         $response->assertOk();
 
         $pricing = $response->json('data.pricing');
-        $this->assertEqualsWithDelta(100, $pricing['displayPrice'], 0.001);
+        // Normal adult TND price = 50.
+        $this->assertEqualsWithDelta(50, $pricing['displayPrice'], 0.001);
+        $this->assertEqualsWithDelta(90, $pricing['tiers'][0]['displayTotal'], 0.001);
+    }
+
+    public function test_tiered_listing_without_group_discounts_reports_null_tiers(): void
+    {
+        $listing = Listing::factory()->create([
+            'status' => ListingStatus::PUBLISHED,
+            'service_type' => ServiceType::TOUR,
+            'pricing' => [
+                'currency' => 'TND',
+                'pricing_strategy' => 'tiered',
+                'person_types' => [
+                    ['key' => 'adult', 'label' => ['en' => 'Adult'], 'tnd_price' => 50, 'eur_price' => 40],
+                ],
+                'tiers' => [],
+            ],
+        ]);
+
+        $response = $this->getJson("/api/v1/listings/{$listing->slug}", ['X-User-Currency' => 'TND']);
+        $response->assertOk();
+
+        $pricing = $response->json('data.pricing');
+        $this->assertSame('tiered', $pricing['pricingStrategy']);
+        $this->assertNull($pricing['tiers']);
+        $this->assertEqualsWithDelta(50, $pricing['displayPrice'], 0.001);
     }
 
     public function test_flat_listing_reports_flat_strategy(): void

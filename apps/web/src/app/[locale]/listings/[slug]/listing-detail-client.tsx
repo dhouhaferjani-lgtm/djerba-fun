@@ -12,8 +12,7 @@ import { useAvailability, useCreateHold, useAddToCart } from '@/lib/api/hooks';
 import { queryKeys } from '@/lib/api/query-keys';
 import { Button } from '@djerba-fun/ui';
 import { PersonTypeSelector } from '@/components/booking/PersonTypeSelector';
-import { TravelerCountSelector } from '@/components/booking/TravelerCountSelector';
-import { computeTieredTotal } from '@/lib/utils/tiered-pricing';
+import { computeGroupDiscountTotal } from '@/lib/utils/tiered-pricing';
 import { BookingStepIndicator, type BookingStep } from '@/components/booking/BookingStepIndicator';
 import {
   PriceBreakdownTable,
@@ -328,28 +327,24 @@ function BookingFlowContent({
   // the per-line items (which DO read selectedSlot.effectivePrices) would
   // diverge from the displayed grand total.
   const bookingPanelCurrency = selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
-  // Tiered listings price by headcount (single traveller count, no person types).
-  // The displayed total mirrors the PHP engine; the server snapshot remains authoritative.
+  // Tiered = normal per-person pricing PLUS an optional group-discount total for
+  // an exact headcount (2-5). The server snapshot remains authoritative.
   const isTiered = listing.pricing?.pricingStrategy === 'tiered';
-  const tieredTravelerCount = Math.max(
-    1,
-    Object.values(personTypeBreakdown).reduce((sum, qty) => sum + qty, 0)
+  const normalTotals = calculateTotalFromBreakdown(
+    personTypes,
+    personTypeBreakdown,
+    selectedSlot,
+    bookingPanelCurrency
   );
-  const { totalGuests, totalPrice } = isTiered
-    ? {
-        totalGuests: tieredTravelerCount,
-        totalPrice: computeTieredTotal(
-          listing.pricing?.tiers,
-          tieredTravelerCount,
-          bookingPanelCurrency
-        ),
-      }
-    : calculateTotalFromBreakdown(
-        personTypes,
-        personTypeBreakdown,
-        selectedSlot,
+  const totalGuests = normalTotals.totalGuests;
+  const totalPrice = isTiered
+    ? computeGroupDiscountTotal(
+        listing.pricing?.tiers,
+        totalGuests,
+        normalTotals.totalPrice,
         bookingPanelCurrency
-      );
+      )
+    : normalTotals.totalPrice;
   const canProceed = totalGuests > 0;
 
   // Determine current step and completed steps for indicator
@@ -447,22 +442,14 @@ function BookingFlowContent({
             </div>
           </div>
 
-          {isTiered ? (
-            <TravelerCountSelector
-              value={tieredTravelerCount}
-              onChange={(count) => onPersonTypeChange({ traveler: count })}
-              maxCapacity={maxCapacity}
-            />
-          ) : (
-            <PersonTypeSelector
-              personTypes={personTypes}
-              value={personTypeBreakdown}
-              onChange={onPersonTypeChange}
-              currency={listing.pricing?.displayCurrency || 'EUR'}
-              maxCapacity={maxCapacity}
-              locale={locale}
-            />
-          )}
+          <PersonTypeSelector
+            personTypes={personTypes}
+            value={personTypeBreakdown}
+            onChange={onPersonTypeChange}
+            currency={listing.pricing?.displayCurrency || 'EUR'}
+            maxCapacity={maxCapacity}
+            locale={locale}
+          />
 
           {/* Collapsible Extras Section */}
           {listing.extras && listing.extras.length > 0 && (
@@ -544,18 +531,18 @@ function BookingFlowContent({
                   const currency =
                     selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
 
-                  // Tiered: render a single group-priced line (no person types).
-                  if (isTiered) {
-                    if (tieredTravelerCount > 0) {
-                      items.push({
-                        type: 'person',
-                        key: 'group',
-                        label: tBooking('group_of', { count: tieredTravelerCount }),
-                        quantity: 1,
-                        unitPrice: totalPrice,
-                        subtotal: totalPrice,
-                      });
-                    }
+                  // When a tiered group discount actually applies for this exact
+                  // size, show one "Group of N" line at the discounted total.
+                  // Otherwise (size 1 / unset / 6+, or flat) show person-type lines.
+                  if (isTiered && totalGuests > 0 && totalPrice !== normalTotals.totalPrice) {
+                    items.push({
+                      type: 'person',
+                      key: 'group',
+                      label: tBooking('group_of', { count: totalGuests }),
+                      quantity: 1,
+                      unitPrice: totalPrice,
+                      subtotal: totalPrice,
+                    });
                   } else {
                     // Add person types with qty > 0
                     for (const [key, qty] of Object.entries(personTypeBreakdown)) {
@@ -1084,16 +1071,17 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
 
   // Check if this is an accommodation listing
   const isAccommodationListing = listing.serviceType === 'accommodation';
-  // Tiered (positional/group) pricing — single traveller headcount, no person types.
-  const isTieredListing = listing.pricing?.pricingStrategy === 'tiered';
 
   // Booking flow state
   const [showBookingFlow, setShowBookingFlow] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | undefined>();
-  const [personTypeBreakdown, setPersonTypeBreakdown] = useState<Record<string, number>>(
-    isTieredListing ? { traveler: 1 } : { adult: 1 }
-  );
+  // Tiered listings keep normal per-person-type pricing; group discounts are an
+  // optional overlay applied to the total. So the breakdown always starts with
+  // one adult — identical to flat listings.
+  const [personTypeBreakdown, setPersonTypeBreakdown] = useState<Record<string, number>>({
+    adult: 1,
+  });
 
   // Extras selection state
   const [selectedExtras, setSelectedExtras] = useState<{ id: string; quantity: number }[]>([]);
@@ -1233,9 +1221,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       const sessionId = getGuestSessionId();
       const response = await createHoldMutation.mutateAsync({
         slotId: String(selectedSlot.id),
-        ...(isTieredListing
-          ? { guests: Object.values(filteredBreakdown).reduce((sum, qty) => sum + qty, 0) }
-          : { person_types: filteredBreakdown }),
+        person_types: filteredBreakdown,
         session_id: sessionId,
         extras: selectedExtras,
       });
@@ -1273,9 +1259,7 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
       // First create a hold with selected extras
       const holdResponse = await createHoldMutation.mutateAsync({
         slotId: String(selectedSlot.id),
-        ...(isTieredListing
-          ? { guests: Object.values(filteredBreakdown).reduce((sum, qty) => sum + qty, 0) }
-          : { person_types: filteredBreakdown }),
+        person_types: filteredBreakdown,
         session_id: sessionId,
         extras: selectedExtras,
       });

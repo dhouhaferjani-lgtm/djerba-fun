@@ -78,14 +78,15 @@ test.describe('Regression — flat per-person-type pricing is unchanged', () => 
 
     await openBookingAndPickSlot(page);
 
-    // Flat listings show the person-type selector, NOT the tiered stepper.
+    // Every listing (flat or tiered) shows the person-type selector. The old
+    // single traveller-count stepper was removed entirely — guard it stays gone.
     await page.waitForSelector('[data-testid="person-type-adult-count"]', {
       state: 'visible',
       timeout: 10_000,
     });
     await expect(
       page.locator('[data-testid="traveler-count"]'),
-      'Flat listings must NOT render the tiered traveller-count stepper'
+      'The legacy traveller-count stepper must not render'
     ).toHaveCount(0);
 
     const adultInc = page.locator('[data-testid="person-type-adult-increment"]');

@@ -348,24 +348,23 @@ export const personTypeSchema = z.object({
 export const pricingModelSchema = z.enum(['per_person', 'per_night', 'per_booking']);
 
 /**
- * Pricing strategy. 'flat' (default) = the classic per-person-type pricing
- * (each traveler of a type costs the same). 'tiered' = positional group
- * pricing: the vendor sets the CUMULATIVE total for a group of 1, 2, 3 … up to
- * 10 ("positions"); larger groups repeat the pattern. Tiered mode ignores
- * person types (single traveler headcount) and is offered only for
- * tour/nautical/event listings. Absent === 'flat' (zero-regression default).
+ * Pricing strategy. 'flat' (default) = the classic per-person-type pricing.
+ * 'tiered' = the listing keeps its normal per-person-type pricing AND adds
+ * OPTIONAL group-discount totals for group sizes 2–5. A single traveller, any
+ * group size with no discount set, and groups of 6+ use the normal per-person
+ * pricing; a set size 2–5 uses its flat group total instead. Absent === 'flat'
+ * (zero-regression default).
  */
 export const pricingStrategySchema = z.enum(['flat', 'tiered']);
 
 /**
- * One row of a tiered price table: the cumulative group total for `position`
- * travelers, entered independently per currency. Total for a group of N is
- * `floor(N / K) * T[K] + T[N mod K]` where K = number of tiers and T[k] = the
- * cumulative total for k travelers (T[0] = 0). `displayTotal` is the
- * server-computed value in the user's detected currency.
+ * One optional group-discount row: the FULL price for a group of `groupSize`
+ * (2–5) travellers, entered independently per currency. Overrides the per-person
+ * sum for that exact headcount. `displayTotal` is the server-computed value in
+ * the user's detected currency.
  */
 export const pricingTierSchema = z.object({
-  position: z.number().int().positive(), // 1..K, contiguous
+  groupSize: z.number().int().min(2).max(5),
   tndTotal: z.number().nonnegative(),
   eurTotal: z.number().nonnegative(),
   displayTotal: z.number().nonnegative().optional(),
@@ -410,9 +409,9 @@ export const pricingSchema = z.object({
     .nullable()
     .optional(),
 
-  // Tiered / positional pricing (optional; absent === 'flat' for zero regression).
+  // Tiered group discounts (optional overlay on per-person pricing; absent === 'flat').
   pricingStrategy: pricingStrategySchema.optional().default('flat'),
-  tiers: z.array(pricingTierSchema).min(1).max(10).optional(),
+  tiers: z.array(pricingTierSchema).max(4).optional(),
 });
 
 export const cancellationPolicySchema = z.object({
@@ -2170,6 +2169,18 @@ export const pageSchema = z.object({
   id: z.number(),
   code: z.string().nullable(),
   slug: z.string(),
+  // Per-locale slug map. Used by the LocaleSwitcher to navigate to the
+  // translated URL on /pages/* routes (instead of reusing the current slug
+  // under a different locale prefix and 404'ing).
+  slugs: z
+    .object({
+      en: z.string().nullable(),
+      fr: z.string().nullable(),
+    })
+    .optional(),
+  // Set by the API when the request slug did not match the requested locale's
+  // slug. The frontend page route 301-redirects to this canonical slug.
+  canonicalSlug: z.string().nullable().optional(),
   title: z.string(),
   intro: z.string().nullable(),
 

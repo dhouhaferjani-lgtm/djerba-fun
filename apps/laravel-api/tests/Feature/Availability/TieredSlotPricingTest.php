@@ -13,23 +13,28 @@ use Illuminate\Http\Request;
 use Tests\TestCase;
 
 /**
- * For a tiered listing, a slot has no person-type effective prices, so its
- * headline "from" price must come from tier T[1]. Flat slots are unaffected.
+ * A tiered listing keeps NORMAL per-person-type pricing, so its slots expose the
+ * usual per-person-type effective prices and a headline "from" price taken from
+ * the first person type — identical to a flat listing. Group discounts are an
+ * overlay applied later to the total, not to the slot headline.
  */
 class TieredSlotPricingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_tiered_slot_display_price_is_first_tier(): void
+    public function test_tiered_slot_uses_normal_person_type_pricing(): void
     {
         $listing = Listing::factory()->create([
             'service_type' => ServiceType::TOUR,
             'pricing' => [
                 'currency' => 'TND',
                 'pricing_strategy' => 'tiered',
+                'person_types' => [
+                    ['key' => 'adult', 'label' => ['en' => 'Adult', 'fr' => 'Adulte'], 'tnd_price' => 50, 'eur_price' => 40, 'minAge' => 18],
+                    ['key' => 'child', 'label' => ['en' => 'Child', 'fr' => 'Enfant'], 'tnd_price' => 30, 'eur_price' => 24, 'minAge' => 2, 'maxAge' => 17],
+                ],
                 'tiers' => [
-                    ['position' => 1, 'tnd_total' => 100, 'eur_total' => 30],
-                    ['position' => 2, 'tnd_total' => 180, 'eur_total' => 54],
+                    ['group_size' => 2, 'tnd_total' => 90, 'eur_total' => 72],
                 ],
             ],
         ]);
@@ -43,10 +48,13 @@ class TieredSlotPricingTest extends TestCase
         // Request::create('/') has no user_currency attribute -> defaults to EUR.
         $payload = (new AvailabilitySlotResource($slot))->toArray(Request::create('/'));
 
-        $this->assertEqualsWithDelta(30, $payload['displayPrice'], 0.001, 'From price = T[1] in EUR');
-        $this->assertEqualsWithDelta(30, $payload['eurPrice'], 0.001);
-        $this->assertEqualsWithDelta(100, $payload['tndPrice'], 0.001);
-        // Tiered slots expose no per-person-type effective prices.
-        $this->assertSame([], $payload['effectivePrices']['EUR']);
+        // Headline = first person type (adult) effective price in EUR.
+        $this->assertEqualsWithDelta(40, $payload['displayPrice'], 0.001);
+
+        // Per-person-type effective prices are exposed (no override -> listing values).
+        $this->assertEqualsWithDelta(40, $payload['effectivePrices']['EUR']['adult'], 0.001);
+        $this->assertEqualsWithDelta(24, $payload['effectivePrices']['EUR']['child'], 0.001);
+        $this->assertEqualsWithDelta(50, $payload['effectivePrices']['TND']['adult'], 0.001);
+        $this->assertEqualsWithDelta(30, $payload['effectivePrices']['TND']['child'], 0.001);
     }
 }

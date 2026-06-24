@@ -76,31 +76,30 @@ class Listing extends Model
                     if (! $hasNightlyPricing) {
                         $errors[] = 'Nightly pricing (TND or EUR) is required for accommodations';
                     }
-                } elseif (($listing->pricing['pricing_strategy'] ?? 'flat') === 'tiered') {
-                    // Tiered listings need >=1 tier row, each with both TND and EUR totals.
-                    $tiers = $listing->pricing['tiers'] ?? [];
-                    $hasValidTiers = is_array($tiers) && count($tiers) >= 1
-                        && collect($tiers)->every(function ($tier): bool {
-                            if (! is_array($tier)) {
-                                return false;
-                            }
-                            $tnd = $tier['tnd_total'] ?? null;
-                            $eur = $tier['eur_total'] ?? null;
-
-                            return $tnd !== null && $tnd !== '' && $eur !== null && $eur !== '';
-                        });
-
-                    if (! $hasValidTiers) {
-                        $errors[] = 'At least one pricing tier with both TND and EUR totals is required';
-                    }
                 } else {
-                    // Tours/Events/Nautical use person type pricing (JSON field)
+                    // Tours/Events/Nautical use person-type pricing (JSON field).
+                    // Tiered listings keep person types too (group discounts for
+                    // sizes 2-5 are an optional overlay), so this covers both.
                     $pricing = $listing->pricing;
                     $hasNewFormatPricing = ! empty($pricing['person_types']) || ! empty($pricing['personTypes']);
                     $hasOldFormatPricing = ! empty($pricing['base_price']) || ! empty($pricing['tnd_price']) || ! empty($pricing['eur_price']);
 
                     if (! $hasNewFormatPricing && ! $hasOldFormatPricing) {
                         $errors[] = 'Pricing information is required';
+                    }
+
+                    // Optional group-discount tiers (2-5): each set row must carry BOTH currencies.
+                    foreach (($pricing['tiers'] ?? []) as $tier) {
+                        if (! is_array($tier)) {
+                            continue;
+                        }
+                        $tndSet = ($tier['tnd_total'] ?? null) !== null && $tier['tnd_total'] !== '';
+                        $eurSet = ($tier['eur_total'] ?? null) !== null && $tier['eur_total'] !== '';
+
+                        if ($tndSet !== $eurSet) {
+                            $errors[] = 'Each group discount must have both TND and EUR totals';
+                            break;
+                        }
                     }
                 }
 
