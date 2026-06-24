@@ -69,7 +69,7 @@ test.describe('Complete Payment Flow', () => {
     await page.click('[data-testid="continue-to-payment"]');
 
     // Select mock payment method
-    await page.click('[data-testid="payment-method-mock"]');
+    await page.click('[data-testid="payment-method-offline"]');
 
     // Fill mock card details
     await page.fill('[data-testid="card-number"]', '4242424242424242');
@@ -133,7 +133,7 @@ test.describe('Complete Payment Flow', () => {
     await page.fill('[data-testid="billing-postal-code"]', 'M5H 2N2');
 
     await page.click('[data-testid="continue-to-payment"]');
-    await page.click('[data-testid="payment-method-mock"]');
+    await page.click('[data-testid="payment-method-offline"]');
     await page.fill('[data-testid="card-number"]', '4242424242424242');
     await page.fill('[data-testid="card-expiry"]', '12/25');
     await page.fill('[data-testid="card-cvc"]', '123');
@@ -193,7 +193,7 @@ test.describe('Complete Payment Flow', () => {
     await page.fill('[data-testid="billing-postal-code"]', 'M5H 2N2');
 
     await page.click('[data-testid="continue-to-payment"]');
-    await page.click('[data-testid="payment-method-mock"]');
+    await page.click('[data-testid="payment-method-offline"]');
     await page.fill('[data-testid="card-number"]', '4242424242424242');
     await page.fill('[data-testid="card-expiry"]', '12/25');
     await page.fill('[data-testid="card-cvc"]', '123');
@@ -311,7 +311,7 @@ test.describe('Complete Payment Flow', () => {
     await page.fill('[data-testid="billing-postal-code"]', 'M5H 2N2');
 
     await page.click('[data-testid="continue-to-payment"]');
-    await page.click('[data-testid="payment-method-mock"]');
+    await page.click('[data-testid="payment-method-offline"]');
     await page.fill('[data-testid="card-number"]', '4242424242424242');
     await page.fill('[data-testid="card-expiry"]', '12/25');
     await page.fill('[data-testid="card-cvc"]', '123');

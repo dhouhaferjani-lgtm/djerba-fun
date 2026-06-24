@@ -141,7 +141,7 @@ class PlatformSettingsSeeder extends Seeder
             'min_booking_amount' => 10,
             'max_booking_amount' => 10000,
             'default_payment_gateway' => 'mock',
-            'enabled_payment_methods' => ['mock', 'offline', 'click_to_pay'],
+            'enabled_payment_methods' => ['offline', 'cash', 'click_to_pay'],
 
             // Booking Settings
             'hold_duration_minutes' => 15,

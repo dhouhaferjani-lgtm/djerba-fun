@@ -217,7 +217,7 @@ Updated with:
 19. `hold-total-price` - Hold price
 20. `proceed-to-payment` - Checkout
 21. `checkout-total` - Checkout price
-22. `payment-method-mock` - Payment option
+22. `payment-method-offline` - Payment option
 23. `complete-payment-button` - Submit payment
 24. `booking-confirmation` - Confirmation page
 25. `confirmation-total` - Final price

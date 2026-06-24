@@ -161,7 +161,7 @@ This checklist shows all `data-testid` attributes that need to be added to front
 
 ### Payment Options
 
-- [ ] `payment-method-mock` - Mock payment option (for testing)
+- [ ] `payment-method-offline` - Bank transfer (offline) payment option
 
 ### Actions
 
@@ -196,7 +196,7 @@ This checklist shows all `data-testid` attributes that need to be added to front
 4. Traveler: All `traveler-*` fields, `continue-to-billing`
 5. Review: `review-total-price`, `create-hold-button`
 6. Hold: `hold-timer`, `hold-id`, `hold-total-price`, `proceed-to-payment`
-7. Payment: `checkout-total`, `payment-method-mock`, `complete-payment-button`
+7. Payment: `checkout-total`, `payment-method-offline`, `complete-payment-button`
 8. Confirmation: `booking-confirmation`, `confirmation-total`
 
 ### Phase 2: Billing & Disclosure (VPN/Expat Users)

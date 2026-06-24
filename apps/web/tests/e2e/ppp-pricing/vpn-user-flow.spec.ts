@@ -336,7 +336,7 @@ test.describe('VPN User Flow - Tunisia IP + France Billing', () => {
 
     console.log('📍 Step 4: Complete payment');
 
-    await page.getByTestId('payment-method-mock').click();
+    await page.getByTestId('payment-method-offline').click();
     await page.getByTestId('complete-payment-button').click();
 
     console.log('📍 Step 5: Verify confirmation in TND');

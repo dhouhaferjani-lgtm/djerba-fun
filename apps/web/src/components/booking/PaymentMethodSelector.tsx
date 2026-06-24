@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { BankTransferDetails } from '@djerba-fun/schemas';
 
-export type PaymentMethod = 'mock' | 'offline' | 'cash' | 'click_to_pay' | 'stripe' | 'paypal';
+export type PaymentMethod = 'offline' | 'cash' | 'click_to_pay' | 'stripe' | 'paypal';
 
 interface PaymentMethodSelectorProps {
   availableMethods: PaymentMethod[];
@@ -36,11 +36,6 @@ export function PaymentMethodSelector({
       icon: string;
     }
   > = {
-    mock: {
-      label: t('mock'),
-      description: t('mock_description'),
-      icon: '💳',
-    },
     offline: {
       label: t('bank_transfer'),
       description: t('bank_transfer_description'),
@@ -167,13 +162,6 @@ export function PaymentMethodSelector({
         <div className="mt-4 p-4 bg-info-light border border-info/20 rounded-lg">
           <h4 className="font-medium text-info-dark mb-2">{t('secure_payment')}</h4>
           <p className="text-sm text-info-dark">{tCheckout('clictopay_redirect_info')}</p>
-        </div>
-      )}
-
-      {selected === 'mock' && (
-        <div className="mt-4 p-4 bg-warning-light border border-warning/20 rounded-lg">
-          <h4 className="font-medium text-warning-dark mb-2">{t('mock_payment')}</h4>
-          <p className="text-sm text-warning-dark">{t('mock_payment_info')}</p>
         </div>
       )}
     </div>

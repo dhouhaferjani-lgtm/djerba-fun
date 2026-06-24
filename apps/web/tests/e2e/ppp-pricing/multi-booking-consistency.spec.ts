@@ -481,7 +481,7 @@ test.describe('Multi-Booking Consistency', () => {
     await page.waitForSelector('[data-testid="hold-timer"]', { state: 'visible' });
 
     await page.getByTestId('proceed-to-payment').click();
-    await page.getByTestId('payment-method-mock').click();
+    await page.getByTestId('payment-method-offline').click();
     await page.getByTestId('complete-payment-button').click();
 
     await page.waitForSelector('[data-testid="booking-confirmation"]', { state: 'visible' });

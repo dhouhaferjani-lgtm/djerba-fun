@@ -127,11 +127,11 @@ pnpm playwright test tests/e2e/ppp-pricing/vpn-user-flow.spec.ts --debug
 
 ### Checkout/Payment
 
-| Element                 | data-testid               | Purpose                      |
-| ----------------------- | ------------------------- | ---------------------------- |
-| Checkout total          | `checkout-total`          | Total price on checkout page |
-| Payment method (mock)   | `payment-method-mock`     | Mock payment option          |
-| Complete payment button | `complete-payment-button` | Submit payment               |
+| Element                  | data-testid               | Purpose                      |
+| ------------------------ | ------------------------- | ---------------------------- |
+| Checkout total           | `checkout-total`          | Total price on checkout page |
+| Payment method (offline) | `payment-method-offline`  | Bank transfer payment option |
+| Complete payment button  | `complete-payment-button` | Submit payment               |
 
 ### Confirmation
 
