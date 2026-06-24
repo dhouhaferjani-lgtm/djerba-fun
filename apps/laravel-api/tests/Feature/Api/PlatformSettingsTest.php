@@ -428,6 +428,7 @@ class PlatformSettingsTest extends TestCase
 
         // Upload all pillar images
         $pillars = ['brand_pillar_1', 'brand_pillar_2', 'brand_pillar_3'];
+
         foreach ($pillars as $pillar) {
             $image = UploadedFile::fake()->image("{$pillar}.jpg", 1080, 1080);
             $settings->addMedia($image)->toMediaCollection($pillar);
@@ -630,5 +631,60 @@ class PlatformSettingsTest extends TestCase
             ->assertJsonPath('data.about.founder.name', 'Seif Ben Helel')
             ->assertJsonPath('data.about.team.title', 'Our Team')
             ->assertJsonPath('data.about.impactText', '1% for nature');
+    }
+
+    /**
+     * The test/dev "mock" gateway must never be exposed to customers at checkout.
+     *
+     * Bug (client ticket): "Paiement Test" appeared on the live checkout because the
+     * stored enabled_payment_methods carried 'mock' (seeded default, not removable from
+     * the admin UI) and the public settings passed it through unchanged.
+     *
+     * GIVEN the stored settings enable mock alongside the real methods
+     * WHEN the public platform settings are requested
+     * THEN the customer-facing enabledPaymentMethods must NOT contain 'mock'.
+     */
+    public function test_checkout_excludes_mock_payment_method(): void
+    {
+        // Arrange — mock is present in the stored row (as it is on production)
+        PlatformSettings::create([
+            'enabled_payment_methods' => ['mock', 'offline', 'cash', 'click_to_pay'],
+        ]);
+
+        // Act
+        $response = $this->getJson('/api/v1/platform/settings');
+
+        // Assert
+        $response->assertStatus(200);
+        $methods = $response->json('data.booking.enabledPaymentMethods');
+
+        $this->assertIsArray($methods);
+        $this->assertNotContains('mock', $methods, 'The mock/test gateway must never reach customer checkout.');
+    }
+
+    /**
+     * Regression guard: removing mock must not affect the three real payment methods.
+     *
+     * GIVEN the stored settings enable the real methods (plus mock)
+     * WHEN the public platform settings are requested
+     * THEN offline, cash and click_to_pay must all still be returned, unchanged.
+     */
+    public function test_checkout_preserves_real_payment_methods(): void
+    {
+        // Arrange
+        PlatformSettings::create([
+            'enabled_payment_methods' => ['mock', 'offline', 'cash', 'click_to_pay'],
+        ]);
+
+        // Act
+        $response = $this->getJson('/api/v1/platform/settings');
+
+        // Assert
+        $response->assertStatus(200);
+        $methods = $response->json('data.booking.enabledPaymentMethods');
+
+        $this->assertContains('offline', $methods, 'Bank transfer (offline) must remain available.');
+        $this->assertContains('cash', $methods, 'Cash on arrival must remain available.');
+        $this->assertContains('click_to_pay', $methods, 'Clictopay must remain available.');
     }
 }

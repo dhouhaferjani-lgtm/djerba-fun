@@ -76,8 +76,8 @@ test.describe('Complete Booking Flow', () => {
     // Step 10: Process payment
     await page.getByRole('button', { name: /pay.*now|confirm.*booking/i }).click();
 
-    // Select mock payment method
-    await page.getByLabel(/payment.*method/i).selectOption('mock');
+    // Select offline (bank transfer) payment method
+    await page.getByLabel(/payment.*method/i).selectOption('offline');
 
     // Fill mock payment details
     await page.getByLabel(/card.*number/i).fill(testPayment.mock.cardNumber);

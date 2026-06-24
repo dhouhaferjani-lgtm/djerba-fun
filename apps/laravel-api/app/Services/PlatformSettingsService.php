@@ -253,14 +253,14 @@ class PlatformSettingsService
             'featuredDestinations' => collect($s->featured_destinations ?? [])->map(function ($dest) {
                 // Convert relative image paths to full URLs
                 if (! empty($dest['image']) && ! str_starts_with($dest['image'], 'http')) {
-                    $dest['image'] = asset('storage/'.$dest['image']);
+                    $dest['image'] = asset('storage/' . $dest['image']);
                 }
 
                 // Convert gallery image paths to full URLs
                 if (! empty($dest['gallery']) && is_array($dest['gallery'])) {
                     $dest['gallery'] = array_map(function ($item) {
                         if (! empty($item['image']) && ! str_starts_with($item['image'], 'http')) {
-                            $item['image'] = asset('storage/'.$item['image']);
+                            $item['image'] = asset('storage/' . $item['image']);
                         }
 
                         return $item;
@@ -271,7 +271,7 @@ class PlatformSettingsService
             })->values()->toArray(),
             'testimonials' => collect($s->testimonials ?? [])->map(function ($testimonial) {
                 if (! empty($testimonial['photo']) && ! str_starts_with($testimonial['photo'], 'http')) {
-                    $testimonial['photo'] = asset('storage/'.$testimonial['photo']);
+                    $testimonial['photo'] = asset('storage/' . $testimonial['photo']);
                 }
 
                 return $testimonial;
@@ -294,6 +294,7 @@ class PlatformSettingsService
                 'categories' => collect($s->experience_categories ?? [])->sortBy('display_order')->map(function ($category) use ($locale) {
                     // Convert relative image path to full URL
                     $imageUrl = null;
+
                     if (! empty($category['image'])) {
                         if (str_starts_with($category['image'], 'http')) {
                             $imageUrl = $category['image'];
@@ -387,8 +388,9 @@ class PlatformSettingsService
                 })->values()->toArray(),
                 'partners' => collect($s->about_partners ?? [])->map(function ($partner) {
                     $logo = $partner['logo'] ?? null;
+
                     if ($logo && ! str_starts_with($logo, 'http')) {
-                        $logo = asset('storage/'.$logo);
+                        $logo = asset('storage/' . $logo);
                     }
 
                     return [
@@ -398,8 +400,9 @@ class PlatformSettingsService
                 })->values()->toArray(),
                 'initiatives' => collect($s->about_initiatives ?? [])->map(function ($initiative) use ($locale) {
                     $image = $initiative['image'] ?? null;
+
                     if ($image && ! str_starts_with($image, 'http')) {
-                        $image = asset('storage/'.$image);
+                        $image = asset('storage/' . $image);
                     }
 
                     return [
@@ -520,10 +523,20 @@ class PlatformSettingsService
     }
 
     /**
+     * Payment methods that exist for internal/testing use only and must never be
+     * advertised to customers at checkout. The admin "Enabled Payment Methods" UI
+     * has no toggle for these, so they can leak in via seeded/legacy stored values.
+     *
+     * @var array<int, string>
+     */
+    private const NON_CUSTOMER_FACING_PAYMENT_METHODS = ['mock'];
+
+    /**
      * Map stored payment method values to frontend-compatible names.
      *
      * Handles backward compatibility: old admin values (card, bank_transfer)
-     * are mapped to the correct frontend values (click_to_pay, offline).
+     * are mapped to the correct frontend values (click_to_pay, offline). Test/dev
+     * gateways (e.g. "mock") are stripped so they can never reach customer checkout.
      *
      * @param  array<string>  $methods
      * @return array<string>
@@ -539,7 +552,10 @@ class PlatformSettingsService
         ];
 
         return array_values(array_unique(array_filter(
-            array_map(fn ($m) => $map[$m] ?? $m, $methods)
+            array_map(fn ($m) => $map[$m] ?? $m, $methods),
+            fn ($m) => $m !== null
+                && $m !== ''
+                && ! in_array($m, self::NON_CUSTOMER_FACING_PAYMENT_METHODS, true),
         )));
     }
 }

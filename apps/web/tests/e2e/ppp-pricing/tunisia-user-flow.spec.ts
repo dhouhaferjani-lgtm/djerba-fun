@@ -282,8 +282,8 @@ test.describe('Tunisia User Flow - TND Throughout', () => {
 
     console.log('📍 Step 4: Complete payment');
 
-    // Select payment method (mock)
-    await page.getByTestId('payment-method-mock').click();
+    // Select payment method (offline / bank transfer)
+    await page.getByTestId('payment-method-offline').click();
 
     // Complete payment
     await page.getByTestId('complete-payment-button').click();
