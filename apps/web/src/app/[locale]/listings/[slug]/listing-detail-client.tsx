@@ -12,7 +12,7 @@ import { useAvailability, useCreateHold, useAddToCart } from '@/lib/api/hooks';
 import { queryKeys } from '@/lib/api/query-keys';
 import { Button } from '@djerba-fun/ui';
 import { PersonTypeSelector } from '@/components/booking/PersonTypeSelector';
-import { computeGroupDiscountTotal } from '@/lib/utils/tiered-pricing';
+import { computeGroupDiscountTotal, packGroupTiers } from '@/lib/utils/tiered-pricing';
 import { BookingStepIndicator, type BookingStep } from '@/components/booking/BookingStepIndicator';
 import {
   PriceBreakdownTable,
@@ -327,8 +327,8 @@ function BookingFlowContent({
   // the per-line items (which DO read selectedSlot.effectivePrices) would
   // diverge from the displayed grand total.
   const bookingPanelCurrency = selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
-  // Tiered = normal per-person pricing PLUS an optional group-discount total for
-  // an exact headcount (2-5). The server snapshot remains authoritative.
+  // Tiered = normal per-person pricing PLUS optional group prices (sizes 2-5),
+  // priced by greedy "circle" packing. The server snapshot remains authoritative.
   const isTiered = listing.pricing?.pricingStrategy === 'tiered';
   const normalTotals = calculateTotalFromBreakdown(
     personTypes,
@@ -337,12 +337,24 @@ function BookingFlowContent({
     bookingPanelCurrency
   );
   const totalGuests = normalTotals.totalGuests;
+  // Base per-person rate for any leftover individuals beyond the group bundles.
+  // Mirrors the server (listing's first/primary person-type price, not slot
+  // overrides) so the preview matches the charged amount.
+  const groupBaseUnit = (() => {
+    const pt = (listing.pricing?.personTypes ?? [])[0] as
+      | { tndPrice?: number; eurPrice?: number; price?: number; displayPrice?: number }
+      | undefined;
+    if (!pt) return 0;
+    const isTnd = String(bookingPanelCurrency).toUpperCase() === 'TND';
+    return Number((isTnd ? pt.tndPrice : pt.eurPrice) ?? pt.price ?? pt.displayPrice ?? 0);
+  })();
   const totalPrice = isTiered
     ? computeGroupDiscountTotal(
         listing.pricing?.tiers,
         totalGuests,
         normalTotals.totalPrice,
-        bookingPanelCurrency
+        bookingPanelCurrency,
+        groupBaseUnit
       )
     : normalTotals.totalPrice;
   const canProceed = totalGuests > 0;
@@ -531,18 +543,47 @@ function BookingFlowContent({
                   const currency =
                     selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
 
-                  // When a tiered group discount actually applies for this exact
-                  // size, show one "Group of N" line at the discounted total.
-                  // Otherwise (size 1 / unset / 6+, or flat) show person-type lines.
-                  if (isTiered && totalGuests > 0 && totalPrice !== normalTotals.totalPrice) {
-                    items.push({
-                      type: 'person',
-                      key: 'group',
-                      label: tBooking('group_of', { count: totalGuests }),
-                      quantity: 1,
-                      unitPrice: totalPrice,
-                      subtotal: totalPrice,
-                    });
+                  // Tiered: itemise the greedy packing — one line per group
+                  // bundle (e.g. "Group of 3" x2) plus any leftover individuals
+                  // at the base per-person rate. Falls back to per-person-type
+                  // lines for flat listings and pure-individual bookings.
+                  const groupPacking =
+                    isTiered && totalGuests > 0
+                      ? packGroupTiers(listing.pricing?.tiers, totalGuests, currency, groupBaseUnit)
+                      : null;
+
+                  if (groupPacking?.applies) {
+                    for (const bundle of groupPacking.bundles) {
+                      items.push({
+                        type: 'person',
+                        key: `group-${bundle.size}`,
+                        label: tBooking('group_of', { count: bundle.size }),
+                        quantity: bundle.count,
+                        unitPrice: bundle.unitTotal,
+                        subtotal: Math.round(bundle.unitTotal * bundle.count * 100) / 100,
+                      });
+                    }
+
+                    if (groupPacking.leftover > 0) {
+                      const primary = personTypes[0];
+                      const primaryLabel = primary?.label as
+                        | Record<string, string>
+                        | string
+                        | undefined;
+                      const leftoverLabel = primary
+                        ? typeof primaryLabel === 'object'
+                          ? primaryLabel[locale] || primaryLabel.en || primary.key
+                          : primaryLabel || primary.key
+                        : tBooking('group_of', { count: 1 });
+                      items.push({
+                        type: 'person',
+                        key: 'group-individual',
+                        label: leftoverLabel,
+                        quantity: groupPacking.leftover,
+                        unitPrice: groupBaseUnit,
+                        subtotal: groupBaseUnit * groupPacking.leftover,
+                      });
+                    }
                   } else {
                     // Add person types with qty > 0
                     for (const [key, qty] of Object.entries(personTypeBreakdown)) {

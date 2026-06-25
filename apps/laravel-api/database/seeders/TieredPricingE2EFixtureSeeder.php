@@ -20,10 +20,10 @@ use Illuminate\Database\Seeder;
  * (apps/web/tests/e2e/tiered-pricing/*).
  *
  * Seeds one published TOUR listing with NORMAL per-person-type pricing
- * (adult 50, child 30 in both currencies) PLUS optional group discounts for
- * sizes 2 -> 90 and 5 -> 200 (both currencies), so:
- *   group of 1 -> 50, of 2 -> 90, of 3 -> 150, of 5 -> 200, of 6 -> 300.
- * (Sizes 3/4 and groups of 6+ have no discount -> normal per-person pricing.)
+ * (adult 50, child 30 in both currencies) PLUS optional group prices for
+ * sizes 2 -> 90 and 3 -> 130 (both currencies), priced by greedy "circle"
+ * packing, so:
+ *   1 -> 50, 2 -> 90, 3 -> 130, 4 -> 130+50=180, 5 -> 130+90=220, 6 -> 130+130=260.
  *
  * Idempotent: re-running updates the same rows in place.
  *
@@ -89,7 +89,7 @@ class TieredPricingE2EFixtureSeeder extends Seeder
                     ],
                     'tiers' => [
                         ['group_size' => 2, 'tnd_total' => 90, 'eur_total' => 90],
-                        ['group_size' => 5, 'tnd_total' => 200, 'eur_total' => 200],
+                        ['group_size' => 3, 'tnd_total' => 130, 'eur_total' => 130],
                     ],
                 ],
                 'min_group_size' => 1,

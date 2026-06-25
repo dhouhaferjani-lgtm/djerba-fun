@@ -1,17 +1,17 @@
 /**
- * Customer-flow coverage for OPTIONAL group-discount pricing.
+ * Customer-flow coverage for OPTIONAL group pricing (greedy "circle" packing).
  *
  * Fixture (seeded by TieredPricingE2EFixtureSeeder): a TOUR listing with NORMAL
  * per-person-type pricing (adult 50, child 30 in BOTH currencies) plus optional
- * group discounts for sizes 2 -> 90 and 5 -> 200 (both currencies). Amounts are
+ * group prices for sizes 2 -> 90 and 3 -> 130 (both currencies). Amounts are
  * currency-independent, so the displayed number is the same in TND or EUR:
  *
- *   1 adult -> 50, 2 -> 90, 3 -> 150, 5 -> 200, 6 -> 300.
+ *   1 -> 50, 2 -> 90, 3 -> 130, 4 -> 130+50=180, 5 -> 130+90=220, 6 -> 130+130=260.
  *
- * The spec drives the real booking panel: a tiered listing must render the
- * normal PERSON-TYPE selector (group discounts are an overlay, not a
- * replacement), and the grand total must apply the group discount only for the
- * exact configured sizes (2 and 5) and use normal per-person pricing otherwise.
+ * The spec drives the real booking panel: a tiered listing keeps the normal
+ * PERSON-TYPE selector, and the grand total must follow greedy packing — the
+ * largest group price that fits, the remainder cycling back through the group
+ * prices, and any leftover charged individually.
  *
  * Pre-conditions:
  *   • Dev DB seeded with the fixture:
@@ -50,9 +50,11 @@ async function assertTieredFixturePresent(): Promise<void> {
     pricing?.pricingStrategy,
     'Fixture missing. Run: php artisan db:seed --class=TieredPricingE2EFixtureSeeder'
   ).toBe('tiered');
-  // First configured group discount is "Group of 2" -> 90.
+  // Configured group prices: "Group of 2" -> 90 and "Group of 3" -> 130.
   expect(Number(pricing?.tiers?.[0]?.groupSize)).toBe(2);
   expect(Number(pricing?.tiers?.[0]?.tndTotal)).toBe(90);
+  expect(Number(pricing?.tiers?.[1]?.groupSize)).toBe(3);
+  expect(Number(pricing?.tiers?.[1]?.tndTotal)).toBe(130);
 }
 
 async function dismissCookieBanner(page: Page): Promise<void> {
@@ -92,9 +94,7 @@ test.describe('Customer flow — optional group-discount pricing', () => {
     await assertTieredFixturePresent();
   });
 
-  test('tiered listing keeps person types and applies the group discount only for set sizes', async ({
-    page,
-  }) => {
+  test('tiered listing keeps person types and follows greedy group packing', async ({ page }) => {
     await page.goto(`${LISTING_BASE_URL}/listings/${LISTING_SLUG}`);
     await page.waitForLoadState('networkidle');
     await dismissCookieBanner(page);
@@ -110,30 +110,33 @@ test.describe('Customer flow — optional group-discount pricing', () => {
       .first();
     const total = (): Locator =>
       page.locator('[data-testid="price-breakdown-total"]:visible').first();
+    const inc = async (to: string) => {
+      await adultIncrement.click();
+      await expect(adultCount).toHaveText(to);
+    };
 
-    // Default = 1 adult -> normal pricing, total 50.
+    // Default = 1 adult -> individual rate, total 50.
     await expect(adultCount).toHaveText('1');
     await expect(total()).toContainText('50.00', { timeout: 10_000 });
 
-    // 2 travellers -> group-of-2 discount, total 90 (not 100).
-    await adultIncrement.click();
-    await expect(adultCount).toHaveText('2');
+    // 2 -> group-of-2, total 90.
+    await inc('2');
     await expect(total()).toContainText('90.00', { timeout: 10_000 });
 
-    // 3 travellers -> no size-3 discount, normal 3 x 50 = 150.
-    await adultIncrement.click();
-    await expect(adultCount).toHaveText('3');
-    await expect(total()).toContainText('150.00', { timeout: 10_000 });
+    // 3 -> group-of-3, total 130.
+    await inc('3');
+    await expect(total()).toContainText('130.00', { timeout: 10_000 });
 
-    // 5 travellers -> group-of-5 discount, total 200 (not 250).
-    await adultIncrement.click();
-    await adultIncrement.click();
-    await expect(adultCount).toHaveText('5');
-    await expect(total()).toContainText('200.00', { timeout: 10_000 });
+    // 4 -> group-of-3 + 1 individual = 180.
+    await inc('4');
+    await expect(total()).toContainText('180.00', { timeout: 10_000 });
 
-    // 6 travellers -> groups of 6+ never discounted, normal 6 x 50 = 300.
-    await adultIncrement.click();
-    await expect(adultCount).toHaveText('6');
-    await expect(total()).toContainText('300.00', { timeout: 10_000 });
+    // 5 -> group-of-3 + group-of-2 = 220 (the "circle").
+    await inc('5');
+    await expect(total()).toContainText('220.00', { timeout: 10_000 });
+
+    // 6 -> group-of-3 + group-of-3 = 260.
+    await inc('6');
+    await expect(total()).toContainText('260.00', { timeout: 10_000 });
   });
 });

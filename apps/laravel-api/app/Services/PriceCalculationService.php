@@ -108,9 +108,10 @@ class PriceCalculationService
         $discount = $this->calculateGroupDiscount($listing, $totalGuests, $subtotal);
         $total = max(0, $subtotal - $discount);
 
-        // Tiered overlay: an optional group-discount total for an exact headcount
-        // (sizes 2-5) replaces the per-type total. Size 1, unset sizes, and groups
-        // of 6+ keep the normal per-type pricing computed above.
+        // Tiered overlay: greedy "circle" packing of the optional group-discount
+        // prices (sizes 2-5) replaces the per-type total when at least one group
+        // bundle applies. Individual bookings (below the smallest group) keep the
+        // normal per-type pricing computed above.
         $groupTotal = $this->groupDiscountTotal($listing, $totalGuests, $currency);
 
         if ($groupTotal !== null) {
@@ -179,7 +180,7 @@ class PriceCalculationService
         $discount = $this->calculateGroupDiscount($listing, $quantity, $subtotal);
         $total = max(0, $subtotal - $discount);
 
-        // Tiered overlay (see calculateTotal): group-discount total for sizes 2-5.
+        // Tiered overlay (see calculateTotal): greedy packing of group prices.
         $groupTotal = $this->groupDiscountTotal($listing, $quantity, $currency);
 
         if ($groupTotal !== null) {
@@ -197,16 +198,26 @@ class PriceCalculationService
     }
 
     /**
-     * Resolve the optional group-discount total for an exact headcount.
+     * Resolve the optional group-discount total for a headcount via greedy
+     * "circle" packing.
      *
-     * Tiered listings may set a flat total for group sizes 2-5. Returns that
-     * total when the listing is tiered, the headcount is 2-5, and a tier is set
-     * for that size; otherwise null (caller keeps normal per-type pricing).
-     * Size 1 and groups of 6+ are never discounted.
+     * Tiered listings may set a flat total for group sizes 2-5. For a headcount,
+     * we repeatedly apply the LARGEST configured group price that fits, let the
+     * remainder cycle back through the group prices, and charge any final
+     * leftover (smaller than the smallest configured group) as individuals at
+     * the base per-person rate.
+     *
+     * Returns the packed total, or null to signal "use normal per-person-type
+     * pricing" — which happens when the listing is not tiered, has no group
+     * tiers, or the headcount is smaller than the smallest configured group
+     * (a genuinely individual booking, where adult/child rates still apply).
+     *
+     * Examples (per-person 50, groups {2:90, 3:130}):
+     *   1->null(50)  2->90  3->130  4->130+50  5->130+90  6->130+130  7->130+130+50
      */
     public function groupDiscountTotal(Listing $listing, int $headcount, ?string $currency = null): ?float
     {
-        if (! $this->isTieredPricing($listing) || $headcount < 2 || $headcount > 5) {
+        if (! $this->isTieredPricing($listing) || $headcount < 1) {
             return null;
         }
 
@@ -216,7 +227,43 @@ class PriceCalculationService
             $currency = $pricing['currency'] ?? 'EUR';
         }
 
-        return $this->getGroupTierTotals($pricing, $currency)[$headcount] ?? null;
+        $totals = $this->getGroupTierTotals($pricing, $currency); // [size => total], sizes 2-5
+
+        if (empty($totals)) {
+            return null;
+        }
+
+        $sizes = array_keys($totals);
+        rsort($sizes); // largest first
+        $smallest = min($sizes);
+
+        // Below the smallest configured group -> no bundle applies, keep normal
+        // per-person-type pricing (so adult vs child is respected for individuals).
+        if ($headcount < $smallest) {
+            return null;
+        }
+
+        // Greedy packing: largest group that fits, remainder cycles through the
+        // group prices, final leftover charged as individuals.
+        $remaining = $headcount;
+        $total = 0.0;
+
+        while ($remaining >= $smallest) {
+            foreach ($sizes as $size) {
+                if ($size <= $remaining) {
+                    $total += $totals[$size];
+                    $remaining -= $size;
+
+                    break;
+                }
+            }
+        }
+
+        if ($remaining > 0) {
+            $total += $remaining * $this->getPriceForCurrency($pricing, $currency);
+        }
+
+        return $total;
     }
 
     /**

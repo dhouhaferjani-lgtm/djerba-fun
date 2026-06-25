@@ -11,14 +11,19 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Tiered = OPTIONAL group-discount totals for group sizes 2..5, layered on top
- * of the listing's NORMAL per-person-type pricing.
+ * Tiered = OPTIONAL group-discount totals for group sizes 2..5, priced by GREEDY
+ * "circle" packing on top of the listing's normal per-person-type pricing.
  *
- * Rules:
- *  - size 1, any size with no discount set, and groups of 6+ -> NORMAL pricing
- *  - a size 2..5 with a tier total set -> that flat total (overrides the per-type sum)
+ * Rule for a headcount H:
+ *  - no group tiers, or H smaller than the smallest configured group -> NORMAL per-person pricing
+ *  - otherwise repeatedly apply the LARGEST configured group price that fits, let the
+ *    remainder cycle back through the group prices, and charge any final leftover
+ *    (< smallest configured group) as individuals at the base per-person rate.
  *
- * Fixture: adult=50, child=30 (TND & EUR equal). Group discounts: size 2 -> 90, size 5 -> 200.
+ * Fixture: adult tnd=50/eur=40, child tnd=30/eur=24.
+ * Group discounts: size 2 -> tnd 90 / eur 72, size 3 -> tnd 130 / eur 104.
+ *
+ * So (TND): 1->50, 2->90, 3->130, 4->130+50=180, 5->130+90=220, 6->130+130=260, 7->310.
  */
 class PriceCalculationTieredTest extends TestCase
 {
@@ -32,7 +37,7 @@ class PriceCalculationTieredTest extends TestCase
         $this->service = app(PriceCalculationService::class);
     }
 
-    private function tiered(): Listing
+    private function tiered(?array $tiers = null): Listing
     {
         return Listing::factory()->create([
             'service_type' => ServiceType::TOUR,
@@ -40,71 +45,97 @@ class PriceCalculationTieredTest extends TestCase
                 'currency' => 'TND',
                 'pricing_strategy' => 'tiered',
                 'person_types' => [
-                    ['key' => 'adult', 'label' => ['en' => 'Adult', 'fr' => 'Adulte'], 'tnd_price' => 50, 'eur_price' => 50, 'minAge' => 18],
-                    ['key' => 'child', 'label' => ['en' => 'Child', 'fr' => 'Enfant'], 'tnd_price' => 30, 'eur_price' => 30, 'minAge' => 2, 'maxAge' => 17],
+                    ['key' => 'adult', 'label' => ['en' => 'Adult', 'fr' => 'Adulte'], 'tnd_price' => 50, 'eur_price' => 40, 'minAge' => 18],
+                    ['key' => 'child', 'label' => ['en' => 'Child', 'fr' => 'Enfant'], 'tnd_price' => 30, 'eur_price' => 24, 'minAge' => 2, 'maxAge' => 17],
                 ],
-                'tiers' => [
-                    ['group_size' => 2, 'tnd_total' => 90, 'eur_total' => 90],
-                    ['group_size' => 5, 'tnd_total' => 200, 'eur_total' => 200],
+                'tiers' => $tiers ?? [
+                    ['group_size' => 2, 'tnd_total' => 90, 'eur_total' => 72],
+                    ['group_size' => 3, 'tnd_total' => 130, 'eur_total' => 104],
                 ],
             ],
         ]);
     }
 
-    public function test_size_1_uses_normal_pricing(): void
+    private function total(Listing $listing, array $breakdown, string $currency = 'TND'): float
     {
-        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 1], 'TND');
-        $this->assertEqualsWithDelta(50, $r['total'], 0.001);
+        return $this->service->calculateTotal($listing, $breakdown, $currency)['total'];
     }
 
-    public function test_size_2_uses_group_discount(): void
+    public function test_single_adult_uses_individual_price(): void
     {
-        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 2], 'TND');
-        $this->assertEqualsWithDelta(90, $r['total'], 0.001, '2 travellers -> group-of-2 total 90 (not 100)');
+        $this->assertEqualsWithDelta(50, $this->total($this->tiered(), ['adult' => 1]), 0.001);
     }
 
-    public function test_size_2_group_total_applies_regardless_of_mix(): void
+    public function test_single_child_keeps_its_own_per_type_price(): void
     {
-        // 1 adult + 1 child = 2 travellers -> the group-of-2 total applies.
-        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 1, 'child' => 1], 'TND');
-        $this->assertEqualsWithDelta(90, $r['total'], 0.001);
+        // Below the smallest group size -> normal per-person-type pricing (not the adult rate).
+        $this->assertEqualsWithDelta(30, $this->total($this->tiered(), ['child' => 1]), 0.001);
     }
 
-    public function test_size_3_unset_uses_normal_pricing(): void
+    public function test_size_2_uses_group_of_2(): void
     {
-        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 3], 'TND');
-        $this->assertEqualsWithDelta(150, $r['total'], 0.001, '3 x 50 normal (no size-3 discount)');
+        $this->assertEqualsWithDelta(90, $this->total($this->tiered(), ['adult' => 2]), 0.001);
     }
 
-    public function test_size_4_unset_uses_normal_pricing(): void
+    public function test_size_3_uses_group_of_3(): void
     {
-        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 4], 'TND');
-        $this->assertEqualsWithDelta(200, $r['total'], 0.001, '4 x 50 normal (no size-4 discount)');
+        $this->assertEqualsWithDelta(130, $this->total($this->tiered(), ['adult' => 3]), 0.001);
     }
 
-    public function test_size_5_uses_group_discount(): void
+    public function test_size_4_packs_group_of_3_plus_one_individual(): void
     {
-        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 5], 'TND');
-        $this->assertEqualsWithDelta(200, $r['total'], 0.001, 'group-of-5 total 200 (not 250)');
+        $this->assertEqualsWithDelta(180, $this->total($this->tiered(), ['adult' => 4]), 0.001, '130 + 1x50');
     }
 
-    public function test_size_6_uses_normal_pricing(): void
+    public function test_size_5_packs_group_of_3_plus_group_of_2(): void
     {
-        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 6], 'TND');
-        $this->assertEqualsWithDelta(300, $r['total'], 0.001, '6 x 50 normal (groups > 5 never discounted)');
+        // The "circle": the leftover of 2 uses the group-of-2 price, not 2 individuals.
+        $this->assertEqualsWithDelta(220, $this->total($this->tiered(), ['adult' => 5]), 0.001, '130 + 90');
     }
 
-    public function test_eur_uses_independent_group_totals(): void
+    public function test_size_6_packs_two_groups_of_3(): void
     {
-        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 2], 'EUR');
+        $this->assertEqualsWithDelta(260, $this->total($this->tiered(), ['adult' => 6]), 0.001, '130 + 130');
+    }
+
+    public function test_size_7_packs_two_groups_of_3_plus_one_individual(): void
+    {
+        $this->assertEqualsWithDelta(310, $this->total($this->tiered(), ['adult' => 7]), 0.001, '130 + 130 + 50');
+    }
+
+    public function test_packing_ignores_person_type_mix(): void
+    {
+        // 2 adults + 2 children = 4 travellers -> group-of-3 + 1 individual (base/adult rate).
+        $this->assertEqualsWithDelta(180, $this->total($this->tiered(), ['adult' => 2, 'child' => 2]), 0.001);
+    }
+
+    public function test_eur_uses_independent_group_and_individual_rates(): void
+    {
+        // EUR: group-3 104 + 1 individual 40 = 144.
+        $r = $this->service->calculateTotal($this->tiered(), ['adult' => 4], 'EUR');
         $this->assertSame('EUR', $r['currency']);
-        $this->assertEqualsWithDelta(90, $r['total'], 0.001);
+        $this->assertEqualsWithDelta(144, $r['total'], 0.001);
+        // EUR size 5: 104 + 72 = 176.
+        $this->assertEqualsWithDelta(176, $this->total($this->tiered(), ['adult' => 5], 'EUR'), 0.001);
     }
 
-    public function test_simple_total_applies_group_discount(): void
+    public function test_gap_only_group_of_3_configured(): void
     {
-        $this->assertEqualsWithDelta(90, $this->service->calculateSimpleTotal($this->tiered(), 2, 'TND')['total'], 0.001);
-        $this->assertEqualsWithDelta(150, $this->service->calculateSimpleTotal($this->tiered(), 3, 'TND')['total'], 0.001);
+        $listing = $this->tiered([
+            ['group_size' => 3, 'tnd_total' => 130, 'eur_total' => 104],
+        ]);
+        // H=2 is below the smallest group (3) -> normal per-person (2x50).
+        $this->assertEqualsWithDelta(100, $this->total($listing, ['adult' => 2]), 0.001);
+        $this->assertEqualsWithDelta(130, $this->total($listing, ['adult' => 3]), 0.001);
+        $this->assertEqualsWithDelta(180, $this->total($listing, ['adult' => 4]), 0.001, '130 + 50');
+        // H=5: group-3 then leftover 2 < smallest group -> 2 individuals.
+        $this->assertEqualsWithDelta(230, $this->total($listing, ['adult' => 5]), 0.001, '130 + 2x50');
+    }
+
+    public function test_simple_total_applies_packing(): void
+    {
+        $this->assertEqualsWithDelta(180, $this->service->calculateSimpleTotal($this->tiered(), 4, 'TND')['total'], 0.001);
+        $this->assertEqualsWithDelta(220, $this->service->calculateSimpleTotal($this->tiered(), 5, 'TND')['total'], 0.001);
     }
 
     public function test_tiered_listing_with_no_group_discounts_is_pure_normal(): void
@@ -114,17 +145,17 @@ class PriceCalculationTieredTest extends TestCase
             'pricing' => [
                 'currency' => 'TND',
                 'pricing_strategy' => 'tiered',
-                'person_types' => [['key' => 'adult', 'label' => ['en' => 'Adult'], 'tnd_price' => 50, 'eur_price' => 50]],
+                'person_types' => [['key' => 'adult', 'label' => ['en' => 'Adult'], 'tnd_price' => 50, 'eur_price' => 40]],
                 'tiers' => [],
             ],
         ]);
-        $this->assertEqualsWithDelta(100, $this->service->calculateTotal($listing, ['adult' => 2], 'TND')['total'], 0.001);
+        $this->assertEqualsWithDelta(200, $this->total($listing, ['adult' => 4]), 0.001, '4x50 normal');
     }
 
     public function test_flat_listing_is_unaffected(): void
     {
         $flat = Listing::factory()->dualPriced()->create();
-        $this->assertEqualsWithDelta(300, $this->service->calculateTotal($flat, ['adult' => 2], 'TND')['total'], 0.001);
-        $this->assertEqualsWithDelta(450, $this->service->calculateSimpleTotal($flat, 3, 'TND')['total'], 0.001);
+        $this->assertEqualsWithDelta(600, $this->total($flat, ['adult' => 4]), 0.001, '4x150 flat');
+        $this->assertEqualsWithDelta(750, $this->service->calculateSimpleTotal($flat, 5, 'TND')['total'], 0.001);
     }
 }

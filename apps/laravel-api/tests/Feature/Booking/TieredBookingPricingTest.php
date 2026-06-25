@@ -19,8 +19,9 @@ use Tests\TestCase;
  * normal per-person-type total. The immutable pricing snapshot must record the
  * strategy so a later vendor edit cannot alter past quotes.
  *
- * Canonical fixture: adult=50, child=30 (TND & EUR equal).
- * Group discounts: size 2 -> 90, size 5 -> 200. Sizes 1/3/4/6+ -> normal pricing.
+ * Canonical fixture: adult tnd=50/eur=40, child tnd=30/eur=24.
+ * Group discounts: size 2 -> tnd 90/eur 72, size 3 -> tnd 130/eur 104.
+ * Greedy "circle" packing: 2->90, 3->130, 4->130+50, 5->130+90, 6->130+130.
  */
 class TieredBookingPricingTest extends TestCase
 {
@@ -42,12 +43,12 @@ class TieredBookingPricingTest extends TestCase
                 'currency' => 'TND',
                 'pricing_strategy' => 'tiered',
                 'person_types' => [
-                    ['key' => 'adult', 'label' => ['en' => 'Adult', 'fr' => 'Adulte'], 'tnd_price' => 50, 'eur_price' => 50, 'minAge' => 18],
-                    ['key' => 'child', 'label' => ['en' => 'Child', 'fr' => 'Enfant'], 'tnd_price' => 30, 'eur_price' => 30, 'minAge' => 2, 'maxAge' => 17],
+                    ['key' => 'adult', 'label' => ['en' => 'Adult', 'fr' => 'Adulte'], 'tnd_price' => 50, 'eur_price' => 40, 'minAge' => 18],
+                    ['key' => 'child', 'label' => ['en' => 'Child', 'fr' => 'Enfant'], 'tnd_price' => 30, 'eur_price' => 24, 'minAge' => 2, 'maxAge' => 17],
                 ],
                 'tiers' => [
-                    ['group_size' => 2, 'tnd_total' => 90, 'eur_total' => 90],
-                    ['group_size' => 5, 'tnd_total' => 200, 'eur_total' => 200],
+                    ['group_size' => 2, 'tnd_total' => 90, 'eur_total' => 72],
+                    ['group_size' => 3, 'tnd_total' => 130, 'eur_total' => 104],
                 ],
             ],
         ]);
@@ -95,41 +96,42 @@ class TieredBookingPricingTest extends TestCase
         $this->assertEqualsWithDelta(90, (float) $booking->total_amount, 0.001, 'group-of-2 total 90 (not 100)');
     }
 
-    public function test_group_of_2_total_applies_regardless_of_person_type_mix(): void
+    public function test_group_of_4_packs_group_of_3_plus_one_individual(): void
     {
-        // 1 adult + 1 child = 2 travellers -> the flat group-of-2 total applies.
-        $booking = $this->service->createFromHold($this->createTieredHold(['adult' => 1, 'child' => 1]), $this->traveler());
+        $booking = $this->service->createFromHold($this->createTieredHold(['adult' => 4]), $this->traveler());
 
-        $this->assertEqualsWithDelta(90, (float) $booking->total_amount, 0.001);
+        $this->assertEqualsWithDelta(180, (float) $booking->total_amount, 0.001, '130 + 1x50 (not 400)');
     }
 
-    public function test_group_of_3_unset_uses_normal_pricing(): void
+    public function test_group_of_4_packs_regardless_of_person_type_mix(): void
     {
-        $booking = $this->service->createFromHold($this->createTieredHold(['adult' => 3]), $this->traveler());
+        // 2 adults + 2 children = 4 travellers -> group-of-3 + 1 individual at base rate.
+        $booking = $this->service->createFromHold($this->createTieredHold(['adult' => 2, 'child' => 2]), $this->traveler());
 
-        $this->assertEqualsWithDelta(150, (float) $booking->total_amount, 0.001, '3 x 50 normal (no size-3 discount)');
+        $this->assertEqualsWithDelta(180, (float) $booking->total_amount, 0.001);
     }
 
-    public function test_group_of_5_charges_group_discount(): void
+    public function test_group_of_5_packs_group_of_3_plus_group_of_2(): void
     {
         $booking = $this->service->createFromHold($this->createTieredHold(['adult' => 5]), $this->traveler());
 
-        $this->assertEqualsWithDelta(200, (float) $booking->total_amount, 0.001, 'group-of-5 total 200 (not 250)');
+        $this->assertEqualsWithDelta(220, (float) $booking->total_amount, 0.001, '130 + 90 (the circle)');
     }
 
-    public function test_group_of_6_uses_normal_pricing(): void
+    public function test_group_of_6_packs_two_groups_of_3(): void
     {
         $booking = $this->service->createFromHold($this->createTieredHold(['adult' => 6]), $this->traveler());
 
-        $this->assertEqualsWithDelta(300, (float) $booking->total_amount, 0.001, 'groups > 5 never discounted');
+        $this->assertEqualsWithDelta(260, (float) $booking->total_amount, 0.001, '130 + 130');
     }
 
-    public function test_eur_uses_independent_group_totals(): void
+    public function test_eur_uses_independent_packed_total(): void
     {
-        $booking = $this->service->createFromHold($this->createTieredHold(['adult' => 2], 'EUR'), $this->traveler());
+        // EUR: group-of-3 (104) + 1 individual (40) = 144.
+        $booking = $this->service->createFromHold($this->createTieredHold(['adult' => 4], 'EUR'), $this->traveler());
 
         $this->assertSame('EUR', $booking->currency);
-        $this->assertEqualsWithDelta(90, (float) $booking->total_amount, 0.001);
+        $this->assertEqualsWithDelta(144, (float) $booking->total_amount, 0.001);
     }
 
     public function test_booking_snapshot_records_strategy(): void

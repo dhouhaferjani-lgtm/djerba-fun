@@ -14,11 +14,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * A tiered cart item prices by its normal per-person-type total, with the
- * optional group-discount total overriding it when the headcount is 2..5 and a
- * discount is configured for that exact size.
+ * A tiered cart item prices via greedy "circle" packing of the optional group
+ * discounts on top of normal per-person-type pricing.
  *
- * Canonical fixture: adult=50, child=30. Group discounts: size 2 -> 90, size 5 -> 200.
+ * Canonical fixture: adult=50, child=30. Group discounts: size 2 -> 90, size 3 -> 130.
+ * Packing: 2->90, 3->130, 4->130+50, 5->130+90, 6->130+130.
  */
 class TieredCartPricingTest extends TestCase
 {
@@ -37,7 +37,7 @@ class TieredCartPricingTest extends TestCase
                 ],
                 'tiers' => [
                     ['group_size' => 2, 'tnd_total' => 90, 'eur_total' => 90],
-                    ['group_size' => 5, 'tnd_total' => 200, 'eur_total' => 200],
+                    ['group_size' => 3, 'tnd_total' => 130, 'eur_total' => 130],
                 ],
             ],
         ]);
@@ -93,19 +93,24 @@ class TieredCartPricingTest extends TestCase
         $this->assertEqualsWithDelta(90, $this->createTieredCartItem(['adult' => 2])->getSubtotal(), 0.001);
     }
 
-    public function test_group_of_2_total_applies_regardless_of_mix(): void
+    public function test_group_of_4_packs_group_of_3_plus_individual(): void
     {
-        $this->assertEqualsWithDelta(90, $this->createTieredCartItem(['adult' => 1, 'child' => 1])->getSubtotal(), 0.001);
+        $this->assertEqualsWithDelta(180, $this->createTieredCartItem(['adult' => 4])->getSubtotal(), 0.001, '130 + 50');
     }
 
-    public function test_group_of_3_unset_uses_normal_per_person_total(): void
+    public function test_group_of_4_packs_regardless_of_mix(): void
     {
-        $this->assertEqualsWithDelta(150, $this->createTieredCartItem(['adult' => 3])->getSubtotal(), 0.001);
+        $this->assertEqualsWithDelta(180, $this->createTieredCartItem(['adult' => 2, 'child' => 2])->getSubtotal(), 0.001);
     }
 
-    public function test_group_of_5_applies_group_discount(): void
+    public function test_group_of_5_packs_group_of_3_plus_group_of_2(): void
     {
-        $this->assertEqualsWithDelta(200, $this->createTieredCartItem(['adult' => 5])->getSubtotal(), 0.001);
+        $this->assertEqualsWithDelta(220, $this->createTieredCartItem(['adult' => 5])->getSubtotal(), 0.001, '130 + 90');
+    }
+
+    public function test_group_of_6_packs_two_groups_of_3(): void
+    {
+        $this->assertEqualsWithDelta(260, $this->createTieredCartItem(['adult' => 6])->getSubtotal(), 0.001);
     }
 
     public function test_single_traveller_uses_normal_pricing(): void
