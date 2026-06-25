@@ -138,6 +138,19 @@ class PriceCalculationTieredTest extends TestCase
         $this->assertEqualsWithDelta(220, $this->service->calculateSimpleTotal($this->tiered(), 5, 'TND')['total'], 0.001);
     }
 
+    public function test_group_price_is_applied_verbatim_even_when_not_a_discount(): void
+    {
+        // Product decision: the engine trusts the vendor's group price and does
+        // NOT cap it at the normal per-person total. A group price set higher
+        // than size x per-person is applied as-is (vendor's responsibility).
+        // This test locks that behaviour so a later "cap at normal" change can't
+        // silently break the flat-group-price intent.
+        $listing = $this->tiered([
+            ['group_size' => 2, 'tnd_total' => 120, 'eur_total' => 120], // 120 > 2 x 50
+        ]);
+        $this->assertEqualsWithDelta(120, $this->total($listing, ['adult' => 2]), 0.001, 'group price applied even though 120 > 100 normal');
+    }
+
     public function test_tiered_listing_with_no_group_discounts_is_pure_normal(): void
     {
         $listing = Listing::factory()->create([
