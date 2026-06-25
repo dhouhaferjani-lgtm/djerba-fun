@@ -1303,6 +1303,76 @@ class ListingResource extends Resource
                                 // Hide for accommodations — they use per-night
                                 ->visible(fn (Get $get): bool => $get('service_type') !== ServiceType::ACCOMMODATION->value),
 
+                            // Pricing strategy: flat (per-person-type only) vs tiered
+                            // (per-person-type PLUS optional group discounts for sizes 2-5).
+                            // Absent / 'flat' === today's behaviour (zero regression).
+                            Forms\Components\Section::make('Pricing Strategy')
+                                ->description('Flat = each person of a type costs the same (classic). Tiered = keep your normal per-person prices AND optionally set a discounted TOTAL for groups of 2 to 5.')
+                                ->schema([
+                                    Forms\Components\Radio::make('pricing.pricing_strategy')
+                                        ->label('How do you want to price this listing?')
+                                        ->options([
+                                            'flat' => 'Flat rate — per person type only (classic)',
+                                            'tiered' => 'Per person type + optional group discounts (2–5)',
+                                        ])
+                                        ->default('flat')
+                                        ->live()
+                                        ->afterStateHydrated(function (Forms\Components\Radio $component, $state, $record): void {
+                                            // Existing listings that already carry group discounts default to 'tiered'.
+                                            if ($state === null || $state === '') {
+                                                $hasTiers = is_array($record?->pricing['tiers'] ?? null) && ! empty($record->pricing['tiers']);
+                                                $component->state($hasTiers ? 'tiered' : 'flat');
+                                            }
+                                        })
+                                        ->dehydrated()
+                                        ->columnSpanFull(),
+                                ])
+                                ->visible(fn (Get $get): bool => $get('service_type') !== ServiceType::ACCOMMODATION->value),
+
+                            // Optional group discounts: a flat total for an exact group size (2-5).
+                            // A size you don't add, and groups of 6+, use normal per-person pricing.
+                            Forms\Components\Section::make('Group Discounts (optional)')
+                                ->description('Optional. Add a TOTAL price for a group of a given size (2–5) — e.g. add only "Group of 2" to discount pairs. Any size you don\'t add, and groups of 6 or more, use your normal per-person pricing.')
+                                ->schema([
+                                    Forms\Components\Repeater::make('pricing.tiers')
+                                        ->hiddenLabel()
+                                        ->schema([
+                                            Forms\Components\Grid::make(3)->schema([
+                                                Forms\Components\Select::make('group_size')
+                                                    ->label('Group size')
+                                                    ->options([2 => '2 travellers', 3 => '3 travellers', 4 => '4 travellers', 5 => '5 travellers'])
+                                                    ->required()
+                                                    ->columnSpan(1),
+
+                                                Forms\Components\TextInput::make('tnd_total')
+                                                    ->label('Group total (TND)')
+                                                    ->prefix('TND')
+                                                    ->numeric()
+                                                    ->step(0.01)
+                                                    ->minValue(0)
+                                                    ->required()
+                                                    ->columnSpan(1),
+
+                                                Forms\Components\TextInput::make('eur_total')
+                                                    ->label('Group total (EUR)')
+                                                    ->prefix('€')
+                                                    ->numeric()
+                                                    ->step(0.01)
+                                                    ->minValue(0)
+                                                    ->required()
+                                                    ->columnSpan(1),
+                                            ]),
+                                        ])
+                                        ->defaultItems(0)
+                                        ->maxItems(4)
+                                        ->reorderable(false)
+                                        ->addActionLabel('Add a group discount')
+                                        ->itemLabel(fn (array $state): ?string => isset($state['group_size']) ? ('Group of ' . $state['group_size']) : 'Group discount')
+                                        ->columnSpanFull(),
+                                ])
+                                ->visible(fn (Get $get): bool => $get('service_type') !== ServiceType::ACCOMMODATION->value
+                                    && ($get('pricing.pricing_strategy') ?? 'flat') === 'tiered'),
+
                             // Person Type Pricing - for Tours, Nautical, Events (NOT accommodations)
                             Forms\Components\Section::make('Person Type Pricing')
                                 ->description('Configure pricing for different person types. At least one person type is required. Both TND and EUR prices must be set.')
@@ -1421,7 +1491,9 @@ class ListingResource extends Resource
                                         ))
                                         ->dehydrated(false),
                                 ])
-                                // Hide Person Type Pricing for accommodations (they use per-night pricing instead)
+                                // Person types are the base price for BOTH flat and tiered
+                                // listings (group discounts are an optional overlay), so this
+                                // section is always shown for non-accommodation service types.
                                 ->visible(fn (Get $get): bool => $get('service_type') !== ServiceType::ACCOMMODATION->value),
 
                             Forms\Components\Section::make('Booking Settings')
@@ -1843,7 +1915,9 @@ class ListingResource extends Resource
                                 $errors[] = 'Nightly pricing (TND or EUR) is required for accommodations';
                             }
                         } else {
-                            // Tours/Events/Nautical use person type pricing
+                            // Tours/Events/Nautical use person type pricing. Tiered
+                            // listings keep person types too (group discounts for
+                            // sizes 2-5 are an optional overlay).
                             if (empty($record->pricing['person_types'])) {
                                 $errors[] = 'At least one person type is required';
                             } else {
@@ -1859,6 +1933,20 @@ class ListingResource extends Resource
 
                                 if (! $hasValidPricing) {
                                     $errors[] = 'At least one person type must have both TND and EUR prices';
+                                }
+                            }
+
+                            // Optional group-discount tiers (sizes 2-5): each set row needs BOTH currencies.
+                            foreach (($record->pricing['tiers'] ?? []) as $tier) {
+                                if (! is_array($tier)) {
+                                    continue;
+                                }
+                                $tndSet = ($tier['tnd_total'] ?? null) !== null && $tier['tnd_total'] !== '';
+                                $eurSet = ($tier['eur_total'] ?? null) !== null && $tier['eur_total'] !== '';
+
+                                if ($tndSet !== $eurSet) {
+                                    $errors[] = 'Each group discount must have both TND and EUR totals';
+                                    break;
                                 }
                             }
                         }

@@ -12,6 +12,7 @@ import { useAvailability, useCreateHold, useAddToCart } from '@/lib/api/hooks';
 import { queryKeys } from '@/lib/api/query-keys';
 import { Button } from '@djerba-fun/ui';
 import { PersonTypeSelector } from '@/components/booking/PersonTypeSelector';
+import { computeGroupDiscountTotal, packGroupTiers } from '@/lib/utils/tiered-pricing';
 import { BookingStepIndicator, type BookingStep } from '@/components/booking/BookingStepIndicator';
 import {
   PriceBreakdownTable,
@@ -326,12 +327,36 @@ function BookingFlowContent({
   // the per-line items (which DO read selectedSlot.effectivePrices) would
   // diverge from the displayed grand total.
   const bookingPanelCurrency = selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
-  const { totalGuests, totalPrice } = calculateTotalFromBreakdown(
+  // Tiered = normal per-person pricing PLUS optional group prices (sizes 2-5),
+  // priced by greedy "circle" packing. The server snapshot remains authoritative.
+  const isTiered = listing.pricing?.pricingStrategy === 'tiered';
+  const normalTotals = calculateTotalFromBreakdown(
     personTypes,
     personTypeBreakdown,
     selectedSlot,
     bookingPanelCurrency
   );
+  const totalGuests = normalTotals.totalGuests;
+  // Base per-person rate for any leftover individuals beyond the group bundles.
+  // Mirrors the server (listing's first/primary person-type price, not slot
+  // overrides) so the preview matches the charged amount.
+  const groupBaseUnit = (() => {
+    const pt = (listing.pricing?.personTypes ?? [])[0] as
+      | { tndPrice?: number; eurPrice?: number; price?: number; displayPrice?: number }
+      | undefined;
+    if (!pt) return 0;
+    const isTnd = String(bookingPanelCurrency).toUpperCase() === 'TND';
+    return Number((isTnd ? pt.tndPrice : pt.eurPrice) ?? pt.price ?? pt.displayPrice ?? 0);
+  })();
+  const totalPrice = isTiered
+    ? computeGroupDiscountTotal(
+        listing.pricing?.tiers,
+        totalGuests,
+        normalTotals.totalPrice,
+        bookingPanelCurrency,
+        groupBaseUnit
+      )
+    : normalTotals.totalPrice;
   const canProceed = totalGuests > 0;
 
   // Determine current step and completed steps for indicator
@@ -518,43 +543,86 @@ function BookingFlowContent({
                   const currency =
                     selectedSlot?.currency || listing.pricing?.displayCurrency || 'TND';
 
-                  // Add person types with qty > 0
-                  for (const [key, qty] of Object.entries(personTypeBreakdown)) {
-                    if (qty > 0) {
-                      const pt = personTypes.find((p) => p.key === key);
-                      if (pt) {
-                        const label =
-                          typeof pt.label === 'object'
-                            ? (pt.label as any)[locale] || (pt.label as any).en || key
-                            : pt.label || key;
-                        // Use parsePrice for safety - handles string values from API
-                        const slotBasePrice =
-                          parsePrice(selectedSlot?.displayPrice) ??
-                          parsePrice(selectedSlot?.basePrice) ??
-                          0;
-                        // Slot-effective per-person-type price (override-aware).
-                        // The API resolves listing.pricing[key] vs slot.priceOverrides[key]
-                        // server-side — the frontend just renders whichever one
-                        // effectivePrices[currency][key] holds. Falls back to the
-                        // listing's per-type price, then the slot's headline price,
-                        // for legacy slots that lack the effectivePrices field.
-                        const slotEffective =
-                          currency === 'TND' || currency === 'EUR'
-                            ? parsePrice(selectedSlot?.effectivePrices?.[currency]?.[key])
-                            : null;
-                        const unitPrice =
-                          slotEffective ??
-                          parsePrice(pt.price) ??
-                          parsePrice(pt.displayPrice) ??
-                          slotBasePrice;
-                        items.push({
-                          type: 'person',
-                          key,
-                          label,
-                          quantity: qty,
-                          unitPrice,
-                          subtotal: unitPrice * qty,
-                        });
+                  // Tiered: itemise the greedy packing — one line per group
+                  // bundle (e.g. "Group of 3" x2) plus any leftover individuals
+                  // at the base per-person rate. Falls back to per-person-type
+                  // lines for flat listings and pure-individual bookings.
+                  const groupPacking =
+                    isTiered && totalGuests > 0
+                      ? packGroupTiers(listing.pricing?.tiers, totalGuests, currency, groupBaseUnit)
+                      : null;
+
+                  if (groupPacking?.applies) {
+                    for (const bundle of groupPacking.bundles) {
+                      items.push({
+                        type: 'person',
+                        key: `group-${bundle.size}`,
+                        label: tBooking('group_of', { count: bundle.size }),
+                        quantity: bundle.count,
+                        unitPrice: bundle.unitTotal,
+                        subtotal: Math.round(bundle.unitTotal * bundle.count * 100) / 100,
+                      });
+                    }
+
+                    if (groupPacking.leftover > 0) {
+                      const primary = personTypes[0];
+                      const primaryLabel = primary?.label as
+                        | Record<string, string>
+                        | string
+                        | undefined;
+                      const leftoverLabel = primary
+                        ? typeof primaryLabel === 'object'
+                          ? primaryLabel[locale] || primaryLabel.en || primary.key
+                          : primaryLabel || primary.key
+                        : tBooking('group_of', { count: 1 });
+                      items.push({
+                        type: 'person',
+                        key: 'group-individual',
+                        label: leftoverLabel,
+                        quantity: groupPacking.leftover,
+                        unitPrice: groupBaseUnit,
+                        subtotal: groupBaseUnit * groupPacking.leftover,
+                      });
+                    }
+                  } else {
+                    // Add person types with qty > 0
+                    for (const [key, qty] of Object.entries(personTypeBreakdown)) {
+                      if (qty > 0) {
+                        const pt = personTypes.find((p) => p.key === key);
+                        if (pt) {
+                          const label =
+                            typeof pt.label === 'object'
+                              ? (pt.label as any)[locale] || (pt.label as any).en || key
+                              : pt.label || key;
+                          // Use parsePrice for safety - handles string values from API
+                          const slotBasePrice =
+                            parsePrice(selectedSlot?.displayPrice) ??
+                            parsePrice(selectedSlot?.basePrice) ??
+                            0;
+                          // Slot-effective per-person-type price (override-aware).
+                          // The API resolves listing.pricing[key] vs slot.priceOverrides[key]
+                          // server-side — the frontend just renders whichever one
+                          // effectivePrices[currency][key] holds. Falls back to the
+                          // listing's per-type price, then the slot's headline price,
+                          // for legacy slots that lack the effectivePrices field.
+                          const slotEffective =
+                            currency === 'TND' || currency === 'EUR'
+                              ? parsePrice(selectedSlot?.effectivePrices?.[currency]?.[key])
+                              : null;
+                          const unitPrice =
+                            slotEffective ??
+                            parsePrice(pt.price) ??
+                            parsePrice(pt.displayPrice) ??
+                            slotBasePrice;
+                          items.push({
+                            type: 'person',
+                            key,
+                            label,
+                            quantity: qty,
+                            unitPrice,
+                            subtotal: unitPrice * qty,
+                          });
+                        }
                       }
                     }
                   }
@@ -1049,6 +1117,9 @@ export default function ListingDetailClient({ listing, locale, slug }: ListingDe
   const [showBookingFlow, setShowBookingFlow] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | undefined>();
+  // Tiered listings keep normal per-person-type pricing; group discounts are an
+  // optional overlay applied to the total. So the breakdown always starts with
+  // one adult — identical to flat listings.
   const [personTypeBreakdown, setPersonTypeBreakdown] = useState<Record<string, number>>({
     adult: 1,
   });

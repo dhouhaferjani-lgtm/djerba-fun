@@ -58,10 +58,12 @@ class EditListing extends EditRecord
         // CRITICAL FIX: Remove empty/null values for disabled fields
         // Filament sends empty arrays for disabled fields which would overwrite existing data
         $disabledFields = ['title', 'summary', 'description', 'pricing', 'slug', 'vendor_id',
-                          'min_group_size', 'max_group_size'];
+            'min_group_size', 'max_group_size'];
+
         foreach ($disabledFields as $field) {
             if (array_key_exists($field, $data)) {
                 $value = $data[$field];
+
                 // Remove empty arrays, null values, and empty strings for disabled fields
                 if ($value === null || $value === '' || (is_array($value) && empty($value))) {
                     unset($data[$field]);
@@ -78,6 +80,7 @@ class EditListing extends EditRecord
             $titleFr = $this->record->getTranslation('title', 'fr');
             $hasEnTitle = ! empty($titleEn) && ! (is_array($titleEn) && empty(array_filter($titleEn)));
             $hasFrTitle = ! empty($titleFr) && ! (is_array($titleFr) && empty(array_filter($titleFr)));
+
             if (! $hasEnTitle && ! $hasFrTitle) {
                 $errors[] = __('filament.validation.title_translation_required');
             }
@@ -87,6 +90,7 @@ class EditListing extends EditRecord
             $summaryFr = $this->record->getTranslation('summary', 'fr');
             $hasEnSummary = ! empty($summaryEn) && ! (is_array($summaryEn) && empty(array_filter($summaryEn)));
             $hasFrSummary = ! empty($summaryFr) && ! (is_array($summaryFr) && empty(array_filter($summaryFr)));
+
             if (! $hasEnSummary && ! $hasFrSummary) {
                 $errors[] = __('filament.validation.summary_translation_required');
             }
@@ -95,21 +99,40 @@ class EditListing extends EditRecord
             if ($this->record->service_type === \App\Enums\ServiceType::ACCOMMODATION) {
                 // Accommodations use nightly pricing (direct columns)
                 $hasNightlyPricing = ! empty($this->record->nightly_price_tnd) || ! empty($this->record->nightly_price_eur);
+
                 if (! $hasNightlyPricing) {
                     $errors[] = 'Nightly pricing (TND or EUR) is required for accommodations';
                 }
             } else {
-                // Tours/Events/Nautical use person type pricing (JSON)
+                // Tours/Events/Nautical use person type pricing (JSON). Tiered
+                // listings ALSO use person types (group discounts are an optional
+                // overlay), so this check covers both flat and tiered.
                 $pricing = $this->record->pricing;
                 $hasNewFormatPricing = ! empty($pricing['person_types']) || ! empty($pricing['personTypes']);
                 $hasOldFormatPricing = ! empty($pricing['base_price']) || ! empty($pricing['tnd_price']) || ! empty($pricing['eur_price']);
+
                 if (! $hasNewFormatPricing && ! $hasOldFormatPricing) {
                     $errors[] = 'Pricing information is required';
+                }
+
+                // Optional group-discount tiers (sizes 2-5): each set row must carry BOTH currencies.
+                foreach (($pricing['tiers'] ?? []) as $tier) {
+                    if (! is_array($tier)) {
+                        continue;
+                    }
+                    $tndSet = ($tier['tnd_total'] ?? null) !== null && $tier['tnd_total'] !== '';
+                    $eurSet = ($tier['eur_total'] ?? null) !== null && $tier['eur_total'] !== '';
+
+                    if ($tndSet !== $eurSet) {
+                        $errors[] = 'Each group discount must have both TND and EUR totals';
+                        break;
+                    }
                 }
             }
 
             // Check location - use form data if available, else record
             $locationId = $data['location_id'] ?? $this->record->location_id;
+
             if (empty($locationId)) {
                 $errors[] = 'Location is required';
             }
@@ -168,12 +191,14 @@ class EditListing extends EditRecord
     protected function notifyVendorOfPublishFailure(array $errors): void
     {
         $vendor = $this->record->vendor;
+
         if (! $vendor) {
             return;
         }
 
         // Rate limit: max 1 notification per listing per 5 minutes
         $cacheKey = "listing_publish_failed_notification:{$this->record->id}";
+
         if (Cache::has($cacheKey)) {
             return;
         }
@@ -182,6 +207,7 @@ class EditListing extends EditRecord
         Cache::put($cacheKey, true, now()->addMinutes(5));
 
         $listingTitle = $this->record->getTranslation('title', 'en') ?: 'Untitled Listing';
+
         if (is_array($listingTitle)) {
             $listingTitle = $listingTitle['en'] ?? reset($listingTitle) ?: 'Untitled Listing';
         }
@@ -219,6 +245,7 @@ class EditListing extends EditRecord
     {
         try {
             $vendor = $this->record->vendor;
+
             if (! $vendor) {
                 return;
             }
@@ -226,6 +253,7 @@ class EditListing extends EditRecord
             $listingTitle = $this->record->getTranslation('title', 'en')
                 ?: $this->record->getTranslation('title', 'fr')
                 ?: 'Untitled';
+
             if (is_array($listingTitle)) {
                 $listingTitle = reset($listingTitle) ?: 'Untitled';
             }
@@ -260,6 +288,7 @@ class EditListing extends EditRecord
     {
         try {
             $vendor = $this->record->vendor;
+
             if (! $vendor) {
                 return;
             }
@@ -267,6 +296,7 @@ class EditListing extends EditRecord
             $listingTitle = $this->record->getTranslation('title', 'en')
                 ?: $this->record->getTranslation('title', 'fr')
                 ?: 'Untitled';
+
             if (is_array($listingTitle)) {
                 $listingTitle = reset($listingTitle) ?: 'Untitled';
             }

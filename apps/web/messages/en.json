@@ -495,6 +495,8 @@
     },
     "available_capacity": "Available Capacity",
     "spots_remaining": "spots remaining",
+    "traveler_count_label": "Number of travelers",
+    "group_of": "Group of {count}",
     "only_x_spots_left": "Only {count} spots left!",
     "time_slot_capacity": "Time Slot Capacity",
     "booking_failed": "Booking Failed",

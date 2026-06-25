@@ -347,6 +347,29 @@ export const personTypeSchema = z.object({
 // Pricing model determines how prices are calculated
 export const pricingModelSchema = z.enum(['per_person', 'per_night', 'per_booking']);
 
+/**
+ * Pricing strategy. 'flat' (default) = the classic per-person-type pricing.
+ * 'tiered' = the listing keeps its normal per-person-type pricing AND adds
+ * OPTIONAL group-discount totals for group sizes 2–5. A single traveller, any
+ * group size with no discount set, and groups of 6+ use the normal per-person
+ * pricing; a set size 2–5 uses its flat group total instead. Absent === 'flat'
+ * (zero-regression default).
+ */
+export const pricingStrategySchema = z.enum(['flat', 'tiered']);
+
+/**
+ * One optional group-discount row: the FULL price for a group of `groupSize`
+ * (2–5) travellers, entered independently per currency. Overrides the per-person
+ * sum for that exact headcount. `displayTotal` is the server-computed value in
+ * the user's detected currency.
+ */
+export const pricingTierSchema = z.object({
+  groupSize: z.number().int().min(2).max(5),
+  tndTotal: z.number().nonnegative(),
+  eurTotal: z.number().nonnegative(),
+  displayTotal: z.number().nonnegative().optional(),
+});
+
 export const pricingSchema = z.object({
   // Pricing model - determines calculation method
   pricingModel: pricingModelSchema.optional().default('per_person'),
@@ -385,6 +408,10 @@ export const pricingSchema = z.object({
     })
     .nullable()
     .optional(),
+
+  // Tiered group discounts (optional overlay on per-person pricing; absent === 'flat').
+  pricingStrategy: pricingStrategySchema.optional().default('flat'),
+  tiers: z.array(pricingTierSchema).max(4).optional(),
 });
 
 export const cancellationPolicySchema = z.object({
@@ -1532,6 +1559,8 @@ export type BookingHold = z.infer<typeof bookingHoldSchema>;
 export type AccommodationDateSelection = z.infer<typeof accommodationDateSelectionSchema>;
 export type CreateAccommodationHoldRequest = z.infer<typeof createAccommodationHoldRequestSchema>;
 export type PricingModel = z.infer<typeof pricingModelSchema>;
+export type PricingStrategy = z.infer<typeof pricingStrategySchema>;
+export type PricingTier = z.infer<typeof pricingTierSchema>;
 
 export type BookingStatus = z.infer<typeof bookingStatusSchema>;
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
@@ -2140,6 +2169,18 @@ export const pageSchema = z.object({
   id: z.number(),
   code: z.string().nullable(),
   slug: z.string(),
+  // Per-locale slug map. Used by the LocaleSwitcher to navigate to the
+  // translated URL on /pages/* routes (instead of reusing the current slug
+  // under a different locale prefix and 404'ing).
+  slugs: z
+    .object({
+      en: z.string().nullable(),
+      fr: z.string().nullable(),
+    })
+    .optional(),
+  // Set by the API when the request slug did not match the requested locale's
+  // slug. The frontend page route 301-redirects to this canonical slug.
+  canonicalSlug: z.string().nullable().optional(),
   title: z.string(),
   intro: z.string().nullable(),
 

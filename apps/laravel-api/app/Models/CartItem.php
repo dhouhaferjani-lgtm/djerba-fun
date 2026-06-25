@@ -90,6 +90,7 @@ class CartItem extends Model
         }
 
         // Use PriceCalculationService when listing is available for accurate per-type pricing.
+        // For tiered listings this also applies the optional group-discount overlay (sizes 2-5).
         // Pass the slot when the cart item is tied to one so per-slot price overrides apply
         // — without it, calculateTotal silently falls back to listing.pricing and the user
         // sees the listing default at checkout for an overridden slot.

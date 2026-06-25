@@ -25,7 +25,8 @@ class BookingService
     public function __construct(
         private readonly ExtrasService $extrasService,
         private readonly EmailLogService $emailLogService,
-        private readonly CouponService $couponService
+        private readonly CouponService $couponService,
+        private readonly PriceCalculationService $priceCalculationService
     ) {}
 
     /**
@@ -319,8 +320,10 @@ class BookingService
         // Notify vendor of new confirmed booking
         try {
             $vendor = $booking->listing?->vendor;
+
             if ($vendor) {
                 $listingTitle = $booking->listing->getTranslation('title', 'en') ?: $booking->listing->getTranslation('title', 'fr') ?: 'Untitled';
+
                 if (is_array($listingTitle)) {
                     $listingTitle = reset($listingTitle) ?: 'Untitled';
                 }
@@ -377,8 +380,10 @@ class BookingService
         // Notify vendor of booking cancellation
         try {
             $vendor = $booking->listing?->vendor;
+
             if ($vendor) {
                 $listingTitle = $booking->listing->getTranslation('title', 'en') ?: $booking->listing->getTranslation('title', 'fr') ?: 'Untitled';
+
                 if (is_array($listingTitle)) {
                     $listingTitle = reset($listingTitle) ?: 'Untitled';
                 }
@@ -500,6 +505,19 @@ class BookingService
                 ?? $listing?->pricing['eur_price']
                 ?? 0);
             $baseAmount = $pricePerUnit * $hold->quantity;
+        }
+
+        // Tiered overlay: an optional group-discount total for an exact headcount
+        // (sizes 2-5) replaces the normal per-type base computed above.
+        if ($listing && $this->priceCalculationService->isTieredPricing($listing)) {
+            $headcount = ! empty($personTypeBreakdown)
+                ? (int) array_sum(array_map('intval', $personTypeBreakdown))
+                : (int) $hold->quantity;
+            $groupTotal = $this->priceCalculationService->groupDiscountTotal($listing, $headcount, $hold->currency);
+
+            if ($groupTotal !== null) {
+                $baseAmount = $groupTotal;
+            }
         }
 
         $extrasAmount = 0;
@@ -691,6 +709,11 @@ class BookingService
         $currencyChanged = $browseCurrency !== $finalCurrency;
         $priceChanged = $currencyChanged;
 
+        // Capture the pricing strategy (and tier table for tiered listings) so a
+        // later vendor edit cannot retroactively change what this customer paid.
+        $listing = $hold->slot?->listing;
+        $isTiered = $listing && $this->priceCalculationService->isTieredPricing($listing);
+
         return [
             'browse_currency' => $browseCurrency,
             'browse_price' => $hold->price_snapshot,
@@ -700,6 +723,8 @@ class BookingService
             'final_price' => $finalPricing['total'],
             'final_country' => $billingCountry ?? $browseCountry,
             'price_changed' => $priceChanged,
+            'pricing_strategy' => $isTiered ? 'tiered' : 'flat',
+            'tiers' => $isTiered ? ($listing->pricing['tiers'] ?? null) : null,
             'timestamp' => now()->toIso8601String(),
         ];
     }

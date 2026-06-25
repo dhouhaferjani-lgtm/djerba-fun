@@ -62,7 +62,6 @@ class PriceCalculationService
             ? $slot->getEffectivePersonTypePrices($currency, $personTypes)
             : null;
 
-
         // Validate and calculate pricing for each person type in the breakdown
         foreach ($breakdown as $typeKey => $quantity) {
             if ($quantity <= 0) {
@@ -107,12 +106,25 @@ class PriceCalculationService
 
         // Apply group discount if applicable
         $discount = $this->calculateGroupDiscount($listing, $totalGuests, $subtotal);
+        $total = max(0, $subtotal - $discount);
+
+        // Tiered overlay: greedy "circle" packing of the optional group-discount
+        // prices (sizes 2-5) replaces the per-type total when at least one group
+        // bundle applies. Individual bookings (below the smallest group) keep the
+        // normal per-type pricing computed above.
+        $groupTotal = $this->groupDiscountTotal($listing, $totalGuests, $currency);
+
+        if ($groupTotal !== null) {
+            $subtotal = $groupTotal;
+            $discount = 0.0;
+            $total = $groupTotal;
+        }
 
         return [
             'breakdown' => $details,
             'subtotal' => $subtotal,
             'discount' => $discount,
-            'total' => max(0, $subtotal - $discount),
+            'total' => $total,
             'currency' => $currency,
             'totalGuests' => $totalGuests,
         ];
@@ -158,6 +170,7 @@ class PriceCalculationService
         ) {
             $effective = $slot->getEffectivePersonTypePrices($currency, $pricing['person_types']);
             $firstKey = $pricing['person_types'][0]['key'] ?? null;
+
             if ($firstKey !== null && array_key_exists($firstKey, $effective)) {
                 $basePrice = (float) $effective[$firstKey];
             }
@@ -165,13 +178,147 @@ class PriceCalculationService
 
         $subtotal = $basePrice * $quantity;
         $discount = $this->calculateGroupDiscount($listing, $quantity, $subtotal);
+        $total = max(0, $subtotal - $discount);
+
+        // Tiered overlay (see calculateTotal): greedy packing of group prices.
+        $groupTotal = $this->groupDiscountTotal($listing, $quantity, $currency);
+
+        if ($groupTotal !== null) {
+            $subtotal = $groupTotal;
+            $discount = 0.0;
+            $total = $groupTotal;
+        }
 
         return [
             'subtotal' => $subtotal,
             'discount' => $discount,
-            'total' => max(0, $subtotal - $discount),
+            'total' => $total,
             'currency' => $currency,
         ];
+    }
+
+    /**
+     * Resolve the optional group-discount total for a headcount via greedy
+     * "circle" packing.
+     *
+     * Tiered listings may set a flat total for group sizes 2-5. For a headcount,
+     * we repeatedly apply the LARGEST configured group price that fits, let the
+     * remainder cycle back through the group prices, and charge any final
+     * leftover (smaller than the smallest configured group) as individuals at
+     * the base per-person rate.
+     *
+     * Returns the packed total, or null to signal "use normal per-person-type
+     * pricing" — which happens when the listing is not tiered, has no group
+     * tiers, or the headcount is smaller than the smallest configured group
+     * (a genuinely individual booking, where adult/child rates still apply).
+     *
+     * Examples (per-person 50, groups {2:90, 3:130}):
+     *   1->null(50)  2->90  3->130  4->130+50  5->130+90  6->130+130  7->130+130+50
+     */
+    public function groupDiscountTotal(Listing $listing, int $headcount, ?string $currency = null): ?float
+    {
+        if (! $this->isTieredPricing($listing) || $headcount < 1) {
+            return null;
+        }
+
+        $pricing = $listing->pricing ?? [];
+
+        if (! $currency) {
+            $currency = $pricing['currency'] ?? 'EUR';
+        }
+
+        $totals = $this->getGroupTierTotals($pricing, $currency); // [size => total], sizes 2-5
+
+        if (empty($totals)) {
+            return null;
+        }
+
+        $sizes = array_keys($totals);
+        rsort($sizes); // largest first
+        $smallest = min($sizes);
+
+        // Below the smallest configured group -> no bundle applies, keep normal
+        // per-person-type pricing (so adult vs child is respected for individuals).
+        if ($headcount < $smallest) {
+            return null;
+        }
+
+        // Greedy packing: largest group that fits, remainder cycles through the
+        // group prices, final leftover charged as individuals.
+        $remaining = $headcount;
+        $total = 0.0;
+
+        while ($remaining >= $smallest) {
+            foreach ($sizes as $size) {
+                if ($size <= $remaining) {
+                    $total += $totals[$size];
+                    $remaining -= $size;
+
+                    break;
+                }
+            }
+        }
+
+        if ($remaining > 0) {
+            $total += $remaining * $this->getPriceForCurrency($pricing, $currency);
+        }
+
+        return $total;
+    }
+
+    /**
+     * Whether the listing uses the optional tiered pricing strategy.
+     * Absent / any non-'tiered' value === flat (the zero-regression default).
+     */
+    public function isTieredPricing(Listing $listing): bool
+    {
+        $pricing = $listing->pricing ?? [];
+        $strategy = $pricing['pricing_strategy'] ?? $pricing['pricingStrategy'] ?? 'flat';
+
+        return $strategy === 'tiered';
+    }
+
+    /**
+     * Resolve group-discount totals keyed by group size (2-5) for a currency.
+     * Reads each tier's `group_size` (snake) / `groupSize` (camel) and the
+     * matching `*_total` value. Sizes outside 2-5 or with no value are skipped.
+     * Supports snake_case (DB) and camelCase (API) keys.
+     */
+    private function getGroupTierTotals(array $pricing, string $currency): array
+    {
+        $tiers = $pricing['tiers'] ?? [];
+
+        if (! is_array($tiers)) {
+            return [];
+        }
+
+        $isTnd = strtoupper($currency) === 'TND';
+        $snakeKey = $isTnd ? 'tnd_total' : 'eur_total';
+        $camelKey = $isTnd ? 'tndTotal' : 'eurTotal';
+
+        $totals = [];
+
+        foreach ($tiers as $tier) {
+            if (! is_array($tier)) {
+                continue;
+            }
+
+            $size = (int) ($tier['group_size'] ?? $tier['groupSize'] ?? 0);
+
+            if ($size < 2 || $size > 5) {
+                continue;
+            }
+
+            $value = $tier[$snakeKey] ?? $tier[$camelKey] ?? null;
+
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $totals[$size] = (float) $value;
+        }
+
+        return $totals;
     }
 
     /**
@@ -257,9 +404,11 @@ class PriceCalculationService
         // Handle person_types pricing structure (new format)
         if (isset($pricing['person_types']) && ! empty($pricing['person_types'])) {
             $firstType = $pricing['person_types'][0] ?? [];
+
             if ($currency === 'TND' && isset($firstType['tnd_price'])) {
                 return (float) $firstType['tnd_price'];
             }
+
             if ($currency === 'EUR' && isset($firstType['eur_price'])) {
                 return (float) $firstType['eur_price'];
             }

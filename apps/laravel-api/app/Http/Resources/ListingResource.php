@@ -179,6 +179,7 @@ class ListingResource extends BaseResource
         // Auto-detect accommodation service type and force per_night pricing model
         // This safeguards against listings where pricing_model wasn't set correctly
         $pricingModel = $this->pricing_model;
+
         if (! $pricingModel || ($this->isAccommodation() && $pricingModel !== 'per_night')) {
             $pricingModel = $this->isAccommodation() ? 'per_night' : 'per_person';
         }
@@ -195,12 +196,46 @@ class ListingResource extends BaseResource
             $eurPrice = $nightlyPriceEur;
         }
 
+        // Tiered = normal per-person-type pricing PLUS optional group-discount
+        // totals for sizes 2-5. The headline "from" price stays the normal
+        // person-type price computed above; we just expose the group tiers.
+        $pricingStrategy = $pricing['pricing_strategy'] ?? $pricing['pricingStrategy'] ?? 'flat';
+        $tiers = null;
+
+        if ($pricingStrategy === 'tiered' && ! empty($pricing['tiers']) && is_array($pricing['tiers'])) {
+            $tiers = [];
+
+            foreach (array_filter($pricing['tiers'], 'is_array') as $row) {
+                $size = (int) ($row['group_size'] ?? $row['groupSize'] ?? 0);
+
+                if ($size < 2 || $size > 5) {
+                    continue;
+                }
+
+                $tndTotal = (float) ($row['tnd_total'] ?? $row['tndTotal'] ?? 0);
+                $eurTotal = (float) ($row['eur_total'] ?? $row['eurTotal'] ?? 0);
+
+                $tiers[] = $this->toCamelCase([
+                    'group_size' => $size,
+                    'tnd_total' => $tndTotal,
+                    'eur_total' => $eurTotal,
+                    'display_total' => $detectedCurrency === 'TND' ? $tndTotal : $eurTotal,
+                ]);
+            }
+
+            if ($tiers === []) {
+                $tiers = null;
+            }
+        }
+
         // Optional vendor-supplied suffix (e.g. "par jetski") that overrides
         // the default per-person/per-night label on the public site.
         $unitLabel = PricingUnitLabel::toArray($pricing);
 
         return $this->toCamelCase([
             'pricing_model' => $pricingModel,
+            'pricing_strategy' => $pricingStrategy,
+            'tiers' => $tiers,
             'unit_label' => $unitLabel,
             'tnd_price' => $tndPrice,
             'eur_price' => $eurPrice,

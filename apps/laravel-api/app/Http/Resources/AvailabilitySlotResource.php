@@ -91,10 +91,12 @@ class AvailabilitySlotResource extends JsonResource
     protected function getDisplayPrice(Request $request, $listing, array $effectivePrices): float
     {
         $currency = $request->attributes->get('user_currency', 'EUR');
+
         $effectiveForCurrency = $effectivePrices[$currency] ?? [];
 
         if (! empty($effectiveForCurrency)) {
             $firstKey = array_key_first($effectiveForCurrency);
+
             if ($firstKey !== null) {
                 return (float) $effectiveForCurrency[$firstKey];
             }

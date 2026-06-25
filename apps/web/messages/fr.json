@@ -470,6 +470,8 @@
     },
     "available_capacity": "Capacité Disponible",
     "spots_remaining": "places restantes",
+    "traveler_count_label": "Nombre de voyageurs",
+    "group_of": "Groupe de {count}",
     "only_x_spots_left": "Seulement {count} places restantes !",
     "time_slot_capacity": "Capacité du Créneau",
     "booking_failed": "Réservation Échouée",
